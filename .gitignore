@@ -1,3 +1,10 @@
+*.bak
+eo-phi-normalizer/src/Language/EO/Phi/Syntax/Lex.hs
+eo-phi-normalizer/src/Language/EO/Phi/Syntax/Par.hs
+eo-phi-normalizer/src/Language/EO/Phi/Syntax/ErrM.hs
+eo-phi-normalizer/src/Language/EO/Phi/Syntax/Skel.hs
+eo-phi-normalizer/src/Language/EO/Phi/Syntax/Test.hs
+eo-phi-normalizer/src/Language/EO/Phi/Syntax/Test
 .cache/
 .DS_Store
 dist
