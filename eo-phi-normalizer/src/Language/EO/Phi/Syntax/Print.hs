@@ -178,3 +178,23 @@ instance Print Language.EO.Phi.Syntax.Abs.Attribute where
     Language.EO.Phi.Syntax.Abs.VTX -> prPrec i 0 (concatD [doc (showString "\957")])
     Language.EO.Phi.Syntax.Abs.Label labelid -> prPrec i 0 (concatD [prt 0 labelid])
     Language.EO.Phi.Syntax.Abs.Alpha alphaindex -> prPrec i 0 (concatD [prt 0 alphaindex])
+
+instance Print Language.EO.Phi.Syntax.Abs.PeeledObject where
+  prt i = \case
+    Language.EO.Phi.Syntax.Abs.PeeledObject objecthead objectactions -> prPrec i 0 (concatD [prt 0 objecthead, prt 0 objectactions])
+
+instance Print Language.EO.Phi.Syntax.Abs.ObjectHead where
+  prt i = \case
+    Language.EO.Phi.Syntax.Abs.HeadFormation bindings -> prPrec i 0 (concatD [doc (showString "{"), prt 0 bindings, doc (showString "}")])
+    Language.EO.Phi.Syntax.Abs.HeadGlobal -> prPrec i 0 (concatD [doc (showString "\934")])
+    Language.EO.Phi.Syntax.Abs.HeadThis -> prPrec i 0 (concatD [doc (showString "\958")])
+    Language.EO.Phi.Syntax.Abs.HeadTermination -> prPrec i 0 (concatD [doc (showString "\8869")])
+
+instance Print Language.EO.Phi.Syntax.Abs.ObjectAction where
+  prt i = \case
+    Language.EO.Phi.Syntax.Abs.ActionApplication bindings -> prPrec i 0 (concatD [doc (showString "{"), prt 0 bindings, doc (showString "}")])
+    Language.EO.Phi.Syntax.Abs.ActionDispatch attribute -> prPrec i 0 (concatD [doc (showString "."), prt 0 attribute])
+
+instance Print [Language.EO.Phi.Syntax.Abs.ObjectAction] where
+  prt _ [] = concatD []
+  prt _ (x:xs) = concatD [prt 0 x, prt 0 xs]

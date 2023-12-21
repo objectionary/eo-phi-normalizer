@@ -13,6 +13,10 @@ module Language.EO.Phi.Syntax.Par
   , pBinding
   , pListBinding
   , pAttribute
+  , pPeeledObject
+  , pObjectHead
+  , pObjectAction
+  , pListObjectAction
   ) where
 
 import Prelude
@@ -27,6 +31,10 @@ import Language.EO.Phi.Syntax.Lex
 %name pBinding Binding
 %name pListBinding ListBinding
 %name pAttribute Attribute
+%name pPeeledObject PeeledObject
+%name pObjectHead ObjectHead
+%name pObjectAction ObjectAction
+%name pListObjectAction ListObjectAction
 -- no lexer declaration
 %monad { Err } { (>>=) } { return }
 %tokentype {Token}
@@ -100,6 +108,26 @@ Attribute
   | 'ν' { Language.EO.Phi.Syntax.Abs.VTX }
   | LabelId { Language.EO.Phi.Syntax.Abs.Label $1 }
   | AlphaIndex { Language.EO.Phi.Syntax.Abs.Alpha $1 }
+
+PeeledObject :: { Language.EO.Phi.Syntax.Abs.PeeledObject }
+PeeledObject
+  : ObjectHead ListObjectAction { Language.EO.Phi.Syntax.Abs.PeeledObject $1 $2 }
+
+ObjectHead :: { Language.EO.Phi.Syntax.Abs.ObjectHead }
+ObjectHead
+  : '{' ListBinding '}' { Language.EO.Phi.Syntax.Abs.HeadFormation $2 }
+  | 'Φ' { Language.EO.Phi.Syntax.Abs.HeadGlobal }
+  | 'ξ' { Language.EO.Phi.Syntax.Abs.HeadThis }
+  | '⊥' { Language.EO.Phi.Syntax.Abs.HeadTermination }
+
+ObjectAction :: { Language.EO.Phi.Syntax.Abs.ObjectAction }
+ObjectAction
+  : '{' ListBinding '}' { Language.EO.Phi.Syntax.Abs.ActionApplication $2 }
+  | '.' Attribute { Language.EO.Phi.Syntax.Abs.ActionDispatch $2 }
+
+ListObjectAction :: { [Language.EO.Phi.Syntax.Abs.ObjectAction] }
+ListObjectAction
+  : {- empty -} { [] } | ObjectAction ListObjectAction { (:) $1 $2 }
 
 {
 

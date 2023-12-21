@@ -30,3 +30,14 @@ Sigma.  Attribute ::= "σ" ;   -- home object
 VTX.    Attribute ::= "ν" ;   -- ???
 Label.  Attribute ::= LabelId ;
 Alpha.  Attribute ::= AlphaIndex ;
+
+PeeledObject. PeeledObject ::= ObjectHead [ObjectAction] ;
+
+HeadFormation.    ObjectHead ::= "{" [Binding] "}" ;
+HeadGlobal.       ObjectHead ::= "Φ" ;
+HeadThis.         ObjectHead ::= "ξ" ;
+HeadTermination.  ObjectHead ::= "⊥" ;
+
+ActionApplication.  ObjectAction ::= "{" [Binding] "}" ;
+ActionDispatch.     ObjectAction ::= "." Attribute ;
+separator ObjectAction "" ;

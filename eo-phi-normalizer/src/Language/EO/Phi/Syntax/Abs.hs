@@ -38,6 +38,17 @@ data Attribute
     = Phi | Rho | Sigma | VTX | Label LabelId | Alpha AlphaIndex
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
+data PeeledObject = PeeledObject ObjectHead [ObjectAction]
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
+data ObjectHead
+    = HeadFormation [Binding] | HeadGlobal | HeadThis | HeadTermination
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
+data ObjectAction
+    = ActionApplication [Binding] | ActionDispatch Attribute
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
 newtype Bytes = Bytes String
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic, Data.String.IsString)
 

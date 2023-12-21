@@ -37,3 +37,34 @@ normalizeObjectWith Context{..} object =
     ThisDispatch a ->
       fromMaybe object (lookupBinding a thisObject)
     _ -> object
+
+-- | Split compound object into its head and applications/dispatch actions.
+peelObject :: Object -> PeeledObject
+peelObject = \case
+  Formation bindings -> PeeledObject (HeadFormation bindings) []
+  Application object bindings -> peelObject object `followedBy` ActionApplication bindings
+  ObjectDispatch object attr -> peelObject object `followedBy` ActionDispatch attr
+  GlobalDispatch attr -> PeeledObject HeadGlobal [ActionDispatch attr]
+  ThisDispatch attr -> PeeledObject HeadThis [ActionDispatch attr]
+  Termination -> PeeledObject HeadTermination []
+  where
+    followedBy (PeeledObject object actions) action = PeeledObject object (actions ++ [action])
+
+unpeelObject :: PeeledObject -> Object
+unpeelObject (PeeledObject head_ actions) =
+  case head_ of
+    HeadFormation bindings -> go (Formation bindings) actions
+    HeadGlobal ->
+      case actions of
+        ActionDispatch a : as -> go (GlobalDispatch a) as
+        _ -> error "impossible: global object without dispatch!"
+    HeadThis ->
+      case actions of
+        ActionDispatch a : as -> go (ThisDispatch a) as
+        _ -> error "impossible: this object without dispatch!"
+    HeadTermination -> go Termination actions
+  where
+    go = foldl applyAction
+    applyAction object = \case
+      ActionDispatch attr -> ObjectDispatch object attr
+      ActionApplication bindings -> Application object bindings

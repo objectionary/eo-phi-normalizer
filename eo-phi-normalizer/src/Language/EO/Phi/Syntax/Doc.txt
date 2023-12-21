@@ -71,6 +71,15 @@ All other symbols are terminals.
   |  |  **|**  | ``ν``
   |  |  **|**  | //LabelId//
   |  |  **|**  | //AlphaIndex//
+  | //PeeledObject// | -> | //ObjectHead// //[ObjectAction]//
+  | //ObjectHead// | -> | ``{`` //[Binding]// ``}``
+  |  |  **|**  | ``Φ``
+  |  |  **|**  | ``ξ``
+  |  |  **|**  | ``⊥``
+  | //ObjectAction// | -> | ``{`` //[Binding]// ``}``
+  |  |  **|**  | ``.`` //Attribute//
+  | //[ObjectAction]// | -> | **eps**
+  |  |  **|**  | //ObjectAction// //[ObjectAction]//
 
 
 
