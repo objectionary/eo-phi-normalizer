@@ -1,26 +1,22 @@
+{-# LANGUAGE RecordWildCards #-}
 module Language.EO.PhiSpec where
 
-import           Test.Hspec
+import Test.Hspec
+import Control.Monad (forM_)
+import Data.List (dropWhileEnd)
+import Data.Char (isSpace)
+
 import qualified Language.EO.Phi as Phi
-
-unsafeParseProgramFromFile :: FilePath -> IO Phi.Program
-unsafeParseProgramFromFile path =
-  Phi.unsafeParseProgram <$> readFile path
-
-normalizesTo :: FilePath -> FilePath -> Expectation
-normalizesTo beforePath afterPath = do
-  beforeProgram <- unsafeParseProgramFromFile beforePath
-  afterProgram <- unsafeParseProgramFromFile afterPath
-  Phi.normalize beforeProgram `shouldBe` afterProgram
-
-normalizesCorrectly :: FilePath -> Expectation
-normalizesCorrectly baseName = beforePath `normalizesTo` afterPath
-  where
-    beforePath = "test/eo/phi/" <> baseName
-    afterPath  = "test/eo/phi/" <> baseName <> ".normalized"
+import Test.EO.Phi
 
 spec :: Spec
 spec = do
+  tests <- runIO (allPhiTests "test/eo/phi/")
   describe "Normalizer" $ do
-    it "Normalizes static attribute references" $ do
-      normalizesCorrectly "test.phi"
+    forM_ tests $ \PhiTest{..} -> do
+      it name $ do
+        Phi.printTree (Phi.normalize input) `shouldBe` Phi.printTree normalized
+  describe "Prettify" $ do
+    forM_ tests $ \PhiTest{..} -> do
+      it name $ do
+        Phi.printTree input `shouldBe` dropWhileEnd isSpace prettified
