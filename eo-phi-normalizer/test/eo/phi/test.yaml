@@ -1,0 +1,12 @@
+input: |
+  { φ ↦ {   } , a ↦ ξ.a }
+normalized: |
+  {
+    φ ↦ {},
+    a ↦ {}
+  }
+prettified: |
+  {
+    φ ↦ {},
+    a ↦ ξ.a
+  }

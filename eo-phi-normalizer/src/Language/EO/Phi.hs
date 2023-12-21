@@ -57,4 +57,4 @@ defaultMain = do
       putStrLn parseError
       exitFailure
     Right program -> do
-      putStrLn (printTree program)
+      putStrLn (printTree (normalize program))
