@@ -145,34 +145,36 @@ instance Print Language.EO.Phi.Syntax.Abs.LabelId where
   prt _ (Language.EO.Phi.Syntax.Abs.LabelId i) = doc $ showString i
 instance Print Language.EO.Phi.Syntax.Abs.AlphaIndex where
   prt _ (Language.EO.Phi.Syntax.Abs.AlphaIndex i) = doc $ showString i
-instance Print (Language.EO.Phi.Syntax.Abs.Program' a) where
+instance Print Language.EO.Phi.Syntax.Abs.Program where
   prt i = \case
-    Language.EO.Phi.Syntax.Abs.Program _ bindings -> prPrec i 0 (concatD [doc (showString "{"), prt 0 bindings, doc (showString "}")])
+    Language.EO.Phi.Syntax.Abs.Program bindings -> prPrec i 0 (concatD [doc (showString "{"), prt 0 bindings, doc (showString "}")])
 
-instance Print (Language.EO.Phi.Syntax.Abs.Object' a) where
+instance Print Language.EO.Phi.Syntax.Abs.Object where
   prt i = \case
-    Language.EO.Phi.Syntax.Abs.Formation _ bindings -> prPrec i 0 (concatD [doc (showString "{"), prt 0 bindings, doc (showString "}")])
-    Language.EO.Phi.Syntax.Abs.Application _ object bindings -> prPrec i 0 (concatD [prt 0 object, doc (showString "{"), prt 0 bindings, doc (showString "}")])
-    Language.EO.Phi.Syntax.Abs.Dispatch _ object attribute -> prPrec i 0 (concatD [prt 0 object, doc (showString "."), prt 0 attribute])
-    Language.EO.Phi.Syntax.Abs.Termination _ -> prPrec i 0 (concatD [doc (showString "\8869")])
+    Language.EO.Phi.Syntax.Abs.Formation bindings -> prPrec i 0 (concatD [doc (showString "{"), prt 0 bindings, doc (showString "}")])
+    Language.EO.Phi.Syntax.Abs.Application object bindings -> prPrec i 0 (concatD [prt 0 object, doc (showString "{"), prt 0 bindings, doc (showString "}")])
+    Language.EO.Phi.Syntax.Abs.ObjectDispatch object attribute -> prPrec i 0 (concatD [prt 0 object, doc (showString "."), prt 0 attribute])
+    Language.EO.Phi.Syntax.Abs.GlobalDispatch attribute -> prPrec i 0 (concatD [doc (showString "\934"), doc (showString "."), prt 0 attribute])
+    Language.EO.Phi.Syntax.Abs.ThisDispatch attribute -> prPrec i 0 (concatD [doc (showString "\958"), doc (showString "."), prt 0 attribute])
+    Language.EO.Phi.Syntax.Abs.Termination -> prPrec i 0 (concatD [doc (showString "\8869")])
 
-instance Print (Language.EO.Phi.Syntax.Abs.Binding' a) where
+instance Print Language.EO.Phi.Syntax.Abs.Binding where
   prt i = \case
-    Language.EO.Phi.Syntax.Abs.AlphaBinding _ attribute object -> prPrec i 0 (concatD [prt 0 attribute, doc (showString "\8614"), prt 0 object])
-    Language.EO.Phi.Syntax.Abs.EmptyBinding _ attribute -> prPrec i 0 (concatD [prt 0 attribute, doc (showString "\8614"), doc (showString "\8709")])
-    Language.EO.Phi.Syntax.Abs.DeltaBinding _ bytes -> prPrec i 0 (concatD [doc (showString "\916"), doc (showString "\10509"), prt 0 bytes])
-    Language.EO.Phi.Syntax.Abs.LambdaBinding _ function -> prPrec i 0 (concatD [doc (showString "\955"), doc (showString "\10509"), prt 0 function])
+    Language.EO.Phi.Syntax.Abs.AlphaBinding attribute object -> prPrec i 0 (concatD [prt 0 attribute, doc (showString "\8614"), prt 0 object])
+    Language.EO.Phi.Syntax.Abs.EmptyBinding attribute -> prPrec i 0 (concatD [prt 0 attribute, doc (showString "\8614"), doc (showString "\8709")])
+    Language.EO.Phi.Syntax.Abs.DeltaBinding bytes -> prPrec i 0 (concatD [doc (showString "\916"), doc (showString "\10509"), prt 0 bytes])
+    Language.EO.Phi.Syntax.Abs.LambdaBinding function -> prPrec i 0 (concatD [doc (showString "\955"), doc (showString "\10509"), prt 0 function])
 
-instance Print [Language.EO.Phi.Syntax.Abs.Binding' a] where
+instance Print [Language.EO.Phi.Syntax.Abs.Binding] where
   prt _ [] = concatD []
   prt _ [x] = concatD [prt 0 x]
   prt _ (x:xs) = concatD [prt 0 x, doc (showString ","), prt 0 xs]
 
-instance Print (Language.EO.Phi.Syntax.Abs.Attribute' a) where
+instance Print Language.EO.Phi.Syntax.Abs.Attribute where
   prt i = \case
-    Language.EO.Phi.Syntax.Abs.Phi _ -> prPrec i 0 (concatD [doc (showString "\966")])
-    Language.EO.Phi.Syntax.Abs.Rho _ -> prPrec i 0 (concatD [doc (showString "\961")])
-    Language.EO.Phi.Syntax.Abs.Sigma _ -> prPrec i 0 (concatD [doc (showString "\963")])
-    Language.EO.Phi.Syntax.Abs.VTX _ -> prPrec i 0 (concatD [doc (showString "\957")])
-    Language.EO.Phi.Syntax.Abs.Label _ labelid -> prPrec i 0 (concatD [prt 0 labelid])
-    Language.EO.Phi.Syntax.Abs.Alpha _ alphaindex -> prPrec i 0 (concatD [prt 0 alphaindex])
+    Language.EO.Phi.Syntax.Abs.Phi -> prPrec i 0 (concatD [doc (showString "\966")])
+    Language.EO.Phi.Syntax.Abs.Rho -> prPrec i 0 (concatD [doc (showString "\961")])
+    Language.EO.Phi.Syntax.Abs.Sigma -> prPrec i 0 (concatD [doc (showString "\963")])
+    Language.EO.Phi.Syntax.Abs.VTX -> prPrec i 0 (concatD [doc (showString "\957")])
+    Language.EO.Phi.Syntax.Abs.Label labelid -> prPrec i 0 (concatD [prt 0 labelid])
+    Language.EO.Phi.Syntax.Abs.Alpha alphaindex -> prPrec i 0 (concatD [prt 0 alphaindex])

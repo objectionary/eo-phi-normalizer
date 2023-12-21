@@ -34,7 +34,7 @@ Bindings. Bindings ::= "{" [Binding] "}" ;
 separator Bindings "" ;
 
 ObjectDispatch. Dispatch ::= DispatchedObject [Bindings] "." [Attribute] [Disp] ;
-HomeDispatch.   Dispatch ::= "Φ" "." [Attribute] [Disp] ;
+GlobalDispatch. Dispatch ::= "Φ" "." [Attribute] [Disp] ;
 ThisDispatch.   Dispatch ::= "ξ" "." [Attribute] [Disp] ;
 
 Phi.    Attribute ::= "φ" ;   -- decoratee object

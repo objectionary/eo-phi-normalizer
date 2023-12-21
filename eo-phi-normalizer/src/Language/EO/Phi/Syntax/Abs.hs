@@ -2,56 +2,41 @@
 
 {-# LANGUAGE DeriveDataTypeable #-}
 {-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE DeriveTraversable #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE PatternSynonyms #-}
 
 -- | The abstract syntax of language Syntax.
 
 module Language.EO.Phi.Syntax.Abs where
 
 import Prelude (String)
-import qualified Prelude as C
-  ( Eq, Ord, Show, Read
-  , Functor, Foldable, Traversable
-  , Int, Maybe(..)
-  )
+import qualified Prelude as C (Eq, Ord, Show, Read)
 import qualified Data.String
 
 import qualified Data.Data    as C (Data, Typeable)
 import qualified GHC.Generics as C (Generic)
 
-type Program = Program' BNFC'Position
-data Program' a = Program a [Binding' a]
-  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable, C.Data, C.Typeable, C.Generic)
+data Program = Program [Binding]
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
-type Object = Object' BNFC'Position
-data Object' a
-    = Formation a [Binding' a]
-    | Application a (Object' a) [Binding' a]
-    | Dispatch a (Object' a) (Attribute' a)
-    | Termination a
-  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable, C.Data, C.Typeable, C.Generic)
+data Object
+    = Formation [Binding]
+    | Application Object [Binding]
+    | ObjectDispatch Object Attribute
+    | GlobalDispatch Attribute
+    | ThisDispatch Attribute
+    | Termination
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
-type Binding = Binding' BNFC'Position
-data Binding' a
-    = AlphaBinding a (Attribute' a) (Object' a)
-    | EmptyBinding a (Attribute' a)
-    | DeltaBinding a Bytes
-    | LambdaBinding a Function
-  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable, C.Data, C.Typeable, C.Generic)
+data Binding
+    = AlphaBinding Attribute Object
+    | EmptyBinding Attribute
+    | DeltaBinding Bytes
+    | LambdaBinding Function
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
-type Attribute = Attribute' BNFC'Position
-data Attribute' a
-    = Phi a
-    | Rho a
-    | Sigma a
-    | VTX a
-    | Label a LabelId
-    | Alpha a AlphaIndex
-  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable, C.Data, C.Typeable, C.Generic)
+data Attribute
+    = Phi | Rho | Sigma | VTX | Label LabelId | Alpha AlphaIndex
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 newtype Bytes = Bytes String
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic, Data.String.IsString)
@@ -64,46 +49,4 @@ newtype LabelId = LabelId String
 
 newtype AlphaIndex = AlphaIndex String
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic, Data.String.IsString)
-
--- | Start position (line, column) of something.
-
-type BNFC'Position = C.Maybe (C.Int, C.Int)
-
-pattern BNFC'NoPosition :: BNFC'Position
-pattern BNFC'NoPosition = C.Nothing
-
-pattern BNFC'Position :: C.Int -> C.Int -> BNFC'Position
-pattern BNFC'Position line col = C.Just (line, col)
-
--- | Get the start position of something.
-
-class HasPosition a where
-  hasPosition :: a -> BNFC'Position
-
-instance HasPosition Program where
-  hasPosition = \case
-    Program p _ -> p
-
-instance HasPosition Object where
-  hasPosition = \case
-    Formation p _ -> p
-    Application p _ _ -> p
-    Dispatch p _ _ -> p
-    Termination p -> p
-
-instance HasPosition Binding where
-  hasPosition = \case
-    AlphaBinding p _ _ -> p
-    EmptyBinding p _ -> p
-    DeltaBinding p _ -> p
-    LambdaBinding p _ -> p
-
-instance HasPosition Attribute where
-  hasPosition = \case
-    Phi p -> p
-    Rho p -> p
-    Sigma p -> p
-    VTX p -> p
-    Label p _ -> p
-    Alpha p _ -> p
 

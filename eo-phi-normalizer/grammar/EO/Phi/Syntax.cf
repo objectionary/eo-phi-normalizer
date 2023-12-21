@@ -2,8 +2,7 @@
 -- BNFC grammar for φ-programs (translated from EO)
 -- ==========================================================
 --
--- This grammar is a (manual) translation of Phi.g4 grammar from objectionary/eo:
--- https://github.com/objectionary/eo/blob/fa24c7cc47e1ac473fb930f3a08ccc4d88d9d1e3/eo-parser/src/main/antlr4/org/eolang/parser/Phi.g4
+-- This is a non-ambiguous grammar for φ-programs.
 
 token Bytes ({"--"} | ["0123456789ABCDEF"] ["0123456789ABCDEF"] ({"-"} ["0123456789ABCDEF"] ["0123456789ABCDEF"])* {"--"}) ;
 token Function upper (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
@@ -12,10 +11,12 @@ token AlphaIndex ({"α0"} | {"α"} (digit - ["0"]) (digit)* ) ;
 
 Program. Program ::= "{" [Binding] "}" ;
 
-Formation.    Object ::= "{" [Binding] "}" ;
-Application.  Object ::= Object "{" [Binding] "}" ;
-Dispatch.     Object ::= Object "." Attribute ;
-Termination.  Object ::= "⊥" ;
+Formation.      Object ::= "{" [Binding] "}" ;
+Application.    Object ::= Object "{" [Binding] "}" ;
+ObjectDispatch. Object ::= Object "." Attribute ;
+GlobalDispatch. Object ::= "Φ" "." Attribute ;
+ThisDispatch.   Object ::= "ξ" "." Attribute ;
+Termination.    Object ::= "⊥" ;
 
 AlphaBinding.   Binding ::= Attribute "↦" Object ;
 EmptyBinding.   Binding ::= Attribute "↦" "∅" ;
