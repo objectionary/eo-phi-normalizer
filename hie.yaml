@@ -1,0 +1,10 @@
+cradle:
+  stack:
+    - path: "eo-phi-normalizer/src"
+      component: "eo-phi-normalizer:lib"
+
+    - path: "eo-phi-normalizer/app/Main.hs"
+      component: "eo-phi-normalizer:exe:normalize-phi"
+
+    - path: "eo-phi-normalizer/test"
+      component: "eo-phi-normalizer:test:eo-phi-normalizer-test"
