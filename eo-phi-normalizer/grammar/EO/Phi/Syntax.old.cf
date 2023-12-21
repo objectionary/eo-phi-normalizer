@@ -13,9 +13,16 @@ token AlphaIndex ({"α0"} | {"α"} (digit - ["0"]) (digit)* ) ;
 Program. Program ::= "{" [Binding] "}" ;
 
 Formation.    Object ::= "{" [Binding] "}" ;
-Application.  Object ::= Object "{" [Binding] "}" ;
-Dispatch.     Object ::= Object "." Attribute ;
-Termination.  Object ::= "⊥" ;
+Application.  Object ::= AbstractObject "{" [Binding] "}" [Bindings] ;
+Dispatch.     Object ::= Dispatch ;
+Termination.  Object ::= "⊥";
+
+AbstractFormation.    AbstractObject ::= "{" [Binding] "}" ;
+AbstractDispatch.     AbstractObject ::= Dispatch ;
+AbstractTermination.  AbstractObject ::= "⊥" ;
+
+DispatchedFormation.    DispatchedObject ::= "{" [Binding] "}" ;
+DispatchedTermination.  DispatchedObject ::= "⊥" ;
 
 AlphaBinding.   Binding ::= Attribute "↦" Object ;
 EmptyBinding.   Binding ::= Attribute "↦" "∅" ;
@@ -23,9 +30,20 @@ DeltaBinding.   Binding ::= "Δ" "⤍" Bytes ;
 LambdaBinding.  Binding ::= "λ" "⤍" Function ;
 separator Binding "," ;
 
+Bindings. Bindings ::= "{" [Binding] "}" ;
+separator Bindings "" ;
+
+ObjectDispatch. Dispatch ::= DispatchedObject [Bindings] "." [Attribute] [Disp] ;
+HomeDispatch.   Dispatch ::= "Φ" "." [Attribute] [Disp] ;
+ThisDispatch.   Dispatch ::= "ξ" "." [Attribute] [Disp] ;
+
 Phi.    Attribute ::= "φ" ;   -- decoratee object
 Rho.    Attribute ::= "ρ" ;   -- parent object
-Sigma.  Attribute ::= "σ" ;   -- home object
+Sigma.  Attribute ::= "σ" ;   -- ???
 VTX.    Attribute ::= "ν" ;   -- ???
 Label.  Attribute ::= LabelId ;
 Alpha.  Attribute ::= AlphaIndex ;
+separator nonempty Attribute "." ;
+
+Disp. Disp ::= "{" [Binding] "}" Bindings "." [Attribute] ;
+separator Disp "" ;

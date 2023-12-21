@@ -30,21 +30,9 @@ data Program' a = Program a [Binding' a]
 type Object = Object' BNFC'Position
 data Object' a
     = Formation a [Binding' a]
-    | Application a (AbstractObject' a) [Binding' a] [Bindings' a]
-    | Dispatch a (Dispatch' a)
+    | Application a (Object' a) [Binding' a]
+    | Dispatch a (Object' a) (Attribute' a)
     | Termination a
-  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable, C.Data, C.Typeable, C.Generic)
-
-type AbstractObject = AbstractObject' BNFC'Position
-data AbstractObject' a
-    = AbstractFormation a [Binding' a]
-    | AbstractDispatch a (Dispatch' a)
-    | AbstractTermination a
-  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable, C.Data, C.Typeable, C.Generic)
-
-type DispatchedObject = DispatchedObject' BNFC'Position
-data DispatchedObject' a
-    = DispatchedFormation a [Binding' a] | DispatchedTermination a
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable, C.Data, C.Typeable, C.Generic)
 
 type Binding = Binding' BNFC'Position
@@ -52,18 +40,7 @@ data Binding' a
     = AlphaBinding a (Attribute' a) (Object' a)
     | EmptyBinding a (Attribute' a)
     | DeltaBinding a Bytes
-    | LambdaBinding a
-  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable, C.Data, C.Typeable, C.Generic)
-
-type Bindings = Bindings' BNFC'Position
-data Bindings' a = Bindings a [Binding' a]
-  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable, C.Data, C.Typeable, C.Generic)
-
-type Dispatch = Dispatch' BNFC'Position
-data Dispatch' a
-    = ObjectDispatch a (DispatchedObject' a) [Bindings' a] [Attribute' a] [Disp' a]
-    | HomeDispatch a [Attribute' a] [Disp' a]
-    | ThisDispatch a [Attribute' a] [Disp' a]
+    | LambdaBinding a Function
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable, C.Data, C.Typeable, C.Generic)
 
 type Attribute = Attribute' BNFC'Position
@@ -74,10 +51,6 @@ data Attribute' a
     | VTX a
     | Label a LabelId
     | Alpha a AlphaIndex
-  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable, C.Data, C.Typeable, C.Generic)
-
-type Disp = Disp' BNFC'Position
-data Disp' a = Disp a [Binding' a] (Bindings' a) [Attribute' a]
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Functor, C.Foldable, C.Traversable, C.Data, C.Typeable, C.Generic)
 
 newtype Bytes = Bytes String
@@ -114,37 +87,16 @@ instance HasPosition Program where
 instance HasPosition Object where
   hasPosition = \case
     Formation p _ -> p
-    Application p _ _ _ -> p
-    Dispatch p _ -> p
+    Application p _ _ -> p
+    Dispatch p _ _ -> p
     Termination p -> p
-
-instance HasPosition AbstractObject where
-  hasPosition = \case
-    AbstractFormation p _ -> p
-    AbstractDispatch p _ -> p
-    AbstractTermination p -> p
-
-instance HasPosition DispatchedObject where
-  hasPosition = \case
-    DispatchedFormation p _ -> p
-    DispatchedTermination p -> p
 
 instance HasPosition Binding where
   hasPosition = \case
     AlphaBinding p _ _ -> p
     EmptyBinding p _ -> p
     DeltaBinding p _ -> p
-    LambdaBinding p -> p
-
-instance HasPosition Bindings where
-  hasPosition = \case
-    Bindings p _ -> p
-
-instance HasPosition Dispatch where
-  hasPosition = \case
-    ObjectDispatch p _ _ _ _ -> p
-    HomeDispatch p _ _ -> p
-    ThisDispatch p _ _ -> p
+    LambdaBinding p _ -> p
 
 instance HasPosition Attribute where
   hasPosition = \case
@@ -154,8 +106,4 @@ instance HasPosition Attribute where
     VTX p -> p
     Label p _ -> p
     Alpha p _ -> p
-
-instance HasPosition Disp where
-  hasPosition = \case
-    Disp p _ _ _ -> p
 

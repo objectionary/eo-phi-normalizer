@@ -10,17 +10,9 @@ module Language.EO.Phi.Syntax.Par
   , myLexer
   , pProgram
   , pObject
-  , pAbstractObject
-  , pDispatchedObject
   , pBinding
   , pListBinding
-  , pBindings
-  , pListBindings
-  , pDispatch
   , pAttribute
-  , pListAttribute
-  , pDisp
-  , pListDisp
   ) where
 
 import Prelude
@@ -32,17 +24,9 @@ import Language.EO.Phi.Syntax.Lex
 
 %name pProgram_internal Program
 %name pObject_internal Object
-%name pAbstractObject_internal AbstractObject
-%name pDispatchedObject_internal DispatchedObject
 %name pBinding_internal Binding
 %name pListBinding_internal ListBinding
-%name pBindings_internal Bindings
-%name pListBindings_internal ListBindings
-%name pDispatch_internal Dispatch
 %name pAttribute_internal Attribute
-%name pListAttribute_internal ListAttribute
-%name pDisp_internal Disp
-%name pListDisp_internal ListDisp
 -- no lexer declaration
 %monad { Err } { (>>=) } { return }
 %tokentype {Token}
@@ -52,17 +36,15 @@ import Language.EO.Phi.Syntax.Lex
   '{'          { PT _ (TS _ 3)         }
   '}'          { PT _ (TS _ 4)         }
   'Δ'          { PT _ (TS _ 5)         }
-  'Φ'          { PT _ (TS _ 6)         }
-  'λ'          { PT _ (TS _ 7)         }
-  'ν'          { PT _ (TS _ 8)         }
-  'ξ'          { PT _ (TS _ 9)         }
-  'ρ'          { PT _ (TS _ 10)        }
-  'σ'          { PT _ (TS _ 11)        }
-  'φ'          { PT _ (TS _ 12)        }
-  '↦'          { PT _ (TS _ 13)        }
-  '∅'          { PT _ (TS _ 14)        }
-  '⊥'          { PT _ (TS _ 15)        }
-  '⤍'          { PT _ (TS _ 16)        }
+  'λ'          { PT _ (TS _ 6)         }
+  'ν'          { PT _ (TS _ 7)         }
+  'ρ'          { PT _ (TS _ 8)         }
+  'σ'          { PT _ (TS _ 9)         }
+  'φ'          { PT _ (TS _ 10)        }
+  '↦'          { PT _ (TS _ 11)        }
+  '∅'          { PT _ (TS _ 12)        }
+  '⊥'          { PT _ (TS _ 13)        }
+  '⤍'          { PT _ (TS _ 14)        }
   L_Bytes      { PT _ (T_Bytes _)      }
   L_Function   { PT _ (T_Function _)   }
   L_LabelId    { PT _ (T_LabelId _)    }
@@ -89,48 +71,22 @@ Program
 Object :: { (Language.EO.Phi.Syntax.Abs.BNFC'Position, Language.EO.Phi.Syntax.Abs.Object) }
 Object
   : '{' ListBinding '}' { (uncurry Language.EO.Phi.Syntax.Abs.BNFC'Position (tokenLineCol $1), Language.EO.Phi.Syntax.Abs.Formation (uncurry Language.EO.Phi.Syntax.Abs.BNFC'Position (tokenLineCol $1)) (snd $2)) }
-  | AbstractObject '{' ListBinding '}' ListBindings { (fst $1, Language.EO.Phi.Syntax.Abs.Application (fst $1) (snd $1) (snd $3) (snd $5)) }
-  | Dispatch { (fst $1, Language.EO.Phi.Syntax.Abs.Dispatch (fst $1) (snd $1)) }
+  | Object '{' ListBinding '}' { (fst $1, Language.EO.Phi.Syntax.Abs.Application (fst $1) (snd $1) (snd $3)) }
+  | Object '.' Attribute { (fst $1, Language.EO.Phi.Syntax.Abs.Dispatch (fst $1) (snd $1) (snd $3)) }
   | '⊥' { (uncurry Language.EO.Phi.Syntax.Abs.BNFC'Position (tokenLineCol $1), Language.EO.Phi.Syntax.Abs.Termination (uncurry Language.EO.Phi.Syntax.Abs.BNFC'Position (tokenLineCol $1))) }
-
-AbstractObject :: { (Language.EO.Phi.Syntax.Abs.BNFC'Position, Language.EO.Phi.Syntax.Abs.AbstractObject) }
-AbstractObject
-  : '{' ListBinding '}' { (uncurry Language.EO.Phi.Syntax.Abs.BNFC'Position (tokenLineCol $1), Language.EO.Phi.Syntax.Abs.AbstractFormation (uncurry Language.EO.Phi.Syntax.Abs.BNFC'Position (tokenLineCol $1)) (snd $2)) }
-  | Dispatch { (fst $1, Language.EO.Phi.Syntax.Abs.AbstractDispatch (fst $1) (snd $1)) }
-  | '⊥' { (uncurry Language.EO.Phi.Syntax.Abs.BNFC'Position (tokenLineCol $1), Language.EO.Phi.Syntax.Abs.AbstractTermination (uncurry Language.EO.Phi.Syntax.Abs.BNFC'Position (tokenLineCol $1))) }
-
-DispatchedObject :: { (Language.EO.Phi.Syntax.Abs.BNFC'Position, Language.EO.Phi.Syntax.Abs.DispatchedObject) }
-DispatchedObject
-  : '{' ListBinding '}' { (uncurry Language.EO.Phi.Syntax.Abs.BNFC'Position (tokenLineCol $1), Language.EO.Phi.Syntax.Abs.DispatchedFormation (uncurry Language.EO.Phi.Syntax.Abs.BNFC'Position (tokenLineCol $1)) (snd $2)) }
-  | '⊥' { (uncurry Language.EO.Phi.Syntax.Abs.BNFC'Position (tokenLineCol $1), Language.EO.Phi.Syntax.Abs.DispatchedTermination (uncurry Language.EO.Phi.Syntax.Abs.BNFC'Position (tokenLineCol $1))) }
 
 Binding :: { (Language.EO.Phi.Syntax.Abs.BNFC'Position, Language.EO.Phi.Syntax.Abs.Binding) }
 Binding
   : Attribute '↦' Object { (fst $1, Language.EO.Phi.Syntax.Abs.AlphaBinding (fst $1) (snd $1) (snd $3)) }
   | Attribute '↦' '∅' { (fst $1, Language.EO.Phi.Syntax.Abs.EmptyBinding (fst $1) (snd $1)) }
   | 'Δ' '⤍' Bytes { (uncurry Language.EO.Phi.Syntax.Abs.BNFC'Position (tokenLineCol $1), Language.EO.Phi.Syntax.Abs.DeltaBinding (uncurry Language.EO.Phi.Syntax.Abs.BNFC'Position (tokenLineCol $1)) (snd $3)) }
-  | 'λ' '⤍' { (uncurry Language.EO.Phi.Syntax.Abs.BNFC'Position (tokenLineCol $1), Language.EO.Phi.Syntax.Abs.LambdaBinding (uncurry Language.EO.Phi.Syntax.Abs.BNFC'Position (tokenLineCol $1))) }
+  | 'λ' '⤍' Function { (uncurry Language.EO.Phi.Syntax.Abs.BNFC'Position (tokenLineCol $1), Language.EO.Phi.Syntax.Abs.LambdaBinding (uncurry Language.EO.Phi.Syntax.Abs.BNFC'Position (tokenLineCol $1)) (snd $3)) }
 
 ListBinding :: { (Language.EO.Phi.Syntax.Abs.BNFC'Position, [Language.EO.Phi.Syntax.Abs.Binding]) }
 ListBinding
   : {- empty -} { (Language.EO.Phi.Syntax.Abs.BNFC'NoPosition, []) }
   | Binding { (fst $1, (:[]) (snd $1)) }
   | Binding ',' ListBinding { (fst $1, (:) (snd $1) (snd $3)) }
-
-Bindings :: { (Language.EO.Phi.Syntax.Abs.BNFC'Position, Language.EO.Phi.Syntax.Abs.Bindings) }
-Bindings
-  : '{' ListBinding '}' { (uncurry Language.EO.Phi.Syntax.Abs.BNFC'Position (tokenLineCol $1), Language.EO.Phi.Syntax.Abs.Bindings (uncurry Language.EO.Phi.Syntax.Abs.BNFC'Position (tokenLineCol $1)) (snd $2)) }
-
-ListBindings :: { (Language.EO.Phi.Syntax.Abs.BNFC'Position, [Language.EO.Phi.Syntax.Abs.Bindings]) }
-ListBindings
-  : {- empty -} { (Language.EO.Phi.Syntax.Abs.BNFC'NoPosition, []) }
-  | Bindings ListBindings { (fst $1, (:) (snd $1) (snd $2)) }
-
-Dispatch :: { (Language.EO.Phi.Syntax.Abs.BNFC'Position, Language.EO.Phi.Syntax.Abs.Dispatch) }
-Dispatch
-  : DispatchedObject ListBindings '.' ListAttribute ListDisp { (fst $1, Language.EO.Phi.Syntax.Abs.ObjectDispatch (fst $1) (snd $1) (snd $2) (snd $4) (snd $5)) }
-  | 'Φ' '.' ListAttribute ListDisp { (uncurry Language.EO.Phi.Syntax.Abs.BNFC'Position (tokenLineCol $1), Language.EO.Phi.Syntax.Abs.HomeDispatch (uncurry Language.EO.Phi.Syntax.Abs.BNFC'Position (tokenLineCol $1)) (snd $3) (snd $4)) }
-  | 'ξ' '.' ListAttribute ListDisp { (uncurry Language.EO.Phi.Syntax.Abs.BNFC'Position (tokenLineCol $1), Language.EO.Phi.Syntax.Abs.ThisDispatch (uncurry Language.EO.Phi.Syntax.Abs.BNFC'Position (tokenLineCol $1)) (snd $3) (snd $4)) }
 
 Attribute :: { (Language.EO.Phi.Syntax.Abs.BNFC'Position, Language.EO.Phi.Syntax.Abs.Attribute) }
 Attribute
@@ -140,20 +96,6 @@ Attribute
   | 'ν' { (uncurry Language.EO.Phi.Syntax.Abs.BNFC'Position (tokenLineCol $1), Language.EO.Phi.Syntax.Abs.VTX (uncurry Language.EO.Phi.Syntax.Abs.BNFC'Position (tokenLineCol $1))) }
   | LabelId { (fst $1, Language.EO.Phi.Syntax.Abs.Label (fst $1) (snd $1)) }
   | AlphaIndex { (fst $1, Language.EO.Phi.Syntax.Abs.Alpha (fst $1) (snd $1)) }
-
-ListAttribute :: { (Language.EO.Phi.Syntax.Abs.BNFC'Position, [Language.EO.Phi.Syntax.Abs.Attribute]) }
-ListAttribute
-  : Attribute { (fst $1, (:[]) (snd $1)) }
-  | Attribute '.' ListAttribute { (fst $1, (:) (snd $1) (snd $3)) }
-
-Disp :: { (Language.EO.Phi.Syntax.Abs.BNFC'Position, Language.EO.Phi.Syntax.Abs.Disp) }
-Disp
-  : '{' ListBinding '}' Bindings '.' ListAttribute { (uncurry Language.EO.Phi.Syntax.Abs.BNFC'Position (tokenLineCol $1), Language.EO.Phi.Syntax.Abs.Disp (uncurry Language.EO.Phi.Syntax.Abs.BNFC'Position (tokenLineCol $1)) (snd $2) (snd $4) (snd $6)) }
-
-ListDisp :: { (Language.EO.Phi.Syntax.Abs.BNFC'Position, [Language.EO.Phi.Syntax.Abs.Disp]) }
-ListDisp
-  : {- empty -} { (Language.EO.Phi.Syntax.Abs.BNFC'NoPosition, []) }
-  | Disp ListDisp { (fst $1, (:) (snd $1) (snd $2)) }
 
 {
 
@@ -178,37 +120,13 @@ pProgram = fmap snd . pProgram_internal
 pObject :: [Token] -> Err Language.EO.Phi.Syntax.Abs.Object
 pObject = fmap snd . pObject_internal
 
-pAbstractObject :: [Token] -> Err Language.EO.Phi.Syntax.Abs.AbstractObject
-pAbstractObject = fmap snd . pAbstractObject_internal
-
-pDispatchedObject :: [Token] -> Err Language.EO.Phi.Syntax.Abs.DispatchedObject
-pDispatchedObject = fmap snd . pDispatchedObject_internal
-
 pBinding :: [Token] -> Err Language.EO.Phi.Syntax.Abs.Binding
 pBinding = fmap snd . pBinding_internal
 
 pListBinding :: [Token] -> Err [Language.EO.Phi.Syntax.Abs.Binding]
 pListBinding = fmap snd . pListBinding_internal
 
-pBindings :: [Token] -> Err Language.EO.Phi.Syntax.Abs.Bindings
-pBindings = fmap snd . pBindings_internal
-
-pListBindings :: [Token] -> Err [Language.EO.Phi.Syntax.Abs.Bindings]
-pListBindings = fmap snd . pListBindings_internal
-
-pDispatch :: [Token] -> Err Language.EO.Phi.Syntax.Abs.Dispatch
-pDispatch = fmap snd . pDispatch_internal
-
 pAttribute :: [Token] -> Err Language.EO.Phi.Syntax.Abs.Attribute
 pAttribute = fmap snd . pAttribute_internal
-
-pListAttribute :: [Token] -> Err [Language.EO.Phi.Syntax.Abs.Attribute]
-pListAttribute = fmap snd . pListAttribute_internal
-
-pDisp :: [Token] -> Err Language.EO.Phi.Syntax.Abs.Disp
-pDisp = fmap snd . pDisp_internal
-
-pListDisp :: [Token] -> Err [Language.EO.Phi.Syntax.Abs.Disp]
-pListDisp = fmap snd . pListDisp_internal
 }
 

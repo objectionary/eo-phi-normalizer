@@ -38,37 +38,16 @@ transProgram x = case x of
 transObject :: Show a => Language.EO.Phi.Syntax.Abs.Object' a -> Result
 transObject x = case x of
   Language.EO.Phi.Syntax.Abs.Formation _ bindings -> failure x
-  Language.EO.Phi.Syntax.Abs.Application _ abstractobject bindings bindingss -> failure x
-  Language.EO.Phi.Syntax.Abs.Dispatch _ dispatch -> failure x
+  Language.EO.Phi.Syntax.Abs.Application _ object bindings -> failure x
+  Language.EO.Phi.Syntax.Abs.Dispatch _ object attribute -> failure x
   Language.EO.Phi.Syntax.Abs.Termination _ -> failure x
-
-transAbstractObject :: Show a => Language.EO.Phi.Syntax.Abs.AbstractObject' a -> Result
-transAbstractObject x = case x of
-  Language.EO.Phi.Syntax.Abs.AbstractFormation _ bindings -> failure x
-  Language.EO.Phi.Syntax.Abs.AbstractDispatch _ dispatch -> failure x
-  Language.EO.Phi.Syntax.Abs.AbstractTermination _ -> failure x
-
-transDispatchedObject :: Show a => Language.EO.Phi.Syntax.Abs.DispatchedObject' a -> Result
-transDispatchedObject x = case x of
-  Language.EO.Phi.Syntax.Abs.DispatchedFormation _ bindings -> failure x
-  Language.EO.Phi.Syntax.Abs.DispatchedTermination _ -> failure x
 
 transBinding :: Show a => Language.EO.Phi.Syntax.Abs.Binding' a -> Result
 transBinding x = case x of
   Language.EO.Phi.Syntax.Abs.AlphaBinding _ attribute object -> failure x
   Language.EO.Phi.Syntax.Abs.EmptyBinding _ attribute -> failure x
   Language.EO.Phi.Syntax.Abs.DeltaBinding _ bytes -> failure x
-  Language.EO.Phi.Syntax.Abs.LambdaBinding _ -> failure x
-
-transBindings :: Show a => Language.EO.Phi.Syntax.Abs.Bindings' a -> Result
-transBindings x = case x of
-  Language.EO.Phi.Syntax.Abs.Bindings _ bindings -> failure x
-
-transDispatch :: Show a => Language.EO.Phi.Syntax.Abs.Dispatch' a -> Result
-transDispatch x = case x of
-  Language.EO.Phi.Syntax.Abs.ObjectDispatch _ dispatchedobject bindingss attributes disps -> failure x
-  Language.EO.Phi.Syntax.Abs.HomeDispatch _ attributes disps -> failure x
-  Language.EO.Phi.Syntax.Abs.ThisDispatch _ attributes disps -> failure x
+  Language.EO.Phi.Syntax.Abs.LambdaBinding _ function -> failure x
 
 transAttribute :: Show a => Language.EO.Phi.Syntax.Abs.Attribute' a -> Result
 transAttribute x = case x of
@@ -78,7 +57,3 @@ transAttribute x = case x of
   Language.EO.Phi.Syntax.Abs.VTX _ -> failure x
   Language.EO.Phi.Syntax.Abs.Label _ labelid -> failure x
   Language.EO.Phi.Syntax.Abs.Alpha _ alphaindex -> failure x
-
-transDisp :: Show a => Language.EO.Phi.Syntax.Abs.Disp' a -> Result
-transDisp x = case x of
-  Language.EO.Phi.Syntax.Abs.Disp _ bindings1 bindings2 attributes -> failure x
