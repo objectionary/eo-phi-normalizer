@@ -17,9 +17,7 @@ import qualified Language.EO.Phi.Syntax.Print as Phi
 import Language.EO.Phi.Syntax.Abs
 import qualified Language.EO.Phi.Syntax.Abs as Phi
 
--- | Normalize an input 𝜑-program.
-normalize :: Phi.Program -> Phi.Program
-normalize program = program -- do nothing for now
+import Language.EO.Phi.Normalize
 
 -- | Parse a 'Program' or return a parsing error.
 parseProgram :: String -> Either String Phi.Program
