@@ -30,6 +30,14 @@ normalize-phi < FILE
 
 The output should be a 𝜑-term after normalization.
 
+```sh
+echo "{ φ ↦ {}, a ↦ ξ.a }" | normalize-phi
+```
+
+```
+{ φ ↦ { }, a ↦ { } }
+```
+
 ## Development
 
 The project is developed with the [Stack tool](https://docs.haskellstack.org/en/stable/README/).
@@ -59,5 +67,3 @@ To run (all) tests, simply use
 ```sh
 stack test
 ```
-
-[^1]:
