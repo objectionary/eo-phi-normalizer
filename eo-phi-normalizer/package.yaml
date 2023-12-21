@@ -33,7 +33,11 @@ build-tools:
 
 dependencies:
 - base >= 4.7 && < 5
+- aeson
 - array >= 0.5.5.0
+- directory
+- filepath
+- yaml
 
 ghc-options:
 - -Wall
@@ -45,6 +49,7 @@ ghc-options:
 - -Wmissing-home-modules
 - -Wpartial-fields
 - -Wredundant-constraints
+- -Wno-missing-export-lists
 
 library:
   source-dirs: src
