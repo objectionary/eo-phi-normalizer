@@ -1,10 +1,11 @@
 {-# LANGUAGE RecordWildCards #-}
+
 module Language.EO.PhiSpec where
 
-import Test.Hspec
 import Control.Monad (forM_)
-import Data.List (dropWhileEnd)
 import Data.Char (isSpace)
+import Data.List (dropWhileEnd)
+import Test.Hspec
 
 import qualified Language.EO.Phi as Phi
 import Test.EO.Phi

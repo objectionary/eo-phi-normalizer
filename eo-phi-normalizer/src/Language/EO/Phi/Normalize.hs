@@ -1,13 +1,14 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
+
 module Language.EO.Phi.Normalize where
 
-import Language.EO.Phi.Syntax.Abs
 import Data.Maybe (fromMaybe)
+import Language.EO.Phi.Syntax.Abs
 
 data Context = Context
   { globalObject :: [Binding]
-  , thisObject   :: [Binding]
+  , thisObject :: [Binding]
   }
 
 lookupBinding :: Attribute -> [Binding] -> Maybe Object
@@ -20,8 +21,9 @@ lookupBinding _ _ = Nothing
 -- | Normalize an input 𝜑-program.
 normalize :: Program -> Program
 normalize (Program bindings) = Program (map (normalizeBindingWith context) bindings)
-  where
-    context = Context
+ where
+  context =
+    Context
       { globalObject = bindings
       , thisObject = bindings
       }
@@ -47,8 +49,8 @@ peelObject = \case
   GlobalDispatch attr -> PeeledObject HeadGlobal [ActionDispatch attr]
   ThisDispatch attr -> PeeledObject HeadThis [ActionDispatch attr]
   Termination -> PeeledObject HeadTermination []
-  where
-    followedBy (PeeledObject object actions) action = PeeledObject object (actions ++ [action])
+ where
+  followedBy (PeeledObject object actions) action = PeeledObject object (actions ++ [action])
 
 unpeelObject :: PeeledObject -> Object
 unpeelObject (PeeledObject head_ actions) =
@@ -63,8 +65,8 @@ unpeelObject (PeeledObject head_ actions) =
         ActionDispatch a : as -> go (ThisDispatch a) as
         _ -> error "impossible: this object without dispatch!"
     HeadTermination -> go Termination actions
-  where
-    go = foldl applyAction
-    applyAction object = \case
-      ActionDispatch attr -> ObjectDispatch object attr
-      ActionApplication bindings -> Application object bindings
+ where
+  go = foldl applyAction
+  applyAction object = \case
+    ActionDispatch attr -> ObjectDispatch object attr
+    ActionApplication bindings -> Application object bindings

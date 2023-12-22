@@ -1,26 +1,28 @@
-{-# OPTIONS_GHC -Wno-orphans #-}
 {-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
+
 module Test.EO.Phi where
 
-import Data.Aeson (FromJSON(..))
+import Control.Monad (forM)
+import Data.Aeson (FromJSON (..))
 import qualified Data.Yaml as Yaml
+import GHC.Generics (Generic)
 import System.Directory (listDirectory)
 import System.FilePath ((</>))
-import GHC.Generics (Generic)
-import Control.Monad (forM)
 
-import qualified Language.EO.Phi as Phi
-import Language.EO.Phi (unsafeParseProgram)
 import Data.List (sort)
+import Language.EO.Phi (unsafeParseProgram)
+import qualified Language.EO.Phi as Phi
 
 data PhiTest = PhiTest
-  { name       :: String
-  , input      :: Phi.Program
+  { name :: String
+  , input :: Phi.Program
   , normalized :: Phi.Program
   , prettified :: String
-  } deriving (Generic, FromJSON)
+  }
+  deriving (Generic, FromJSON)
 
 allPhiTests :: FilePath -> IO [PhiTest]
 allPhiTests dir = do
