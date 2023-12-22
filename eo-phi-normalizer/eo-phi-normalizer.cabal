@@ -1,4 +1,4 @@
-cabal-version: 2.2
+cabal-version: 1.24
 
 -- This file has been generated from package.yaml by hpack version 0.36.0.
 --
@@ -12,7 +12,7 @@ bug-reports:    https://github.com/objectionary/eo-phi-normalizer/issues
 author:         EO/Polystat Development Team
 maintainer:     nickolay.kudasov@gmail.com
 copyright:      2023 EO/Polystat Development Team
-license:        BSD-3-Clause
+license:        BSD3
 license-file:   LICENSE
 build-type:     Custom
 extra-source-files:
@@ -40,8 +40,6 @@ library
       Language.EO.Phi.Syntax.Print
   other-modules:
       Paths_eo_phi_normalizer
-  autogen-modules:
-      Paths_eo_phi_normalizer
   hs-source-dirs:
       src
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-missing-export-lists
@@ -62,8 +60,6 @@ library
 executable normalize-phi
   main-is: Main.hs
   other-modules:
-      Paths_eo_phi_normalizer
-  autogen-modules:
       Paths_eo_phi_normalizer
   hs-source-dirs:
       app
@@ -89,8 +85,6 @@ test-suite eo-phi-normalizer-test
   other-modules:
       Language.EO.PhiSpec
       Test.EO.Phi
-      Paths_eo_phi_normalizer
-  autogen-modules:
       Paths_eo_phi_normalizer
   hs-source-dirs:
       test

@@ -1,7 +1,7 @@
 name:                eo-phi-normalizer
 version:             0.1.0
 github:              "objectionary/eo-phi-normalizer"
-license:             BSD-3-Clause
+license:             BSD3
 author:              "EO/Polystat Development Team"
 maintainer:          "nickolay.kudasov@gmail.com"
 copyright:           "2023 EO/Polystat Development Team"
@@ -10,6 +10,9 @@ extra-source-files:
 - README.md
 - CHANGELOG.md
 - grammar/EO/Phi/Syntax.cf
+
+verbatim:
+  cabal-version: 1.24
 
 # Metadata used when publishing your package
 # synopsis:            Short description of your package
