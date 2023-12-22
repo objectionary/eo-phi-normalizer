@@ -1,0 +1,43 @@
+-- ==========================================================
+-- BNFC grammar for φ-programs (translated from EO)
+-- ==========================================================
+--
+-- This is a non-ambiguous grammar for φ-programs.
+
+token Bytes ({"--"} | ["0123456789ABCDEF"] ["0123456789ABCDEF"] ({"-"} ["0123456789ABCDEF"] ["0123456789ABCDEF"])* {"--"}) ;
+token Function upper (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
+token LabelId  lower (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
+token AlphaIndex ({"α0"} | {"α"} (digit - ["0"]) (digit)* ) ;
+
+Program. Program ::= "{" [Binding] "}" ;
+
+Formation.      Object ::= "{" [Binding] "}" ;
+Application.    Object ::= Object "{" [Binding] "}" ;
+ObjectDispatch. Object ::= Object "." Attribute ;
+GlobalDispatch. Object ::= "Φ" "." Attribute ;
+ThisDispatch.   Object ::= "ξ" "." Attribute ;
+Termination.    Object ::= "⊥" ;
+
+AlphaBinding.   Binding ::= Attribute "↦" Object ;
+EmptyBinding.   Binding ::= Attribute "↦" "∅" ;
+DeltaBinding.   Binding ::= "Δ" "⤍" Bytes ;
+LambdaBinding.  Binding ::= "λ" "⤍" Function ;
+separator Binding "," ;
+
+Phi.    Attribute ::= "φ" ;   -- decoratee object
+Rho.    Attribute ::= "ρ" ;   -- parent object
+Sigma.  Attribute ::= "σ" ;   -- home object
+VTX.    Attribute ::= "ν" ;   -- ???
+Label.  Attribute ::= LabelId ;
+Alpha.  Attribute ::= AlphaIndex ;
+
+PeeledObject. PeeledObject ::= ObjectHead [ObjectAction] ;
+
+HeadFormation.    ObjectHead ::= "{" [Binding] "}" ;
+HeadGlobal.       ObjectHead ::= "Φ" ;
+HeadThis.         ObjectHead ::= "ξ" ;
+HeadTermination.  ObjectHead ::= "⊥" ;
+
+ActionApplication.  ObjectAction ::= "{" [Binding] "}" ;
+ActionDispatch.     ObjectAction ::= "." Attribute ;
+separator ObjectAction "" ;
