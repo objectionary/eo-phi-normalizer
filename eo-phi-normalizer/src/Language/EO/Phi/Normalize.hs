@@ -10,6 +10,7 @@ module Language.EO.Phi.Normalize (
 
 import Data.Maybe (fromMaybe)
 import Language.EO.Phi.Syntax.Abs
+import Numeric (showHex)
 
 data Context = Context
   { globalObject :: [Binding]
@@ -38,9 +39,33 @@ normalizeBindingWith context = \case
   AlphaBinding a object -> AlphaBinding a (normalizeObjectWith context object)
   binding -> binding
 
+count :: (a -> Bool) -> [a] -> Int
+count = (length .) . filter
+
 normalizeObjectWith :: Context -> Object -> Object
-normalizeObjectWith Context{..} object =
+normalizeObjectWith ctx@Context{..} object =
   case object of
+    -- Rule 1
+    Formation bindings -> Formation bindings'
+     where
+      bindings'
+        | not $ any isNu bindings = AlphaBinding VTX (dataObject nu) : normalizedBindings
+        | otherwise = normalizedBindings
+      normalizedBindings = map (normalizeBindingWith ctx) bindings
+      nuCount binds = count isNu binds + sum (map (sum . map (nuCount . objectBindings) . values) binds)
+      dataObject n = Formation [DeltaBinding $ Bytes $ showHex n ""]
+
+      values (AlphaBinding _ obj) = [obj]
+      values _ = []
+
+      objectBindings (Formation bs) = bs
+      objectBindings _ = []
+
+      isNu (AlphaBinding VTX _) = True
+      isNu (EmptyBinding VTX) = True
+      isNu _ = False
+
+      nu = nuCount normalizedBindings
     ThisDispatch a ->
       fromMaybe object (lookupBinding a thisObject)
     _ -> object
