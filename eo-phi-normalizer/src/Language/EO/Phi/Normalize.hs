@@ -1,7 +1,12 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
 
-module Language.EO.Phi.Normalize where
+module Language.EO.Phi.Normalize (
+  normalizeObjectWith,
+  normalize,
+  peelObject,
+  unpeelObject,
+) where
 
 import Data.Maybe (fromMaybe)
 import Language.EO.Phi.Syntax.Abs
