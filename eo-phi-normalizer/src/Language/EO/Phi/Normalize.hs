@@ -57,9 +57,11 @@ normalizeBinding = \case
 rule1 :: Object -> State Context Object
 rule1 (Formation bindings) = do
   normalizedBindings <- forM bindings $ \case
-    AlphaBinding a object -> do
-      object' <- rule1 object
-      pure (AlphaBinding a object')
+    AlphaBinding a object
+      | a /= VTX ->
+          do
+            object' <- rule1 object
+            pure (AlphaBinding a object')
     b -> pure b
   finalBindings <-
     if not $ any isNu normalizedBindings
