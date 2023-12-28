@@ -1,7 +1,0 @@
-name: 'Simple static attribute reference'
-input: |
-  { φ ↦ { } , a ↦ ξ.φ }
-normalized: |
-  { ν ↦ { Δ ⤍ 1 }, φ ↦ { ν ↦ { Δ ⤍ 0 } }, a ↦ ξ.φ }
-prettified: |
-  { ν ↦ { Δ ⤍ 1 }, φ ↦ { ν ↦ { Δ ⤍ 0 } }, a ↦ ξ.φ }
