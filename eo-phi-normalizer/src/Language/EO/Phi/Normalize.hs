@@ -63,7 +63,17 @@ rule1 (Formation bindings) = do
       then do
         nus <- gets totalNuCount
         modify (\c -> c{totalNuCount = totalNuCount c + 1})
-        let dataObject = Formation [DeltaBinding $ Bytes $ showHex nus ""]
+        let pad s = (if even (length s) then "" else "0") ++ s
+        let insertDashes s
+              | length s <= 2 = s ++ "-"
+              | otherwise =
+                  let go = \case
+                        [] -> []
+                        [x] -> [x]
+                        [x, y] -> [x, y, '-']
+                        (x : y : xs) -> x : y : '-' : go xs
+                   in go s
+        let dataObject = Formation [DeltaBinding $ Bytes $ insertDashes $ pad $ showHex nus ""]
         pure (AlphaBinding VTX dataObject : normalizedBindings)
       else do
         pure normalizedBindings
