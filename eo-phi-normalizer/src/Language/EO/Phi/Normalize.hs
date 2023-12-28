@@ -34,7 +34,7 @@ isNu _ = False
 
 -- | Normalize an input 𝜑-program.
 normalize :: Program -> Program
-normalize (Program bindings) = evalState (Program <$> forM bindings normalizeBinding) context
+normalize (Program bindings) = evalState (Program . objectBindings <$> normalizeObject (Formation bindings)) context
  where
   context =
     Context
@@ -48,11 +48,6 @@ normalize (Program bindings) = evalState (Program <$> forM bindings normalizeBin
   values _ = []
   objectBindings (Formation bs) = bs
   objectBindings _ = []
-
-normalizeBinding :: Binding -> State Context Binding
-normalizeBinding = \case
-  AlphaBinding a object -> AlphaBinding a <$> normalizeObject object
-  binding -> pure binding
 
 rule1 :: Object -> State Context Object
 rule1 (Formation bindings) = do
