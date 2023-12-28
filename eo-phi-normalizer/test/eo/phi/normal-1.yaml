@@ -1,7 +1,7 @@
-name: "Program in normal form (1)"
+name: 'Program in normal form (1)'
 input: |
   {}
 normalized: |
-  {}
+  { ν ↦ { Δ ⤍ 0 } }
 prettified: |
-  { }
+  { ν ↦ { Δ ⤍ 0 } }
