@@ -1,7 +1,7 @@
-name: "Program in normal form (2)"
+name: 'Program in normal form (2)'
 input: |
-  { φ ↦ { φ ↦ { φ ↦ { } } } }
+  { φ ↦ ⟦ φ ↦ ⟦ φ ↦ ⟦ ⟧ ⟧ ⟧ }
 normalized: |
-  { φ ↦ { φ ↦ { φ ↦ { } } } }
+  { φ ↦ ⟦ φ ↦ ⟦ φ ↦ ⟦ ⟧ ⟧ ⟧ }
 prettified: |
-  { φ ↦ { φ ↦ { φ ↦ { } } } }
+  { φ ↦ ⟦ φ ↦ ⟦ φ ↦ ⟦ ⟧ ⟧ ⟧ }

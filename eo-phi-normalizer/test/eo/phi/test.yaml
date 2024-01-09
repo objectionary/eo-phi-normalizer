@@ -1,10 +1,10 @@
-name: "Simple static attribute reference"
+name: 'Simple static attribute reference'
 input: |
-  { φ ↦ {   } , a ↦ ξ.φ }
+  { φ ↦ ⟦   ⟧ , a ↦ ξ.φ }
 normalized: |
   {
-    φ ↦ {},
-    a ↦ {}
+    φ ↦ ⟦⟧,
+    a ↦ ⟦⟧
   }
 prettified: |
-  { φ ↦ { }, a ↦ ξ.φ }
+  { φ ↦ ⟦ ⟧, a ↦ ξ.φ }
