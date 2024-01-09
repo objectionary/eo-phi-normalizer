@@ -1,8 +1,10 @@
-#!/bin/bash
-set -x
-set -e
+mkdir -p pipeline
+cd pipeline
+
+shopt -s expand_aliases
 
 EO=0.34.2
+alias eo="eoc --parser=${EO}"
 
 cat > app.eo <<EOT
 [args] > app
@@ -10,26 +12,26 @@ cat > app.eo <<EOT
     "Hello, world!\n"
 EOT
 
-eoc "--parser=${EO}" clean
-eoc "--parser=${EO}" link
-eoc "--parser=${EO}" --alone dataize app > before.txt
+eo clean
+eo link
+eo --alone dataize app > before.txt
 
-eoc "--parser=${EO}" phi
+eo phi
 
 # Now, you modify/normalize this file:
 # .eoc/phi/app.phi
 
-eoc "--parser=${EO}" unphi
+eo unphi
 
 cp .eoc/unphi/app.xmir .eoc/2-optimize/app.xmir
 
-eoc "--parser=${EO}" print
+eo print
 
 cp .eoc/print/app.eo app.eo
 
-eoc "--parser=${EO}" clean
-eoc "--parser=${EO}" link
-eoc "--parser=${EO}" --alone dataize app > after.txt
+eo clean
+eo link
+eo --alone dataize app > after.txt
 
 if [ "$(cat before.txt)" == "$(cat after.txt)" ]; then
     echo 'SUCCESS'
