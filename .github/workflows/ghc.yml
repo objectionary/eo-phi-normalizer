@@ -27,9 +27,23 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 🧰 Setup Stack
-        uses: freckle/stack-action@v4
+        # FIXME use freckle/stack-action@v4 when https://github.com/freckle/stack-action/pull/31 is merged
+        uses: deemp/stack-action
         with:
           fast: ${{ github.ref_name != 'master' }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "zulu"
+          java-version: 21
+
+      - run: npm install -g eolang@0.15.1
+      
+      - run: ./pipeline.sh
 
   haddock:
     needs: [build]
