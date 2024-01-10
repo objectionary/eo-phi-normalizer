@@ -27,7 +27,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 🧰 Setup Stack
-        # FIXME use freckle/stack-action@v4 when https://github.com/freckle/stack-action/pull/31 is merged
+        # FIXME use freckle/stack-action@v4 when https://github.com/freckle/stack-action/pull/32 is merged
         uses: deemp/stack-action@main
         with:
           fast: ${{ github.ref_name != 'master' }}
