@@ -4,7 +4,7 @@
 --
 -- This is a non-ambiguous grammar for φ-programs.
 
-token Bytes ({"--"} | ["0123456789ABCDEF"] ["0123456789ABCDEF"] ({"-"} ["0123456789ABCDEF"] ["0123456789ABCDEF"])* {"--"}) ;
+token Bytes ({"--"} | ["0123456789ABCDEF"] ["0123456789ABCDEF"] {"-"} | ["0123456789ABCDEF"] ["0123456789ABCDEF"] ({"-"} ["0123456789ABCDEF"] ["0123456789ABCDEF"])+) ;
 token Function upper (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
 token LabelId  lower (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
 token AlphaIndex ({"α0"} | {"α"} (digit - ["0"]) (digit)* ) ;
