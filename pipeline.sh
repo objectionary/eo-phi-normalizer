@@ -19,7 +19,11 @@ eo --alone dataize app > before.txt
 eo phi
 
 # Now, you modify/normalize this file:
-# .eoc/phi/app.phi
+IO=".eoc/phi/app.phi"
+I=".eoc/phi/app.bk.phi"
+mv "$IO" "$I"
+stack run normalize-phi < "$I" > "$IO" \
+  || echo 'Normalizer failed' && exit 1
 
 eo unphi
 
