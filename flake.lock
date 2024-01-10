@@ -1,12 +1,28 @@
 {
   "nodes": {
+    "eoc": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1704732261,
+        "narHash": "sha256-UOwwOpbVQjVraZebqQbq4BPitCKpwcL6s3ywjAfGCaw=",
+        "owner": "deemp",
+        "repo": "eoc",
+        "rev": "c338c36db124212efbb85f31d12e04e04bcde450",
+        "type": "github"
+      },
+      "original": {
+        "owner": "deemp",
+        "repo": "eoc",
+        "type": "github"
+      }
+    },
     "flakes": {
       "locked": {
-        "lastModified": 1703248027,
-        "narHash": "sha256-kq2J/wLaUL3KY/OwgZEAZ7/QZ5alrol9ERBWqxJshiA=",
+        "lastModified": 1704589266,
+        "narHash": "sha256-iuqS9ieLQYcTIKT7GHrqBf89yNU6rdYp+ge08ww5zC0=",
         "owner": "deemp",
         "repo": "flakes",
-        "rev": "8b4c8ae507d591ad41e239e70a9c2d226b7eaa45",
+        "rev": "dcb6e49b7c7df2dd381d204a9316572d7087c373",
         "type": "github"
       },
       "original": {
@@ -15,9 +31,23 @@
         "type": "github"
       }
     },
+    "maven-wrapper-jar": {
+      "flake": false,
+      "locked": {
+        "narHash": "sha256-O6tlCRB5YmX0T0F240jGhiln1jwkKO8XgyCvtHSq40A=",
+        "type": "file",
+        "url": "https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.2.0/maven-wrapper-3.2.0.jar"
+      },
+      "original": {
+        "type": "file",
+        "url": "https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.2.0/maven-wrapper-3.2.0.jar"
+      }
+    },
     "root": {
       "inputs": {
-        "flakes": "flakes"
+        "eoc": "eoc",
+        "flakes": "flakes",
+        "maven-wrapper-jar": "maven-wrapper-jar"
       }
     }
   },
