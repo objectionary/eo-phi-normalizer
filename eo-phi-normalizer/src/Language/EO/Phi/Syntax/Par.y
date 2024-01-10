@@ -39,22 +39,26 @@ import Language.EO.Phi.Syntax.Lex
 %monad { Err } { (>>=) } { return }
 %tokentype {Token}
 %token
-  ','          { PT _ (TS _ 1)          }
-  '.'          { PT _ (TS _ 2)          }
-  '{'          { PT _ (TS _ 3)          }
-  '}'          { PT _ (TS _ 4)          }
-  'Δ'          { PT _ (TS _ 5)          }
-  'Φ'          { PT _ (TS _ 6)          }
-  'λ'          { PT _ (TS _ 7)          }
-  'ν'          { PT _ (TS _ 8)          }
-  'ξ'          { PT _ (TS _ 9)          }
-  'ρ'          { PT _ (TS _ 10)         }
-  'σ'          { PT _ (TS _ 11)         }
-  'φ'          { PT _ (TS _ 12)         }
-  '↦'          { PT _ (TS _ 13)         }
-  '∅'          { PT _ (TS _ 14)         }
-  '⊥'          { PT _ (TS _ 15)         }
-  '⤍'          { PT _ (TS _ 16)         }
+  '('          { PT _ (TS _ 1)          }
+  ')'          { PT _ (TS _ 2)          }
+  ','          { PT _ (TS _ 3)          }
+  '.'          { PT _ (TS _ 4)          }
+  '{'          { PT _ (TS _ 5)          }
+  '}'          { PT _ (TS _ 6)          }
+  'Δ'          { PT _ (TS _ 7)          }
+  'Φ'          { PT _ (TS _ 8)          }
+  'λ'          { PT _ (TS _ 9)          }
+  'ν'          { PT _ (TS _ 10)         }
+  'ξ'          { PT _ (TS _ 11)         }
+  'ρ'          { PT _ (TS _ 12)         }
+  'σ'          { PT _ (TS _ 13)         }
+  'φ'          { PT _ (TS _ 14)         }
+  '↦'          { PT _ (TS _ 15)         }
+  '∅'          { PT _ (TS _ 16)         }
+  '⊥'          { PT _ (TS _ 17)         }
+  '⟦'          { PT _ (TS _ 18)         }
+  '⟧'          { PT _ (TS _ 19)         }
+  '⤍'          { PT _ (TS _ 20)         }
   L_Bytes      { PT _ (T_Bytes $$)      }
   L_Function   { PT _ (T_Function $$)   }
   L_LabelId    { PT _ (T_LabelId $$)    }
@@ -80,8 +84,8 @@ Program
 
 Object :: { Language.EO.Phi.Syntax.Abs.Object }
 Object
-  : '{' ListBinding '}' { Language.EO.Phi.Syntax.Abs.Formation $2 }
-  | Object '{' ListBinding '}' { Language.EO.Phi.Syntax.Abs.Application $1 $3 }
+  : '⟦' ListBinding '⟧' { Language.EO.Phi.Syntax.Abs.Formation $2 }
+  | Object '(' ListBinding ')' { Language.EO.Phi.Syntax.Abs.Application $1 $3 }
   | Object '.' Attribute { Language.EO.Phi.Syntax.Abs.ObjectDispatch $1 $3 }
   | 'Φ' '.' Attribute { Language.EO.Phi.Syntax.Abs.GlobalDispatch $3 }
   | 'ξ' '.' Attribute { Language.EO.Phi.Syntax.Abs.ThisDispatch $3 }

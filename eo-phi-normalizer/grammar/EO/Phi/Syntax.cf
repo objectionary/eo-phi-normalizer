@@ -14,8 +14,8 @@ token AlphaIndex ({"α0"} | {"α"} (digit - ["0"]) (digit)* ) ;
 
 Program. Program ::= "{" [Binding] "}" ;
 
-Formation.      Object ::= "{" [Binding] "}" ;
-Application.    Object ::= Object "{" [Binding] "}" ;
+Formation.      Object ::= "⟦" [Binding] "⟧" ;
+Application.    Object ::= Object "(" [Binding] ")" ;
 ObjectDispatch. Object ::= Object "." Attribute ;
 GlobalDispatch. Object ::= "Φ" "." Attribute ;
 ThisDispatch.   Object ::= "ξ" "." Attribute ;

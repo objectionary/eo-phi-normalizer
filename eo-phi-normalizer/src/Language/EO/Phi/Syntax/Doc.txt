@@ -21,11 +21,13 @@ Bytes literals are recognized by the regular expression
 
 Function literals are recognized by the regular expression
 `````upper (char - ["
- !'(),-.:;?[]{|}⟦⟧"])*`````
+
+ !'(),-.:;?[]{|}⟦⟧"])*`````
 
 LabelId literals are recognized by the regular expression
 `````lower (char - ["
- !'(),-.:;?[]{|}⟦⟧"])*`````
+
+ !'(),-.:;?[]{|}⟦⟧"])*`````
 
 AlphaIndex literals are recognized by the regular expression
 `````{"α0"} | 'α' (digit - '0') digit*`````
@@ -39,7 +41,8 @@ The reserved words used in Syntax are the following:
   | ``ξ`` | ``ρ`` | ``σ`` | ``φ``
 
 The symbols used in Syntax are the following:
-  | { | } | . | ⊥
+  | { | } | ⟦ | ⟧
+  | ( | ) | . | ⊥
   | ↦ | ∅ | ⤍ | ,
 
 ===Comments===
@@ -52,8 +55,8 @@ and **eps** (empty rule) belong to the BNF notation.
 All other symbols are terminals.
 
   | //Program// | -> | ``{`` //[Binding]// ``}``
-  | //Object// | -> | ``{`` //[Binding]// ``}``
-  |  |  **|**  | //Object// ``{`` //[Binding]// ``}``
+  | //Object// | -> | ``⟦`` //[Binding]// ``⟧``
+  |  |  **|**  | //Object// ``(`` //[Binding]// ``)``
   |  |  **|**  | //Object// ``.`` //Attribute//
   |  |  **|**  | ``Φ`` ``.`` //Attribute//
   |  |  **|**  | ``ξ`` ``.`` //Attribute//
