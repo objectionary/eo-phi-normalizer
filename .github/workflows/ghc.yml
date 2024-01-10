@@ -43,7 +43,7 @@ jobs:
 
       - run: npm install -g eolang@0.15.1
       
-      - run: ./pipeline.sh
+        shell: bash
 
   haddock:
     needs: [build]
