@@ -23,7 +23,16 @@ IO=".eoc/phi/app.phi"
 I=".eoc/phi/app.bk.phi"
 mv "$IO" "$I"
 stack run normalize-phi < "$I" > "$IO" \
-  || echo 'Normalizer failed' && exit 1
+  || printf "\n\nNormalizer failed" \
+  && printf "\n\n* EO Expression\n\n" \
+  && cat app.eo \
+  && printf "\n\n* Phi Expression\n\n" \
+  && cat "$I" \
+  && printf "\n\n* Error\n\n" \
+  && cat "$IO" \
+  && exit 1
+
+printf "Normalizer succeeded"
 
 eo unphi
 
