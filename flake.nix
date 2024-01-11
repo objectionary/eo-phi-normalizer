@@ -145,7 +145,13 @@
           "${packageName}" = haskellPackages."${packageName}";
 
           pipeline = {
-            runtimeInputs = [ stack pkgs.jdk21 packages.eoc pkgs.maven ];
+            runtimeInputs = [
+              stack
+              pkgs.jdk21
+              packages.eoc
+              pkgs.maven
+              pkgs.perl
+            ];
             text = ''
               JAVA_HOME="${pkgs.jdk21.home}"
               export JAVA_HOME
