@@ -26,7 +26,7 @@ I=".eoc/phi/app.bk.phi"
 mv "$IO" "$I"
 stack run normalize-phi < "$I" > "$IO" \
   || {
-    printf "\n\nNormalizer failed"
+    printf "\n\nNormalizer failed!"
     printf "\n\n* EO expression:\n\n"
     cat app.eo
     printf "\n\n* Phi expression:\n\n"
