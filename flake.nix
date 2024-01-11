@@ -1,10 +1,24 @@
 {
-  inputs.flakes.url = "github:deemp/flakes";
+  inputs = {
+    flakes.url = "github:deemp/flakes";
+    eoc = {
+      url = "github:deemp/eoc";
+      flake = false;
+    };
+    # should be synchronized with
+    # https://github.com/objectionary/eoc/blob/116286a11aa538705c0f2b794abbdbcc6dec33ef/mvnw/.mvn/wrapper/maven-wrapper.properties#L18
+    maven-wrapper-jar = {
+      flake = false;
+      url = "https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.2.0/maven-wrapper-3.2.0.jar";
+    };
+  };
   outputs = inputs: inputs.flakes.makeFlake {
     inputs = {
       inherit (inputs.flakes.all)
-        haskell-tools codium drv-tools devshell
-        flakes-tools nixpkgs formatter workflows lima;
+        haskell-tools drv-tools devshell
+        flakes-tools nixpkgs formatter
+        slimlock;
+      inherit (inputs) eoc maven-wrapper-jar;
     };
     perSystem = { inputs, system }:
       let
@@ -14,8 +28,9 @@
         # --- Imports ---
 
         pkgs = inputs.nixpkgs.legacyPackages.${system};
+        inherit (pkgs) lib;
         inherit (inputs.devshell.lib.${system}) mkCommands mkRunCommands mkShell;
-        inherit (inputs.drv-tools.lib.${system}) withAttrs withMan withDescription mkShellApp man;
+        inherit (inputs.drv-tools.lib.${system}) mkShellApps;
         inherit (inputs.flakes-tools.lib.${system}) mkFlakesTools;
         inherit (inputs.haskell-tools.lib.${system}) toolsGHC;
 
@@ -69,7 +84,7 @@
           packages = ps: [ ps.${packageName} ];
         })
           hls cabal fourmolu justStaticExecutable
-          ghcid haskellPackages hpack stack;
+          ghcid ghc haskellPackages hpack stack;
 
         # --- Tools ---
 
@@ -80,6 +95,7 @@
           fourmolu
           cabal
           stack
+          pkgs.gh
           # `cabal` already has a `ghc` on its `PATH`,
           # so you may remove `ghc` from this list.
           # Then, you can access `ghc` like `cabal exec -- ghc --version`.
@@ -93,7 +109,30 @@
 
         # --- Packages ---
 
-        packages = {
+        packages = mkShellApps {
+          eoc = pkgs.buildNpmPackage rec {
+            name = "";
+            version = "0.15.1";
+            src = inputs.eoc;
+            npmDepsHash = "sha256-j6lfte6RhxRY5cRHcrtIHfZDe0lP1ovEukgHbHsGPb0=";
+            npmInstallFlags = [ "--omit=dev" ];
+            dontNpmBuild = true;
+
+            postPatch =
+              let path = "mvnw/.mvn/wrapper/maven-wrapper.jar"; in
+              ''
+                cp ${inputs.maven-wrapper-jar} ${path}
+                chmod +x ${path}
+              '';
+            meta = with pkgs.lib; {
+              description = "EO compiler";
+              homepage = "https://github.com/objectionary/eoc";
+              license = licenses.mit;
+            };
+          };
+
+          # 
+
           # --- Haskell package ---
 
           # This is a static executable with given runtime dependencies.
@@ -104,6 +143,17 @@
           };
 
           "${packageName}" = haskellPackages."${packageName}";
+
+          pipeline = {
+            runtimeInputs = [ stack pkgs.jdk21 packages.eoc pkgs.maven ];
+            text = ''
+              JAVA_HOME="${pkgs.jdk21.home}"
+              export JAVA_HOME
+              ${builtins.readFile ./pipeline.sh}
+            '';
+            description = "Run pipeline";
+            excludeShellChecks = [ "SC2139" ];
+          };
         };
 
         # --- Devshells ---
@@ -115,7 +165,7 @@
             bash.extra = "export LANG=C.utf8";
             commands =
               mkCommands "tools" tools
-              ++ mkRunCommands "packages" { inherit (packages) default; }
+              ++ mkRunCommands "packages" { inherit (packages) default pipeline; }
             ;
           };
         };
