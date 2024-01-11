@@ -1,8 +1,14 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# LANGUAGE LambdaCase #-}
-module Language.EO.Phi.Syntax where
+module Language.EO.Phi.Syntax (
+  module Language.EO.Phi.Syntax.Abs,
+  parseObject,
+  unsafeParseObject,
+  printTree,
+) where
 
 import Data.Char (isSpace)
+import Language.EO.Phi.Syntax.Abs
 import qualified Language.EO.Phi.Syntax.Abs as Phi
 import qualified Language.EO.Phi.Syntax.Par as Phi
 import qualified Language.EO.Phi.Syntax.Print as Phi

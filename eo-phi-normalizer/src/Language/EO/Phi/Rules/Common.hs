@@ -5,10 +5,10 @@ module Language.EO.Phi.Rules.Common where
 import Language.EO.Phi.Syntax.Abs
 import Control.Applicative (asum, Alternative ((<|>)))
 import Control.Monad (guard)
-import Language.EO.Phi.Syntax
 
 -- $setup
 -- >>> :set -XOverloadedStrings
+-- >>> import Language.EO.Phi.Syntax
 
 data Context = Context
   { allRules :: [Rule]
