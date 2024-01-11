@@ -37,7 +37,9 @@ stack run normalize-phi < "$I" > "$IO" \
   }
 perl -i -pe 'chomp if eof' "$IO"
 
-printf "\n\nNormalizer succeeded!\n\n"
+printf "\n\nNormalizer succeeded!"
+printf "\n\n* EO expression:\n\n"
+cat app.eo
 printf "\n\n* Phi expression:\n\n"
 cat "$I"
 printf "\n\n* Normalized Phi expression:\n\n"
