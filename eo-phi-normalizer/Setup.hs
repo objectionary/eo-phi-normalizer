@@ -25,7 +25,7 @@ main = defaultMainWithHooks $ simpleUserHooks
       postConf simpleUserHooks args flags packageDesc localBuildInfo
   }
 
--- | TODO: This should be in Cabal.Distribution.Simple.Program.Builtin.
+-- | NOTE: This should be in Cabal.Distribution.Simple.Program.Builtin.
 bnfcProgram :: Program
 bnfcProgram = (simpleProgram "bnfc")
   { programFindVersion = findProgramVersion "--version" id
