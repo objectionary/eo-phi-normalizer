@@ -5,6 +5,6 @@ rules:
     pattern: |
       ⟦ ?a ↦ ?n, ?B ⟧.?a
     result: |
-      ?n(ρ ↦ ?B)
+      ?n(ρ ↦ ⟦ ?B ⟧)
     when:
       - nf: [ "?n" ]
