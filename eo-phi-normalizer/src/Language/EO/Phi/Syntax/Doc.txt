@@ -73,11 +73,11 @@ All other symbols are terminals.
   |  |  **|**  | //LabelId//
   |  |  **|**  | //AlphaIndex//
   | //PeeledObject// | -> | //ObjectHead// //[ObjectAction]//
-  | //ObjectHead// | -> | ``{`` //[Binding]// ``}``
+  | //ObjectHead// | -> | ``⟦`` //[Binding]// ``⟧``
   |  |  **|**  | ``Φ``
   |  |  **|**  | ``ξ``
   |  |  **|**  | ``⊥``
-  | //ObjectAction// | -> | ``{`` //[Binding]// ``}``
+  | //ObjectAction// | -> | ``(`` //[Binding]// ``)``
   |  |  **|**  | ``.`` //Attribute//
   | //[ObjectAction]// | -> | **eps**
   |  |  **|**  | //ObjectAction// //[ObjectAction]//

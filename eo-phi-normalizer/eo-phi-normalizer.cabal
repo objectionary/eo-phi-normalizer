@@ -34,6 +34,8 @@ library
   exposed-modules:
       Language.EO.Phi
       Language.EO.Phi.Normalize
+      Language.EO.Phi.Rules.Common
+      Language.EO.Phi.Syntax
       Language.EO.Phi.Syntax.Abs
       Language.EO.Phi.Syntax.Lex
       Language.EO.Phi.Syntax.Par

@@ -13,19 +13,13 @@ import Numeric (showHex)
 
 import Control.Monad (forM)
 import Language.EO.Phi.Syntax.Abs
+import Language.EO.Phi.Rules.Common (lookupBinding)
 
 data Context = Context
   { globalObject :: [Binding]
   , thisObject :: [Binding]
   , totalNuCount :: Int
   }
-
-lookupBinding :: Attribute -> [Binding] -> Maybe Object
-lookupBinding _ [] = Nothing
-lookupBinding a (AlphaBinding a' object : bindings)
-  | a == a' = Just object
-  | otherwise = lookupBinding a bindings
-lookupBinding _ _ = Nothing
 
 isNu :: Binding -> Bool
 isNu (AlphaBinding VTX _) = True
