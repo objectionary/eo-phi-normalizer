@@ -21,6 +21,7 @@ main = defaultMainWithHooks $ simpleUserHooks
   , postConf       = \args flags packageDesc localBuildInfo -> do
 #ifndef mingw32_HOST_OS
       _ <- system "bnfc -d -p Language.EO.Phi --generic -o src/ grammar/EO/Phi/Syntax.cf"
+      _ <- system "bnfc -d -p Language.EO.Phi.Rules --generic -o src/ grammar/EO/Phi/Rules/Syntax.cf"
 #endif
       postConf simpleUserHooks args flags packageDesc localBuildInfo
   }

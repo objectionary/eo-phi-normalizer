@@ -35,7 +35,11 @@ library
       Language.EO.Phi
       Language.EO.Phi.Normalize
       Language.EO.Phi.Rules.Common
-      Language.EO.Phi.Rules.PhiPaper
+      Language.EO.Phi.Rules.Syntax.Abs
+      Language.EO.Phi.Rules.Syntax.Lex
+      Language.EO.Phi.Rules.Syntax.Par
+      Language.EO.Phi.Rules.Syntax.Print
+      Language.EO.Phi.Rules.Yaml
       Language.EO.Phi.Syntax
       Language.EO.Phi.Syntax.Abs
       Language.EO.Phi.Syntax.Lex
