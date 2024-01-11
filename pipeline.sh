@@ -1,3 +1,5 @@
+set -euo pipefail
+
 mkdir -p pipeline
 cd pipeline
 
@@ -41,7 +43,7 @@ cat "$I"
 printf "\n\n* Normalized Phi expression:\n\n"
 cat "$IO"
 printf "\n\n* Diff:\n\n"
-diff "$I" "$IO"
+diff "$I" "$IO" || true
 
 eo unphi
 
