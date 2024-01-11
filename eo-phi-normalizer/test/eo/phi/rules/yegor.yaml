@@ -1,0 +1,10 @@
+title: "Rule set based on Yegor's draft"
+rules:
+  - name: Rule 6
+    description: "Accessing an α-binding"
+    pattern: |
+      ⟦ ?a ↦ ?n, ?B ⟧.?a
+    result: |
+      ?n(ρ ↦ ?B)
+    when:
+      - nf: [ "?n" ]
