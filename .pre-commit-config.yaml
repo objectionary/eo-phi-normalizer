@@ -17,12 +17,13 @@
 repos:
   - repo: local
     hooks:
-      - id: fourmolu
-        name: fourmolu
+      - id: fourmolu-format
+        name: Format Haskell (.hs) files
         entry: scripts/run-fourmolu.sh --mode=inplace
         language: system
         files: '\.(hs|hs-boot)$'
         exclude: |
           (?x)^(
-            eo-phi-normalizer/src/Language/EO/Phi/Syntax/
+            eo-phi-normalizer/src/Language/EO/Phi/Syntax/|
+            eo-phi-normalizer/Setup.hs
           )
