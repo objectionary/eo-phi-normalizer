@@ -4,7 +4,6 @@ module Language.EO.Phi.Rules.Common where
 
 import Language.EO.Phi.Syntax.Abs
 import Control.Applicative (asum, Alternative ((<|>)))
-import Control.Monad (guard)
 
 -- $setup
 -- >>> :set -XOverloadedStrings
