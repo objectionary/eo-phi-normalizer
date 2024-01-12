@@ -55,6 +55,7 @@ ghc-options:
 - -Wpartial-fields
 - -Wredundant-constraints
 - -Wno-missing-export-lists
+- -Werror
 
 library:
   source-dirs: src
