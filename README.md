@@ -80,10 +80,17 @@ Otherwise, the triggered CI jobs will fail.
 
 #### Set up pre-commit
 
-1. [Install](https://pre-commit.com/#installation) `pre-commit`.
-    - Alternatively, install/make sure you have `python3` and run `pip install`.
-1. [Check it shows a version](https://pre-commit.com/#1-install-pre-commit).
+1. Install [Python 3](https://www.python.org/downloads/) (e.g., Python 3.10).
+1. [Install pre-commit](https://pre-commit.com/#1-install-pre-commit).
+    - Alternatively, run `pip3 install`.
 1. [Install the git hook scripts](https://pre-commit.com/#3-install-the-git-hook-scripts).
+1. Install [fourmolu](https://github.com/fourmolu/fourmolu)
+
+    ```console
+    stack install fourmolu
+    ```
+
+    - You can remove `fourmolu` later (see [SO post](https://stackoverflow.com/a/38639959))
 
 #### pre-commit configs
 
