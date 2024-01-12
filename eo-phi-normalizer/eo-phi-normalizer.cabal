@@ -57,6 +57,7 @@ library
     , directory
     , filepath
     , mtl
+    , string-interpolate
     , yaml
   default-language: Haskell2010
 
@@ -80,6 +81,7 @@ executable normalize-phi
     , eo-phi-normalizer
     , filepath
     , mtl
+    , string-interpolate
     , yaml
   default-language: Haskell2010
 
@@ -108,5 +110,6 @@ test-suite eo-phi-normalizer-test
     , hspec
     , hspec-discover
     , mtl
+    , string-interpolate
     , yaml
   default-language: Haskell2010

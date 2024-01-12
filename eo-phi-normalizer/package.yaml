@@ -42,6 +42,7 @@ dependencies:
 - filepath
 - yaml
 - mtl
+- string-interpolate
 
 ghc-options:
 - -Wall
