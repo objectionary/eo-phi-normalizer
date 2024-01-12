@@ -1,17 +1,25 @@
 title: Tests for Rule 1
 tests:
-  - name: 'Program in normal form (1)'
+  - name: 'Program without vertices (1)'
     input: |
-      {}
+      {a ↦ ⟦ ⟧ }
     normalized: |
-      { ν ↦ ⟦ Δ ⤍ 00- ⟧ }
+      { a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ }
     prettified: |
       { }
 
-  - name: 'Program in normal form (2)'
+  - name: 'Program without vertices (2)'
     input: |
-      { φ ↦ ⟦ φ ↦ ⟦ φ ↦ ⟦ ⟧ ⟧ ⟧ }
+      { a ↦ ⟦ φ ↦ ⟦ φ ↦ ⟦ φ ↦ ⟦ ⟧ ⟧ ⟧ ⟧ }
     normalized: |
-      { ν ↦ ⟦ Δ ⤍ 03- ⟧, φ ↦ ⟦ ν ↦ ⟦ Δ ⤍ 02- ⟧, φ ↦ ⟦ ν ↦ ⟦ Δ ⤍ 01- ⟧, φ ↦ ⟦ ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧ ⟧ }
+      { a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧, φ ↦ ⟦ ν ↦ ⟦ Δ ⤍ 02- ⟧, φ ↦ ⟦ ν ↦ ⟦ Δ ⤍ 01- ⟧, φ ↦ ⟦ ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧ ⟧ ⟧ }
     prettified: |
-      { φ ↦ ⟦ φ ↦ ⟦ φ ↦ ⟦ ⟧ ⟧ ⟧ }
+      { a ↦ ⟦ φ ↦ ⟦ φ ↦ ⟦ φ ↦ ⟦ ⟧ ⟧ ⟧ ⟧ }
+
+  - name: 'Program without vertices (3)'
+    input: |
+      { a ↦ ⟦ φ ↦ ⟦ ⟧ , a ↦ ξ.φ ⟧ }
+    normalized: |
+      { a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 01- ⟧, φ ↦ ⟦ ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, a ↦ ξ.φ ⟧ }
+    prettified: |
+      { a ↦ ⟦ φ ↦ ⟦ ⟧, a ↦ ξ.φ ⟧ }
