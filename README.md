@@ -96,15 +96,12 @@ Otherwise, the triggered CI jobs will fail.
 
 See [docs](https://pre-commit.com/#adding-pre-commit-plugins-to-your-project).
 
-Hooks:
-
-- run before a commit - [.pre-commit-config.yaml](.pre-commit-config.yaml)
-- run in CI - [.pre-commit-checks.yaml](.pre-commit-checks.yaml)
+See [.pre-commit-config.yaml](.pre-commit-config.yaml).
 
 You can run a specific hook (see [docs](https://pre-commit.com/#pre-commit-run)):
 
 ```console
-pre-commit run -c .pre-commit-checks.yaml fourmolu-check --all
+pre-commit run -c .pre-commit-config.yaml fourmolu-format --all
 ```
 
 #### pre-commit workflow
