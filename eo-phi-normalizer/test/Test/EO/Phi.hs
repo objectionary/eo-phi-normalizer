@@ -30,11 +30,14 @@ data PhiTest = PhiTest
   }
   deriving (Generic, FromJSON)
 
+filePhiTests :: FilePath -> IO PhiTestGroup
+filePhiTests = Yaml.decodeFileThrow
+
 allPhiTests :: FilePath -> IO [PhiTestGroup]
 allPhiTests dir = do
   paths <- listDirectory dir
   forM (sort paths) $ \path ->
-    Yaml.decodeFileThrow (dir </> path)
+    filePhiTests (dir </> path)
 
 -- * Orphan instances
 
