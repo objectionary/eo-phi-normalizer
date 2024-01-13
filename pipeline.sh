@@ -5,7 +5,7 @@ cd pipeline
 
 shopt -s expand_aliases
 
-EO=0.34.2
+EO="0.34.3"
 alias eo="eoc --parser=${EO}"
 
 cat > app.eo <<EOT
