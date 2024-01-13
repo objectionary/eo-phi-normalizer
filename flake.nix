@@ -153,8 +153,7 @@
               pkgs.perl
             ];
             text = ''
-              JAVA_HOME="${pkgs.jdk21.home}"
-              export JAVA_HOME
+              export JAVA_HOME="${pkgs.jdk21.home}"
               ${builtins.readFile ./pipeline.sh}
             '';
             description = "Run pipeline";
