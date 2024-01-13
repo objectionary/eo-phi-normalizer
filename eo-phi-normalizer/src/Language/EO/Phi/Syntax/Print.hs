@@ -185,14 +185,14 @@ instance Print Language.EO.Phi.Syntax.Abs.PeeledObject where
 
 instance Print Language.EO.Phi.Syntax.Abs.ObjectHead where
   prt i = \case
-    Language.EO.Phi.Syntax.Abs.HeadFormation bindings -> prPrec i 0 (concatD [doc (showString "{"), prt 0 bindings, doc (showString "}")])
+    Language.EO.Phi.Syntax.Abs.HeadFormation bindings -> prPrec i 0 (concatD [doc (showString "\10214"), prt 0 bindings, doc (showString "\10215")])
     Language.EO.Phi.Syntax.Abs.HeadGlobal -> prPrec i 0 (concatD [doc (showString "\934")])
     Language.EO.Phi.Syntax.Abs.HeadThis -> prPrec i 0 (concatD [doc (showString "\958")])
     Language.EO.Phi.Syntax.Abs.HeadTermination -> prPrec i 0 (concatD [doc (showString "\8869")])
 
 instance Print Language.EO.Phi.Syntax.Abs.ObjectAction where
   prt i = \case
-    Language.EO.Phi.Syntax.Abs.ActionApplication bindings -> prPrec i 0 (concatD [doc (showString "{"), prt 0 bindings, doc (showString "}")])
+    Language.EO.Phi.Syntax.Abs.ActionApplication bindings -> prPrec i 0 (concatD [doc (showString "("), prt 0 bindings, doc (showString ")")])
     Language.EO.Phi.Syntax.Abs.ActionDispatch attribute -> prPrec i 0 (concatD [doc (showString "."), prt 0 attribute])
 
 instance Print [Language.EO.Phi.Syntax.Abs.ObjectAction] where

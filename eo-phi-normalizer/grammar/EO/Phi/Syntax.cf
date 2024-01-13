@@ -27,17 +27,17 @@ separator Binding "," ;
 Phi.    Attribute ::= "φ" ;   -- decoratee object
 Rho.    Attribute ::= "ρ" ;   -- parent object
 Sigma.  Attribute ::= "σ" ;   -- home object
-VTX.    Attribute ::= "ν" ;   -- ???
+VTX.    Attribute ::= "ν" ;   -- the vertex identifier (an object that represents the unique identifier of the containing object)
 Label.  Attribute ::= LabelId ;
 Alpha.  Attribute ::= AlphaIndex ;
 
 PeeledObject. PeeledObject ::= ObjectHead [ObjectAction] ;
 
-HeadFormation.    ObjectHead ::= "{" [Binding] "}" ;
+HeadFormation.    ObjectHead ::= "⟦" [Binding] "⟧" ;
 HeadGlobal.       ObjectHead ::= "Φ" ;
 HeadThis.         ObjectHead ::= "ξ" ;
 HeadTermination.  ObjectHead ::= "⊥" ;
 
-ActionApplication.  ObjectAction ::= "{" [Binding] "}" ;
+ActionApplication.  ObjectAction ::= "(" [Binding] ")" ;
 ActionDispatch.     ObjectAction ::= "." Attribute ;
 separator ObjectAction "" ;
