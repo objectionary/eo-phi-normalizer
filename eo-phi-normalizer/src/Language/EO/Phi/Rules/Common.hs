@@ -15,13 +15,13 @@ data Context = Context
   }
 
 -- | A rule tries to apply a transformation to the root object, if possible.
-type Rule = Context -> Object -> Maybe Object
+type Rule = Context -> Object -> [Object]
 
 applyOneRuleAtRoot :: Context -> Object -> [Object]
 applyOneRuleAtRoot ctx@Context{..} obj =
   [ obj'
   | rule <- allRules
-  , Just obj' <- [rule ctx obj]
+  , obj' <- rule ctx obj
   ]
 
 withSubObject :: (Object -> [Object]) -> Object -> [Object]
