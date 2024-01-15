@@ -1,9 +1,11 @@
+set -euo pipefail
+
 mkdir -p pipeline
 cd pipeline
 
 shopt -s expand_aliases
 
-EO=0.34.2
+EO="0.34.3"
 alias eo="eoc --parser=${EO}"
 
 cat > app.eo <<EOT
@@ -24,7 +26,7 @@ I=".eoc/phi/app.bk.phi"
 mv "$IO" "$I"
 stack run normalize-phi < "$I" > "$IO" \
   || {
-    printf "\n\nNormalizer failed"
+    printf "\n\nNormalizer failed!"
     printf "\n\n* EO expression:\n\n"
     cat app.eo
     printf "\n\n* Phi expression:\n\n"
@@ -33,14 +35,17 @@ stack run normalize-phi < "$I" > "$IO" \
     cat "$IO"
     exit 1
   }
+perl -i -pe 'chomp if eof' "$IO"
 
-printf "\n\nNormalizer succeeded!\n\n"
+printf "\n\nNormalizer succeeded!"
+printf "\n\n* EO expression:\n\n"
+cat app.eo
 printf "\n\n* Phi expression:\n\n"
 cat "$I"
 printf "\n\n* Normalized Phi expression:\n\n"
 cat "$IO"
 printf "\n\n* Diff:\n\n"
-diff "$I" "$IO"
+diff "$I" "$IO" || true
 
 eo unphi
 

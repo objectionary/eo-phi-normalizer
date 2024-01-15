@@ -50,9 +50,11 @@ jobs:
           distribution: "zulu"
           java-version: 21
 
-      - run: npm install -g eolang@0.15.1
-
-      - run: ./pipeline.sh
+      - name: Install EO
+        run: npm install -g eolang@0.15.1
+      
+      - name: Run pipeline EO -> Phi -> Normalizer -> Phi -> EO
+        run: ./pipeline.sh
 
   haddock:
     needs: [build]
