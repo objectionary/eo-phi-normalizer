@@ -22,12 +22,12 @@ applyRule rule = \case
 
 spec :: Spec
 spec = do
-  describe "Rules unit tests"
-    $ forM_ ([(1, rule1), (6, rule6)] :: [(Int, Rule)])
-    $ \(idx, rule) -> do
-      PhiTestGroup{..} <- runIO (filePhiTests [i|test/eo/phi/rule-#{idx}.yaml|])
-      describe title
-        $ forM_ tests
-        $ \PhiTest{..} ->
-          it name do
-            applyRule (rule (Context [])) input `shouldBe` Just normalized
+  describe "Rules unit tests" $
+    forM_ ([(1, rule1), (6, rule6)] :: [(Int, Rule)]) $
+      \(idx, rule) -> do
+        PhiTestGroup{..} <- runIO (filePhiTests [i|test/eo/phi/rule-#{idx}.yaml|])
+        describe title $
+          forM_ tests $
+            \PhiTest{..} ->
+              it name do
+                applyRule (rule (Context [])) input `shouldBe` Just normalized

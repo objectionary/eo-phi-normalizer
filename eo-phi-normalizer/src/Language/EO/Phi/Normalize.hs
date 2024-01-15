@@ -12,8 +12,8 @@ import Data.Maybe (fromMaybe)
 import Numeric (showHex)
 
 import Control.Monad (forM)
-import Language.EO.Phi.Syntax.Abs
 import Language.EO.Phi.Rules.Common (lookupBinding)
+import Language.EO.Phi.Syntax.Abs
 
 data Context = Context
   { globalObject :: [Binding]

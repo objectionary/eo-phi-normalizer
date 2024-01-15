@@ -1,9 +1,10 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
+
 module Language.EO.Phi.Rules.Common where
 
+import Control.Applicative (Alternative ((<|>)), asum)
 import Language.EO.Phi.Syntax.Abs
-import Control.Applicative (asum, Alternative ((<|>)))
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -24,25 +25,28 @@ applyOneRuleAtRoot ctx@Context{..} obj =
   ]
 
 withSubObject :: (Object -> [Object]) -> Object -> [Object]
-withSubObject f root = f root <|>
-  case root of
-    Formation bindings ->
-      Formation <$> withSubObjectBindings f bindings
-    Application obj bindings -> asum
-      [ Application <$> withSubObject f obj <*> pure bindings
-      , Application obj <$> withSubObjectBindings f bindings
-      ]
-    ObjectDispatch obj a -> ObjectDispatch <$> withSubObject f obj <*> pure a
-    GlobalDispatch{} -> []
-    ThisDispatch{} -> []
-    Termination -> []
+withSubObject f root =
+  f root
+    <|> case root of
+      Formation bindings ->
+        Formation <$> withSubObjectBindings f bindings
+      Application obj bindings ->
+        asum
+          [ Application <$> withSubObject f obj <*> pure bindings
+          , Application obj <$> withSubObjectBindings f bindings
+          ]
+      ObjectDispatch obj a -> ObjectDispatch <$> withSubObject f obj <*> pure a
+      GlobalDispatch{} -> []
+      ThisDispatch{} -> []
+      Termination -> []
 
 withSubObjectBindings :: (Object -> [Object]) -> [Binding] -> [[Binding]]
 withSubObjectBindings _ [] = []
-withSubObjectBindings f (b:bs) = asum
-  [ [ b' : bs  | b'  <- withSubObjectBinding  f b ]
-  , [ b  : bs' | bs' <- withSubObjectBindings f bs ]
-  ]
+withSubObjectBindings f (b : bs) =
+  asum
+    [ [b' : bs | b' <- withSubObjectBinding f b]
+    , [b : bs' | bs' <- withSubObjectBindings f bs]
+    ]
 
 withSubObjectBinding :: (Object -> [Object]) -> Binding -> [Binding]
 withSubObjectBinding f = \case
@@ -67,7 +71,8 @@ applyRules ctx obj
   | otherwise =
       [ obj''
       | obj' <- applyOneRule ctx obj
-      , obj'' <- applyRules ctx obj' ]
+      , obj'' <- applyRules ctx obj'
+      ]
 
 applyRulesChain :: Context -> Object -> [[Object]]
 applyRulesChain ctx obj
@@ -75,7 +80,8 @@ applyRulesChain ctx obj
   | otherwise =
       [ obj : chain
       | obj' <- applyOneRule ctx obj
-      , chain <- applyRulesChain ctx obj' ]
+      , chain <- applyRulesChain ctx obj'
+      ]
 
 -- * Helpers
 
