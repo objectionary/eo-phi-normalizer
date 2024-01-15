@@ -16,6 +16,12 @@ import Data.List (sort)
 import Language.EO.Phi (unsafeParseProgram)
 import qualified Language.EO.Phi as Phi
 
+data PhiTestGroup = PhiTestGroup
+  { title :: String
+  , tests :: [PhiTest]
+  }
+  deriving (Generic, FromJSON)
+
 data PhiTest = PhiTest
   { name :: String
   , input :: Phi.Program
@@ -24,11 +30,14 @@ data PhiTest = PhiTest
   }
   deriving (Generic, FromJSON)
 
-allPhiTests :: FilePath -> IO [PhiTest]
+filePhiTests :: FilePath -> IO PhiTestGroup
+filePhiTests = Yaml.decodeFileThrow
+
+allPhiTests :: FilePath -> IO [PhiTestGroup]
 allPhiTests dir = do
   paths <- listDirectory dir
   forM (sort paths) $ \path ->
-    Yaml.decodeFileThrow (dir </> path)
+    filePhiTests (dir </> path)
 
 -- * Orphan instances
 

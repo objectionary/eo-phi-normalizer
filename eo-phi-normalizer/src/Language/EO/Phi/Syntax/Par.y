@@ -119,14 +119,14 @@ PeeledObject
 
 ObjectHead :: { Language.EO.Phi.Syntax.Abs.ObjectHead }
 ObjectHead
-  : '{' ListBinding '}' { Language.EO.Phi.Syntax.Abs.HeadFormation $2 }
+  : '⟦' ListBinding '⟧' { Language.EO.Phi.Syntax.Abs.HeadFormation $2 }
   | 'Φ' { Language.EO.Phi.Syntax.Abs.HeadGlobal }
   | 'ξ' { Language.EO.Phi.Syntax.Abs.HeadThis }
   | '⊥' { Language.EO.Phi.Syntax.Abs.HeadTermination }
 
 ObjectAction :: { Language.EO.Phi.Syntax.Abs.ObjectAction }
 ObjectAction
-  : '{' ListBinding '}' { Language.EO.Phi.Syntax.Abs.ActionApplication $2 }
+  : '(' ListBinding ')' { Language.EO.Phi.Syntax.Abs.ActionApplication $2 }
   | '.' Attribute { Language.EO.Phi.Syntax.Abs.ActionDispatch $2 }
 
 ListObjectAction :: { [Language.EO.Phi.Syntax.Abs.ObjectAction] }

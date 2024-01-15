@@ -44,7 +44,17 @@ unicode: never
 respectful: true
 
 # Fixity information for operators
-fixities: []
+# listed explicitly to ensure consistent formatting
+# between HLS and standalone versions of fourmolu
+# https://github.com/haskell/haskell-language-server/issues/3882
+fixities:
+  - infixr 9  .
+  - infixr 5  ++
+  - infixl 4  <$
+  - infixl 1  >>, >>=
+  - infixr 1  =<<
+  - infixr 0  $, $!
+  - infixl 4 <*>, <*, *>, <**>
 
 # Module reexports Fourmolu should know about
 reexports: []
