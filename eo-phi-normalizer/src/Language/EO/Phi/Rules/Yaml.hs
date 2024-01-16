@@ -1,5 +1,7 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
@@ -51,6 +53,15 @@ data Rule = Rule
   , pattern :: Object
   , result :: Object
   , when :: [Condition]
+  , tests :: [RuleTest]
+  }
+  deriving (Generic, FromJSON, Show)
+
+data RuleTest = RuleTest
+  { name :: String
+  , input :: Object
+  , output :: Object
+  , matches :: Bool
   }
   deriving (Generic, FromJSON, Show)
 
