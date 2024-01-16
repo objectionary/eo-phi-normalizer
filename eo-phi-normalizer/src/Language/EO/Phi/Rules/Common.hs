@@ -39,6 +39,7 @@ withSubObject f root =
       GlobalDispatch{} -> []
       ThisDispatch{} -> []
       Termination -> []
+      MetaObject _ -> []
 
 withSubObjectBindings :: (Object -> [Object]) -> [Binding] -> [[Binding]]
 withSubObjectBindings _ [] = []
@@ -54,6 +55,7 @@ withSubObjectBinding f = \case
   EmptyBinding{} -> []
   DeltaBinding{} -> []
   LambdaBinding{} -> []
+  MetaBindings _ -> []
 
 applyOneRule :: Context -> Object -> [Object]
 applyOneRule = withSubObject . applyOneRuleAtRoot
