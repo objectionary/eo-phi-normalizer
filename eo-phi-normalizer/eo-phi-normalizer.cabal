@@ -36,10 +36,6 @@ library
       Language.EO.Phi.Normalize
       Language.EO.Phi.Rules.Common
       Language.EO.Phi.Rules.PhiPaper
-      Language.EO.Phi.Rules.Syntax.Abs
-      Language.EO.Phi.Rules.Syntax.Lex
-      Language.EO.Phi.Rules.Syntax.Par
-      Language.EO.Phi.Rules.Syntax.Print
       Language.EO.Phi.Rules.Yaml
       Language.EO.Phi.Syntax
       Language.EO.Phi.Syntax.Abs
@@ -96,7 +92,9 @@ test-suite eo-phi-normalizer-test
   main-is: Spec.hs
   other-modules:
       Language.EO.PhiSpec
+      Language.EO.YamlSpec
       Test.EO.Phi
+      Test.EO.Yaml
       Paths_eo_phi_normalizer
   hs-source-dirs:
       test
