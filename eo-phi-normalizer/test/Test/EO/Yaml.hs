@@ -15,6 +15,6 @@ fileTests = parseRuleSetFromFile
 
 directoryTests :: FilePath -> IO [RuleSet]
 directoryTests dir = do
-    paths <- listDirectory dir
-    forM (sort paths) $ \path ->
-        fileTests (dir </> path)
+  paths <- listDirectory dir
+  forM (sort paths) $ \path ->
+    fileTests (dir </> path)

@@ -83,6 +83,7 @@ executable normalize-phi
     , eo-phi-normalizer
     , filepath
     , mtl
+    , optparse-generic
     , string-interpolate
     , yaml
   default-language: Haskell2010
