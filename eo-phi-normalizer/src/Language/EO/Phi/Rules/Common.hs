@@ -1,14 +1,37 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 
 module Language.EO.Phi.Rules.Common where
 
 import Control.Applicative (Alternative ((<|>)), asum)
 import Language.EO.Phi.Syntax.Abs
+import Data.String (IsString(..))
+import Language.EO.Phi.Syntax.Lex (Token)
+import Language.EO.Phi.Syntax.Par
 
 -- $setup
 -- >>> :set -XOverloadedStrings
 -- >>> import Language.EO.Phi.Syntax
+
+instance IsString Object where fromString = unsafeParseWith pObject
+instance IsString Binding where fromString = unsafeParseWith pBinding
+instance IsString Attribute where fromString = unsafeParseWith pAttribute
+instance IsString PeeledObject where fromString = unsafeParseWith pPeeledObject
+instance IsString ObjectHead  where fromString = unsafeParseWith pObjectHead
+
+parseWith :: ([Token] -> Either String a) -> String -> Either String a
+parseWith parser input = parser tokens
+  where
+    tokens = myLexer input
+
+-- | Parse a 'Object' from a 'String'.
+-- May throw an 'error` if input has a syntactical or lexical errors.
+unsafeParseWith :: ([Token] -> Either String a) -> String -> a
+unsafeParseWith parser input =
+  case parseWith parser input of
+    Left parseError -> error parseError
+    Right object -> object
 
 data Context = Context
   { allRules :: [Rule]

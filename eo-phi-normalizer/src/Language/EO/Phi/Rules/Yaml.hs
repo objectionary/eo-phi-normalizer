@@ -16,30 +16,9 @@ import qualified Data.Yaml as Yaml
 import GHC.Generics (Generic)
 import qualified Language.EO.Phi.Rules.Common as Common
 import Language.EO.Phi.Syntax.Abs
-import Language.EO.Phi.Syntax.Par
 
-instance IsString Object where
-  fromString = unsafeParseObject
-
-instance FromJSON Object where
-  parseJSON = fmap fromString . parseJSON
-
-instance FromJSON MetaId where
-  parseJSON = fmap MetaId . parseJSON
-
--- | Parse a 'Object' or return a parsing error.
-parseObject :: String -> Either String Object
-parseObject input = pObject tokens
- where
-  tokens = myLexer input
-
--- | Parse a 'Object' from a 'String'.
--- May throw an 'error` if input has a syntactical or lexical errors.
-unsafeParseObject :: String -> Object
-unsafeParseObject input =
-  case parseObject input of
-    Left parseError -> error parseError
-    Right object -> object
+instance FromJSON Object where parseJSON = fmap fromString . parseJSON
+instance FromJSON MetaId where parseJSON = fmap MetaId . parseJSON
 
 data RuleSet = RuleSet
   { title :: String
@@ -76,6 +55,7 @@ convertRule Rule{..} _ctx obj =
   [ obj'
   | subst <- matchObject pattern obj
   , obj' <- [applySubst subst result]
+  -- TODO: check that obj' does not have any metavariables
   ]
 
 -- input: ⟦ a ↦ ⟦ c ↦ ⟦ ⟧ ⟧, b ↦ ⟦ ⟧ ⟧.a
@@ -95,7 +75,7 @@ data Subst = Subst
   { objectMetas :: [(MetaId, Object)]
   , bindingsMetas :: [(MetaId, [Binding])]
   , attributeMetas :: [(MetaId, Attribute)]
-  }
+  } deriving (Show)
 
 instance Semigroup Subst where
   (<>) = mergeSubst
@@ -106,6 +86,8 @@ instance Monoid Subst where
 emptySubst :: Subst
 emptySubst = Subst [] [] []
 
+-- >>> putStrLn $ Language.EO.Phi.printTree (applySubst (Subst [("!n", "⟦ c ↦ ⟦ ⟧ ⟧")] [("!B", ["b ↦ ⟦ ⟧"])] [("!a", "a")]) "!n(ρ ↦ ⟦ !B ⟧)" :: Object)
+-- ⟦ c ↦ ⟦ ⟧ ⟧ (ρ ↦ ⟦ b ↦ ⟦ ⟧ ⟧)
 applySubst :: Subst -> Object -> Object
 applySubst subst@Subst{..} = \case
   Formation bindings ->
@@ -206,20 +188,12 @@ matchBinding (AlphaBinding a obj) (AlphaBinding a' obj') = do
 matchBinding _ _ = []
 
 matchAttr :: Attribute -> Attribute -> [Subst]
-matchAttr (MetaAttr metaId@(MetaId name)) attr@(Alpha (AlphaIndex name'))
-  | name == name' =
-      [ Subst
-          { objectMetas = []
-          , bindingsMetas = []
-          , attributeMetas = [(metaId, attr)]
-          }
-      ]
-matchAttr (MetaAttr metaId@(MetaId name)) attr@(Label (LabelId name'))
-  | name == name' =
-      [ Subst
-          { objectMetas = []
-          , bindingsMetas = []
-          , attributeMetas = [(metaId, attr)]
-          }
-      ]
+matchAttr l r | l == r = [emptySubst]
+matchAttr (MetaAttr metaId) attr =
+  [ Subst
+      { objectMetas = []
+      , bindingsMetas = []
+      , attributeMetas = [(metaId, attr)]
+      }
+  ]
 matchAttr _ _ = []
