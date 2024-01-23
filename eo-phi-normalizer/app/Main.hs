@@ -4,6 +4,7 @@
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# OPTIONS_GHC -Wno-type-defaults #-}
 
 module Main where
 
@@ -12,7 +13,7 @@ import Data.Foldable (forM_)
 
 import Data.List (nub)
 import Language.EO.Phi (Object (Formation), Program (Program), defaultMain, parseProgram, printTree)
-import Language.EO.Phi.Rules.Common (Context (..), applyRules)
+import Language.EO.Phi.Rules.Common (Context (..), applyRules, applyRulesChain)
 import Language.EO.Phi.Rules.Yaml
 import Options.Generic
 
@@ -47,15 +48,24 @@ main = do
       let progOrError = parseProgram src
       case progOrError of
         Left err -> error ("An error occurred parsing the input program: " <> err)
-        Right (Program bindings) -> do
-          let objects = applyRules (Context (convertRule <$> ruleSet.rules)) (Formation bindings)
-              progs =
-                ( \case
-                    Formation x -> Right $ Program x
-                    obj -> Left ("Normalization yielded an invalid program: " <> printTree obj)
-                )
-                  <$> objects
+        Right input@(Program bindings) -> do
+          let results
+                | chain = applyRulesChain (Context (convertRule <$> ruleSet.rules)) (Formation bindings)
+                | otherwise = pure <$> applyRules (Context (convertRule <$> ruleSet.rules)) (Formation bindings)
+              uniqueResults = nub results
+              totalResults = length uniqueResults
           -- TODO: use outPath to output to file if provided
-          forM_ (nub progs) (putStrLn . either id printTree)
+          putStrLn "Input:"
+          putStrLn (printTree input)
+          putStrLn "===================================================="
+          forM_ (zip [1..] uniqueResults) $ \ (i, steps) -> do
+            putStrLn $
+              "Result " <> show i <> " out of " <> show totalResults <> ":"
+            let n = length steps
+            forM_ (zip [1..] steps) $ \ (k, step) -> do
+              Control.Monad.when chain $ do
+                putStr ("[ " <> show k <> " / " <> show n <> " ]")
+              putStrLn (printTree step)
+            putStrLn "----------------------------------------------------"
     -- TODO: still need to consider `chain`
     Nothing -> defaultMain
