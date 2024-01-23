@@ -63,6 +63,7 @@ import Language.EO.Phi.Syntax.Lex
   L_Function   { PT _ (T_Function $$)   }
   L_LabelId    { PT _ (T_LabelId $$)    }
   L_AlphaIndex { PT _ (T_AlphaIndex $$) }
+  L_MetaId     { PT _ (T_MetaId $$)     }
 
 %%
 
@@ -78,6 +79,9 @@ LabelId  : L_LabelId { Language.EO.Phi.Syntax.Abs.LabelId $1 }
 AlphaIndex :: { Language.EO.Phi.Syntax.Abs.AlphaIndex }
 AlphaIndex  : L_AlphaIndex { Language.EO.Phi.Syntax.Abs.AlphaIndex $1 }
 
+MetaId :: { Language.EO.Phi.Syntax.Abs.MetaId }
+MetaId  : L_MetaId { Language.EO.Phi.Syntax.Abs.MetaId $1 }
+
 Program :: { Language.EO.Phi.Syntax.Abs.Program }
 Program
   : '{' ListBinding '}' { Language.EO.Phi.Syntax.Abs.Program $2 }
@@ -90,6 +94,7 @@ Object
   | 'Φ' '.' Attribute { Language.EO.Phi.Syntax.Abs.GlobalDispatch $3 }
   | 'ξ' '.' Attribute { Language.EO.Phi.Syntax.Abs.ThisDispatch $3 }
   | '⊥' { Language.EO.Phi.Syntax.Abs.Termination }
+  | MetaId { Language.EO.Phi.Syntax.Abs.MetaObject $1 }
 
 Binding :: { Language.EO.Phi.Syntax.Abs.Binding }
 Binding
@@ -97,6 +102,7 @@ Binding
   | Attribute '↦' '∅' { Language.EO.Phi.Syntax.Abs.EmptyBinding $1 }
   | 'Δ' '⤍' Bytes { Language.EO.Phi.Syntax.Abs.DeltaBinding $3 }
   | 'λ' '⤍' Function { Language.EO.Phi.Syntax.Abs.LambdaBinding $3 }
+  | MetaId { Language.EO.Phi.Syntax.Abs.MetaBindings $1 }
 
 ListBinding :: { [Language.EO.Phi.Syntax.Abs.Binding] }
 ListBinding
@@ -112,6 +118,7 @@ Attribute
   | 'ν' { Language.EO.Phi.Syntax.Abs.VTX }
   | LabelId { Language.EO.Phi.Syntax.Abs.Label $1 }
   | AlphaIndex { Language.EO.Phi.Syntax.Abs.Alpha $1 }
+  | MetaId { Language.EO.Phi.Syntax.Abs.MetaAttr $1 }
 
 PeeledObject :: { Language.EO.Phi.Syntax.Abs.PeeledObject }
 PeeledObject

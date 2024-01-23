@@ -25,6 +25,7 @@ data Object
     | GlobalDispatch Attribute
     | ThisDispatch Attribute
     | Termination
+    | MetaObject MetaId
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data Binding
@@ -32,10 +33,17 @@ data Binding
     | EmptyBinding Attribute
     | DeltaBinding Bytes
     | LambdaBinding Function
+    | MetaBindings MetaId
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data Attribute
-    = Phi | Rho | Sigma | VTX | Label LabelId | Alpha AlphaIndex
+    = Phi
+    | Rho
+    | Sigma
+    | VTX
+    | Label LabelId
+    | Alpha AlphaIndex
+    | MetaAttr MetaId
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data PeeledObject = PeeledObject ObjectHead [ObjectAction]
@@ -59,5 +67,8 @@ newtype LabelId = LabelId String
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic, Data.String.IsString)
 
 newtype AlphaIndex = AlphaIndex String
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic, Data.String.IsString)
+
+newtype MetaId = MetaId String
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic, Data.String.IsString)
 

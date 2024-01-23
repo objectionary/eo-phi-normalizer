@@ -1,60 +1,50 @@
-{-# OPTIONS_GHC -Wno-orphans #-}
-{-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE RecordWildCards #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
+
 module Language.EO.Phi.Rules.Yaml where
 
+import Data.Aeson (FromJSON (..))
 import Data.Coerce (coerce)
-import GHC.Generics (Generic)
-import Data.Aeson (FromJSON(..))
+import Data.Maybe (fromMaybe)
+import Data.String (IsString (..))
 import qualified Data.Yaml as Yaml
-import Data.String (IsString(..))
-import qualified Language.EO.Phi.Rules.Syntax.Abs as Rules
-import qualified Language.EO.Phi.Rules.Syntax.Par as Rules
-import qualified Language.EO.Phi.Syntax.Abs as Phi
-
+import GHC.Generics (Generic)
 import qualified Language.EO.Phi.Rules.Common as Common
+import Language.EO.Phi.Syntax.Abs
 
-instance IsString Rules.Object where
-  fromString = unsafeParseObject
-
-instance FromJSON Rules.Object where
-  parseJSON = fmap fromString . parseJSON
-
-instance FromJSON Rules.MetaId where
-  parseJSON = fmap Rules.MetaId . parseJSON
-
--- | Parse a 'Object' or return a parsing error.
-parseObject :: String -> Either String Rules.Object
-parseObject input = Rules.pObject tokens
- where
-  tokens = Rules.myLexer input
-
--- | Parse a 'Object' from a 'String'.
--- May throw an 'error` if input has a syntactical or lexical errors.
-unsafeParseObject :: String -> Rules.Object
-unsafeParseObject input =
-  case parseObject input of
-    Left parseError -> error parseError
-    Right object -> object
-
+instance FromJSON Object where parseJSON = fmap fromString . parseJSON
+instance FromJSON MetaId where parseJSON = fmap MetaId . parseJSON
 
 data RuleSet = RuleSet
   { title :: String
   , rules :: [Rule]
-  } deriving (Generic, FromJSON, Show)
+  }
+  deriving (Generic, FromJSON, Show)
 
 data Rule = Rule
   { name :: String
   , description :: String
-  , pattern :: Rules.Object
-  , result :: Rules.Object
+  , pattern :: Object
+  , result :: Object
   , when :: [Condition]
-  } deriving (Generic, FromJSON, Show)
+  , tests :: [RuleTest]
+  }
+  deriving (Generic, FromJSON, Show)
 
-data Condition
-  = IsNF { nf :: [Rules.MetaId] }
+data RuleTest = RuleTest
+  { name :: String
+  , input :: Object
+  , output :: Object
+  , matches :: Bool
+  }
+  deriving (Generic, FromJSON, Show)
+
+data Condition = IsNF {nf :: [MetaId]}
   deriving (Generic, FromJSON, Show)
 
 parseRuleSetFromFile :: FilePath -> IO RuleSet
@@ -64,27 +54,28 @@ convertRule :: Rule -> Common.Rule
 convertRule Rule{..} _ctx obj =
   [ obj'
   | subst <- matchObject pattern obj
-  , Just obj' <- [applySubst subst result]
+  , obj' <- [applySubst subst result]
+  -- TODO: check that obj' does not have any metavariables
   ]
 
 -- input: ⟦ a ↦ ⟦ c ↦ ⟦ ⟧ ⟧, b ↦ ⟦ ⟧ ⟧.a
 
--- pattern:   ⟦ ?a ↦ ?n, ?B ⟧.?a
--- result:    ?n(ρ ↦ ⟦ ?B ⟧)
+-- pattern:   ⟦ !a ↦ !n, !B ⟧.!a
+-- result:    !n(ρ ↦ ⟦ !B ⟧)
 
 -- match pattern input (get substitution):
---  ?a = a
---  ?n = ⟦ c ↦ ⟦ ⟧ ⟧
---  ?B = b ↦ ⟦ ⟧
+--  !a = a
+--  !n = ⟦ c ↦ ⟦ ⟧ ⟧
+--  !B = b ↦ ⟦ ⟧
 
 -- actual result (after applying substitution):
 --  ⟦ c ↦ ⟦ ⟧ ⟧(ρ ↦ ⟦ b ↦ ⟦ ⟧ ⟧)
 
 data Subst = Subst
-  { objectMetas     :: [(Rules.MetaId, Phi.Object)]
-  , bindingsMetas   :: [(Rules.MetaId, [Phi.Binding])]
-  , attributeMetas  :: [(Rules.MetaId, Phi.Attribute)]
-  }
+  { objectMetas :: [(MetaId, Object)]
+  , bindingsMetas :: [(MetaId, [Binding])]
+  , attributeMetas :: [(MetaId, Attribute)]
+  } deriving (Show)
 
 instance Semigroup Subst where
   (<>) = mergeSubst
@@ -95,113 +86,114 @@ instance Monoid Subst where
 emptySubst :: Subst
 emptySubst = Subst [] [] []
 
-applySubst :: Subst -> Rules.Object -> Maybe (Phi.Object)
+-- >>> putStrLn $ Language.EO.Phi.printTree (applySubst (Subst [("!n", "⟦ c ↦ ⟦ ⟧ ⟧")] [("!B", ["b ↦ ⟦ ⟧"])] [("!a", "a")]) "!n(ρ ↦ ⟦ !B ⟧)" :: Object)
+-- ⟦ c ↦ ⟦ ⟧ ⟧ (ρ ↦ ⟦ b ↦ ⟦ ⟧ ⟧)
+applySubst :: Subst -> Object -> Object
 applySubst subst@Subst{..} = \case
-  Rules.Formation bindings -> do
-    bindings' <- applySubstBindings subst bindings
-    return (Phi.Formation bindings')
+  Formation bindings ->
+    Formation (applySubstBindings subst bindings)
+  Application obj bindings ->
+    Application (applySubst subst obj) (applySubstBindings subst bindings)
+  ObjectDispatch obj a ->
+    ObjectDispatch (applySubst subst obj) (applySubstAttr subst a)
+  GlobalDispatch a ->
+    GlobalDispatch (applySubstAttr subst a)
+  ThisDispatch a ->
+    ThisDispatch (applySubstAttr subst a)
+  obj@(MetaObject x) -> fromMaybe obj $ lookup x objectMetas
+  obj -> obj
 
-  Rules.Application obj bindings -> do
-    obj' <- applySubst subst obj
-    bindings' <- applySubstBindings subst bindings
-    return (Phi.Application obj' bindings')
-
-  Rules.ObjectDispatch obj a -> do
-    obj' <- applySubst subst obj
-    a' <- applySubstAttr subst a
-    return (Phi.ObjectDispatch obj' a')
-
-  Rules.GlobalDispatch a -> do
-    a' <- applySubstAttr subst a
-    return (Phi.GlobalDispatch a')
-
-  Rules.ThisDispatch a -> do
-    a' <- applySubstAttr subst a
-    return (Phi.ThisDispatch a')
-
-  Rules.Termination -> return Phi.Termination
-
-  Rules.MetaObject x -> lookup x objectMetas
-
-applySubstAttr :: Subst -> Rules.Attribute -> Maybe (Phi.Attribute)
+applySubstAttr :: Subst -> Attribute -> Attribute
 applySubstAttr Subst{..} = \case
-  Rules.Phi     -> return Phi.Phi
-  Rules.Rho     -> return Phi.Rho
-  Rules.Sigma   -> return Phi.Sigma
-  Rules.VTX     -> return Phi.VTX
-  Rules.Label l -> return (Phi.Label (coerce l))
-  Rules.Alpha a -> return (Phi.Alpha (coerce a))
-  Rules.MetaAttr x -> lookup x attributeMetas
+  attr@(MetaAttr x) -> fromMaybe attr $ lookup x attributeMetas
+  attr -> attr
 
-applySubstBindings :: Subst -> [Rules.Binding] -> Maybe [Phi.Binding]
-applySubstBindings subst bindings =
-  concat <$> mapM (applySubstBinding subst) bindings
+applySubstBindings :: Subst -> [Binding] -> [Binding]
+applySubstBindings subst = concatMap (applySubstBinding subst)
 
-applySubstBinding :: Subst -> Rules.Binding -> Maybe [Phi.Binding]
+applySubstBinding :: Subst -> Binding -> [Binding]
 applySubstBinding subst@Subst{..} = \case
-  Rules.AlphaBinding a obj -> do
-    a' <- applySubstAttr subst a
-    obj' <- applySubst subst obj
-    return [Phi.AlphaBinding a' obj']
-  Rules.EmptyBinding a -> do
-    a' <- applySubstAttr subst a
-    return [Phi.EmptyBinding a']
-  Rules.DeltaBinding bytes -> return [Phi.DeltaBinding (coerce bytes)]
-  Rules.LambdaBinding bytes -> return [Phi.LambdaBinding (coerce bytes)]
-  Rules.MetaBindings m -> lookup m bindingsMetas
+  AlphaBinding a obj ->
+    [AlphaBinding (applySubstAttr subst a) (applySubst subst obj)]
+  EmptyBinding a ->
+    [EmptyBinding (applySubstAttr subst a)]
+  DeltaBinding bytes -> [DeltaBinding (coerce bytes)]
+  LambdaBinding bytes -> [LambdaBinding (coerce bytes)]
+  b@(MetaBindings m) -> fromMaybe [b] (lookup m bindingsMetas)
 
 mergeSubst :: Subst -> Subst -> Subst
 mergeSubst (Subst xs ys zs) (Subst xs' ys' zs') =
   Subst (xs ++ xs') (ys ++ ys') (zs ++ zs')
 
--- 1. need to implement applySubst' :: Subst -> Rules.Object -> Rules.Object
+-- 1. need to implement applySubst' :: Subst -> Object -> Object
 -- 2. complete the code
-matchObject :: Rules.Object -> Phi.Object -> [Subst]
-matchObject (Rules.Formation ps) (Phi.Formation bs) =
-  matchBindings ps bs
-matchObject (Rules.Application obj bindings) (Phi.Application obj' bindings') = do
+matchObject :: Object -> Object -> [Subst]
+matchObject (Formation ps) (Formation bs) = matchBindings ps bs
+matchObject (Application obj bindings) (Application obj' bindings') = do
   subst1 <- matchObject obj obj'
-  subst2 <- matchBindings (applySubstBindings' subst1 bindings) bindings'
-  return (subst1 <> subst2)
-matchObject (Rules.ObjectDispatch pat a) (Phi.ObjectDispatch obj a') = do
+  subst2 <- matchBindings (applySubstBindings subst1 bindings) bindings'
+  pure (subst1 <> subst2)
+matchObject (ObjectDispatch pat a) (ObjectDispatch obj a') = do
   subst1 <- matchObject pat obj
-  subst2 <- matchAttr (applySubstAttr' subst1 a) a'
-  return (subst1 <> subst2)
-matchObject (Rules.MetaObject m) obj = return Subst
-  { objectMetas = [(m, obj)], bindingsMetas = [], attributeMetas = [] }
+  subst2 <- matchAttr (applySubstAttr subst1 a) a'
+  pure (subst1 <> subst2)
+matchObject (MetaObject m) obj =
+  pure
+    Subst
+      { objectMetas = [(m, obj)]
+      , bindingsMetas = []
+      , attributeMetas = []
+      }
+matchObject _ _ = [] -- ? emptySubst ?
 
-matchBindings :: [Rules.Binding] -> [Phi.Binding] -> [Subst]
+matchBindings :: [Binding] -> [Binding] -> [Subst]
 matchBindings [] [] = [emptySubst]
-matchBindings [Rules.MetaBindings b] bindings = return Subst
-  { objectMetas = [], bindingsMetas = [(b, bindings)], attributeMetas = [] }
-matchBindings (p:ps) bs = do
+matchBindings [MetaBindings b] bindings =
+  pure
+    Subst
+      { objectMetas = []
+      , bindingsMetas = [(b, bindings)]
+      , attributeMetas = []
+      }
+matchBindings (p : ps) bs = do
   (bs', subst1) <- matchFindBinding p bs
   subst2 <- matchBindings ps bs'
-  return (subst1 <> subst2)
+  pure (subst1 <> subst2)
+matchBindings [] _ = []
 
 -- >>> select [1,2,3,4]
 -- [(1,[2,3,4]),(2,[1,3,4]),(3,[1,2,4]),(4,[1,2,3])]
 select :: [a] -> [(a, [a])]
 select [] = []
 select [x] = [(x, [])]
-select (x:xs) = (x, xs) :
-  [ (y, x:ys)
-  | (y, ys) <- select xs
-  ]
+select (x : xs) =
+  (x, xs)
+    : [ (y, x : ys)
+      | (y, ys) <- select xs
+      ]
 
-matchFindBinding :: Rules.Binding -> [Phi.Binding] -> [([Phi.Binding], Subst)]
+matchFindBinding :: Binding -> [Binding] -> [([Binding], Subst)]
 matchFindBinding p bindings =
   [ (leftover, subst)
   | (binding, leftover) <- select bindings
   , subst <- matchBinding p binding
   ]
 
-matchBinding :: Rules.Binding -> Phi.Binding -> [Subst]
-matchBinding Rules.MetaBindings{} _ = []
-matchBinding (Rules.AlphaBinding a obj) (Phi.AlphaBinding a' obj') = do
+matchBinding :: Binding -> Binding -> [Subst]
+matchBinding MetaBindings{} _ = []
+matchBinding (AlphaBinding a obj) (AlphaBinding a' obj') = do
   subst1 <- matchAttr a a'
   subst2 <- matchObject obj obj'
-  return (subst1 <> subst2)
+  pure (subst1 <> subst2)
+matchBinding _ _ = []
 
-matchAttr :: Rules.Attribute -> Phi.Attribute -> [Subst]
+matchAttr :: Attribute -> Attribute -> [Subst]
+matchAttr l r | l == r = [emptySubst]
+matchAttr (MetaAttr metaId) attr =
+  [ Subst
+      { objectMetas = []
+      , bindingsMetas = []
+      , attributeMetas = [(metaId, attr)]
+      }
+  ]
 matchAttr _ _ = []

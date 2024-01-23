@@ -1,7 +1,9 @@
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ViewPatterns #-}
 
 module Language.EO.PhiSpec where
 
@@ -13,21 +15,21 @@ import Language.EO.Phi.Rules.PhiPaper (rule1, rule6)
 import Test.EO.Phi
 import Test.Hspec
 
-applyRule :: (Object -> Maybe Object) -> Program -> Maybe Program
+applyRule :: (Object -> [Object]) -> Program -> [Program]
 applyRule rule = \case
   Program [AlphaBinding name obj] -> do
     r <- rule obj
     pure $ Program [AlphaBinding name r]
-  _ -> Nothing
+  _ -> []
 
 spec :: Spec
 spec = do
-  describe "Rules unit tests" $
+  describe "Pre-defined rules unit tests" $
     forM_ ([(1, rule1), (6, rule6)] :: [(Int, Rule)]) $
       \(idx, rule) -> do
-        PhiTestGroup{..} <- runIO (filePhiTests [i|test/eo/phi/rule-#{idx}.yaml|])
+        PhiTestGroup{..} <- runIO (fileTests [i|test/eo/phi/rule-#{idx}.yaml|])
         describe title $
           forM_ tests $
             \PhiTest{..} ->
-              it name do
-                applyRule (rule (Context [])) input `shouldBe` Just normalized
+              it name $
+                applyRule (rule (Context [])) input `shouldBe` [normalized]
