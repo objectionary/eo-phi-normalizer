@@ -44,6 +44,9 @@ dependencies:
 - mtl
 - string-interpolate
 
+default-extensions:
+- ImportQualifiedPost
+
 ghc-options:
 - -Wall
 - -Wcompat

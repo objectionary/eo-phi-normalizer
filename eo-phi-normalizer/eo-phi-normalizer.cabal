@@ -46,6 +46,8 @@ library
       Paths_eo_phi_normalizer
   hs-source-dirs:
       src
+  default-extensions:
+      ImportQualifiedPost
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-missing-export-lists -Werror
   build-tools:
       alex >=3.2.4
@@ -69,6 +71,8 @@ executable normalize-phi
       Paths_eo_phi_normalizer
   hs-source-dirs:
       app
+  default-extensions:
+      ImportQualifiedPost
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-missing-export-lists -Werror -threaded -rtsopts -with-rtsopts=-N
   build-tools:
       alex >=3.2.4
@@ -99,6 +103,8 @@ test-suite eo-phi-normalizer-test
       Paths_eo_phi_normalizer
   hs-source-dirs:
       test
+  default-extensions:
+      ImportQualifiedPost
   ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-missing-export-lists -Werror -threaded -rtsopts -with-rtsopts=-N
   build-tools:
       alex >=3.2.4
