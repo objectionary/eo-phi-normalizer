@@ -40,11 +40,11 @@ main = do
   let (CLIOptions params inPath) = opts
   let (CLINamedParams{..}) = params
   Control.Monad.when chain (putStrLn "Sorry, --chain is not implemented yet 😅")
-  src <- maybe getContents readFile inPath
   case rulesYaml of
     Just path -> do
       ruleSet <- parseRuleSetFromFile path
       putStrLn ruleSet.title
+      src <- maybe getContents readFile inPath
       let progOrError = parseProgram src
       case progOrError of
         Left err -> error ("An error occurred parsing the input program: " <> err)
