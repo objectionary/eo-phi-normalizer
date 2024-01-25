@@ -44,6 +44,9 @@ dependencies:
 - mtl
 - string-interpolate
 
+default-extensions:
+- ImportQualifiedPost
+
 ghc-options:
 - -Wall
 - -Wcompat
@@ -65,6 +68,9 @@ library:
         - Language.EO.Phi.Syntax.Test
         - Language.EO.Phi.Syntax.ErrM
         - Language.EO.Phi.Syntax.Skel
+        - Language.EO.Phi.Rules.Syntax.Test
+        - Language.EO.Phi.Rules.Syntax.ErrM
+        - Language.EO.Phi.Rules.Syntax.Skel
 
 executables:
   normalize-phi:
@@ -76,6 +82,8 @@ executables:
     - -with-rtsopts=-N
     dependencies:
     - eo-phi-normalizer
+    - optparse-generic
+
 
 tests:
   eo-phi-normalizer-test:

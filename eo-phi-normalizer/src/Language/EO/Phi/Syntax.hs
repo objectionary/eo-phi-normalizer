@@ -3,34 +3,13 @@
 
 module Language.EO.Phi.Syntax (
   module Language.EO.Phi.Syntax.Abs,
-  parseObject,
-  unsafeParseObject,
   printTree,
 ) where
 
 import Data.Char (isSpace)
-import Data.String (IsString (..))
+import Language.EO.Phi.Rules.Common ()
 import Language.EO.Phi.Syntax.Abs
-import qualified Language.EO.Phi.Syntax.Abs as Phi
-import qualified Language.EO.Phi.Syntax.Par as Phi
-import qualified Language.EO.Phi.Syntax.Print as Phi
-
-instance IsString Phi.Object where
-  fromString = unsafeParseObject
-
--- | Parse a 'Object' or return a parsing error.
-parseObject :: String -> Either String Phi.Object
-parseObject input = Phi.pObject tokens
- where
-  tokens = Phi.myLexer input
-
--- | Parse a 'Object' from a 'String'.
--- May throw an 'error` if input has a syntactical or lexical errors.
-unsafeParseObject :: String -> Phi.Object
-unsafeParseObject input =
-  case parseObject input of
-    Left parseError -> error parseError
-    Right object -> object
+import Language.EO.Phi.Syntax.Print qualified as Phi
 
 -- * Overriding generated pretty-printer
 

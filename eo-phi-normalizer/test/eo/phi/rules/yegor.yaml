@@ -1,0 +1,48 @@
+title: "Rule set based on Yegor's draft"
+rules:
+  - name: Rule 5
+    description: "ξ-dispatch"
+    pattern: |
+      ⟦ !a ↦ ξ.!b, !B ⟧
+    result: |
+      ⟦ !a ↦ ⟦ !B ⟧.!b, !B ⟧
+    when: []
+    tests: []
+
+  - name: Rule 6
+    description: "Accessing an α-binding"
+    pattern: |
+      ⟦ !a ↦ !n, !B ⟧.!a
+    result: |
+      !n(ρ ↦ ⟦ !B ⟧)
+    when:
+      - nf: ["!n"]
+    tests:
+      - name: Should match
+        input: ⟦ hello ↦ ⟦⟧ ⟧.hello
+        output: ⟦⟧(ρ ↦ ⟦⟧)
+        matches: true
+      - name: Shouldn't match
+        input: ⟦ ⟧.hello
+        output: ""
+        matches: false
+
+  - name: Rule 7
+    description: "Application"
+    pattern: |
+      ⟦ !a ↦ ∅, !B ⟧(!a ↦ !n)
+    result: |
+      ⟦ !a ↦ !n, !B ⟧
+    when:
+      - nf: ["!n"]
+    tests: []
+
+  # - name: Rule 8
+
+  - name: Rule 9
+    description: "Parent application"
+    pattern: ⟦ ρ ↦ !t, !B ⟧(ρ ↦ !n)
+    result: ⟦ ρ ↦ !n, !B ⟧
+    when:
+      - nf: ["!n"]
+    tests: []

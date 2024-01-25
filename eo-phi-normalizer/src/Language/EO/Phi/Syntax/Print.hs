@@ -145,6 +145,8 @@ instance Print Language.EO.Phi.Syntax.Abs.LabelId where
   prt _ (Language.EO.Phi.Syntax.Abs.LabelId i) = doc $ showString i
 instance Print Language.EO.Phi.Syntax.Abs.AlphaIndex where
   prt _ (Language.EO.Phi.Syntax.Abs.AlphaIndex i) = doc $ showString i
+instance Print Language.EO.Phi.Syntax.Abs.MetaId where
+  prt _ (Language.EO.Phi.Syntax.Abs.MetaId i) = doc $ showString i
 instance Print Language.EO.Phi.Syntax.Abs.Program where
   prt i = \case
     Language.EO.Phi.Syntax.Abs.Program bindings -> prPrec i 0 (concatD [doc (showString "{"), prt 0 bindings, doc (showString "}")])
@@ -157,6 +159,7 @@ instance Print Language.EO.Phi.Syntax.Abs.Object where
     Language.EO.Phi.Syntax.Abs.GlobalDispatch attribute -> prPrec i 0 (concatD [doc (showString "\934"), doc (showString "."), prt 0 attribute])
     Language.EO.Phi.Syntax.Abs.ThisDispatch attribute -> prPrec i 0 (concatD [doc (showString "\958"), doc (showString "."), prt 0 attribute])
     Language.EO.Phi.Syntax.Abs.Termination -> prPrec i 0 (concatD [doc (showString "\8869")])
+    Language.EO.Phi.Syntax.Abs.MetaObject metaid -> prPrec i 0 (concatD [prt 0 metaid])
 
 instance Print Language.EO.Phi.Syntax.Abs.Binding where
   prt i = \case
@@ -164,6 +167,7 @@ instance Print Language.EO.Phi.Syntax.Abs.Binding where
     Language.EO.Phi.Syntax.Abs.EmptyBinding attribute -> prPrec i 0 (concatD [prt 0 attribute, doc (showString "\8614"), doc (showString "\8709")])
     Language.EO.Phi.Syntax.Abs.DeltaBinding bytes -> prPrec i 0 (concatD [doc (showString "\916"), doc (showString "\10509"), prt 0 bytes])
     Language.EO.Phi.Syntax.Abs.LambdaBinding function -> prPrec i 0 (concatD [doc (showString "\955"), doc (showString "\10509"), prt 0 function])
+    Language.EO.Phi.Syntax.Abs.MetaBindings metaid -> prPrec i 0 (concatD [prt 0 metaid])
 
 instance Print [Language.EO.Phi.Syntax.Abs.Binding] where
   prt _ [] = concatD []
@@ -178,6 +182,7 @@ instance Print Language.EO.Phi.Syntax.Abs.Attribute where
     Language.EO.Phi.Syntax.Abs.VTX -> prPrec i 0 (concatD [doc (showString "\957")])
     Language.EO.Phi.Syntax.Abs.Label labelid -> prPrec i 0 (concatD [prt 0 labelid])
     Language.EO.Phi.Syntax.Abs.Alpha alphaindex -> prPrec i 0 (concatD [prt 0 alphaindex])
+    Language.EO.Phi.Syntax.Abs.MetaAttr metaid -> prPrec i 0 (concatD [prt 0 metaid])
 
 instance Print Language.EO.Phi.Syntax.Abs.PeeledObject where
   prt i = \case

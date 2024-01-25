@@ -92,6 +92,7 @@ peelObject = \case
   GlobalDispatch attr -> PeeledObject HeadGlobal [ActionDispatch attr]
   ThisDispatch attr -> PeeledObject HeadThis [ActionDispatch attr]
   Termination -> PeeledObject HeadTermination []
+  MetaObject _ -> PeeledObject HeadTermination []
  where
   followedBy (PeeledObject object actions) action = PeeledObject object (actions ++ [action])
 

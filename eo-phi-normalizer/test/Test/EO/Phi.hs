@@ -7,14 +7,14 @@ module Test.EO.Phi where
 
 import Control.Monad (forM)
 import Data.Aeson (FromJSON (..))
-import qualified Data.Yaml as Yaml
+import Data.Yaml qualified as Yaml
 import GHC.Generics (Generic)
 import System.Directory (listDirectory)
 import System.FilePath ((</>))
 
 import Data.List (sort)
 import Language.EO.Phi (unsafeParseProgram)
-import qualified Language.EO.Phi as Phi
+import Language.EO.Phi qualified as Phi
 
 data PhiTestGroup = PhiTestGroup
   { title :: String
@@ -30,14 +30,14 @@ data PhiTest = PhiTest
   }
   deriving (Generic, FromJSON)
 
-filePhiTests :: FilePath -> IO PhiTestGroup
-filePhiTests = Yaml.decodeFileThrow
+fileTests :: FilePath -> IO PhiTestGroup
+fileTests = Yaml.decodeFileThrow
 
 allPhiTests :: FilePath -> IO [PhiTestGroup]
 allPhiTests dir = do
   paths <- listDirectory dir
   forM (sort paths) $ \path ->
-    filePhiTests (dir </> path)
+    fileTests (dir </> path)
 
 -- * Orphan instances
 
