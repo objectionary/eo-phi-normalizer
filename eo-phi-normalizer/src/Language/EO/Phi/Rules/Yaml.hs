@@ -12,9 +12,9 @@ import Data.Aeson (FromJSON (..))
 import Data.Coerce (coerce)
 import Data.Maybe (fromMaybe)
 import Data.String (IsString (..))
-import qualified Data.Yaml as Yaml
+import Data.Yaml qualified as Yaml
 import GHC.Generics (Generic)
-import qualified Language.EO.Phi.Rules.Common as Common
+import Language.EO.Phi.Rules.Common qualified as Common
 import Language.EO.Phi.Syntax.Abs
 
 instance FromJSON Object where parseJSON = fmap fromString . parseJSON
@@ -75,7 +75,8 @@ data Subst = Subst
   { objectMetas :: [(MetaId, Object)]
   , bindingsMetas :: [(MetaId, [Binding])]
   , attributeMetas :: [(MetaId, Attribute)]
-  } deriving (Show)
+  }
+  deriving (Show)
 
 instance Semigroup Subst where
   (<>) = mergeSubst

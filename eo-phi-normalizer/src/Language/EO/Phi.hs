@@ -11,8 +11,8 @@ module Language.EO.Phi (
 
 import System.Exit (exitFailure)
 
-import qualified Language.EO.Phi.Syntax.Abs as Phi
-import qualified Language.EO.Phi.Syntax.Par as Phi
+import Language.EO.Phi.Syntax.Abs qualified as Phi
+import Language.EO.Phi.Syntax.Par qualified as Phi
 
 import Language.EO.Phi.Normalize
 import Language.EO.Phi.Syntax

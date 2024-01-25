@@ -58,11 +58,11 @@ main = do
           putStrLn "Input:"
           putStrLn (printTree input)
           putStrLn "===================================================="
-          forM_ (zip [1..] uniqueResults) $ \ (i, steps) -> do
+          forM_ (zip [1 ..] uniqueResults) $ \(i, steps) -> do
             putStrLn $
               "Result " <> show i <> " out of " <> show totalResults <> ":"
             let n = length steps
-            forM_ (zip [1..] steps) $ \ (k, step) -> do
+            forM_ (zip [1 ..] steps) $ \(k, step) -> do
               Control.Monad.when chain $ do
                 putStr ("[ " <> show k <> " / " <> show n <> " ]")
               putStrLn (printTree step)

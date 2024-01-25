@@ -7,9 +7,9 @@ module Language.EO.Phi.Syntax (
 ) where
 
 import Data.Char (isSpace)
-import Language.EO.Phi.Syntax.Abs
-import qualified Language.EO.Phi.Syntax.Print as Phi
 import Language.EO.Phi.Rules.Common ()
+import Language.EO.Phi.Syntax.Abs
+import Language.EO.Phi.Syntax.Print qualified as Phi
 
 -- * Overriding generated pretty-printer
 
