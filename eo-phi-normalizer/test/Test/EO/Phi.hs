@@ -7,14 +7,14 @@ module Test.EO.Phi where
 
 import Control.Monad (forM)
 import Data.Aeson (FromJSON (..))
-import qualified Data.Yaml as Yaml
+import Data.Yaml qualified as Yaml
 import GHC.Generics (Generic)
 import System.Directory (listDirectory)
 import System.FilePath ((</>))
 
 import Data.List (sort)
 import Language.EO.Phi (unsafeParseProgram)
-import qualified Language.EO.Phi as Phi
+import Language.EO.Phi qualified as Phi
 
 data PhiTestGroup = PhiTestGroup
   { title :: String
