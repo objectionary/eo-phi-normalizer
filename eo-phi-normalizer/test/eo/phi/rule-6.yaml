@@ -20,3 +20,17 @@ tests:
             e ↦ ξ.b(c ↦ ⟦⟧).d
           ⟧.e
       }
+    normalized: |
+      { a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧ ⟧) }
+    prettified: |
+      {
+        a ↦
+          ⟦
+            b ↦
+              ⟦
+                c ↦ ∅,
+                d ↦ ⟦ φ ↦ ξ.ρ.c ⟧
+              ⟧,
+            e ↦ ξ.b(c ↦ ⟦⟧).d
+          ⟧.e
+      }
