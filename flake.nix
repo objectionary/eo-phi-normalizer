@@ -154,6 +154,7 @@
             ];
             text = ''
               export JAVA_HOME="${pkgs.jdk21.home}"
+              export PROGRAM="1"
               ${builtins.readFile ./pipeline.sh}
             '';
             description = "Run pipeline";
