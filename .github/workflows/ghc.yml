@@ -36,7 +36,7 @@ jobs:
             !eo-phi-normalizer/Setup.hs
 
       - name: 🧰 Setup Stack
-        # FIXME use freckle/stack-action@v4 when https://github.com/freckle/stack-action/pull/31 is merged
+        # FIXME use freckle/stack-action@v5 when https://github.com/freckle/stack-action/pull/36 is merged
         uses: deemp/stack-action@pb/v5
         with:
           stack-build-arguments: --${{ github.ref_name != 'master' && 'fast' || '' }} --pedantic
@@ -54,7 +54,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 🧰 Setup Stack
-        # FIXME use freckle/stack-action@v4 when https://github.com/freckle/stack-action/pull/31 is merged
+        # FIXME use freckle/stack-action@v5 when https://github.com/freckle/stack-action/pull/36 is merged
         uses: deemp/stack-action@pb/v5
         with:
           stack-build-arguments: --${{ github.ref_name != 'master' && 'fast' || '' }} --pedantic
