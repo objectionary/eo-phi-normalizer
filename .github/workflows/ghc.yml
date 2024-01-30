@@ -37,12 +37,12 @@ jobs:
 
       - name: 🧰 Setup Stack
         # FIXME use freckle/stack-action@v4 when https://github.com/freckle/stack-action/pull/31 is merged
-        uses: deemp/stack-action@main
+        uses: deemp/stack-action@pb/v5
         with:
           stack-build-arguments: --${{ github.ref_name != 'master' && 'fast' || '' }} --pedantic
 
   pipeline:
-    name: "Build and test with GHC"
+    name: "Run pipeline"
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
