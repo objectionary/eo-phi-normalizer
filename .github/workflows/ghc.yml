@@ -39,7 +39,7 @@ jobs:
         # FIXME use freckle/stack-action@v4 when https://github.com/freckle/stack-action/pull/31 is merged
         uses: deemp/stack-action@main
         with:
-          stack-arguments: --${{ github.ref_name != 'master' && 'fast' || '' }} --pedantic
+          stack-build-arguments: --${{ github.ref_name != 'master' && 'fast' || '' }} --pedantic
 
   pipeline:
     name: "Build and test with GHC"
@@ -57,7 +57,7 @@ jobs:
         # FIXME use freckle/stack-action@v4 when https://github.com/freckle/stack-action/pull/31 is merged
         uses: deemp/stack-action@pb/v5
         with:
-          stack-arguments: --${{ github.ref_name != 'master' && 'fast' || '' }} --pedantic
+          stack-build-arguments: --${{ github.ref_name != 'master' && 'fast' || '' }} --pedantic
 
       - uses: actions/setup-node@v4
         with:
