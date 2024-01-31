@@ -39,7 +39,6 @@ main = do
   opts <- getRecord "Normalizer"
   let (CLIOptions params inPath) = opts
   let (CLINamedParams{..}) = params
-  Control.Monad.when chain (putStrLn "Sorry, --chain is not implemented yet 😅")
   case rulesYaml of
     Just path -> do
       ruleSet <- parseRuleSetFromFile path
