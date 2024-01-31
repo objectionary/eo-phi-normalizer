@@ -5,10 +5,12 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
+{-# OPTIONS_GHC -Wno-partial-fields #-}
 
 module Language.EO.Phi.Rules.Yaml where
 
-import Data.Aeson (FromJSON (..))
+import Data.Aeson (FromJSON (..), Options (sumEncoding), SumEncoding (UntaggedValue), genericParseJSON)
+import Data.Aeson.Types (defaultOptions)
 import Data.Coerce (coerce)
 import Data.Maybe (fromMaybe)
 import Data.String (IsString (..))
@@ -49,8 +51,18 @@ data RuleTest = RuleTest
   }
   deriving (Generic, FromJSON, Show)
 
-data Condition = IsNF {nf :: [MetaId]}
-  deriving (Generic, FromJSON, Show)
+data Subset = Subset
+  { attrs :: [Attribute]
+  , bindings :: [Binding]
+  }
+  deriving (Generic, Show, FromJSON)
+data Condition
+  = IsNF {nf :: [MetaId]}
+  | IsSubset {subset :: Subset}
+  | NotSubset {not_subset :: Subset}
+  deriving (Generic, Show)
+instance FromJSON Condition where
+  parseJSON = genericParseJSON defaultOptions{sumEncoding = UntaggedValue}
 
 parseRuleSetFromFile :: FilePath -> IO RuleSet
 parseRuleSetFromFile = Yaml.decodeFileThrow
