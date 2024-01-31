@@ -1,5 +1,20 @@
 title: "Rule set based on Yegor's draft"
 rules:
+  - name: Rule 3
+    description: ""
+    pattern: |
+      ⟦ !B ⟧
+    result: |
+      ⟦ !B, ρ ↦ ξ.σ ⟧
+    when:
+      - subset:
+          attrs: ["σ"]
+          bindings: ["!B"]
+      - not_subset:
+          attrs: ["ρ"]
+          bindings: ["!B"]
+    tests: []
+
   - name: Rule 5
     description: "ξ-dispatch"
     pattern: |
@@ -37,7 +52,18 @@ rules:
       - nf: ["!n"]
     tests: []
 
-  # - name: Rule 8
+  - name: Rule 8
+    description: ""
+    pattern: |
+      ⟦ φ ↦ !n, !B ⟧.!a
+    result: |
+      !n
+    when:
+      - nf: ["!n"]
+      - not_subset:
+          attrs: ["!a"]
+          bindings: ["!B"]
+    tests: []
 
   - name: Rule 9
     description: "Parent application"
@@ -45,4 +71,19 @@ rules:
     result: ⟦ ρ ↦ !n, !B ⟧
     when:
       - nf: ["!n"]
+    tests: []
+
+  - name: Rule 11
+    description: ""
+    pattern: |
+      ⟦ !B ⟧.!a
+    result: |
+      ⊥
+    when:
+      - not_subset:
+          attrs: ["!a", "Φ", "λ"]
+          bindings: ["!B"]
+      - subset:
+          attrs: ["ρ", "σ"]
+          bindings: ["!B"]
     tests: []
