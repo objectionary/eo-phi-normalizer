@@ -2,8 +2,8 @@ set -euo pipefail
 
 ROOT_DIR="$PWD"
 
-mkdir -p .pipeline
-cd .pipeline
+mkdir -p ".pipeline/$PROGRAM"
+cd ".pipeline/$PROGRAM"
 
 shopt -s expand_aliases
 
