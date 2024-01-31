@@ -68,12 +68,34 @@ parseRuleSetFromFile :: FilePath -> IO RuleSet
 parseRuleSetFromFile = Yaml.decodeFileThrow
 
 convertRule :: Rule -> Common.Rule
-convertRule Rule{..} _ctx obj =
+convertRule Rule{..} ctx obj =
   [ obj'
   | subst <- matchObject pattern obj
+  , all (\cond -> checkCond ctx cond subst) when
   , obj' <- [applySubst subst result]
   -- TODO: check that obj' does not have any metavariables
   ]
+
+-- | Given a condition, and a substition from object matching
+--   tells whether the condition matches the object
+checkCond :: Common.Context -> Condition -> Subst -> Bool
+checkCond ctx (IsNF metaIds) subst = all (Common.isNF ctx . applySubst subst . MetaObject) metaIds
+checkCond _ctx (IsSubset (Subset attrs bindings)) subst = any (`hasAttr` substitutedBindings) substitutedAttrs
+ where
+  substitutedBindings = concatMap (applySubstBinding subst) bindings
+  substitutedAttrs = map (applySubstAttr subst) attrs
+checkCond ctx (NotSubset s) subst = not $ checkCond ctx (IsSubset s) subst
+
+hasAttr :: Attribute -> [Binding] -> Bool
+hasAttr attr = any (isAttr attr)
+ where
+  isAttr :: Attribute -> Binding -> Bool
+  isAttr a (AlphaBinding a' _) = a == a'
+  isAttr a (EmptyBinding a') = a == a'
+  -- FIXME: Delta and Lambda are not parsed as Alpha attributes
+  isAttr (Label (LabelId "Δ")) (DeltaBinding _) = True
+  isAttr (Label (LabelId "λ")) (LambdaBinding _) = True
+  isAttr _ _ = False
 
 -- input: ⟦ a ↦ ⟦ c ↦ ⟦ ⟧ ⟧, b ↦ ⟦ ⟧ ⟧.a
 
