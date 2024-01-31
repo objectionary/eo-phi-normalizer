@@ -18,7 +18,12 @@ import Language.EO.Phi.Rules.Common qualified as Common
 import Language.EO.Phi.Syntax.Abs
 
 instance FromJSON Object where parseJSON = fmap fromString . parseJSON
+instance FromJSON Binding where parseJSON = fmap fromString . parseJSON
 instance FromJSON MetaId where parseJSON = fmap MetaId . parseJSON
+instance FromJSON Attribute where parseJSON = fmap fromString . parseJSON
+
+instance FromJSON LabelId
+instance FromJSON AlphaIndex
 
 data RuleSet = RuleSet
   { title :: String
