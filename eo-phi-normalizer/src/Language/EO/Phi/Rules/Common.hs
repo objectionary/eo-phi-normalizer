@@ -18,6 +18,7 @@ instance IsString Program where fromString = unsafeParseWith pProgram
 instance IsString Object where fromString = unsafeParseWith pObject
 instance IsString Binding where fromString = unsafeParseWith pBinding
 instance IsString Attribute where fromString = unsafeParseWith pAttribute
+instance IsString RuleAttribute where fromString = unsafeParseWith pRuleAttribute
 instance IsString PeeledObject where fromString = unsafeParseWith pPeeledObject
 instance IsString ObjectHead where fromString = unsafeParseWith pObjectHead
 

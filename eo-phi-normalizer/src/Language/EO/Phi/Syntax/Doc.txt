@@ -80,6 +80,9 @@ All other symbols are terminals.
   |  |  **|**  | //LabelId//
   |  |  **|**  | //AlphaIndex//
   |  |  **|**  | //MetaId//
+  | //RuleAttribute// | -> | //Attribute//
+  |  |  **|**  | ``Δ``
+  |  |  **|**  | ``λ``
   | //PeeledObject// | -> | //ObjectHead// //[ObjectAction]//
   | //ObjectHead// | -> | ``⟦`` //[Binding]// ``⟧``
   |  |  **|**  | ``Φ``

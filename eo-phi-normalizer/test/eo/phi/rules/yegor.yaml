@@ -1,5 +1,32 @@
 title: "Rule set based on Yegor's draft"
 rules:
+  - name: Rule 3
+    description: ""
+    pattern: |
+      ⟦ !B ⟧
+    result: |
+      ⟦ !B, ρ ↦ ξ.σ ⟧
+    when:
+      - present_attrs:
+          attrs: ["σ"]
+          bindings: ["!B"]
+      - absent_attrs:
+          attrs: ["ρ"]
+          bindings: ["!B"]
+    tests:
+      - name: 'Has sigma and no rho'
+        input: '⟦ b ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧ '
+        output: '⟦ b ↦ ⟦ ⟧, σ ↦ ⟦ ⟧, ρ ↦ ξ.σ ⟧'
+        matches: true
+      - name: 'Has both sigma and rho'
+        input: '⟦ a ↦ ⟦ b ↦ ⟦ ⟧, ρ ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧ ⟧'
+        output: '⟦ a ↦ ⟦ b ↦ ⟦ ⟧, ρ ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧ ⟧'
+        matches: false
+      - name: 'Has neither sigma nor rho'
+        input: '⟦ a ↦ ⟦ b ↦ ⟦ ⟧ ⟧ ⟧'
+        output: '⟦ a ↦ ⟦ b ↦ ⟦ ⟧ ⟧ ⟧'
+        matches: false
+
   - name: Rule 5
     description: "ξ-dispatch"
     pattern: |
@@ -37,7 +64,26 @@ rules:
       - nf: ["!n"]
     tests: []
 
-  # - name: Rule 8
+  - name: Rule 8
+    description: ""
+    pattern: |
+      ⟦ φ ↦ !n, !B ⟧.!a
+    result: |
+      !n.!a
+    when:
+      - nf: ["!n"]
+      - absent_attrs:
+          attrs: ["!a"]
+          bindings: ["!B"]
+    tests:
+      - name: 'Attribute does not exist'
+        input: '⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧.b'
+        output: '⟦ ⟧.b'
+        matches: true
+      - name: 'Attribute exists'
+        input: '⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧.a'
+        output: '⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧.a'
+        matches: false
 
   - name: Rule 9
     description: "Parent application"
@@ -46,3 +92,22 @@ rules:
     when:
       - nf: ["!n"]
     tests: []
+
+  - name: Rule 11
+    description: ""
+    pattern: |
+      ⟦ !B ⟧.!a
+    result: |
+      ⊥
+    when:
+      - absent_attrs:
+          attrs: ["!a", "φ", "λ"]
+          bindings: ["!B"]
+      - present_attrs:
+          attrs: ["ρ", "σ"]
+          bindings: ["!B"]
+    tests:
+      - name: 'Accessing nonexistent attribute'
+        input: '⟦ ρ ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧.x'
+        output: '⊥'
+        matches: true

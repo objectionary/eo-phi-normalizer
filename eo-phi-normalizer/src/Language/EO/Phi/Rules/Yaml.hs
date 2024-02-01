@@ -5,10 +5,12 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
+{-# OPTIONS_GHC -Wno-partial-fields #-}
 
 module Language.EO.Phi.Rules.Yaml where
 
-import Data.Aeson (FromJSON (..))
+import Data.Aeson (FromJSON (..), Options (sumEncoding), SumEncoding (UntaggedValue), genericParseJSON)
+import Data.Aeson.Types (defaultOptions)
 import Data.Coerce (coerce)
 import Data.Maybe (fromMaybe)
 import Data.String (IsString (..))
@@ -18,7 +20,12 @@ import Language.EO.Phi.Rules.Common qualified as Common
 import Language.EO.Phi.Syntax.Abs
 
 instance FromJSON Object where parseJSON = fmap fromString . parseJSON
+instance FromJSON Binding where parseJSON = fmap fromString . parseJSON
 instance FromJSON MetaId where parseJSON = fmap MetaId . parseJSON
+instance FromJSON RuleAttribute where parseJSON = fmap fromString . parseJSON
+
+instance FromJSON LabelId
+instance FromJSON AlphaIndex
 
 data RuleSet = RuleSet
   { title :: String
@@ -44,19 +51,59 @@ data RuleTest = RuleTest
   }
   deriving (Generic, FromJSON, Show)
 
-data Condition = IsNF {nf :: [MetaId]}
-  deriving (Generic, FromJSON, Show)
+data AttrsInBindings = AttrsInBindings
+  { attrs :: [RuleAttribute]
+  , bindings :: [Binding]
+  }
+  deriving (Generic, Show, FromJSON)
+data Condition
+  = IsNF {nf :: [MetaId]}
+  | PresentAttrs {present_attrs :: AttrsInBindings}
+  | AbsentAttrs {absent_attrs :: AttrsInBindings}
+  deriving (Generic, Show)
+instance FromJSON Condition where
+  parseJSON = genericParseJSON defaultOptions{sumEncoding = UntaggedValue}
 
 parseRuleSetFromFile :: FilePath -> IO RuleSet
 parseRuleSetFromFile = Yaml.decodeFileThrow
 
 convertRule :: Rule -> Common.Rule
-convertRule Rule{..} _ctx obj =
+convertRule Rule{..} ctx obj =
   [ obj'
   | subst <- matchObject pattern obj
+  , all (\cond -> checkCond ctx cond subst) when
   , obj' <- [applySubst subst result]
   -- TODO: check that obj' does not have any metavariables
   ]
+
+-- | Given a condition, and a substition from object matching
+--   tells whether the condition matches the object
+checkCond :: Common.Context -> Condition -> Subst -> Bool
+checkCond ctx (IsNF metaIds) subst = all (Common.isNF ctx . applySubst subst . MetaObject) metaIds
+checkCond _ctx (PresentAttrs (AttrsInBindings attrs bindings)) subst = any (`hasAttr` substitutedBindings) substitutedAttrs
+ where
+  substitutedBindings = concatMap (applySubstBinding subst) bindings
+  ruleToNormalAttr :: RuleAttribute -> Attribute
+  ruleToNormalAttr (ObjectAttr a) = a
+  -- Hack to be able to use applySubstAttr with RuleAttribute.
+  -- Should not actually substitute anything anyway since they are not metavariables
+  ruleToNormalAttr DeltaAttr = Label (LabelId "Δ")
+  ruleToNormalAttr LambdaAttr = Label (LabelId "λ")
+  normalToRuleAttr :: Attribute -> RuleAttribute
+  normalToRuleAttr (Label (LabelId "Δ")) = DeltaAttr
+  normalToRuleAttr (Label (LabelId "λ")) = LambdaAttr
+  normalToRuleAttr a = ObjectAttr a
+  substitutedAttrs = map (normalToRuleAttr . applySubstAttr subst . ruleToNormalAttr) attrs
+checkCond ctx (AbsentAttrs s) subst = not $ checkCond ctx (PresentAttrs s) subst
+
+hasAttr :: RuleAttribute -> [Binding] -> Bool
+hasAttr attr = any (isAttr attr)
+ where
+  isAttr (ObjectAttr a) (AlphaBinding a' _) = a == a'
+  isAttr (ObjectAttr a) (EmptyBinding a') = a == a'
+  isAttr DeltaAttr (DeltaBinding _) = True
+  isAttr LambdaAttr (LambdaBinding _) = True
+  isAttr _ _ = False
 
 -- input: ⟦ a ↦ ⟦ c ↦ ⟦ ⟧ ⟧, b ↦ ⟦ ⟧ ⟧.a
 
