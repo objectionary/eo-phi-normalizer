@@ -69,7 +69,7 @@ rules:
     pattern: |
       ⟦ φ ↦ !n, !B ⟧.!a
     result: |
-      !n
+      !n.!a
     when:
       - nf: ["!n"]
       - absent_attrs:
