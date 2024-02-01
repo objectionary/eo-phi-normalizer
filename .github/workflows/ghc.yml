@@ -46,7 +46,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: ${{ github.ref_name != 'master' && '[ ubuntu-latest ]' || '[ubuntu-latest, windows-latest, macos-latest]' }}
+        os: ${{ github.ref_name != 'master' && fromJson('[ ubuntu-latest ]') || fromJson('[ubuntu-latest, windows-latest, macos-latest]') }}
         program: [1, 2]
 
     steps:
