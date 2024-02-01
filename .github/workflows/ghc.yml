@@ -46,6 +46,7 @@ jobs:
     # TODO run on more runners on master
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
         program: [1, 2]
 
