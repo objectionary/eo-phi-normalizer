@@ -22,7 +22,7 @@ import Language.EO.Phi.Syntax.Abs
 instance FromJSON Object where parseJSON = fmap fromString . parseJSON
 instance FromJSON Binding where parseJSON = fmap fromString . parseJSON
 instance FromJSON MetaId where parseJSON = fmap MetaId . parseJSON
-instance FromJSON Attribute where parseJSON = fmap fromString . parseJSON
+instance FromJSON RuleAttribute where parseJSON = fmap fromString . parseJSON
 
 instance FromJSON LabelId
 instance FromJSON AlphaIndex
@@ -52,7 +52,7 @@ data RuleTest = RuleTest
   deriving (Generic, FromJSON, Show)
 
 data Subset = Subset
-  { attrs :: [Attribute]
+  { attrs :: [RuleAttribute]
   , bindings :: [Binding]
   }
   deriving (Generic, Show, FromJSON)
@@ -83,18 +83,26 @@ checkCond ctx (IsNF metaIds) subst = all (Common.isNF ctx . applySubst subst . M
 checkCond _ctx (IsSubset (Subset attrs bindings)) subst = any (`hasAttr` substitutedBindings) substitutedAttrs
  where
   substitutedBindings = concatMap (applySubstBinding subst) bindings
-  substitutedAttrs = map (applySubstAttr subst) attrs
+  ruleToNormalAttr :: RuleAttribute -> Attribute
+  ruleToNormalAttr (ObjectAttr a) = a
+  -- Hack to be able to use applySubstAttr with RuleAttribute.
+  -- Should not actually substitute anything anyway since they are not metavariables
+  ruleToNormalAttr DeltaAttr = Label (LabelId "Δ")
+  ruleToNormalAttr LambdaAttr = Label (LabelId "λ")
+  normalToRuleAttr :: Attribute -> RuleAttribute
+  normalToRuleAttr (Label (LabelId "Δ")) = DeltaAttr
+  normalToRuleAttr (Label (LabelId "λ")) = LambdaAttr
+  normalToRuleAttr a = ObjectAttr a
+  substitutedAttrs = map (normalToRuleAttr . applySubstAttr subst . ruleToNormalAttr) attrs
 checkCond ctx (NotSubset s) subst = not $ checkCond ctx (IsSubset s) subst
 
-hasAttr :: Attribute -> [Binding] -> Bool
+hasAttr :: RuleAttribute -> [Binding] -> Bool
 hasAttr attr = any (isAttr attr)
  where
-  isAttr :: Attribute -> Binding -> Bool
-  isAttr a (AlphaBinding a' _) = a == a'
-  isAttr a (EmptyBinding a') = a == a'
-  -- FIXME: Delta and Lambda are not parsed as Alpha attributes
-  isAttr (Label (LabelId "Δ")) (DeltaBinding _) = True
-  isAttr (Label (LabelId "λ")) (LambdaBinding _) = True
+  isAttr (ObjectAttr a) (AlphaBinding a' _) = a == a'
+  isAttr (ObjectAttr a) (EmptyBinding a') = a == a'
+  isAttr DeltaAttr (DeltaBinding _) = True
+  isAttr LambdaAttr (LambdaBinding _) = True
   isAttr _ _ = False
 
 -- input: ⟦ a ↦ ⟦ c ↦ ⟦ ⟧ ⟧, b ↦ ⟦ ⟧ ⟧.a

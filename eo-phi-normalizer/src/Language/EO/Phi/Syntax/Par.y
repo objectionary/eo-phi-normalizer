@@ -13,6 +13,7 @@ module Language.EO.Phi.Syntax.Par
   , pBinding
   , pListBinding
   , pAttribute
+  , pRuleAttribute
   , pPeeledObject
   , pObjectHead
   , pObjectAction
@@ -31,6 +32,7 @@ import Language.EO.Phi.Syntax.Lex
 %name pBinding Binding
 %name pListBinding ListBinding
 %name pAttribute Attribute
+%name pRuleAttribute RuleAttribute
 %name pPeeledObject PeeledObject
 %name pObjectHead ObjectHead
 %name pObjectAction ObjectAction
@@ -119,6 +121,12 @@ Attribute
   | LabelId { Language.EO.Phi.Syntax.Abs.Label $1 }
   | AlphaIndex { Language.EO.Phi.Syntax.Abs.Alpha $1 }
   | MetaId { Language.EO.Phi.Syntax.Abs.MetaAttr $1 }
+
+RuleAttribute :: { Language.EO.Phi.Syntax.Abs.RuleAttribute }
+RuleAttribute
+  : Attribute { Language.EO.Phi.Syntax.Abs.ObjectAttr $1 }
+  | 'Δ' { Language.EO.Phi.Syntax.Abs.DeltaAttr }
+  | 'λ' { Language.EO.Phi.Syntax.Abs.LambdaAttr }
 
 PeeledObject :: { Language.EO.Phi.Syntax.Abs.PeeledObject }
 PeeledObject

@@ -184,6 +184,12 @@ instance Print Language.EO.Phi.Syntax.Abs.Attribute where
     Language.EO.Phi.Syntax.Abs.Alpha alphaindex -> prPrec i 0 (concatD [prt 0 alphaindex])
     Language.EO.Phi.Syntax.Abs.MetaAttr metaid -> prPrec i 0 (concatD [prt 0 metaid])
 
+instance Print Language.EO.Phi.Syntax.Abs.RuleAttribute where
+  prt i = \case
+    Language.EO.Phi.Syntax.Abs.ObjectAttr attribute -> prPrec i 0 (concatD [prt 0 attribute])
+    Language.EO.Phi.Syntax.Abs.DeltaAttr -> prPrec i 0 (concatD [doc (showString "\916")])
+    Language.EO.Phi.Syntax.Abs.LambdaAttr -> prPrec i 0 (concatD [doc (showString "\955")])
+
 instance Print Language.EO.Phi.Syntax.Abs.PeeledObject where
   prt i = \case
     Language.EO.Phi.Syntax.Abs.PeeledObject objecthead objectactions -> prPrec i 0 (concatD [prt 0 objecthead, prt 0 objectactions])

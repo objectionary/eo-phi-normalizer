@@ -35,6 +35,11 @@ Label.  Attribute ::= LabelId ;
 Alpha.  Attribute ::= AlphaIndex ;
 MetaAttr. Attribute ::= MetaId ;
 
+-- Additional symbols used as attributes in the rules
+ObjectAttr. RuleAttribute ::= Attribute ;
+DeltaAttr.  RuleAttribute ::= "Δ" ;
+LambdaAttr. RuleAttribute ::= "λ" ;
+
 PeeledObject. PeeledObject ::= ObjectHead [ObjectAction] ;
 
 HeadFormation.    ObjectHead ::= "⟦" [Binding] "⟧" ;

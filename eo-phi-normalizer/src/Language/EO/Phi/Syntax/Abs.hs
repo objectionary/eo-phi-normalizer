@@ -46,6 +46,9 @@ data Attribute
     | MetaAttr MetaId
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
+data RuleAttribute = ObjectAttr Attribute | DeltaAttr | LambdaAttr
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
 data PeeledObject = PeeledObject ObjectHead [ObjectAction]
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
