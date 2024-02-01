@@ -126,7 +126,6 @@ Use `--chain` to see numbered normalization steps for each normalization result.
 cat test.phi | stack run -- --chain --rules-yaml ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml
 
 # Output
-Sorry, --chain is not implemented yet 😅
 Rule set based on Yegor's draft
 Input:
 { a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e }
