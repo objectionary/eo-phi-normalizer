@@ -7,10 +7,10 @@ rules:
     result: |
       ⟦ !B, ρ ↦ ξ.σ ⟧
     when:
-      - subset:
+      - present_attrs:
           attrs: ["σ"]
           bindings: ["!B"]
-      - not_subset:
+      - absent_attrs:
           attrs: ["ρ"]
           bindings: ["!B"]
     tests: []
@@ -60,7 +60,7 @@ rules:
       !n
     when:
       - nf: ["!n"]
-      - not_subset:
+      - absent_attrs:
           attrs: ["!a"]
           bindings: ["!B"]
     tests: []
@@ -80,10 +80,10 @@ rules:
     result: |
       ⊥
     when:
-      - not_subset:
+      - absent_attrs:
           attrs: ["!a", "Φ", "λ"]
           bindings: ["!B"]
-      - subset:
+      - present_attrs:
           attrs: ["ρ", "σ"]
           bindings: ["!B"]
     tests: []
