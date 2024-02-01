@@ -101,7 +101,7 @@ rules:
       ⊥
     when:
       - absent_attrs:
-          attrs: ["!a", "Φ", "λ"]
+          attrs: ["!a", "φ", "λ"]
           bindings: ["!B"]
       - present_attrs:
           attrs: ["ρ", "σ"]
