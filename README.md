@@ -13,36 +13,173 @@ attribute access (`t.a`) that amounts to _dynamic dispatch_.
 
 ## Usage
 
-You can install the normalizer locally with [Stack](https://docs.haskellstack.org/en/stable/README/):
+Clone this repo.
 
 ```sh
 git clone https://github.com/objectionary/normalizer.git
 cd normalizer
+```
+
+### Install
+
+You can install the `normalizer-phi` executable globally via [stack](https://docs.haskellstack.org/en/stable/README/).
+Then, the `normalize-phi` executable will be available on `PATH` and in `~/.local/bin/` on `Linux` and `macOS`.
+
+```sh
+# Commands
 stack install
+normalize-phi --help
 ```
 
-This should install `normalize-phi` executable (usually, to `~/.local/bin/` on Linux and macOS).
-You can pass a 𝜑-program (e.g. from a file) to it:
+Alternatively, run the executable via `stack` without global installation (see the following sections).
+
+### CLI
+
+The `eo-phi-normalizer` package provides an executable `normalize-phi` that has a CLI.
+
+Run the executable via `stack run`.
 
 ```sh
-normalize-phi < FILE
+# Commands
+stack run normalize-phi -- --help
+# Or
+stack run -- --help
+
+# Output:
+Normalizer
+
+Usage: normalize-phi [-c|--chain] [--rules-yaml STRING] [-o|--output STRING]
+                     [STRING]
+
+Available options:
+  -h,--help                Show this help text
+  -c,--chain               Print out steps of reduction
+  --rules-yaml STRING      Path to the Yaml file with custom rules
+  -o,--output STRING       Output file path (defaults to stdout)
 ```
 
-The output should be a 𝜑-term after normalization.
+#### expression
+
+Save an expression into a file `test.phi` that will be used in subsequent commands.
 
 ```sh
-echo "{ φ ↦ {}, a ↦ ξ.a }" | normalize-phi
+cat > test.phi <<EOM
+{
+  a ↦
+    ⟦
+      b ↦
+          ⟦
+            c ↦ ∅,
+            d ↦ ⟦ φ ↦ ξ.ρ.c ⟧
+          ⟧,
+      e ↦ ξ.b(c ↦ ⟦⟧).d
+    ⟧.e
+}
+EOM
 ```
 
+#### `--ruleset-yaml`
+
+Normalize a 𝜑-expression from `test.phi` using a ruleset (See [Rulesets](#rulesets)).
+
+There can be multiple numbered results that correspond to multiple rule application sequences.
+
+```sh
+# Command
+stack run -- --rules-yaml ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml test.phi
+
+# Output
+Rule set based on Yegor's draft
+Input:
+{ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e }
+====================================================
+Result 1 out of 1:
+⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧ ⟧) ⟧
+----------------------------------------------------
 ```
-{ φ ↦ { }, a ↦ { } }
+
+#### stdin
+
+Normalize an expression using a ruleset (See [Rulesets](#rulesets)).
+Read the expression from stdin.
+
+```sh
+# Command
+cat test.phi | stack run -- --rules-yaml ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml
+
+# Output
+Rule set based on Yegor's draft
+Input:
+{ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e }
+====================================================
+Result 1 out of 1:
+⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧ ⟧) ⟧
+----------------------------------------------------
 ```
+
+#### `--chain`
+
+Use `--chain` to see numbered normalization steps for each normalization result.
+
+```sh
+# Command
+cat test.phi | stack run -- --chain --rules-yaml ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml
+
+# Output
+Rule set based on Yegor's draft
+Input:
+{ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e }
+====================================================
+Result 1 out of 1:
+[ 1 / 2 ]⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧
+[ 2 / 2 ]⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧ ⟧) ⟧
+----------------------------------------------------
+```
+
+## Rulesets
+
+A ruleset describes a set of user-defined rewriting rules.
+
+Here is a sample ruleset (see the full ruleset in [yegor.yaml](./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml)).
+
+```yaml
+title: "Rule set based on Yegor's draft"
+rules:
+  - name: Rule 6
+    description: "Accessing an α-binding"
+    pattern: |
+      ⟦ !a ↦ !n, !B ⟧.!a
+    result: |
+      !n(ρ ↦ ⟦ !B ⟧)
+    when:
+      - nf: ["!n"]
+    tests:
+      - name: Should match
+        input: ⟦ hello ↦ ⟦⟧ ⟧.hello
+        output: ⟦⟧(ρ ↦ ⟦⟧)
+        matches: true
+      - name: Shouldn't match
+        input: ⟦ ⟧.hello
+        output: ""
+        matches: false
+```
+
+A ruleset has a number of rules. Each rule describes a `pattern`, `when` to apply that pattern, and a `result`.
+
+The `pattern` has metavariables denoted as `!<Identifier>`.
+The `pattern` is matched against an `input` expression. The rules in the `when` list help avoid unwanted matches. For example, `nf: ["!n"]` means that only an expression in a normal form can be matched with `!n`.
+
+When there is a match, the matched parts of the expression are bound to metavariables. Next, these metavariables are used to construct the `result`.
+
+Additionally, there are unit tests for rules. Each unit test provides `input` and `output` expressions. An `output` expression is not reused in other tests, so it is safe to let it be an empty string when no match can happen.
 
 ## Development
 
-The project is developed with the [Stack tool](https://docs.haskellstack.org/en/stable/README/).
+### `stack`
 
-For quick local development and testing it is recommended to use `stack`. Clone this project and run `stack build`:
+The project is developed using the [Stack tool](https://docs.haskellstack.org/en/stable/README/).
+
+We recommend using `stack` for quick local development and testing. Clone this project and run `stack build`.
 
 ```sh
 git clone https://github.com/objectionary/normalizer.git
@@ -50,19 +187,9 @@ cd normalizer
 stack build
 ```
 
-The build provides an executable `normalize-phi` which can be used to normalize input expressions:
+### Test
 
-```sh
-stack exec -- normalize-phi < FILE
-```
-
-You can also build and run the (default) executable using `stack run`:
-
-```sh
-stack run < FILE
-```
-
-To run (all) tests, simply use
+Run all tests
 
 ```sh
 stack test
