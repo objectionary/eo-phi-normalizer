@@ -13,7 +13,19 @@ rules:
       - absent_attrs:
           attrs: ["ρ"]
           bindings: ["!B"]
-    tests: []
+    tests:
+      - name: 'Has sigma and no rho'
+        input: '⟦ b ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧ '
+        output: '⟦ b ↦ ⟦ ⟧, σ ↦ ⟦ ⟧, ρ ↦ ξ.σ ⟧'
+        matches: true
+      - name: 'Has both sigma and rho'
+        input: '⟦ a ↦ ⟦ b ↦ ⟦ ⟧, ρ ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧ ⟧'
+        output: '⟦ a ↦ ⟦ b ↦ ⟦ ⟧, ρ ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧ ⟧'
+        matches: false
+      - name: 'Has neither sigma nor rho'
+        input: '⟦ a ↦ ⟦ b ↦ ⟦ ⟧ ⟧ ⟧'
+        output: '⟦ a ↦ ⟦ b ↦ ⟦ ⟧ ⟧ ⟧'
+        matches: false
 
   - name: Rule 5
     description: "ξ-dispatch"
@@ -63,7 +75,15 @@ rules:
       - absent_attrs:
           attrs: ["!a"]
           bindings: ["!B"]
-    tests: []
+    tests:
+      - name: 'Attribute does not exist'
+        input: '⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧.b'
+        output: '⟦ ⟧.b'
+        matches: true
+      - name: 'Attribute exists'
+        input: '⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧.a'
+        output: '⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧.a'
+        matches: false
 
   - name: Rule 9
     description: "Parent application"
@@ -86,4 +106,8 @@ rules:
       - present_attrs:
           attrs: ["ρ", "σ"]
           bindings: ["!B"]
-    tests: []
+    tests:
+      - name: 'Accessing nonexistent attribute'
+        input: '⟦ ρ ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧.x'
+        output: '⊥'
+        matches: true
