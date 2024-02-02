@@ -48,7 +48,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        program: [1, 2]
+        program: [1]
 
     steps:
       - name: 📥 Checkout repository
