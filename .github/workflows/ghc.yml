@@ -43,7 +43,6 @@ jobs:
 
   pipeline:
     name: "Run pipeline"
-    # TODO run on more runners on master
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
