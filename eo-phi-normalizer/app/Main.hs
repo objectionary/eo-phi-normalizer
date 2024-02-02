@@ -53,7 +53,7 @@ main = do
                 | otherwise = pure <$> applyRules (Context (convertRule <$> ruleSet.rules)) (Formation bindings)
               uniqueResults = nub results
               totalResults = length uniqueResults
-          -- TODO: use outPath to output to file if provided
+          -- TODO #48:15m use outPath to output to file if provided
           putStrLn "Input:"
           putStrLn (printTree input)
           putStrLn "===================================================="
@@ -66,5 +66,5 @@ main = do
                 putStr ("[ " <> show k <> " / " <> show n <> " ]")
               putStrLn (printTree step)
             putStrLn "----------------------------------------------------"
-    -- TODO: still need to consider `chain`
+    -- TODO #48:15m still need to consider `chain` (should rewrite/change defaultMain to mainWithOptions)
     Nothing -> defaultMain
