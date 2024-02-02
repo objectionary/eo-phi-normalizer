@@ -1,51 +1,84 @@
 set -euo pipefail
 
-mkdir -p pipeline
-cd pipeline
+ROOT_DIR="$PWD"
+
+mkdir -p ".pipeline/$PROGRAM"
+cd ".pipeline/$PROGRAM"
 
 shopt -s expand_aliases
 
 EO="0.34.3"
 alias eo="eoc --parser=${EO}"
 
-cat > app.eo <<EOT
-[args] > app
-  QQ.io.stdout > @
-    "Hello, world!\n"
-EOT
+cp "$ROOT_DIR"/pipeline/programs/"$PROGRAM"/app.eo .
+
+# Without normalizer
 
 eo clean
 eo link
 eo --alone dataize app > before.txt
+cp before.txt "$ROOT_DIR"/pipeline/programs/"$PROGRAM"/before.txt
+
+# With normalizer
 
 eo phi
 
-# Now, you modify/normalize this file:
 IO=".eoc/phi/app.phi"
 I=".eoc/phi/app.bk.phi"
 mv "$IO" "$I"
+
 stack run normalize-phi < "$I" > "$IO" \
   || {
-    printf "\n\nNormalizer failed!"
-    printf "\n\n* EO expression:\n\n"
-    cat app.eo
-    printf "\n\n* Phi expression:\n\n"
-    cat "$I"
-    printf "\n\n* Error:\n\n"
-    cat "$IO"
+    cat <<EOF
+Normalizer failed!
+
+
+* EO expression:
+
+$(cat app.eo)
+
+
+* Phi expression:
+
+$(cat "$I")
+
+
+* Error:
+
+$(cat "$IO")
+EOF
+    mv "$I" "$IO"
     exit 1
   }
-perl -i -pe 'chomp if eof' "$IO"
 
-printf "\n\nNormalizer succeeded!"
-printf "\n\n* EO expression:\n\n"
-cat app.eo
-printf "\n\n* Phi expression:\n\n"
-cat "$I"
-printf "\n\n* Normalized Phi expression:\n\n"
-cat "$IO"
-printf "\n\n* Diff:\n\n"
-diff "$I" "$IO" || true
+{
+  export LC_ALL="C"
+  perl -i -pe 'chomp if eof' "$IO"
+}
+
+cat <<EOF
+Normalizer succeeded!
+
+
+* EO expression:
+
+$(cat app.eo)
+
+
+* Phi expression:
+
+$(cat "$I")
+
+
+* Normalized Phi expression:
+
+$(cat "$IO")
+
+
+* Diff:
+
+$(diff "$I" "$IO" || true)
+EOF
 
 eo unphi
 
@@ -58,6 +91,9 @@ cp .eoc/print/app.eo app.eo
 eo clean
 eo link
 eo --alone dataize app > after.txt
+
+# Check dataization with and without the normalizer
+# produces the same results
 
 if [ "$(cat before.txt)" == "$(cat after.txt)" ]; then
     echo 'SUCCESS'

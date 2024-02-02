@@ -36,10 +36,29 @@ jobs:
             !eo-phi-normalizer/Setup.hs
 
       - name: 🧰 Setup Stack
-        # FIXME use freckle/stack-action@v4 when https://github.com/freckle/stack-action/pull/31 is merged
-        uses: deemp/stack-action@main
+        # FIXME use freckle/stack-action@v5 when https://github.com/freckle/stack-action/pull/36 is merged
+        uses: deemp/stack-action@pb/v5
         with:
-          fast: ${{ github.ref_name != 'master' }}
+          stack-build-arguments: --${{ github.ref_name != 'master' && 'fast' || '' }} --pedantic
+
+  pipeline:
+    name: "Run pipeline"
+    # TODO run on more runners on master
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        program: [1]
+
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - name: 🧰 Setup Stack
+        # FIXME use freckle/stack-action@v5 when https://github.com/freckle/stack-action/pull/36 is merged
+        uses: deemp/stack-action@pb/v5
+        with:
+          stack-build-arguments: --${{ github.ref_name != 'master' && 'fast' || '' }} --pedantic
 
       - uses: actions/setup-node@v4
         with:
@@ -52,9 +71,11 @@ jobs:
 
       - name: Install EO
         run: npm install -g eolang@0.15.1
-      
-      - name: Run pipeline EO -> Phi -> Normalizer -> Phi -> EO
+
+      - name: Run pipeline
         run: ./pipeline.sh
+        env:
+          PROGRAM: ${{ matrix.program }}
 
   haddock:
     needs: [build]

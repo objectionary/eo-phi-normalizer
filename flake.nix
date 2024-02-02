@@ -152,10 +152,16 @@
               pkgs.maven
               pkgs.perl
             ];
-            text = ''
-              export JAVA_HOME="${pkgs.jdk21.home}"
-              ${builtins.readFile ./pipeline.sh}
-            '';
+            text =
+              let mkProgram = n: ''
+                export PROGRAM="${builtins.toString n}"
+                ${builtins.readFile ./pipeline.sh}
+              ''; in
+
+              ''
+                export JAVA_HOME="${pkgs.jdk21.home}"
+                ${lib.concatMapStringsSep "\n\n" mkProgram [ 2 ]}
+              '';
             description = "Run pipeline";
             excludeShellChecks = [ "SC2139" ];
           };
