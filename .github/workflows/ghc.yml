@@ -37,7 +37,7 @@ jobs:
 
       - name: 🧰 Setup Stack
         # FIXME use freckle/stack-action@v5 when https://github.com/freckle/stack-action/pull/36 is merged
-        uses: deemp/stack-action@pb/v5
+        uses: freckle/stack-action@pb/v5
         with:
           stack-build-arguments: --${{ github.ref_name != 'master' && 'fast' || '' }} --pedantic
 
@@ -56,7 +56,7 @@ jobs:
 
       - name: 🧰 Setup Stack
         # FIXME use freckle/stack-action@v5 when https://github.com/freckle/stack-action/pull/36 is merged
-        uses: deemp/stack-action@pb/v5
+        uses: freckle/stack-action@pb/v5
         with:
           stack-build-arguments: --${{ github.ref_name != 'master' && 'fast' || '' }} --pedantic
 
