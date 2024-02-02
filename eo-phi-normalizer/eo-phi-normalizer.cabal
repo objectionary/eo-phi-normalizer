@@ -6,6 +6,7 @@ cabal-version: 1.24
 
 name:           eo-phi-normalizer
 version:        0.1.0
+synopsis:       Command line normalizer of 𝜑-calculus expressions.
 description:    Please see the README on GitHub at <https://github.com/objectionary/eo-phi-normalizer#readme>
 homepage:       https://github.com/objectionary/eo-phi-normalizer#readme
 bug-reports:    https://github.com/objectionary/eo-phi-normalizer/issues
@@ -48,7 +49,7 @@ library
       src
   default-extensions:
       ImportQualifiedPost
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-missing-export-lists -Werror
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-missing-export-lists
   build-tools:
       alex >=3.2.4
     , happy >=1.19.9
@@ -73,7 +74,7 @@ executable normalize-phi
       app
   default-extensions:
       ImportQualifiedPost
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-missing-export-lists -Werror -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-missing-export-lists -threaded -rtsopts -with-rtsopts=-N
   build-tools:
       alex >=3.2.4
     , happy >=1.19.9
@@ -105,7 +106,7 @@ test-suite eo-phi-normalizer-test
       test
   default-extensions:
       ImportQualifiedPost
-  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-missing-export-lists -Werror -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -Wno-missing-export-lists -threaded -rtsopts -with-rtsopts=-N
   build-tools:
       alex >=3.2.4
     , happy >=1.19.9

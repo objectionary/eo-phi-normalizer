@@ -1,15 +1,16 @@
-name:                eo-phi-normalizer
-version:             0.1.0
-github:              "objectionary/eo-phi-normalizer"
-license:             BSD3
-author:              "EO/Polystat Development Team"
-maintainer:          "nickolay.kudasov@gmail.com"
-copyright:           "2023 EO/Polystat Development Team"
+name: eo-phi-normalizer
+synopsis: "Command line normalizer of 𝜑-calculus expressions."
+version: 0.1.0
+github: "objectionary/eo-phi-normalizer"
+license: BSD3
+author: "EO/Polystat Development Team"
+maintainer: "nickolay.kudasov@gmail.com"
+copyright: "2023 EO/Polystat Development Team"
 
 extra-source-files:
-- README.md
-- CHANGELOG.md
-- grammar/EO/Phi/Syntax.cf
+  - README.md
+  - CHANGELOG.md
+  - grammar/EO/Phi/Syntax.cf
 
 verbatim:
   cabal-version: 1.24
@@ -21,7 +22,7 @@ verbatim:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/objectionary/eo-phi-normalizer#readme>
+description: Please see the README on GitHub at <https://github.com/objectionary/eo-phi-normalizer#readme>
 
 custom-setup:
   dependencies:
@@ -35,30 +36,29 @@ build-tools:
   BNFC:bnfc: ">= 2.9.4.1"
 
 dependencies:
-- base >= 4.7 && < 5
-- aeson
-- array >= 0.5.5.0
-- directory
-- filepath
-- yaml
-- mtl
-- string-interpolate
+  - base >= 4.7 && < 5
+  - aeson
+  - array >= 0.5.5.0
+  - directory
+  - filepath
+  - yaml
+  - mtl
+  - string-interpolate
 
 default-extensions:
-- ImportQualifiedPost
+  - ImportQualifiedPost
 
 ghc-options:
-- -Wall
-- -Wcompat
-- -Widentities
-- -Wincomplete-record-updates
-- -Wincomplete-uni-patterns
-- -Wmissing-export-lists
-- -Wmissing-home-modules
-- -Wpartial-fields
-- -Wredundant-constraints
-- -Wno-missing-export-lists
-- -Werror
+  - -Wall
+  - -Wcompat
+  - -Widentities
+  - -Wincomplete-record-updates
+  - -Wincomplete-uni-patterns
+  - -Wmissing-export-lists
+  - -Wmissing-home-modules
+  - -Wpartial-fields
+  - -Wredundant-constraints
+  - -Wno-missing-export-lists
 
 library:
   source-dirs: src
@@ -74,16 +74,15 @@ library:
 
 executables:
   normalize-phi:
-    main:                Main.hs
-    source-dirs:         app
+    main: Main.hs
+    source-dirs: app
     ghc-options:
-    - -threaded
-    - -rtsopts
-    - -with-rtsopts=-N
+      - -threaded
+      - -rtsopts
+      - -with-rtsopts=-N
     dependencies:
-    - eo-phi-normalizer
-    - optparse-generic
-
+      - eo-phi-normalizer
+      - optparse-generic
 
 tests:
   eo-phi-normalizer-test:
