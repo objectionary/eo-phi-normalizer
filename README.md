@@ -1,5 +1,8 @@
 # Normalizer for 𝜑-calculus
 
+[![`rzk` on Hackage](https://img.shields.io/hackage/v/eo-phi-normalizer)](http://hackage.haskell.org/package/eo-phi-normalizer)
+[![Haddock](<https://shields.io/badge/Haddock%20(master)-Code%20documentation-informational>)](https://www.objectionary.com/normalizer/haddock/)
+
 Command line normalizer of 𝜑-calculus expressions (as produced by the [EO compiler](https://github.com/objectionary/eo)).
 
 ## About
@@ -220,20 +223,21 @@ chmod +x scripts/run-fourmolu.sh
 
 1. Install [Python 3](https://www.python.org/downloads/) (e.g., Python 3.10).
 1. [Install pre-commit](https://pre-commit.com/#1-install-pre-commit).
-    - Alternatively, run `pip3 install`.
+   - Alternatively, run `pip3 install`.
 1. [Install the git hook scripts](https://pre-commit.com/#3-install-the-git-hook-scripts).
 1. Install [fourmolu](https://github.com/fourmolu/fourmolu).
 
-    ```console
-    stack install fourmolu
-    ```
+   ```console
+   stack install fourmolu
+   ```
 
-    - You can remove `fourmolu` later (see [SO post](https://stackoverflow.com/a/38639959))
+   - You can remove `fourmolu` later (see [SO post](https://stackoverflow.com/a/38639959))
+
 1. Make a script executable.
 
-    ```console
-    chmod +x scripts/run-fourmolu.sh
-    ```
+   ```console
+   chmod +x scripts/run-fourmolu.sh
+   ```
 
 #### pre-commit configs
 
@@ -250,24 +254,26 @@ pre-commit run -c .pre-commit-config.yaml fourmolu-format --all
 #### pre-commit workflow
 
 - `pre-commit` runs before a commit (at the [pre-commit phase](https://git-scm.com/book/en/v2/Customizing-Git-Git-Hooks#_committing_workflow_hooks))
+
   > The pre-commit hook is run first, before you even type in a commit message. It's used to inspect the snapshot that's about to be committed, to see if you've forgotten something, to make sure tests run, or to examine whatever you need to inspect in the code. Exiting non-zero from this hook aborts the commit ...
 
 - `pre-commit` stashes ([link](https://git-scm.com/docs/git-stash)) unstaged ([link](https://git-scm.com/book/en/v2/Getting-Started-What-is-Git%3F#_the_three_states)) files.
 
-    ```console
-    [WARNING] Unstaged files detected.
-    [INFO] Stashing unstaged files to /home/eyjafjallajokull/.cache/pre-commit/patch1705090051-437857.
-    ```
+  ```console
+  [WARNING] Unstaged files detected.
+  [INFO] Stashing unstaged files to /home/eyjafjallajokull/.cache/pre-commit/patch1705090051-437857.
+  ```
 
 - `pre-commit` runs hooks.
 - A hook may exit with an error, e.g.:
 
-    ```md
-    Format Haskell (.hs) files...............................................Failed
-    - hook id: fourmolu
-    - exit code: 102
-    - files were modified by this hook
-    ```
+  ```md
+  Format Haskell (.hs) files...............................................Failed
+
+  - hook id: fourmolu
+  - exit code: 102
+  - files were modified by this hook
+  ```
 
   - In case of the [fourmolu](https://github.com/fourmolu/fourmolu) formatter,
     it's assumed that formatting a formatted `Haskell` file doesn't modify it.
@@ -277,6 +283,7 @@ pre-commit run -c .pre-commit-config.yaml fourmolu-format --all
 - `pre-commit` unstashes files.
 
 - You should stage all changes so that `pre-commit` does not complain.
+
   - In case of `fourmolu`, stage the formatted code regions.
 
 - Now, you can commit.
