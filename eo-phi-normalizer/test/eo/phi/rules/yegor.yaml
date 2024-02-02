@@ -93,6 +93,18 @@ rules:
       - nf: ["!n"]
     tests: []
 
+  - name: Rule 10
+    description: ""
+    pattern: ⟦ !t ↦ !b1, !B1 ⟧(!t ↦ !b2, !B2)
+    result: ⊥
+    when:
+      - not_equal: ["!t", "ρ"]
+    tests:
+      - name: ''
+        input: '⟦ t ↦ ⟦ a ↦ ∅ ⟧ ⟧(t ↦ ⟦ b ↦ ∅ ⟧)'
+        output: '⊥'
+        matches: true
+
   - name: Rule 11
     description: ""
     pattern: |

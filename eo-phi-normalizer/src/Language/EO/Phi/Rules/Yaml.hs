@@ -22,6 +22,7 @@ import Language.EO.Phi.Syntax.Abs
 instance FromJSON Object where parseJSON = fmap fromString . parseJSON
 instance FromJSON Binding where parseJSON = fmap fromString . parseJSON
 instance FromJSON MetaId where parseJSON = fmap MetaId . parseJSON
+instance FromJSON Attribute where parseJSON = fmap fromString . parseJSON
 instance FromJSON RuleAttribute where parseJSON = fmap fromString . parseJSON
 
 instance FromJSON LabelId
@@ -60,6 +61,7 @@ data Condition
   = IsNF {nf :: [MetaId]}
   | PresentAttrs {present_attrs :: AttrsInBindings}
   | AbsentAttrs {absent_attrs :: AttrsInBindings}
+  | AttrNotEqual {not_equal :: (Attribute, Attribute)}
   deriving (Generic, Show)
 instance FromJSON Condition where
   parseJSON = genericParseJSON defaultOptions{sumEncoding = UntaggedValue}
@@ -95,6 +97,7 @@ checkCond _ctx (PresentAttrs (AttrsInBindings attrs bindings)) subst = any (`has
   normalToRuleAttr a = ObjectAttr a
   substitutedAttrs = map (normalToRuleAttr . applySubstAttr subst . ruleToNormalAttr) attrs
 checkCond ctx (AbsentAttrs s) subst = not $ checkCond ctx (PresentAttrs s) subst
+checkCond _ctx (AttrNotEqual (a1, a2)) subst = applySubstAttr subst a1 /= applySubstAttr subst a2
 
 hasAttr :: RuleAttribute -> [Binding] -> Bool
 hasAttr attr = any (isAttr attr)
