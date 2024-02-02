@@ -75,7 +75,7 @@ convertRule Rule{..} ctx obj =
   | subst <- matchObject pattern obj
   , all (\cond -> checkCond ctx cond subst) when
   , obj' <- [applySubst subst result]
-  -- TODO: check that obj' does not have any metavariables
+  -- TODO #82:20m check that obj' does not have any metavariables
   ]
 
 -- | Given a condition, and a substition from object matching
