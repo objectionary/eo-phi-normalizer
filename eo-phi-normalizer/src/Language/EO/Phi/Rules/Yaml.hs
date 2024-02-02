@@ -85,7 +85,7 @@ objectHasMetavars (Application object bindings) = objectHasMetavars object || an
 objectHasMetavars (ObjectDispatch object attr) = objectHasMetavars object || attrHasMetavars attr
 objectHasMetavars (GlobalDispatch attr) = attrHasMetavars attr
 objectHasMetavars (ThisDispatch attr) = attrHasMetavars attr
-objectHasMetavars _ = False
+objectHasMetavars Termination = False
 
 bindingHasMetavars :: Binding -> Bool
 bindingHasMetavars (AlphaBinding attr obj) = attrHasMetavars attr || objectHasMetavars obj
@@ -96,7 +96,12 @@ bindingHasMetavars (MetaBindings _) = True
 
 attrHasMetavars :: Attribute -> Bool
 attrHasMetavars (MetaAttr _) = True
-attrHasMetavars _ = False
+attrHasMetavars Phi = False
+attrHasMetavars Rho = False
+attrHasMetavars Sigma = False
+attrHasMetavars VTX = False
+attrHasMetavars (Label _) = False
+attrHasMetavars (Alpha _) = False
 
 -- | Given a condition, and a substition from object matching
 --   tells whether the condition matches the object
