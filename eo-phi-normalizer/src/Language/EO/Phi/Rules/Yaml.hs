@@ -79,13 +79,13 @@ convertRule Rule{..} ctx obj =
   ]
 
 objectHasMetavars :: Object -> Bool
-objectHasMetavars (MetaObject _) = True
 objectHasMetavars (Formation bindings) = any bindingHasMetavars bindings
 objectHasMetavars (Application object bindings) = objectHasMetavars object || any bindingHasMetavars bindings
 objectHasMetavars (ObjectDispatch object attr) = objectHasMetavars object || attrHasMetavars attr
 objectHasMetavars (GlobalDispatch attr) = attrHasMetavars attr
 objectHasMetavars (ThisDispatch attr) = attrHasMetavars attr
 objectHasMetavars Termination = False
+objectHasMetavars (MetaObject _) = True
 
 bindingHasMetavars :: Binding -> Bool
 bindingHasMetavars (AlphaBinding attr obj) = attrHasMetavars attr || objectHasMetavars obj
@@ -95,13 +95,13 @@ bindingHasMetavars (LambdaBinding _) = False
 bindingHasMetavars (MetaBindings _) = True
 
 attrHasMetavars :: Attribute -> Bool
-attrHasMetavars (MetaAttr _) = True
 attrHasMetavars Phi = False
 attrHasMetavars Rho = False
 attrHasMetavars Sigma = False
 attrHasMetavars VTX = False
 attrHasMetavars (Label _) = False
 attrHasMetavars (Alpha _) = False
+attrHasMetavars (MetaAttr _) = True
 
 -- | Given a condition, and a substition from object matching
 --   tells whether the condition matches the object
