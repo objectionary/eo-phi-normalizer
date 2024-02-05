@@ -1,0 +1,20 @@
+xsls:
+  - /org/eolang/parser/critical-errors/duplicate-names.xsl
+  - /org/eolang/parser/errors/duplicate-aliases.xsl
+  - /org/eolang/parser/expand-aliases.xsl
+  - /org/eolang/parser/resolve-aliases.xsl
+  - /org/eolang/parser/errors/unused-aliases.xsl
+tests:
+  - /program/errors[count(error[@severity='error'])=1]
+  - /program/errors/error[@line='3']
+  - //o[@name='foo']
+eo: |
+  +alias org.eolang.io.stdout
+  +alias org.eolang.txt.sprintf
+  +alias org.eolang.txt.sprintf
+
+  # This is the default 64+ symbols comment in front of abstract object
+  [x] > foo
+    stdout > @
+      sprintf
+        "Hello"

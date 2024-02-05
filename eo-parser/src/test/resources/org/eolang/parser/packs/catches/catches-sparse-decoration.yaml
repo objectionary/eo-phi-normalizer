@@ -1,0 +1,53 @@
+xsls:
+  - /org/eolang/parser/warnings/sparse-decoration.xsl
+tests:
+  - /program/errors[count(error[@severity='warning'])=5]
+  - /program/errors/error[@line='4']
+  - /program/errors/error[@line='8']
+  - /program/errors/error[@line='23']
+  - /program/errors/error[@line='25']
+  - /program/errors/error[@line='35']
+eo: |
+  5 > five
+
+  # This is the default 64+ symbols comment in front of abstract object.
+  [] > decorates-num
+    5 > @
+
+  # This is the default 64+ symbols comment in front of abstract object.
+  [] > decorates-five
+    five > @
+
+  # This is the default 64+ symbols comment in front of abstract object.
+  [] > decorates-application
+    if. > @
+      TRUE
+      5
+      five
+  
+  # This is the default 64+ symbols comment in front of abstract object.
+  [free] > decorates-with-free-args
+    five > @
+
+  # This is the default 64+ symbols comment in front of abstract object.
+  [] > decorates-abstract
+    # This is the default 64+ symbols comment in front of abstract object.
+    [] > @
+      five > @
+
+  # This is the default 64+ symbols comment in front of abstract object.
+  [] > decorates-parent
+    ^ > @
+
+  # This is the default 64+ symbols comment in front of abstract object.
+  [] > try-example
+    try
+      []
+        5 > @
+      []
+        error "Error" > @
+      nop
+
+  # This is the default 64+ symbols comment in front of abstract object.
+  [args] > nop
+    TRUE > @

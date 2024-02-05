@@ -1,0 +1,25 @@
+name: year
+on:
+  schedule:
+    - cron: '0 1 22 * *' # Runs at 01:00 UTC on the 22nd of every month
+concurrency:
+  group: year-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  license:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4
+        with:
+          fetch-depth: 0
+      - uses: FantasticFiasco/action-update-license-year@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          path: | #add new path with glob pattern https://www.npmjs.com/package/glob
+            **/LICENSE.txt
+            **/*.xml
+            **/*.xsl
+            **/*.java
+            **/*.eo
+            **/*.groovy
+          commitTitle: "update license year"

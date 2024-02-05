@@ -1,0 +1,12 @@
+tests:
+  - /program/errors[count(error)=0]
+  - //o[@base='.plus']/o[@base='.a']/o[@base='^']
+  - //o[@base='.plus']/o[@base='.b']/o[@base='^']
+eo: |
+  +home https://github.com/objectionary/eo
+  +package org.eolang.priority
+  +version 0.0.0
+
+  # This is the default 64+ symbols comment in front of abstract object.
+  [] > sum
+    ^.a.plus ^.b > @

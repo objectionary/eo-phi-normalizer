@@ -1,0 +1,17 @@
+xsls: []
+tests:
+  - /program/errors[count(*)=0]
+  - /program[@name != '']
+  - /program[@version != '']
+  - /program[@time != '']
+  - /program/objects
+  - //o[not(@name) and @base='a']
+  - //o[@base='a' and @line='3']
+  - //o[@base='b-друг' and @line='4']
+  - //o[@base='c4-5' and @line='5']
+eo: |
+  +package test
+  
+  a
+    b-друг
+      c4-5

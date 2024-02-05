@@ -1,0 +1,14 @@
+# This is the header comment of this simple EO
+# program, to be ignored.
+
++meta This is just a test META
++meta2 And yet another one
+
+# This is the default 64+ symbols comment in front of named abstract object.
+[n] > fibo
+  if. > @
+    n.lt 2
+    n
+    plus.
+      fibo (minus. n 1)
+      fibo (minus. n 2)
