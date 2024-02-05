@@ -56,15 +56,13 @@
           overrideCabal
           ;
 
+        eo-test-transformer = "eo-test-transformer";
+
         # Here's our override
         # Haskell overrides are described here: https://nixos.org/manual/nixpkgs/unstable/#haskell
-        override = {
-          overrides = self: super: {
-            "${packageName}" = overrideCabal (super.callCabal2nix packageName ./${packageName} { }) (x: {
-              librarySystemDepends = [ ] ++ (x.librarySystemDepends or [ ]);
-              executableSystemDepends = [ ] ++ (x.executableSystemDepends or [ ]);
-            });
-          };
+        override.overrides = self: super: {
+          "${packageName}" = super.callCabal2nix packageName ./${packageName} { };
+          "${eo-test-transformer}" = super.callCabal2nix eo-test-transformer ./eo/test-transformer { };
         };
 
         # --- Haskell tools ---
@@ -81,7 +79,7 @@
           # GHC will be given dependencies of both A and B.
           # However, we don't want B to be in the list of dependencies of GHC
           # because build of GHC may fail due to errors in B.
-          packages = ps: [ ps.${packageName} ];
+          packages = ps: [ ps.${packageName} ps.${eo-test-transformer} ];
         })
           hls cabal fourmolu justStaticExecutable
           ghcid ghc haskellPackages hpack stack;
@@ -110,7 +108,7 @@
         # --- Packages ---
 
         packages = mkShellApps {
-          eoc = pkgs.buildNpmPackage rec {
+          eo = pkgs.buildNpmPackage rec {
             name = "";
             version = "0.15.1";
             src = inputs.eoc;
@@ -128,10 +126,9 @@
               description = "EO compiler";
               homepage = "https://github.com/objectionary/eoc";
               license = licenses.mit;
+              mainProgram = "eoc";
             };
           };
-
-          # 
 
           # --- Haskell package ---
 
@@ -148,7 +145,7 @@
             runtimeInputs = [
               stack
               pkgs.jdk21
-              packages.eoc
+              packages.eo
               pkgs.maven
               pkgs.perl
             ];
@@ -164,6 +161,32 @@
               '';
             description = "Run pipeline";
             excludeShellChecks = [ "SC2139" ];
+          };
+
+          genPhi = {
+            text = ''
+              export JAVA_HOME="${pkgs.jdk21.home}"
+              mkdir -p .pipeline/"$PROGRAM"
+              mkdir -p test/phi
+
+              cp eo-runtime/src/test/eo/org/eolang-subset/"$PROGRAM".eo .pipeline/"$PROGRAM"/app.eo
+
+              cd .pipeline/"$PROGRAM"
+              ${lib.getExe packages.eo} -- clean
+              ${lib.getExe packages.eo} -- phi
+              cp .eoc/phi/app.phi ../../test/phi/"$PROGRAM".phi
+            '';
+          };
+
+          genPhis = {
+            text = ''
+              cd eo
+              LANG=en_US.UTF-8
+              ${lib.getExe stack} run eo-test-transformer
+              ${lib.getExe pkgs.yq} -r .[].set test/config.yaml \
+                | xargs -I {} bash -c 'x={}; export PROGRAM=''${x%.eo}; ${lib.getExe packages.genPhi}'
+            '';
+            excludeShellChecks = [ "SC2016" ];
           };
         };
 
