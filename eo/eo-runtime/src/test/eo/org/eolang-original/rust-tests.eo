@@ -32,7 +32,7 @@
     use eo::Portal;
     use eo::eo_enum::EO;
     use eo::eo_enum::EO::{EOInt};
-
+    
     pub fn foo(_portal: &mut Portal) -> Option<EO> {
       println!("Hello world from rust");
       Some(EOInt(2))
@@ -51,7 +51,7 @@
     use eo::Portal;
     use eo::eo_enum::EO;
     use eo::eo_enum::EO::{EOInt};
-
+    
     pub fn foo(_portal: &mut Portal) -> Option<EO> {
       println!("Hello world from rust");
       Some(EOInt(-10))
@@ -70,7 +70,7 @@
     use eo::Portal;
     use eo::eo_enum::EO;
     use eo::eo_enum::EO::{EOFloat};
-
+    
     pub fn foo(_portal: &mut Portal) -> Option<EO> {
       Some(EOFloat(1.23456789))
     }
@@ -88,7 +88,7 @@
     use eo::Portal;
     use eo::eo_enum::EO;
     use eo::eo_enum::EO::{EOFloat};
-
+    
     pub fn foo(_portal: &mut Portal) -> Option<EO> {
       Some(EOFloat(-1.23456789))
     }
@@ -106,7 +106,7 @@
     use eo::Portal;
     use eo::eo_enum::EO;
     use eo::eo_enum::EO::{EORaw};
-
+    
     pub fn foo(_portal: &mut Portal) -> Option<EO> {
       Some(
         EORaw(
@@ -131,7 +131,7 @@
     use eo::Portal;
     use eo::eo_enum::EO;
     use eo::eo_enum::EO::{EOInt};
-
+    
     pub fn foo(portal: &mut Portal) -> Option<EO> {
       Some(
         EOInt(portal.find("$.^.a")? as i64)
@@ -153,7 +153,7 @@
     use eo::Portal;
     use eo::eo_enum::EO;
     use eo::eo_enum::EO::{EOVertex};
-
+    
     pub fn foo(portal: &mut Portal) -> Option<EO> {
       let v = portal.find("$.^.book")?;
       Some(EOVertex(v))
@@ -172,7 +172,7 @@
     use eo::Portal;
     use eo::eo_enum::EO;
     use eo::eo_enum::EO::{EOString};
-
+    
     pub fn foo(_portal: &mut Portal) -> Option<EO> {
       Some(EOString("Привет world".to_string()))
     }
@@ -291,17 +291,17 @@
     use eo::eo_enum::EO;
     use eo::eo_enum::EO::{EOInt};
     use byteorder::{BigEndian, ReadBytesExt};
-
+    
     pub fn foo(portal: &mut Portal) -> Option<EO> {
       let a = portal.find("$.^.a")?;
       let bytes_a = portal.dataize(a)?;
       let a = bytes_a.as_slice().read_i64::<BigEndian>().ok()?;
-
+      
       let b = portal.find("$.^.b")?;
       let bytes_b = portal.dataize(b)?;
       let b = bytes_b.as_slice().read_i64::<BigEndian>().ok()?;
       println!("sum 5 + 10 = {}", a + b);
-
+      
       Some(EOInt(a + b))
     }
     """
@@ -320,7 +320,7 @@
     use eo::Portal;
     use eo::eo_enum::EO;
     use eo::eo_enum::EO::{EOError};
-
+    
     pub fn foo(_portal: &mut Portal) -> Option<EO> {
       Some(EOError("Custom error".to_string()))
     }
@@ -348,7 +348,7 @@
     use eo::Portal;
     use eo::eo_enum::EO;
     use eo::eo_enum::EO::{EOVertex, EOError};
-
+    
     pub fn foo(portal: &mut Portal) -> Option<EO> {
       let eobytes = portal.find("Q.org.eolang.bytes")?;
       let copy = portal.copy(eobytes)?;
@@ -372,7 +372,7 @@
     use eo::Portal;
     use eo::eo_enum::EO;
     use eo::eo_enum::EO::{EOVertex};
-
+    
     pub fn foo(portal: &mut Portal) -> Option<EO> {
       let eobook = portal.find("$.^.book")?;
       let copy = portal.copy(eobook)?;

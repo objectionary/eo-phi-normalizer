@@ -202,21 +202,21 @@
   eq. > @
     fibonacci 4
     3
-
+  #
   # Fibonacci.
   [n] > fibonacci
     if. > @
       n.lt 3
       small n
       rec n 1 1
-
+    #
     # Small.
     [n] > small
       if. > @
         n.eq 2
         1
         n
-
+    #
     # Recursive.
     [n minus1 minus2] > rec
       if. > @
