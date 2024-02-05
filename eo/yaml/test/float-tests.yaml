@@ -1,0 +1,520 @@
+# The MIT License (MIT)
+#
+# Copyright (c) 2016-2024 Objectionary.com
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+eo: eo-runtime/src/test/eo/org/eolang-original/float-tests.eo
+meta: |-
+  +architect yegor256@gmail.com
+  +home https://github.com/objectionary/eo
+  +package org.eolang
+  +tests
+  +version 0.0.0
+programs:
+- name: less-true
+  text: |
+    [] > less-true
+      eq. > @
+        -10.5.lt 50.3
+        TRUE
+- name: less-equal
+  text: |
+    [] > less-equal
+      eq. > @
+        -10.7.lt -10.7
+        FALSE
+- name: less-false
+  text: |
+    [] > less-false
+      eq. > @
+        10.13.lt -5.3
+        FALSE
+- name: greater-true
+  text: |
+    [] > greater-true
+      gt. > @
+        -200.1
+        -1000.0
+- name: greater-false
+  text: |
+    [] > greater-false
+      eq. > @
+        0.5.gt 100.1
+        FALSE
+- name: greater-equal
+  text: |
+    [] > greater-equal
+      eq. > @
+        0.7.gt 0.7
+        FALSE
+- name: leq-true
+  text: |
+    [] > leq-true
+      eq. > @
+        lte.
+          -200.5
+          -100.6
+        TRUE
+- name: leq-equal
+  text: |
+    [] > leq-equal
+      eq. > @
+        lte.
+          50.1
+          50.1
+        TRUE
+- name: leq-false
+  text: |
+    [] > leq-false
+      eq. > @
+        lte.
+          0.9
+          -10.11
+        FALSE
+- name: gte-true
+  text: |
+    [] > gte-true
+      eq. > @
+        gte.
+          -1000.1
+          -1100.1
+        TRUE
+- name: gte-equal
+  text: |
+    [] > gte-equal
+      eq. > @
+        gte.
+          113.333
+          113.333
+        TRUE
+- name: gte-false
+  text: |
+    [] > gte-false
+      eq. > @
+        gte.
+          0.7
+          10.9
+        FALSE
+- name: float-zero-not-equal-to-nan
+  text: |
+    [] > float-zero-not-equal-to-nan
+      eq. > @
+        0.0.eq nan
+        FALSE
+- name: float-not-equal-to-nan
+  text: |
+    [] > float-not-equal-to-nan
+      eq. > @
+        52.4.eq nan
+        FALSE
+- name: float-not-equal-to-positive-infinity
+  text: |
+    [] > float-not-equal-to-positive-infinity
+      eq. > @
+        52.4.eq positive-infinity
+        FALSE
+- name: float-not-equal-to-negative-infinity
+  text: |
+    [] > float-not-equal-to-negative-infinity
+      eq. > @
+        52.4.eq negative-infinity
+        FALSE
+- name: zero-eq-to-zero
+  text: |
+    [] > zero-eq-to-zero
+      eq. > @
+        eq.
+          0.0
+          0.0
+        TRUE
+- name: zero-equal-to-neg-zero
+  text: |
+    [] > zero-equal-to-neg-zero
+      eq. > @
+        0.0.eq -0.0
+        TRUE
+- name: neg-zero-equal-to-zero
+  text: |
+    [] > neg-zero-equal-to-zero
+      eq. > @
+        -0.0.eq 0.0
+        TRUE
+- name: zero-not-greater-that-neg-zero
+  text: |
+    [] > zero-not-greater-that-neg-zero
+      eq. > @
+        0.0.gt -0.0
+        FALSE
+- name: neg-zero-not-greater-that-zero
+  text: |
+    [] > neg-zero-not-greater-that-zero
+      eq. > @
+        -0.0.gt 0.0
+        FALSE
+- name: zero-not-less-that-neg-zero
+  text: |
+    [] > zero-not-less-that-neg-zero
+      eq. > @
+        0.0.lt -0.0
+        FALSE
+- name: neg-zero-not-less-that-zero
+  text: |
+    [] > neg-zero-not-less-that-zero
+      eq. > @
+        -0.0.lt 0.0
+        FALSE
+- name: zero-gte-neg-zero
+  text: |
+    [] > zero-gte-neg-zero
+      eq. > @
+        0.0.gte -0.0
+        TRUE
+- name: neg-zero-gte-zero
+  text: |
+    [] > neg-zero-gte-zero
+      eq. > @
+        -0.0.gte 0.0
+        TRUE
+- name: zero-lte-neg-zero
+  text: |
+    [] > zero-lte-neg-zero
+      eq. > @
+        0.0.lte -0.0
+        TRUE
+- name: neg-zero-lte-zero
+  text: |
+    [] > neg-zero-lte-zero
+      eq. > @
+        -0.0.lte 0.0
+        TRUE
+- name: float-zero-eq-to-int-zero
+  text: |
+    [] > float-zero-eq-to-int-zero
+      eq. > @
+        0.0
+        0
+- name: float-neg-zero-eq-to-int-zero
+  text: |
+    [] > float-neg-zero-eq-to-int-zero
+      eq. > @
+        -0.0
+        0
+- name: eq-true
+  text: |
+    [] > eq-true
+      eq. > @
+        123.5
+        123.5
+- name: eq-false
+  text: |
+    [] > eq-false
+      eq. > @
+        123.5.eq 42.4
+        FALSE
+- name: compares-two-different-types
+  text: |
+    [] > compares-two-different-types
+      eq. > @
+        3.14.eq "Hello"
+        FALSE
+- name: times-by-zero
+  text: |
+    [] > times-by-zero
+      eq. > @
+        times.
+          574.9
+          0.0
+        0.0
+- name: times-by-one
+  text: |
+    [] > times-by-one
+      eq. > @
+        times.
+          574.9
+          1.0
+        574.9
+- name: times-two-positives
+  text: |
+    [] > times-two-positives
+      eq. > @
+        times.
+          574.5
+          311.985
+        179235.3825
+- name: times-two-negatives
+  text: |
+    [] > times-two-negatives
+      eq. > @
+        times.
+          -574.5
+          -311.985
+        179235.3825
+- name: times-diff-sign
+  text: |
+    [] > times-diff-sign
+      eq. > @
+        times.
+          -0.5745
+          0.311985
+        -0.1792353825
+- name: add-test
+  text: |
+    [] > add-test
+      eq. > @
+        plus.
+          574.5
+          311.985
+        886.485
+- name: add-wrong-args
+  text: |
+    [] > add-wrong-args
+      not. > @
+        eq.
+          try
+            []
+              plus. > @
+                42.5
+                24
+            [e]
+              e > @
+            nop
+          66.5
+- name: neg-test
+  text: |
+    [] > neg-test
+      eq. > @
+        886.485.neg
+        -886.485
+- name: sub-test
+  text: |
+    [] > sub-test
+      eq. > @
+        minus.
+          574.5
+          311.985
+        262.515
+- name: div-test
+  text: |
+    [] > div-test
+      eq. > @
+        div.
+          15.5
+          0.5
+        31.0
+- name: zero-div-zero-as-bytes-is-equal-to-nan-as-bytes
+  text: |
+    [] > zero-div-zero-as-bytes-is-equal-to-nan-as-bytes
+      eq. > @
+        (0.0.div 0.0).as-bytes
+        nan.as-bytes
+- name: float-times-nan-is-nan
+  text: |
+    [] > float-times-nan-is-nan
+      nan > not-a-number!
+      eq. > @
+        as-bytes.
+          35.2.times not-a-number
+        not-a-number.as-bytes
+- name: float-plus-nan-is-nan
+  text: |
+    [] > float-plus-nan-is-nan
+      nan > not-a-number!
+      eq. > @
+        as-bytes.
+          35.2.plus not-a-number
+        not-a-number.as-bytes
+- name: float-minus-nan-is-nan
+  text: |
+    [] > float-minus-nan-is-nan
+      nan > not-a-number!
+      eq. > @
+        as-bytes.
+          35.2.minus not-a-number
+        not-a-number.as-bytes
+- name: float-div-nan-is-nan
+  text: |
+    [] > float-div-nan-is-nan
+      nan > not-a-number!
+      eq. > @
+        as-bytes.
+          35.2.div not-a-number
+        not-a-number.as-bytes
+- name: float-not-gt-nan
+  text: |
+    [] > float-not-gt-nan
+      eq. > @
+        52.3.gt nan
+        FALSE
+- name: float-not-gte-nan
+  text: |
+    [] > float-not-gte-nan
+      eq. > @
+        52.3.gte nan
+        FALSE
+- name: float-not-lt-nan
+  text: |
+    [] > float-not-lt-nan
+      eq. > @
+        52.3.lt nan
+        FALSE
+- name: float-not-lte-nan
+  text: |
+    [] > float-not-lte-nan
+      eq. > @
+        52.3.lte nan
+        FALSE
+- name: one-div-zero-is-positive-infinity
+  text: |
+    [] > one-div-zero-is-positive-infinity
+      eq. > @
+        1.0.div 0.0
+        positive-infinity
+- name: minus-one-div-zero-is-negative-infinity
+  text: |
+    [] > minus-one-div-zero-is-negative-infinity
+      eq. > @
+        -1.0.div 0.0
+        negative-infinity
+- name: positive-float-plus-positive-infinity
+  text: |
+    [] > positive-float-plus-positive-infinity
+      positive-infinity > pos-inf
+      eq. > @
+        42.5.plus pos-inf
+        pos-inf
+- name: positive-float-minus-positive-infinity
+  text: |
+    [] > positive-float-minus-positive-infinity
+      eq. > @
+        42.5.minus positive-infinity
+        negative-infinity
+- name: positive-float-times-positive-infinity
+  text: |
+    [] > positive-float-times-positive-infinity
+      positive-infinity > pos-inf
+      eq. > @
+        42.5.times pos-inf
+        pos-inf
+- name: positive-float-div-positive-infinity
+  text: |
+    [] > positive-float-div-positive-infinity
+      eq. > @
+        42.5.div positive-infinity
+        0.0
+- name: negative-float-plus-positive-infinity
+  text: |
+    [] > negative-float-plus-positive-infinity
+      positive-infinity > pos-inf
+      eq. > @
+        -42.5.plus pos-inf
+        pos-inf
+- name: negative-float-minus-positive-infinity
+  text: |
+    [] > negative-float-minus-positive-infinity
+      eq. > @
+        -42.5.minus positive-infinity
+        negative-infinity
+- name: negative-float-times-positive-infinity
+  text: |
+    [] > negative-float-times-positive-infinity
+      eq. > @
+        -42.5.times positive-infinity
+        negative-infinity
+- name: negative-float-div-positive-infinity
+  text: |
+    [] > negative-float-div-positive-infinity
+      eq. > @
+        -42.5.div positive-infinity
+        -0.0
+- name: positive-float-plus-negative-infinity
+  text: |
+    [] > positive-float-plus-negative-infinity
+      negative-infinity > neg-inf
+      eq. > @
+        42.5.plus neg-inf
+        neg-inf
+- name: positive-float-minus-negative-infinity
+  text: |
+    [] > positive-float-minus-negative-infinity
+      eq. > @
+        42.5.minus negative-infinity
+        positive-infinity
+- name: positive-float-times-negative-infinity
+  text: |
+    [] > positive-float-times-negative-infinity
+      negative-infinity > neg-inf
+      eq. > @
+        42.5.times neg-inf
+        neg-inf
+- name: positive-float-div-negative-infinity
+  text: |
+    [] > positive-float-div-negative-infinity
+      eq. > @
+        42.5.div negative-infinity
+        -0.0
+- name: negative-float-plus-negative-infinity
+  text: |
+    [] > negative-float-plus-negative-infinity
+      negative-infinity > neg-inf
+      eq. > @
+        -42.5.plus neg-inf
+        neg-inf
+- name: negative-float-minus-negative-infinity
+  text: |
+    [] > negative-float-minus-negative-infinity
+      eq. > @
+        -42.5.minus negative-infinity
+        positive-infinity
+- name: negative-float-times-negative-infinity
+  text: |
+    [] > negative-float-times-negative-infinity
+      eq. > @
+        -42.5.times negative-infinity
+        positive-infinity
+- name: negative-float-div-negative-infinity
+  text: |
+    [] > negative-float-div-negative-infinity
+      eq. > @
+        -42.5.div negative-infinity
+        0.0
+- name: to-bytes-and-backwards
+  text: |
+    [] > to-bytes-and-backwards
+      eq. > @
+        as-float.
+          as-bytes.
+            3.1415926
+        3.1415926
+- name: as-bytes-equals-to-float
+  text: |
+    [] > as-bytes-equals-to-float
+      eq. > @
+        3.1415926.as-bytes
+        3.1415926
+- name: as-bytes-equals-to-float-backwards
+  text: |
+    [] > as-bytes-equals-to-float-backwards
+      eq. > @
+        3.1415926.as-bytes
+        3.1415926
+- name: inline-float-computation
+  text: |-
+    [] > inline-float-computation
+      (4.0.plus 5.7).eq 9.7 > @

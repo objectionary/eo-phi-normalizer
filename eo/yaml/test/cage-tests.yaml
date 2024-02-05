@@ -1,0 +1,205 @@
+# The MIT License (MIT)
+#
+# Copyright (c) 2016-2024 Objectionary.com
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+eo: eo-runtime/src/test/eo/org/eolang-original/cage-tests.eo
+meta: |-
+  +architect yegor256@gmail.com
+  +home https://github.com/objectionary/eo
+  +tests
+  +package org.eolang
+  +version 0.0.0
+programs:
+- name: writes-into-cage
+  text: |
+    [] > writes-into-cage
+      # Object with free attribute.
+      [z] > a
+      cage a > x
+      eq. > @
+        seq
+          *
+            x.write
+              a 7
+            x.z
+        7
+- name: avoid-infinite-loop
+  text: |
+    [] > avoid-infinite-loop
+      cage > x
+        TRUE.if
+      x' > copy
+      eq. > @
+        seq
+          *
+            x.write
+              TRUE.if 1 0
+            copy.<
+            x.write
+              TRUE.if copy 0
+            x
+        1
+- name: cage-nested-objects
+  text: |
+    [] > cage-nested-objects
+      # Dummy object.
+      [x] > dummy
+        x > @
+      cage dummy > c
+      c' > copy
+      eq. > @
+        seq
+          *
+            c.write (dummy 42)
+            copy.<
+            c.write (dummy copy)
+            c.x.x
+        42
+- name: dataizes-encaged-object-lazily-first
+  text: |
+    [] > dataizes-encaged-object-lazily-first
+      cage 0 > x
+      cage 0.plus > sum
+      eq. > @
+        seq
+          *
+            x.write 42
+            sum.write
+              x.plus 1
+            x.write 7
+            sum
+        8
+- name: dataizes-encaged-object-lazily-second
+  text: |
+    [] > dataizes-encaged-object-lazily-second
+      cage 0 > x
+      cage 0.plus > sum
+      eq. > @
+        seq
+          *
+            x.write 42
+            sum.write
+              1.plus x
+            x.write 7
+            sum
+        8
+- name: dataizes-encaged-object-lazily-third
+  text: |
+    [] > dataizes-encaged-object-lazily-third
+      cage 0 > x
+      cage 0 > y
+      cage 0.plus > sum
+      eq. > @
+        seq
+          *
+            x.write 42
+            y.write 7
+            sum.write
+              x.plus y
+            y.write 13
+            x.write 4
+            sum
+        17
+- name: stores-abstract-object-into-cage
+  text: |
+    [] > stores-abstract-object-into-cage
+      eq. > @
+        seq
+          *
+            cage > c
+              []
+                112 > @
+            c.@
+        112
+- name: multi-layer-volatility
+  text: |
+    [] > multi-layer-volatility
+      memory 0 > ma
+      cage a > ca
+      # Layer A.
+      [] > a
+        # Layer A.phi.
+        [] > @
+          # Layer A.phi.phi.
+          [] > @
+            # Layer A.phi.phi.phi.
+            [] > @
+              seq > @
+                *
+                  ma.write (ma.as-int.plus 1)
+                  ma.as-int
+      memory 0 > mb
+      cage b > cb
+      # Layer B.
+      [] > b
+        # Layer B.phi.
+        [] > @
+          # Layer B.phi.phi.
+          [] > @
+            # Layer B.phi.phi.phi.
+            [] > @
+              seq > z
+                *
+                  mb.write (mb.as-int.plus 1)
+                  mb.as-int
+      eq. > @
+        seq
+          *
+            ca
+            ca.plus 40
+        seq
+          *
+            cb.z
+            cb.z.plus 40
+- name: infinite-loop-check
+  text: |
+    [] > infinite-loop-check
+      # Recursive sum object.
+      [value] > pyint
+        # Add.
+        [y] > add
+          pyint (value.plus y.value) > @
+      cage pyint > x
+      cage > tmp
+        x.add
+      eq. > @
+        seq
+          *
+            x.write
+              pyint 0
+            tmp.write
+              x.add (pyint 1)
+            tmp.value
+        1
+- name: catches-writing-objects-of-different-types
+  text: |-
+    [] > catches-writing-objects-of-different-types
+      cage 5 > cge
+      eq. > @
+        seq
+          *
+            try
+              cge.write "Hello world"
+              [e]
+                cge.write 10 > @
+              nop
+            cge.eq 10
+        TRUE

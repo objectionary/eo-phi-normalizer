@@ -1,0 +1,469 @@
+# The MIT License (MIT)
+#
+# Copyright (c) 2016-2024 Objectionary.com
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+eo: eo-runtime/src/test/eo/org/eolang-original/bytes-tests.eo
+meta: |-
+  +architect yegor256@gmail.com
+  +home https://github.com/objectionary/eo
+  +tests
+  +package org.eolang
+  +version 0.0.0
+programs:
+- name: takes-part-of-bytes
+  text: |
+    [] > takes-part-of-bytes
+      eq. > @
+        slice.
+          20-1F-EE-B5-90
+          1
+          3
+        1F-EE-B5
+- name: size-of-part-is-correct
+  text: |
+    [] > size-of-part-is-correct
+      eq. > @
+        size.
+          slice.
+            20-1F-EE-B5-90-EE-BB
+            2
+            3
+        3
+- name: counts-size-of-bytes
+  text: |
+    [] > counts-size-of-bytes
+      eq. > @
+        size.
+          F1-20-5F-EC-B5-90-32
+        7
+- name: turns-bytes-into-a-string
+  text: |
+    [] > turns-bytes-into-a-string
+      eq. > @
+        as-string.
+          E4-BD-A0-E5-A5-BD-2C-20-D0-B4-D1-80-D1-83-D0-B3-21
+        "你好, друг!"
+- name: left-zero
+  text: |
+    [] > left-zero
+      not. > @
+        eq.
+          0.as-bytes.left 1
+          -1.as-bytes
+- name: left-with-zero
+  text: |
+    [] > left-with-zero
+      not. > @
+        eq.
+          2.as-bytes.left 0
+          -3.as-bytes
+- name: left-with-odd-neg
+  text: |
+    [] > left-with-odd-neg
+      not. > @
+        eq.
+          -17.as-bytes.left 1
+          33.as-bytes
+- name: left-with-minus-one
+  text: |
+    [] > left-with-minus-one
+      eq. > @
+        eq.
+          -1.as-bytes.left 3
+          7.as-bytes
+        FALSE
+- name: left-with-even-neg
+  text: |
+    [] > left-with-even-neg
+      eq. > @
+        -18.as-bytes.left 2
+        71.as-bytes.not
+- name: left-with-even-plus
+  text: |
+    [] > left-with-even-plus
+      not. > @
+        eq.
+          4.as-bytes.left 3
+          -33.as-bytes
+- name: left-with-odd-plus
+  text: |
+    [] > left-with-odd-plus
+      not. > @
+        eq.
+          5.as-bytes.left 3
+          -41.as-bytes
+- name: right-with-zero
+  text: |
+    [] > right-with-zero
+      not. > @
+        eq.
+          0.as-bytes.right 2
+          -1.as-bytes
+- name: right-with-odd-neg
+  text: |
+    [] > right-with-odd-neg
+      not. > @
+        eq.
+          -37.as-bytes.right 3
+          4.as-bytes
+- name: right-with-minus-one
+  text: |
+    [] > right-with-minus-one
+      not. > @
+        eq.
+          -1.as-bytes.right 4
+          0.as-bytes
+- name: right-with-even-neg
+  text: |
+    [] > right-with-even-neg
+      not. > @
+        eq.
+          -38.as-bytes.right 1
+          18.as-bytes
+- name: right-with-even-plus
+  text: |
+    [] > right-with-even-plus
+      eq. > @
+        eq.
+          36.as-bytes.right 2
+          -10.as-bytes
+        FALSE
+- name: right-with-odd-plus
+  text: |
+    [] > right-with-odd-plus
+      not. > @
+        eq.
+          37.as-bytes.right 3
+          -5.as-bytes
+- name: and-with-zero
+  text: |
+    [] > and-with-zero
+      not. > @
+        eq.
+          and.
+            0.as-bytes
+            32.as-bytes
+          -1.as-bytes
+- name: and-with-two-neg
+  text: |
+    [] > and-with-two-neg
+      not. > @
+        eq.
+          -6.as-bytes.and -4.as-bytes
+          7.as-bytes
+- name: and-with-two-plus
+  text: |
+    [] > and-with-two-plus
+      not. > @
+        eq.
+          and.
+            5.as-bytes
+            10.as-bytes
+          -1.as-bytes
+- name: and-with-one-neg-one-plus
+  text: |
+    [] > and-with-one-neg-one-plus
+      not. > @
+        eq.
+          -7.as-bytes.and 7.as-bytes
+          -2.as-bytes
+- name: or-with-zero
+  text: |
+    [] > or-with-zero
+      not. > @
+        eq.
+          -11.as-bytes.or 0.as-bytes
+          10.as-bytes
+- name: or-with-two-neg
+  text: |
+    [] > or-with-two-neg
+      not. > @
+        eq.
+          -27.as-bytes.or -13.as-bytes
+          8.as-bytes
+- name: or-with-two-plus
+  text: |
+    [] > or-with-two-plus
+      not. > @
+        eq.
+          5.as-bytes.or 14.as-bytes
+          -16.as-bytes
+- name: or-with-one-neg-one-plus
+  text: |
+    [] > or-with-one-neg-one-plus
+      not. > @
+        eq.
+          -7.as-bytes.or 23.as-bytes
+          0.as-bytes
+- name: xor-with-zero
+  text: |
+    [] > xor-with-zero
+      not. > @
+        eq.
+          0.as-bytes.xor 29.as-bytes
+          -30.as-bytes
+- name: xor-with-two-neg
+  text: |
+    [] > xor-with-two-neg
+      not. > @
+        eq.
+          -1.as-bytes.xor -123.as-bytes
+          -123.as-bytes
+- name: xor-with-two-plus
+  text: |
+    [] > xor-with-two-plus
+      not. > @
+        eq.
+          53.as-bytes.xor 24.as-bytes
+          -46.as-bytes
+- name: xor-with-one-neg-one-plus
+  text: |
+    [] > xor-with-one-neg-one-plus
+      not. > @
+        eq.
+          -36.as-bytes.xor 43.as-bytes
+          8.as-bytes
+- name: not-with-zero
+  text: |
+    [] > not-with-zero
+      not. > @
+        eq.
+          0.as-bytes
+          0.as-bytes.not
+- name: not-with-neg
+  text: |
+    [] > not-with-neg
+      not. > @
+        eq.
+          -1.as-bytes
+          -1.as-bytes.not
+- name: not-with-plus
+  text: |
+    [] > not-with-plus
+      not. > @
+        eq.
+          53.as-bytes
+          53.as-bytes.not
+- name: conjuction-of-bytes
+  text: |
+    [] > conjuction-of-bytes
+      02-EF-D4-05-5E-78-3A > a
+      12-33-C1-B5-5E-71-55 > b
+      eq. > @
+        a.and b
+        02-23-C0-05-5E-70-10
+- name: written-in-several-lines
+  text: |
+    [] > written-in-several-lines
+      eq. > @
+        size.
+          CA-FE-
+          BE-BE
+        4
+- name: bitwise-works
+  text: |
+    [] > bitwise-works
+      eq. > @
+        as-int.
+          and.
+            1.as-bytes
+            1.as-bytes
+        1
+- name: convertable-to-bool
+  text: |
+    [] > convertable-to-bool
+      not. > @
+        eq.
+          01-.as-bool
+          00-.as-bool
+- name: bitwise-works-negative
+  text: |
+    [] > bitwise-works-negative
+      eq. > @
+        as-int.
+          or.
+            -127.as-bytes
+            127.as-bytes
+        -1
+- name: concatenation-of-bytes
+  text: |
+    [] > concatenation-of-bytes
+      02-EF-D4-05-5E-78-3A > a
+      12-33-C1-B5-5E-71-55 > b
+      eq. > @
+        a.concat b
+        02-EF-D4-05-5E-78-3A-12-33-C1-B5-5E-71-55
+- name: concat-bools-as-bytes
+  text: |
+    [] > concat-bools-as-bytes
+      TRUE.as-bytes > b1
+      FALSE.as-bytes > b2
+      eq. > @
+        concat.
+          b1
+          b2
+        01-00
+- name: concat-with-empty
+  text: |
+    [] > concat-with-empty
+      eq. > @
+        concat.
+          05-5E-78
+          --
+        05-5E-78
+- name: concat-empty-with
+  text: |
+    [] > concat-empty-with
+      eq. > @
+        concat.
+          --
+          05-5E-78
+        05-5E-78
+- name: concat-empty
+  text: |
+    [] > concat-empty
+      eq. > @
+        concat.
+          --
+          --
+        --
+- name: concat-strings
+  text: |
+    [] > concat-strings
+      concat. > s-bytes
+        "hello ".as-bytes
+        "world".as-bytes
+      eq. > @
+        as-string.
+          s-bytes
+        "hello world"
+- name: xor-as-int
+  text: |
+    [] > xor-as-int
+      eq. > @
+        (2397719729.as-bytes.xor 4294967295.as-bytes).as-int
+        1897247566
+- name: one-xor-one-as-int
+  text: |
+    [] > one-xor-one-as-int
+      eq. > @
+        (1.as-bytes.xor 1.as-bytes).as-int
+        0
+- name: eight-byte-numbers-xor-as-int
+  text: |
+    [] > eight-byte-numbers-xor-as-int
+      eq. > @
+        as-int.
+          xor.
+            as-bytes.
+              1823872398572932454
+            as-bytes.
+              1284294810240192840
+        620662338699844654
+- name: or-neg-bytes-as-int-with-leading-zeroes
+  text: |
+    [] > or-neg-bytes-as-int-with-leading-zeroes
+      eq. > @
+        (2397719729.as-bytes.or -4294967296.as-bytes).as-int
+        -1897247567
+- name: and-neg-bytes-as-int-with-leading-zeroes
+  text: |
+    [] > and-neg-bytes-as-int-with-leading-zeroes
+      eq. > @
+        (2397719729.as-bytes.and -4294967296.as-bytes).as-int
+        0
+- name: xor-neg-bytes-as-int-with-leading-zeroes
+  text: |
+    [] > xor-neg-bytes-as-int-with-leading-zeroes
+      eq. > @
+        (2397719729.as-bytes.xor -4294967296.as-bytes).as-int
+        -1897247567
+- name: or-neg-bytes-as-int-without-leading--zeroes
+  text: |
+    [] > or-neg-bytes-as-int-without-leading--zeroes
+      eq. > @
+        (4294967295.as-bytes.or -4294967296.as-bytes).as-int
+        -1
+- name: and-neg-bytes-as-int-without-leading--zeroes
+  text: |
+    [] > and-neg-bytes-as-int-without-leading--zeroes
+      eq. > @
+        (4294967295.as-bytes.and -4294967296.as-bytes).as-int
+        0
+- name: xor-neg-bytes-as-int-without-leading--zeroes
+  text: |
+    [] > xor-neg-bytes-as-int-without-leading--zeroes
+      eq. > @
+        (4294967295.as-bytes.xor -4294967296.as-bytes).as-int
+        -1
+- name: or-neg-bytes-as-int-with-zero
+  text: |
+    [] > or-neg-bytes-as-int-with-zero
+      eq. > @
+        (-4294967296.as-bytes.or 0.as-bytes).as-int
+        -4294967296
+- name: or-neg-bytes-as-int-with-one
+  text: |
+    [] > or-neg-bytes-as-int-with-one
+      eq. > @
+        (-4294967296.as-bytes.or 1.as-bytes).as-int
+        -4294967295
+- name: as-string-is-transparent
+  text: |
+    # @todo #793:30min To enable next 4 as-bytes tests.
+    #  All of the next 4 tests checks as-string, as-float, as-int and as-bool
+    #  for transparency. All of these tests must be transparent and not create
+    #  new object. For now it they are not and these tests are disabled. Looks
+    #  like we need to store bytes in some place(like string pool in Java) and
+    #  every time before creating a new object check if it already exists in the
+    #  pool. If it does, return it from the pool, otherwise create a new one and
+    #  put it into the pool. This way we will have only one instance of bytes for
+    #  each value.
+    [] > as-string-is-transparent
+      68-65-6C-6C-6F > b
+      nop > @
+        eq.
+          b.as-string.as-bytes.<
+          b.<
+- name: as-int-is-transparent
+  text: |
+    [] > as-int-is-transparent
+      489.as-bytes > b
+      nop > @
+        eq.
+          b.as-int.as-bytes.<
+          b.<
+- name: as-float-is-transparent
+  text: |
+    [] > as-float-is-transparent
+      33.0.as-bytes > b
+      nop > @
+        eq.
+          b.as-float.as-bytes.<
+          b.<
+- name: as-bool-is-transparent
+  text: |-
+    [] > as-bool-is-transparent
+      TRUE.as-bytes > b
+      nop > @
+        eq.
+          b.as-bool.as-bytes.<
+          b.<

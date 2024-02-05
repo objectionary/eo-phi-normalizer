@@ -1,0 +1,166 @@
+# The MIT License (MIT)
+#
+# Copyright (c) 2016-2024 Objectionary.com
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+eo: eo-runtime/src/test/eo/org/eolang-original/nan-tests.eo
+meta: |-
+  +architect yegor256@gmail.com
+  +home https://github.com/objectionary/eo
+  +package org.eolang
+  +tests
+  +version 0.0.0
+programs:
+- name: nan-not-eq-number
+  text: |
+    [] > nan-not-eq-number
+      not. > @
+        eq.
+          nan
+          42
+- name: nan-not-eq-nan
+  text: |
+    [] > nan-not-eq-nan
+      nan > not-a-number!
+      not. > @
+        eq.
+          not-a-number
+          not-a-number
+- name: nan-not-lt-number
+  text: |
+    [] > nan-not-lt-number
+      eq. > @
+        nan.lt 42
+        FALSE
+- name: nan-not-lt-nan
+  text: |
+    [] > nan-not-lt-nan
+      nan > not-a-number!
+      eq. > @
+        not-a-number.lt not-a-number
+        FALSE
+- name: nan-not-lte-number
+  text: |
+    [] > nan-not-lte-number
+      eq. > @
+        nan.lte 42
+        FALSE
+- name: nan-not-lte-nan
+  text: |
+    [] > nan-not-lte-nan
+      nan > not-a-number!
+      eq. > @
+        not-a-number.lte not-a-number
+        FALSE
+- name: nan-not-gt-number
+  text: |
+    [] > nan-not-gt-number
+      eq. > @
+        nan.gt 42
+        FALSE
+- name: nan-not-gt-nan
+  text: |
+    [] > nan-not-gt-nan
+      nan > not-a-number!
+      eq. > @
+        not-a-number.gt not-a-number
+        FALSE
+- name: nan-not-gte-number
+  text: |
+    [] > nan-not-gte-number
+      eq. > @
+        nan.gte 42
+        FALSE
+- name: nan-not-gte-nan
+  text: |
+    [] > nan-not-gte-nan
+      nan > not-a-number!
+      eq. > @
+        not-a-number.gte not-a-number
+        FALSE
+- name: nan-times-number-is-nan
+  text: |
+    [] > nan-times-number-is-nan
+      nan > not-a-number!
+      eq. > @
+        (not-a-number.times 42).as-bytes
+        not-a-number.as-bytes
+- name: nan-times-nan-is-nan
+  text: |
+    [] > nan-times-nan-is-nan
+      nan > not-a-number!
+      eq. > @
+        (not-a-number.times not-a-number).as-bytes
+        not-a-number.as-bytes
+- name: nan-div-number-is-nan
+  text: |
+    [] > nan-div-number-is-nan
+      nan > not-a-number!
+      eq. > @
+        (not-a-number.div 42).as-bytes
+        not-a-number.as-bytes
+- name: nan-div-nan-is-nan
+  text: |
+    [] > nan-div-nan-is-nan
+      nan > not-a-number!
+      eq. > @
+        (not-a-number.div not-a-number).as-bytes
+        not-a-number.as-bytes
+- name: nan-plus-number-is-nan
+  text: |
+    [] > nan-plus-number-is-nan
+      nan > not-a-number!
+      eq. > @
+        (not-a-number.plus 42).as-bytes
+        not-a-number.as-bytes
+- name: nan-plus-nan-is-nan
+  text: |
+    [] > nan-plus-nan-is-nan
+      nan > not-a-number!
+      eq. > @
+        (not-a-number.plus not-a-number).as-bytes
+        not-a-number.as-bytes
+- name: nan-neg-is-nan
+  text: |
+    [] > nan-neg-is-nan
+      nan > not-a-number!
+      eq. > @
+        not-a-number.neg.as-bytes
+        not-a-number.as-bytes
+- name: nan-minus-number-is-nan
+  text: |
+    [] > nan-minus-number-is-nan
+      nan > not-a-number!
+      eq. > @
+        (not-a-number.minus 42).as-bytes
+        not-a-number.as-bytes
+- name: nan-minus-nan-is-nan
+  text: |
+    [] > nan-minus-nan-is-nan
+      nan > not-a-number!
+      eq. > @
+        (not-a-number.minus not-a-number).as-bytes
+        not-a-number.as-bytes
+- name: nan-as-bytes-is-bytes-of-zero-div-zero
+  text: |-
+    [] > nan-as-bytes-is-bytes-of-zero-div-zero
+      eq. > @
+        nan.as-bytes
+        (0.0.div 0.0).as-bytes

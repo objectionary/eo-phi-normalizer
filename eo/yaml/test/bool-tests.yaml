@@ -1,0 +1,267 @@
+# The MIT License (MIT)
+#
+# Copyright (c) 2016-2024 Objectionary.com
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+eo: eo-runtime/src/test/eo/org/eolang-original/bool-tests.eo
+meta: |-
+  +architect yegor256@gmail.com
+  +home https://github.com/objectionary/eo
+  +tests
+  +package org.eolang
+  +version 0.0.0
+programs:
+- name: compares-two-bools
+  text: |
+    [] > compares-two-bools
+      eq. > @
+        TRUE
+        TRUE
+- name: compares-two-different-types
+  text: |
+    [] > compares-two-different-types
+      not. > @
+        eq.
+          TRUE
+          42
+- name: forks-on-condition
+  text: |
+    [] > forks-on-condition
+      eq. > @
+        if.
+          5.eq 8
+          123
+          42
+        42
+- name: iterates-over-simple-counter
+  text: |
+    [] > iterates-over-simple-counter
+      memory 0 > x
+      and. > @
+        eq.
+          x.write 5
+          5
+        eq.
+          while.
+            x.as-int.lt 10
+            [i]
+              x.write > @
+                x.as-int.plus 1
+          11
+- name: compares-bool-to-bytes
+  text: |
+    [] > compares-bool-to-bytes
+      and. > @
+        TRUE.eq 01-
+        FALSE.eq 00-
+- name: compares-bool-to-string
+  text: |
+    [] > compares-bool-to-string
+      and. > @
+        TRUE.eq "\001"
+        FALSE.eq "\000"
+- name: compares-bool-to-bytes-reverse
+  text: |
+    [] > compares-bool-to-bytes-reverse
+      and. > @
+        01-.as-bytes.eq TRUE
+        00-.as-bytes.eq FALSE
+- name: complex-bool-expression-in-while
+  text: |
+    # @todo #2437:30min Enable the test. After getting rid of delta attributes in data primitives
+    #  this test started to execute infinitely long while other tests with "bool.while" are executed
+    #  without any troubles. Need to find what's the problem and make the test enable again. Don't
+    #  forget to remove the puzzle.
+    [] > complex-bool-expression-in-while
+      memory 0 > m
+      seq > res
+        *
+          m.write 5
+          while.
+            eq.
+              m.as-int.gt 0
+              TRUE
+            [i]
+              seq > @
+                *
+                  m.write
+                    m.as-int.minus 1
+                  TRUE
+          TRUE
+      nop > @
+- name: last-while-dataization-object
+  text: |
+    [] > last-while-dataization-object
+      memory 0 > x
+      eq. > @
+        while.
+          x.as-int.lt 2
+          [i]
+            seq > @
+              *
+                x.write (x.as-int.plus 1)
+                x.as-int
+        3
+- name: while-without-last-dataization
+  text: |
+    [] > while-without-last-dataization
+      memory 0 > x
+      eq. > @
+        seq
+          *
+            while.
+              x.as-int.lt 2
+              [i]
+                x.write (x.as-int.plus 1) > @
+            .@
+            .<
+            x.as-int
+        2
+- name: last-while-dataization-object-with-false-condition
+  text: |
+    [] > last-while-dataization-object-with-false-condition
+      memory 3 > x
+      eq. > @
+        while.
+          x.as-int.lt 1
+          [i]
+            seq > @
+              *
+                x.write (x.as-int.plus 1)
+                x
+        FALSE
+- name: iterating-tuple-with-while-using-internal-iterator
+  text: |
+    [] > iterating-tuple-with-while-using-internal-iterator
+      * 1 1 1 1 > arr
+      memory 0 > iter
+      memory 0 > acc
+      arr.length.minus 1 > max
+      seq > @
+        *
+          if.
+            max.eq 0
+            acc.write
+              acc.as-int.plus
+                arr.at 0
+            while.
+              iter.as-int.lt max
+              [i]
+                seq > @
+                  *
+                    acc.write
+                      acc.as-int.plus
+                        arr.at
+                          i
+                    iter.write
+                      iter.as-int.plus 1
+          eq.
+            acc.as-int
+            arr.length
+- name: iterating-tuple-with-while-using-external-iterator
+  text: |
+    # @todo #2785:60min Enable this test. For some reason this test fails. The only difference between
+    #  this test and `iterating-tuple-with-while-using-internal-iterator` is that this test uses
+    #  external iterator inside instead of standard `i` from `while` body.
+    [] > iterating-tuple-with-while-using-external-iterator
+      * 1 1 1 1 > arr
+      memory 0 > iter
+      memory 0 > acc
+      arr.length.minus 1 > max
+      seq > nop
+        *
+          if.
+            max.eq 0
+            acc.write
+              acc.as-int.plus
+                arr.at 0
+            while.
+              iter.as-int.lt max
+              [i]
+                seq > @
+                  *
+                    acc.write
+                      acc.as-int.plus
+                        arr.at
+                          iter.as-int
+                    iter.write
+                      iter.as-int.plus 1
+          eq.
+            acc.as-int
+            arr.length
+      TRUE > @
+- name: iterating-tuple-with-while-without-body-multiple
+  text: |
+    [] > iterating-tuple-with-while-without-body-multiple
+      * 1 1 1 1 > arr
+      memory 0 > iter
+      memory 0 > acc
+      arr.length > max
+      seq > @
+        *
+          while.
+            []
+              if. > @
+                iter.as-int.lt max
+                seq
+                  *
+                    acc.write
+                      acc.as-int.plus
+                        arr.at
+                          iter.as-int
+                    iter.write
+                      iter.as-int.plus 1
+                    TRUE
+                FALSE
+            nop
+          eq.
+            acc.as-int
+            arr.length
+- name: iterating-tuple-with-while-without-body-single
+  text: |-
+    # @todo #2437:60min Enable the test. For some reason this test fails. The only difference between
+    #  this test and `iterating-tuple-with-while-without-body-multiple` is that in this test tuple
+    #  consists of only one element.
+    [] > iterating-tuple-with-while-without-body-single
+      * 1 > arr
+      memory 0 > iter
+      memory 0 > acc
+      arr.length > max
+      seq > nop
+        *
+          while.
+            []
+              if. > @
+                iter.as-int.lt max
+                seq
+                  *
+                    acc.write
+                      acc.as-int.plus
+                        arr.at
+                          iter.as-int
+                    iter.write
+                      iter.as-int.plus 1
+                    TRUE
+                FALSE
+            nop
+          eq.
+            acc.as-int
+            arr.length
+      TRUE > @

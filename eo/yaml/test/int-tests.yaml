@@ -1,0 +1,294 @@
+# The MIT License (MIT)
+#
+# Copyright (c) 2016-2024 Objectionary.com
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+eo: eo-runtime/src/test/eo/org/eolang-original/int-tests.eo
+meta: |-
+  +architect yegor256@gmail.com
+  +home https://github.com/objectionary/eo
+  +tests
+  +package org.eolang
+  +version 0.0.0
+programs:
+- name: less-true
+  text: |
+    [] > less-true
+      eq. > @
+        lt.
+          10
+          50
+        TRUE
+- name: less-equal
+  text: |
+    [] > less-equal
+      eq. > @
+        not.
+          lt.
+            10
+            10
+        TRUE
+- name: less-false
+  text: |
+    [] > less-false
+      eq. > @
+        not.
+          lt.
+            10
+            -5
+        TRUE
+- name: greater-true
+  text: |
+    [] > greater-true
+      eq. > @
+        gt.
+          -200
+          -1000
+        TRUE
+- name: greater-false
+  text: |
+    [] > greater-false
+      eq. > @
+        not.
+          gt.
+            0
+            100
+        TRUE
+- name: greater-equal
+  text: |
+    [] > greater-equal
+      eq. > @
+        not.
+          gt.
+            0
+            0
+        TRUE
+- name: leq-true
+  text: |
+    [] > leq-true
+      eq. > @
+        lte.
+          -200
+          -100
+        TRUE
+- name: leq-equal
+  text: |
+    [] > leq-equal
+      eq. > @
+        lte.
+          50
+          50
+        TRUE
+- name: leq-false
+  text: |
+    [] > leq-false
+      eq. > @
+        not.
+          lte.
+            0
+            -10
+        TRUE
+- name: gte-true
+  text: |
+    [] > gte-true
+      eq. > @
+        gte.
+          -1000
+          -1100
+        TRUE
+- name: gte-equal
+  text: |
+    [] > gte-equal
+      eq. > @
+        gte.
+          113
+          113
+        TRUE
+- name: gte-false
+  text: |
+    [] > gte-false
+      eq. > @
+        not.
+          gte.
+            0
+            10
+        TRUE
+- name: int-equal-to-nan-and-infinites-is-false
+  text: |
+    [] > int-equal-to-nan-and-infinites-is-false
+      eq. > @
+        and.
+          and.
+            and.
+              and.
+                and.
+                  (0.eq nan).eq FALSE
+                  (0.eq positive-infinity).eq FALSE
+                (0.eq negative-infinity).eq FALSE
+              (42.eq nan).eq FALSE
+            (42.eq positive-infinity).eq FALSE
+          (42.eq negative-infinity).eq FALSE
+        TRUE
+- name: zero-eq-to-zero
+  text: |
+    [] > zero-eq-to-zero
+      eq. > @
+        eq.
+          0
+          0
+        TRUE
+- name: int-zero-eq-to-float-zero
+  text: |
+    [] > int-zero-eq-to-float-zero
+      eq. > @
+        eq.
+          0
+          0.0
+        TRUE
+- name: eq-true
+  text: |
+    [] > eq-true
+      eq. > @
+        eq.
+          123
+          123
+        TRUE
+- name: eq-false
+  text: |
+    [] > eq-false
+      eq. > @
+        not.
+          eq.
+            123
+            42
+        TRUE
+- name: compares-two-different-types
+  text: |
+    [] > compares-two-different-types
+      eq. > @
+        68.eq "12345678"
+        FALSE
+- name: calculates-fibonacci-number-with-recursion
+  text: |
+    [] > calculates-fibonacci-number-with-recursion
+      # Fibonacci.
+      [n] > fibo
+        if. > @
+          n.lt 3
+          1
+          plus.
+            fibo (n.minus 1)
+            fibo (n.minus 2)
+      eq. > @
+        fibo 4
+        3
+- name: calculates-fibonacci-number-with-tail
+  text: |
+    [] > calculates-fibonacci-number-with-tail
+      eq. > @
+        fibonacci 4
+        3
+      #
+      # Fibonacci.
+      [n] > fibonacci
+        if. > @
+          n.lt 3
+          small n
+          rec n 1 1
+        #
+        # Small.
+        [n] > small
+          if. > @
+            n.eq 2
+            1
+            n
+        #
+        # Recursive.
+        [n minus1 minus2] > rec
+          if. > @
+            n.eq 3
+            minus1.plus minus2
+            rec (n.minus 1) (minus1.plus minus2) minus1
+- name: zero-division
+  text: |
+    # Checks that division by zero returns an error object
+    [] > zero-division
+      eq. > @
+        try
+          []
+            2.div 0 > @
+          [e]
+            e > @
+          nop
+        "Can't divide by integer zero"
+- name: division-by-one
+  text: |
+    # Checks that division by one returns the dividend
+    [] > division-by-one
+      -235 > dividend
+      eq. > @
+        dividend.div 1
+        dividend
+- name: div-for-dividend-greater-than-zero
+  text: |
+    # Checks that div works properly with dividends greater than zero
+    [] > div-for-dividend-greater-than-zero
+      eq. > @
+        256.div 16
+        16
+- name: div-with-remainder
+  text: |
+    # Checks div with remainder
+    [] > div-with-remainder
+      eq. > @
+        13.div -5
+        -2
+- name: div-less-than-one
+  text: |
+    [] > div-less-than-one
+      eq. > @
+        1.div 5
+        0
+- name: to-bytes-and-backwards
+  text: |
+    [] > to-bytes-and-backwards
+      eq. > @
+        as-int.
+          as-bytes.
+            42
+        42
+- name: as-bytes-equals-to-int
+  text: |
+    [] > as-bytes-equals-to-int
+      eq. > @
+        42
+        42.as-bytes
+- name: as-bytes-equals-to-int-backwards
+  text: |
+    [] > as-bytes-equals-to-int-backwards
+      eq. > @
+        42.as-bytes
+        42
+- name: multiply-by-zero
+  text: |-
+    [] > multiply-by-zero
+      eq. > @
+        1000.times 0
+        0
