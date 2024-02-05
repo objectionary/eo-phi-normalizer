@@ -1,0 +1,160 @@
+# The MIT License (MIT)
+#
+#  2016-2022 Objectionary.com
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
++architect yegor256@gmail.com
++home https://github.com/objectionary/eo
++package org.eolang
++rt jvm org.eolang:eo-runtime:0.0.0
++version 0.0.0
+
+# Positive infinity.
+[] > positive-infinity
+  1.0.div 0.0 > @
+
+  # Tests that $ = x.
+  [x] > eq
+    eq. > @
+      ^.as-bytes
+      x.as-bytes
+
+  # Tests that $ < x.
+  [x] > lt
+    FALSE > @
+
+  # Tests that $ ≤ x.
+  [x] > lte
+    ^.eq x > @
+
+  # Tests that $ > x.
+  [x] > gt
+    x > value!
+    not. > @
+      or.
+        value.as-bytes.eq nan.as-bytes
+        ^.eq value
+
+  # Tests that $ ≥ x.
+  [x] > gte
+    not. > @
+      eq.
+        x.as-bytes
+        nan.as-bytes
+
+  # Multiplication of $ and x.
+  [x] > times
+    x > value!
+
+    # Here we use the rule "NaN != NaN is TRUE" to check if "num" is NaN.
+    [num] > is-nan
+      not. > @
+        num.eq num
+
+    # Tests if given number is equal to nan, float or integer zero.
+    [num] > is-nan-or-zero
+      or. > @
+        or.
+          or.
+            is-nan num
+            num.eq -0.0
+          num.eq 0.0
+        num.eq 0
+
+    # Tests if given number is greater than float or integer zero.
+    [num] > is-num-gt-zero
+      try > @
+        []
+          num.gt 0 > @
+        [e]
+          num.gt 0.0 > @
+        FALSE
+    if. > @
+      is-nan-or-zero value
+      nan
+      if.
+        is-num-gt-zero value
+        positive-infinity
+        negative-infinity
+
+  # Sum of $ and x.
+  [x] > plus
+    x > value!
+    negative-infinity.as-bytes > neg-inf-as-bytes!
+
+    # Here we use the rule "NaN != NaN is TRUE" to check if "num" is NaN.
+    [num] > is-nan
+      not. > @
+        num.eq num
+    if. > @
+      or.
+        is-nan value
+        value.as-bytes.eq neg-inf-as-bytes
+      nan
+      positive-infinity
+
+  # Difference between $ and x.
+  [x] > minus
+    x > value!
+    positive-infinity.as-bytes > pos-inf-as-bytes!
+
+    # Here we use the rule "NaN != NaN is TRUE" to check if "num" is NaN.
+    [num] > is-nan
+      not. > @
+        num.eq num
+    if. > @
+      or.
+        is-nan value
+        value.as-bytes.eq pos-inf-as-bytes
+      nan
+      positive-infinity
+
+  # Quotient of the division of $ by x.
+  [x] > div
+    x > value!
+
+    # Here we use the rule "NaN != NaN is TRUE" to check if "num" is NaN.
+    [num] > is-nan
+      not. > @
+        num.eq num
+
+    # Tests if given number is equal to nan, positive or negative infinity.
+    [num] > is-nan-or-infinite
+      or. > @
+        or.
+          is-nan num
+          num.eq positive-infinity
+        num.eq negative-infinity
+
+    # Tests if given number is greater or equal to float or integer zero.
+    [num] > is-num-gte-zero
+      try > @
+        []
+          num.gte 0 > @
+        [e]
+          num.gte 0.0 > @
+        FALSE
+    if. > @
+      is-nan-or-infinite value
+      nan
+      if.
+        is-num-gte-zero value
+        positive-infinity
+        negative-infinity

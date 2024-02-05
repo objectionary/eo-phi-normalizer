@@ -1,0 +1,13 @@
+locators:
+  - .foo .boom .λ τ=foo.boom
+  - .foo .hello$alpha .λ τ=foo.hello$alpha
+eo: |
+  +package foo
+  
+  # This is the default 64+ symbols comment in front of named abstract object.
+  [] > hello
+    # This is the default 64+ symbols comment in front of named abstract object.
+    [] > alpha /bool
+
+  # This is the default 64+ symbols comment in front of named abstract object.
+  [x] > boom /int

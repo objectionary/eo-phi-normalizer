@@ -1,0 +1,273 @@
+# The MIT License (MIT)
+#
+# Copyright (c) 2016-2024 Objectionary.com
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
++architect yegor256@gmail.com
++home https://github.com/objectionary/eo
++tests
++package org.eolang
++version 0.0.0
+
+# Test.
+[] > calculates-length-of-spaces-only
+  eq. > @
+    " ".length
+    1
+
+# Test.
+[] > turns-string-into-bytes
+  eq. > @
+    "€ друг".as-bytes
+    E2-82-AC-20-D0-B4-D1-80-D1-83-D0-B3
+
+# Test.
+[] > bytes-equal-to-string
+  eq. > @
+    D0-B4-D1-80-D1-83-D0-B3
+    "друг"
+
+# Test.
+[] > string-equals-to-bytes
+  eq. > @
+    "друг"
+    D0-B4-D1-80-D1-83-D0-B3
+
+# Test.
+[] > reads-the-length
+  eq. > @
+    "Hello, друг!".length
+    12
+
+# Test.
+[] > compares-two-different-types
+  not. > @
+    eq.
+      "Hello"
+      42
+
+# Test.
+[] > compares-string-with-nan
+  not. > @
+    eq.
+      nan
+      "друг"
+
+# Test.
+[] > compares-string-with-positive-infinity
+  eq. > @
+    positive-infinity.eq "друг"
+    FALSE
+
+# Test.
+[] > compares-string-with-negative-infinity
+  not. > @
+    eq.
+      negative-infinity
+      "друг"
+
+# Test.
+[] > text-block-one-line
+  eq. > @
+    """
+    Abc
+    """
+    "Abc"
+
+# Test.
+[] > text-block-tree-lines
+  eq. > @
+    """
+    e
+    e
+    e
+    """.as-bytes
+    65-0A-65-0A-65
+
+# Test.
+[] > text-block-with-margin
+  eq. > @
+    """
+     z
+      y
+     x
+    """.as-bytes
+    7A-0A-20-20-79-0A-20-78
+
+# Test.
+[] > compares-two-different-strings
+  not. > @
+    eq.
+      "Hello"
+      "Good bye"
+
+# Test.
+[] > supports-escape-sequences
+  eq. > @
+    "Hello, \u0434\u0440\u0443\u0433!\n"
+    "Hello, друг!\n"
+
+# Test.
+[] > supports-escape-sequences-in-text
+  eq. > @
+    """
+    Hello, \u0434\u0440\u0443\u0433!\n
+    """
+    "Hello, друг!\n"
+
+# Test.
+[] > preserves-indentation-in-text
+  eq. > @
+    """
+    a
+     b
+      c
+    """
+    "a\n b\n  c"
+
+# Test.
+[] > compares-two-strings
+  eq. > @
+    eq.
+      "x"
+      "x"
+    TRUE
+
+# Test.
+[] > one-symbol-string-compares
+  eq. > @
+    "Ф"
+    "Ф"
+
+# Test.
+[] > supports-escape-sequences-line-break
+  eq. > @
+    "\n"
+    "\012"
+
+# Test.
+[] > supports-escape-sequences-unicode
+  eq. > @
+    "\u0424"
+    "Ф"
+
+# Test.
+[] > slice-from-start
+  eq. > @
+    "hello".slice 0 1
+    "h"
+
+# Test.
+[] > slice-in-the-middle
+  eq. > @
+    "hello".slice 2 3
+    "llo"
+
+# Test.
+[] > slice-from-the-end
+  eq. > @
+    "hello".slice 4 1
+    "o"
+
+# Test.
+[] > slice-empty-string
+  eq. > @
+    "".slice 0 0
+    ""
+
+# Test.
+[] > no-slice-string
+  eq. > @
+    "no slice".slice 0 0
+    ""
+
+# Test.
+[] > slice-escape-sequences-line-break
+  eq. > @
+    "\n".slice
+      0
+      "\n".length
+    "\012"
+
+# Test.
+[] > slice-escape-sequences-unicode
+  eq. > @
+    "\u0424".slice
+      0
+      "\u0424".length
+    "Ф"
+
+# Test.
+[] > slice-foreign-literals
+  eq. > @
+    "привет".slice
+      0
+      1
+    "п"
+
+# Test.
+[] > slice-foreign-literals-2
+  eq. > @
+    "hello, 大家!".slice
+      7
+      1
+    "大"
+
+# Test.
+[] > slice-start-below-zero
+  eq. > @
+    try
+      []
+        slice. > @
+          "some string"
+          -1
+          1
+      [e]
+        e > @
+      nop
+    "Start index must be greater than 0 but was -1"
+
+# Test.
+[] > slice-end-below-start
+  eq. > @
+    try
+      []
+        slice. > @
+          "some string"
+          2
+          -1
+      [e]
+        e > @
+      nop
+    "End index must be greater or equal to start but was 1 < 2"
+
+# Test.
+[] > slice-end-greater-actual
+  eq. > @
+    try
+      []
+        slice. > @
+          "some string"
+          7
+          5
+      [e]
+        e > @
+      nop
+    "Start index + length must not exceed string length but was 12 > 11"

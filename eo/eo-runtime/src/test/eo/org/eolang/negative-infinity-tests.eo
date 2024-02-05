@@ -1,0 +1,557 @@
+# The MIT License (MIT)
+#
+# Copyright (c) 2016-2024 Objectionary.com
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
++architect yegor256@gmail.com
++home https://github.com/objectionary/eo
++package org.eolang
++tests
++version 0.0.0
+
+# Equal to.
+[] > negative-infinity-is-equal-to-one-div-zero
+  eq. > @
+    negative-infinity
+    -1.0.div 0.0
+
+# Test.
+[] > negative-infinity-eq-negative-infinity
+  eq. > @
+    negative-infinity
+    negative-infinity
+
+# Test.
+[] > negative-infinity-not-eq-positive-infinity
+  not. > @
+    eq.
+      negative-infinity
+      positive-infinity
+
+# Test.
+[] > negative-infinity-not-eq-nan
+  not. > @
+    eq.
+      negative-infinity
+      nan
+
+# Test.
+[] > negative-infinity-not-eq-int
+  not. > @
+    eq.
+      negative-infinity
+      42
+
+# Test.
+[] > negative-infinity-not-eq-float
+  not. > @
+    eq.
+      negative-infinity
+      42.5
+
+# Less than.
+[] > negative-infinity-lt-negative-infinity
+  negative-infinity > neg-inf
+  eq. > @
+    neg-inf.lt neg-inf
+    FALSE
+
+# Test.
+[] > negative-infinity-lt-positive-infinity
+  eq. > @
+    negative-infinity.lt positive-infinity
+    TRUE
+
+# Test.
+[] > negative-infinity-not-lt-nan
+  eq. > @
+    negative-infinity.lt nan
+    FALSE
+
+# Test.
+[] > negative-infinity-lt-int
+  lt. > @
+    negative-infinity
+    42
+
+# Test.
+[] > negative-infinity-lt-float
+  lt. > @
+    negative-infinity
+    42.5
+
+# Less or equal than.
+[] > negative-infinity-lte-negative-infinity
+  negative-infinity > neg-inf
+  eq. > @
+    neg-inf.lte neg-inf
+    TRUE
+
+# Test.
+[] > negative-infinity-lte-positive-infinity
+  eq. > @
+    negative-infinity.lte positive-infinity
+    TRUE
+
+# Test.
+[] > negative-infinity-not-lte-nan
+  eq. > @
+    negative-infinity.lte nan
+    FALSE
+
+# Test.
+[] > negative-infinity-lte-int
+  eq. > @
+    negative-infinity.lte 42
+    TRUE
+
+# Test.
+[] > negative-infinity-lte-float
+  eq. > @
+    negative-infinity.lte 42.5
+    TRUE
+
+# Greater than.
+[] > negative-infinity-gt-negative-infinity
+  negative-infinity > neg-inf
+  not. > @
+    gt.
+      neg-inf
+      neg-inf
+
+# Test.
+[] > negative-infinity-not-gt-positive-infinity
+  eq. > @
+    negative-infinity.gt positive-infinity
+    FALSE
+
+# Test.
+[] > negative-infinity-not-gt-nan
+  eq. > @
+    negative-infinity.gt nan
+    FALSE
+
+# Test.
+[] > negative-infinity-not-gt-int
+  eq. > @
+    negative-infinity.gt 42
+    FALSE
+
+# Test.
+[] > negative-infinity-not-gt-float
+  eq. > @
+    negative-infinity.gt 42.5
+    FALSE
+
+# Greater or equal than.
+[] > negative-infinity-gte-negative-infinity
+  negative-infinity > neg-inf
+  eq. > @
+    neg-inf.gte neg-inf
+    TRUE
+
+# Test.
+[] > negative-infinity-not-gte-positive-infinity
+  eq. > @
+    negative-infinity.gte positive-infinity
+    FALSE
+
+# Test.
+[] > negative-infinity-not-gte-nan
+  eq. > @
+    negative-infinity.gte nan
+    FALSE
+
+# Test.
+[] > negative-infinity-not-gte-int
+  eq. > @
+    negative-infinity.gte 42
+    FALSE
+
+# Test.
+[] > negative-infinity-not-gte-float
+  eq. > @
+    negative-infinity.gte 42.5
+    FALSE
+
+# @todo #2497:30min Uncomment infinites tests. For some reason times, plus, minus and div object of
+#  positive-infinity and negative-infinity causes flaky tests that mostly fail on CI/CD pipeline.
+#  Need to find a reason, fix it and uncomment all tests here and in positive-infinity-tests.eo file
+# Times
+#[] > negative-infinity-times-float-zero
+#  eq. > @
+#    as-bytes.
+#      negative-infinity.times 0.0
+#    nan.as-bytes
+#
+#[] > negative-infinity-times-neg-float-zero
+#  eq. > @
+#    as-bytes.
+#      negative-infinity.times -0.0
+#    nan.as-bytes
+#
+#[] > negative-infinity-times-int-zero
+#  eq. > @
+#    as-bytes.
+#      positive-infinity.times 0
+#    nan.as-bytes
+#
+#[] > negative-infinity-times-nan
+#  nan > not-a-number!
+#  eq. > @
+#    as-bytes.
+#      negative-infinity.times not-a-number
+#    not-a-number.as-bytes
+#
+#[] > negative-infinity-times-positive-infinity
+#  negative-infinity > neg-inf
+#  eq. > @
+#    neg-inf.times positive-infinity
+#    neg-inf
+#
+#[] > negative-infinity-times-negative-infinity
+#  negative-infinity > neg-inf
+#  eq. > @
+#    neg-inf.times neg-inf
+#    positive-infinity
+#
+#[] > negative-infinity-times-positive-float
+#  negative-infinity > neg-inf
+#  eq. > @
+#    neg-inf.times 42.5
+#    neg-inf
+#
+#[] > negative-infinity-times-positive-int
+#  negative-infinity > neg-inf
+#  eq. > @
+#    neg-inf.times 42
+#    neg-inf
+#
+#[] > negative-infinity-times-negative-float
+#  eq. > @
+#    negative-infinity.times -42.5
+#    positive-infinity
+#
+#[] > negative-infinity-times-negative-int
+#  eq. > @
+#    negative-infinity.times -42
+#    positive-infinity
+#
+#[] > negative-infinity-times-multiple-positive-numbers
+#  negative-infinity > neg-inf
+#  eq. > res
+#    neg-inf.times 25 11.2 51
+#    neg-inf
+#
+#[] > negative-infinity-times-two-negative-numbers
+#  negative-infinity > neg-inf
+#  eq. > @
+#    neg-inf.times -11.2 -5
+#    neg-inf
+#
+#[] > negative-infinity-times-three-negative-numbers
+#  eq. > @
+#    negative-infinity.times -11.2 -5 -3
+#    positive-infinity
+#
+#[] > negative-infinity-times-multiple-numbers-with-nan
+#  nan > not-a-number!
+#  eq. > @
+#    (negative-infinity.times -25 not-a-number 51).as-bytes
+#    not-a-number.as-bytes
+#
+#[] > negative-infinity-times-multiple-numbers-with-float-zero
+#  eq. > @
+#    (negative-infinity.times -25 0.0 51).as-bytes
+#    nan.as-bytes
+#
+#[] > negative-infinity-times-multiple-numbers-with-neg-float-zero
+#  eq. > @
+#    (negative-infinity.times -25 -0.0 51).as-bytes
+#    nan.as-bytes
+#
+#[] > negative-infinity-times-multiple-numbers-with-int-zero
+#  eq. > @
+#    (negative-infinity.times -25 0 51).as-bytes
+#    nan.as-bytes
+#
+#[] > negative-infinity-times-multiple-infinites
+#  negative-infinity > neg-inf
+#  positive-infinity > pos-inf
+#  eq. > @
+#    neg-inf.times pos-inf neg-inf pos-inf pos-inf
+#    pos-inf
+#
+## Plus
+#[] > negative-infinity-plus-nan
+#  nan > not-a-number!
+#  eq. > @
+#    as-bytes.
+#      negative-infinity.plus not-a-number
+#    not-a-number.as-bytes
+#
+#[] > negative-infinity-plus-positive-infinity
+#  eq. > @
+#    as-bytes.
+#      negative-infinity.plus positive-infinity
+#    nan.as-bytes
+#
+#[] > negative-infinity-plus-negative-infinity
+#  negative-infinity > neg-inf
+#  eq. > @
+#    neg-inf
+#    neg-inf.plus neg-inf
+#
+#[] > negative-infinity-plus-positive-float
+#  negative-infinity > neg-inf
+#  eq. > @
+#    neg-inf.plus 42.5
+#    neg-inf
+#
+#[] > negative-infinity-plus-multiple-floats
+#  negative-infinity > neg-inf
+#  eq. > @
+#    neg-inf.plus 42.5 22.2 51.5
+#    neg-inf
+#
+#[] > negative-infinity-plus-multiple-numbers
+#  negative-infinity > neg-inf
+#  eq. > @
+#    neg-inf.plus 42.5 -22 11 -1.2
+#    neg-inf
+#
+#[] > negative-infinity-plus-multiple-numbers-with-nan
+#  nan > not-a-number!
+#  eq. > @
+#    (negative-infinity.plus 42 not-a-number 30).as-bytes
+#    not-a-number.as-bytes
+#
+#[] > negative-infinity-plus-multiple-numbers-with-positive-infinity
+#  eq. > @
+#    (negative-infinity.plus 42 positive-infinity 30).as-bytes
+#    nan.as-bytes
+#
+#[] > negative-infinity-plus-positive-int
+#  negative-infinity > neg-inf
+#  eq. > @
+#    neg-inf.plus 42
+#    neg-inf
+#
+#[] > negative-infinity-plus-negative-float
+#  negative-infinity > neg-inf
+#  eq. > @
+#    neg-inf.plus -42.5
+#    neg-inf
+#
+#[] > negative-infinity-plus-negative-int
+#  negative-infinity > neg-inf
+#  eq. > @
+#    neg-inf.plus -42
+#    neg-inf
+#
+## Negation
+#[] > negative-infinity-neg-is-positive-infinity
+#  eq. > @
+#    negative-infinity.neg
+#    positive-infinity
+#
+## Minus
+#[] > negative-infinity-minus-nan
+#  nan > not-a-number!
+#  eq. > @
+#    as-bytes.
+#      negative-infinity.minus not-a-number
+#    not-a-number.as-bytes
+#
+#[] > negative-infinity-minus-negative-infinity
+#  negative-infinity > neg-inf
+#  eq. > @
+#    as-bytes.
+#      neg-inf.minus neg-inf
+#    nan.as-bytes
+#
+#[] > negative-infinity-minus-positive-infinity
+#  negative-infinity > neg-inf
+#  eq. > @
+#    neg-inf.minus positive-infinity
+#    neg-inf
+#
+#[] > negative-infinity-minus-positive-float
+#  negative-infinity > neg-inf
+#  eq. > @
+#    neg-inf.minus 42.5
+#    neg-inf
+#
+#[] > negative-infinity-minus-positive-int
+#  negative-infinity > neg-inf
+#  eq. > @
+#    neg-inf.minus 42
+#    neg-inf
+#
+#[] > negative-infinity-minus-negative-float
+#  negative-infinity > neg-inf
+#  eq. > @
+#    neg-inf.minus -42.5
+#    neg-inf
+#
+#[] > negative-infinity-minus-negative-int
+#  negative-infinity > neg-inf
+#  eq. > @
+#    neg-inf.minus -42
+#    neg-inf
+#
+#[] > negative-infinity-minus-multiple-floats
+#  negative-infinity > neg-inf
+#  eq. > @
+#    neg-inf.minus 42.5 22.2 51.5
+#    neg-inf
+#
+#[] > negative-infinity-minus-multiple-numbers
+#  negative-infinity > neg-inf
+#  eq. > @
+#    neg-inf.minus 42.5 -22 11 -1.2
+#    neg-inf
+#
+#[] > negative-infinity-minus-multiple-numbers-with-nan
+#  nan > not-a-number!
+#  eq. > @
+#    (negative-infinity.minus 42 not-a-number 30).as-bytes
+#    not-a-number.as-bytes
+#
+#[] > negative-infinity-minus-multiple-numbers-with-positive-infinity
+#  negative-infinity > neg-inf
+#  eq. > @
+#    neg-inf.minus 42 positive-infinity 30
+#    neg-inf
+#
+#[] > negative-infinity-minus-multiple-numbers-with-negative-infinity
+#  negative-infinity > neg-inf
+#  eq. > @
+#    (neg-inf.minus 42 neg-inf 30).as-bytes
+#    nan.as-bytes
+#
+## Division
+#[] > negative-infinity-div-float-zero
+#  negative-infinity > neg-inf
+#  eq. > @
+#    neg-inf.div 0.0
+#    neg-inf
+#
+#[] > negative-infinity-div-neg-float-zero
+#  eq. > @
+#    negative-infinity.div -0.0
+#    positive-infinity
+#
+#[] > negative-infinity-div-int-zero
+#  negative-infinity > neg-inf
+#  eq. > @
+#    neg-inf.div 0
+#    neg-inf
+#
+#[] > negative-infinity-div-neg-int-zero
+#  negative-infinity > neg-inf
+#  eq. > @
+#    neg-inf.div -0
+#    neg-inf
+#
+#[] > negative-infinity-div-nan
+#  nan > not-a-number!
+#  eq. > @
+#    as-bytes.
+#      negative-infinity.div not-a-number
+#    not-a-number.as-bytes
+#
+#[] > negative-infinity-div-positive-infinity
+#  eq. > @
+#    as-bytes.
+#      negative-infinity.div positive-infinity
+#    nan.as-bytes
+#
+#[] > negative-infinity-div-negative-infinity
+#  negative-infinity > neg-inf
+#  eq. > @
+#    as-bytes.
+#      neg-inf.div neg-inf
+#    nan.as-bytes
+#
+#[] > negative-infinity-div-positive-float
+#  negative-infinity > neg-inf
+#  eq. > @
+#    neg-inf.div 42.5
+#    neg-inf
+#
+#[] > negative-infinity-div-positive-int
+#  negative-infinity > neg-inf
+#  eq. > @
+#    neg-inf.div 42
+#    neg-inf
+#
+#[] > negative-infinity-div-negative-float
+#  eq. > @
+#    negative-infinity.div -42.5
+#    positive-infinity
+#
+#[] > negative-infinity-div-negative-int
+#  eq. > @
+#    negative-infinity.div -42
+#    positive-infinity
+#
+#[] > negative-infinity-div-multiple-positive-numbers
+#  negative-infinity > neg-inf
+#  eq. > @
+#    neg-inf.div 42.2 5 12.5
+#    neg-inf
+#
+#[] > negative-infinity-div-multiple-numbers
+#  eq. > @
+#    negative-infinity.div 43.2 0 -13.2
+#    positive-infinity
+#
+#[] > negative-infinity-div-multiple-numbers-with-neg-float-zero
+#  negative-infinity > neg-inf
+#  eq. > @
+#    neg-inf.div 43.2 -0.0 -13.2
+#    neg-inf
+#
+#[] > negative-infinity-div-multiple-infinities
+#  negative-infinity > neg-inf
+#  positive-infinity > pos-inf
+#  eq. > @
+#    as-bytes.
+#      neg-inf.div neg-inf pos-inf pos-inf
+#    nan.as-bytes
+#
+#[] > negative-infinity-div-multiple-numbers-with-nan
+#  nan > not-a-number!
+#  eq. > @
+#    as-bytes.
+#      negative-infinity.div -243 not-a-number 43.1
+#    not-a-number.as-bytes
+#
+#[] > negative-infinity-div-multiple-numbers-with-infinity
+#  eq. > @
+#    as-bytes.
+#      negative-infinity.div 22 positive-infinity -11
+#    nan.as-bytes
+# Bytes.
+[] > negative-infinity-as-bytes-is-valid
+  eq. > @
+    negative-infinity.as-bytes
+    (-1.0.div 0.0).as-bytes

@@ -1,0 +1,16 @@
+locators:
+  - .data .f .α0 .Δ δ=40-09-21-FB-4D-12-D8-4A
+  - .data .f .π >float
+  - .data .b .α0 .Δ δ=01
+  - .data .b .π >bool
+  - .data .i .α0 .Δ δ=00-00-00-00-00-01-00-00
+  - .data .i .π >int
+  - .data .s .α0 .Δ δ=D0-B4-D1-80-D1-83-D0-B3
+  - .data .s .π >string
+eo: |
+  # This is the default 64+ symbols comment in front of named abstract object.
+  [] > data
+    3.1415926 > f
+    TRUE > b
+    65536 > i
+    "друг" > s

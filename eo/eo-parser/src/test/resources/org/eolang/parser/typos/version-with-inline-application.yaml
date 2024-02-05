@@ -1,0 +1,5 @@
+line: 3
+eo: |
+  # This is the default 64+ symbols comment in front of abstract object
+  [args] > app
+    stdout|1.2.3 42

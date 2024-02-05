@@ -1,0 +1,22 @@
+xsls:
+  - /org/eolang/parser/cti/cti-adds-errors.xsl
+tests:
+  - /program/errors[count(*)=1]
+  - /program/errors/error[@check='cti']
+  - /program/errors/error[@severity='warning']
+  - /program/errors/error[text()='This method is deprecated!']
+
+eo: |
+  # This is the default 64+ symbols comment in front of abstract object.
+  [] > foo
+    cti > @
+      2.times 2
+      "warning"
+      "This method is deprecated!"
+
+  # This is the default 64+ symbols comment in front of abstract object.
+  [] > app
+    QQ.io.stdout > @
+      QQ.txt.sprintf
+        "The result is %d\n"
+        foo

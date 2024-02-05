@@ -1,0 +1,17 @@
+out:
+  - ".*first.*"
+file: org/eolang/snippets/vmb.eo
+args: ["org.eolang.snippets.vbm"]
+eo: |
+  +package org.eolang.snippets
+  +alias org.eolang.io.stdout
+
+  # This is the default 64+ symbols comment in front of named abstract object.
+  [args] > vbm
+    stdout > @
+      if.
+        TRUE
+        "second":1
+        "first"
+        .as-bytes
+        .as-string:0

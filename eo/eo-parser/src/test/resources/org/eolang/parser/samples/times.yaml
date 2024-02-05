@@ -1,0 +1,35 @@
+origin: |
+  # This is the default 64+ symbols comment in front of named abstract object.
+  [] > app
+    QQ.io.stdout > @
+      QQ.txt.sprintf
+        "result is %d\n"
+        -1.times 228
+
+strait: |
+  # This is the default 64+ symbols comment in front of named abstract object.
+  [] > app
+    QQ
+    .io
+    .stdout > @
+      QQ
+      .txt
+      .sprintf
+        "result is %d\n"
+        -1
+        .times
+          228
+
+reversed: |
+  # This is the default 64+ symbols comment in front of named abstract object.
+  [] > app
+    stdout. > @
+      io.
+        QQ
+      sprintf.
+        txt.
+          QQ
+        "result is %d\n"
+        times.
+          -1
+          228

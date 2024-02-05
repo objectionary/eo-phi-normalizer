@@ -1,0 +1,17 @@
+xsls:
+  - /org/eolang/parser/errors/unknown-names.xsl
+tests:
+  - /program/errors[count(error[@severity='error'])=1]
+  - /program/errors/error[@line='5']
+  - //o[@base='test' and @line='5']
+eo: |
+  +alias foo
+
+  # This is the default 64+ symbols comment in front of abstract object.
+  [] > fff
+    test > @
+    $ > t
+    @.org.eolang.random
+    @.t > zz
+    foo > y1
+    ^.ff > pp

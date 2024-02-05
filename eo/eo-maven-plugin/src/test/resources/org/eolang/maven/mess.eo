@@ -1,0 +1,34 @@
+# This is the header comment of this simple EO
+# program, to be ignored.
+
++architect yegor256@gmail.com
++package org.eolang.examples
++alias org.eolang.io.stdout
++tests
+
+3.14 > pi
+
+# This is the default 64+ symbols comment in front of named abstract object.
+[n] > alpha
+  # This is the default 64+ symbols comment in front of named abstract object.
+  [] > x
+    a > pi
+      pi
+      666
+      two.f1.f2 x
+  stdout > z
+    sprintf > f!
+      "Hello, ".trim
+      x 0x1fff n
+
+alpha > beta
+  alpha
+    "Z"
+
+# This is the default 64+ symbols comment in front of named abstract object.
+[n x] > mess
+  # This is the default 64+ symbols comment in front of named abstract object.
+  [a] > test /int
+  n.hello > f
+    "Hello, world!"
+    x
