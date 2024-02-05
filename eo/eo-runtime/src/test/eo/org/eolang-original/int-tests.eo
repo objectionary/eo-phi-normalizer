@@ -224,6 +224,7 @@
         minus1.plus minus2
         rec (n.minus 1) (minus1.plus minus2) minus1
 
+# Test.
 # Checks that division by zero returns an error object
 [] > zero-division
   eq. > @
@@ -235,6 +236,7 @@
       nop
     "Can't divide by integer zero"
 
+# Test.
 # Checks that division by one returns the dividend
 [] > division-by-one
   -235 > dividend
@@ -242,12 +244,14 @@
     dividend.div 1
     dividend
 
+# Test.
 # Checks that div works properly with dividends greater than zero
 [] > div-for-dividend-greater-than-zero
   eq. > @
     256.div 16
     16
 
+# Test.
 # Checks div with remainder
 [] > div-with-remainder
   eq. > @

@@ -67,6 +67,7 @@
       positive-infinity
       42.5
 
+# Test.
 # Less than.
 [] > positive-infinity-lt-positive-infinity
   positive-infinity > pos-inf
@@ -98,6 +99,7 @@
     positive-infinity.lt 42.5
     FALSE
 
+# Test.
 # Less or equal than.
 [] > positive-infinity-lte-positive-infinity
   positive-infinity > pos-inf
@@ -129,6 +131,7 @@
     positive-infinity.lte 42.5
     FALSE
 
+# Test.
 # Greater than.
 [] > positive-infinity-gt-positive-infinity
   positive-infinity > pos-inf
@@ -162,6 +165,7 @@
     positive-infinity
     42.5
 
+# Test.
 # Greater or equal than.
 [] > positive-infinity-gte-positive-infinity
   positive-infinity > pos-inf
@@ -223,6 +227,7 @@
       (42.5.eq neg-inf).eq FALSE
     TRUE
 
+# Test.
 # Times
 #[] > positive-infinity-times-float-zero
 #  eq. > @

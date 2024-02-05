@@ -66,6 +66,7 @@
       negative-infinity
       42.5
 
+# Test.
 # Less than.
 [] > negative-infinity-lt-negative-infinity
   negative-infinity > neg-inf
@@ -97,6 +98,7 @@
     negative-infinity
     42.5
 
+# Test.
 # Less or equal than.
 [] > negative-infinity-lte-negative-infinity
   negative-infinity > neg-inf
@@ -128,6 +130,7 @@
     negative-infinity.lte 42.5
     TRUE
 
+# Test.
 # Greater than.
 [] > negative-infinity-gt-negative-infinity
   negative-infinity > neg-inf
@@ -160,6 +163,7 @@
     negative-infinity.gt 42.5
     FALSE
 
+# Test.
 # Greater or equal than.
 [] > negative-infinity-gte-negative-infinity
   negative-infinity > neg-inf
@@ -191,6 +195,7 @@
     negative-infinity.gte 42.5
     FALSE
 
+# Test.
 # @todo #2497:30min Uncomment infinites tests. For some reason times, plus, minus and div object of
 #  positive-infinity and negative-infinity causes flaky tests that mostly fail on CI/CD pipeline.
 #  Need to find a reason, fix it and uncomment all tests here and in positive-infinity-tests.eo file

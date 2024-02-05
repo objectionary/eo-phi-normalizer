@@ -38,6 +38,7 @@
     *.length
     0
 
+# Test.
 # Check that an empty tuples .length equals to zero.
 [] > empty-tuple-length
   # Array.
@@ -46,6 +47,7 @@
     (arr *).elements.length
     0
 
+# Test.
 # Check that tuple.length works properly for non-empty tuples.
 [] > non-empty-tuple-length-test
   # Array.
