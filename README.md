@@ -198,6 +198,18 @@ Run all tests
 stack test
 ```
 
+### eo
+
+We have a [git subtree](https://www.atlassian.com/git/tutorials/git-subtree) for the [eo](https://github.com/objectionary/eo) repository.
+
+To update it, run:
+
+```sh
+git remote add -f eo https://github.com/objectionary/eo
+git fetch eo master
+git subtree pull --prefix eo eo master --squash
+```
+
 ## Contribute
 
 ### pre-commit
