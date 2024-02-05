@@ -9,3 +9,5 @@ target/
 .recommenders
 .mvn/wrapper/maven-wrapper.jar
 .factorypath
+eo-runtime/src/test/eo/org/eolang-subset
+eo-runtime/src/test/eo/org/eolang
