@@ -14,9 +14,6 @@ maintainer:     value
 copyright:      value
 license:        BSD3
 build-type:     Simple
-extra-source-files:
-    README.md
-    CHANGELOG.md
 
 source-repository head
   type: git
@@ -36,5 +33,6 @@ executable eo-test-transformer
     , extra
     , filepath
     , mtl
+    , with-utf8
     , yaml
   default-language: Haskell2010

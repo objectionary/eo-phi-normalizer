@@ -6,10 +6,6 @@ author: "value"
 maintainer: "value"
 copyright: "value"
 
-extra-source-files:
-  - README.md
-  - CHANGELOG.md
-
 # Metadata used when publishing your package
 # synopsis:            Short description of your package
 # category:            value
@@ -28,6 +24,7 @@ dependencies:
   - extra
   - filepath
   - mtl
+  - with-utf8
 
 ghc-options:
   - -Wall

@@ -6,6 +6,7 @@
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE BlockArguments #-}
 
 module Main (main) where
 
@@ -18,11 +19,12 @@ import GHC.Generics (Generic)
 import System.Directory.Extra (createDirectoryIfMissing, listFiles, removeFile)
 import System.FilePath.Posix
 import Text.Printf (printf)
+import Main.Utf8 (withUtf8)
 
 main :: IO ()
-main = do
-    let yamlDir = "yaml"
-        yamlTestDir = yamlDir </> "test"
+main = withUtf8 do
+    let yamlDir = "test"
+        yamlTestDir = yamlDir </> "yaml"
     createDirectoryIfMissing True yamlTestDir
     testFiles <- listFiles "eo-runtime/src/test/eo/org/eolang-original"
     forM_ testFiles $ \f -> do
@@ -41,14 +43,14 @@ main = do
         removeFile targetTmp
 
         -- Select subset of tests
-        let eoTestDir = "eo-runtime/src/test/eo/org/eolang"
-        createDirectoryIfMissing True eoTestDir
+        let eoSubsetDir = "eo-runtime/src/test/eo/org/eolang-subset"
+        createDirectoryIfMissing True eoSubsetDir
         testsConfig <- decodeFileThrow @_ @Config (yamlDir </> "config.yaml")
         -- print yamlTestsConfig
         forM_ testsConfig $ \testConfig -> do
             testYaml <- decodeFileThrow @_ @Test (yamlTestDir </> (dropExtension testConfig.set) <.> "yaml")
             let programs = filter (\x -> x.name `elem` testConfig.programs) testYaml.programs
-                testFile' = eoTestDir </> testConfig.set
+                testFile' = eoSubsetDir </> testConfig.set
             writeFile testFile' (testYaml.meta <> "\n\n")
             forM_ programs (\x -> appendFile testFile' (x.text <> "\n"))
 
