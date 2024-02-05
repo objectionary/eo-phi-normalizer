@@ -1,0 +1,40 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.36.0.
+--
+-- see: https://github.com/sol/hpack
+
+name:           eo-test-transformer
+version:        0.1.0.0
+description:    Please see the README on GitHub at <https://github.com/value/eo-test-transformer#readme>
+homepage:       https://github.com/value/eo-test-transformer#readme
+bug-reports:    https://github.com/value/eo-test-transformer/issues
+author:         value
+maintainer:     value
+copyright:      value
+license:        BSD3
+build-type:     Simple
+extra-source-files:
+    README.md
+    CHANGELOG.md
+
+source-repository head
+  type: git
+  location: https://github.com/value/eo-test-transformer
+
+executable eo-test-transformer
+  main-is: Main.hs
+  other-modules:
+      Paths_eo_test_transformer
+  hs-source-dirs:
+      app
+  default-extensions:
+      ImportQualifiedPost
+  ghc-options: -Wall -Wcompat -Widentities -Wincomplete-record-updates -Wincomplete-uni-patterns -Wmissing-export-lists -Wmissing-home-modules -Wpartial-fields -Wredundant-constraints -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.7 && <5
+    , extra
+    , filepath
+    , mtl
+    , yaml
+  default-language: Haskell2010
