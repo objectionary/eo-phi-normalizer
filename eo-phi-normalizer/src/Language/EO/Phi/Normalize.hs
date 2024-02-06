@@ -80,7 +80,7 @@ normalizeObject object = do
   case object of
     -- Rule 1
     obj@(Formation _) -> rule1 obj
-    ThisDispatch a -> pure $ fromMaybe object (lookupBinding a this)
+    ObjectDispatch ThisObject a -> pure $ fromMaybe object (lookupBinding a this)
     _ -> pure object
 
 -- | Split compound object into its head and applications/dispatch actions.
@@ -89,8 +89,8 @@ peelObject = \case
   Formation bindings -> PeeledObject (HeadFormation bindings) []
   Application object bindings -> peelObject object `followedBy` ActionApplication bindings
   ObjectDispatch object attr -> peelObject object `followedBy` ActionDispatch attr
-  GlobalDispatch attr -> PeeledObject HeadGlobal [ActionDispatch attr]
-  ThisDispatch attr -> PeeledObject HeadThis [ActionDispatch attr]
+  GlobalObject -> PeeledObject HeadGlobal []
+  ThisObject -> PeeledObject HeadThis []
   Termination -> PeeledObject HeadTermination []
   MetaObject _ -> PeeledObject HeadTermination []
  where
@@ -102,12 +102,12 @@ unpeelObject (PeeledObject head_ actions) =
     HeadFormation bindings -> go (Formation bindings) actions
     HeadGlobal ->
       case actions of
-        ActionDispatch a : as -> go (GlobalDispatch a) as
-        _ -> error "impossible: global object without dispatch!"
+        ActionApplication{} : _ -> error "impossible: application for a global object!"
+        _ -> go GlobalObject actions
     HeadThis ->
       case actions of
-        ActionDispatch a : as -> go (ThisDispatch a) as
-        _ -> error "impossible: this object without dispatch!"
+        ActionApplication{} : _ -> error "impossible: application for a global object!"
+        _ -> go ThisObject actions
     HeadTermination -> go Termination actions
  where
   go = foldl applyAction

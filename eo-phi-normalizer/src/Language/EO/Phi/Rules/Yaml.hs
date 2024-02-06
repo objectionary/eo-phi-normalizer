@@ -82,8 +82,8 @@ objectHasMetavars :: Object -> Bool
 objectHasMetavars (Formation bindings) = any bindingHasMetavars bindings
 objectHasMetavars (Application object bindings) = objectHasMetavars object || any bindingHasMetavars bindings
 objectHasMetavars (ObjectDispatch object attr) = objectHasMetavars object || attrHasMetavars attr
-objectHasMetavars (GlobalDispatch attr) = attrHasMetavars attr
-objectHasMetavars (ThisDispatch attr) = attrHasMetavars attr
+objectHasMetavars GlobalObject = False
+objectHasMetavars ThisObject = False
 objectHasMetavars Termination = False
 objectHasMetavars (MetaObject _) = True
 
@@ -172,10 +172,8 @@ applySubst subst@Subst{..} = \case
     Application (applySubst subst obj) (applySubstBindings subst bindings)
   ObjectDispatch obj a ->
     ObjectDispatch (applySubst subst obj) (applySubstAttr subst a)
-  GlobalDispatch a ->
-    GlobalDispatch (applySubstAttr subst a)
-  ThisDispatch a ->
-    ThisDispatch (applySubstAttr subst a)
+  GlobalObject -> GlobalObject
+  ThisObject -> ThisObject
   obj@(MetaObject x) -> fromMaybe obj $ lookup x objectMetas
   obj -> obj
 

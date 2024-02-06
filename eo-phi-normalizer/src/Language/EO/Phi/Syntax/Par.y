@@ -93,8 +93,8 @@ Object
   : '⟦' ListBinding '⟧' { Language.EO.Phi.Syntax.Abs.Formation $2 }
   | Object '(' ListBinding ')' { Language.EO.Phi.Syntax.Abs.Application $1 $3 }
   | Object '.' Attribute { Language.EO.Phi.Syntax.Abs.ObjectDispatch $1 $3 }
-  | 'Φ' '.' Attribute { Language.EO.Phi.Syntax.Abs.GlobalDispatch $3 }
-  | 'ξ' '.' Attribute { Language.EO.Phi.Syntax.Abs.ThisDispatch $3 }
+  | 'Φ' { Language.EO.Phi.Syntax.Abs.GlobalObject }
+  | 'ξ' { Language.EO.Phi.Syntax.Abs.ThisObject }
   | '⊥' { Language.EO.Phi.Syntax.Abs.Termination }
   | MetaId { Language.EO.Phi.Syntax.Abs.MetaObject $1 }
 

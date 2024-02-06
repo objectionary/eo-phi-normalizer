@@ -48,7 +48,7 @@ $c [$u # [\t \n \r \  \! \' \( \) \, \- \. \: \; \? \[ \] \{ \| \} \⟦ \⟧]] *
     { tok (eitherResIdent T_Function) }
 
 -- token LabelId
-$s [$u # [\t \n \r \  \! \' \( \) \, \- \. \: \; \? \[ \] \{ \| \} \⟦ \⟧]] *
+$s [$u # [\t \n \r \  \! \' \( \) \, \. \: \; \? \[ \] \{ \| \} \⟦ \⟧]] *
     { tok (eitherResIdent T_LabelId) }
 
 -- token AlphaIndex

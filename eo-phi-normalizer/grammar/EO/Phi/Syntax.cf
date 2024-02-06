@@ -6,7 +6,7 @@
 
 token Bytes ({"--"} | ["0123456789ABCDEF"] ["0123456789ABCDEF"] {"-"} | ["0123456789ABCDEF"] ["0123456789ABCDEF"] ({"-"} ["0123456789ABCDEF"] ["0123456789ABCDEF"])+) ;
 token Function upper (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
-token LabelId  lower (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
+token LabelId  lower (char - [" \r\n\t,.|':;!?][}{)(⟧⟦"])* ;
 token AlphaIndex ({"α0"} | {"α"} (digit - ["0"]) (digit)* ) ;
 token MetaId {"!"} (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
 
@@ -15,8 +15,8 @@ Program. Program ::= "{" [Binding] "}" ;
 Formation.      Object ::= "⟦" [Binding] "⟧" ;
 Application.    Object ::= Object "(" [Binding] ")" ;
 ObjectDispatch. Object ::= Object "." Attribute ;
-GlobalDispatch. Object ::= "Φ" "." Attribute ;
-ThisDispatch.   Object ::= "ξ" "." Attribute ;
+GlobalObject.   Object ::= "Φ";
+ThisObject.     Object ::= "ξ";
 Termination.    Object ::= "⊥" ;
 MetaObject.     Object ::= MetaId ;
 

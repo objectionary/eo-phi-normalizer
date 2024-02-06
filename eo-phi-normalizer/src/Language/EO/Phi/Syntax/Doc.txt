@@ -26,7 +26,7 @@ Function literals are recognized by the regular expression
 
 LabelId literals are recognized by the regular expression
 `````lower (char - ["
- !'(),-.:;?[]{|}⟦⟧"])*`````
+ !'(),.:;?[]{|}⟦⟧"])*`````
 
 AlphaIndex literals are recognized by the regular expression
 `````{"α0"} | 'α' (digit - '0') digit*`````
@@ -61,8 +61,8 @@ All other symbols are terminals.
   | //Object// | -> | ``⟦`` //[Binding]// ``⟧``
   |  |  **|**  | //Object// ``(`` //[Binding]// ``)``
   |  |  **|**  | //Object// ``.`` //Attribute//
-  |  |  **|**  | ``Φ`` ``.`` //Attribute//
-  |  |  **|**  | ``ξ`` ``.`` //Attribute//
+  |  |  **|**  | ``Φ``
+  |  |  **|**  | ``ξ``
   |  |  **|**  | ``⊥``
   |  |  **|**  | //MetaId//
   | //Binding// | -> | //Attribute// ``↦`` //Object//
