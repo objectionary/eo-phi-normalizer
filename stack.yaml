@@ -1,3 +1,4 @@
 resolver: nightly-2023-12-14
 packages:
 - eo-phi-normalizer
+- scripts/transform-eo-tests
