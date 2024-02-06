@@ -61,8 +61,8 @@ withSubObject f root =
           , Application obj <$> withSubObjectBindings f bindings
           ]
       ObjectDispatch obj a -> ObjectDispatch <$> withSubObject f obj <*> pure a
-      GlobalDispatch{} -> []
-      ThisDispatch{} -> []
+      GlobalObject{} -> []
+      ThisObject{} -> []
       Termination -> []
       MetaObject _ -> []
 

@@ -22,8 +22,8 @@ data Object
     = Formation [Binding]
     | Application Object [Binding]
     | ObjectDispatch Object Attribute
-    | GlobalDispatch Attribute
-    | ThisDispatch Attribute
+    | GlobalObject
+    | ThisObject
     | Termination
     | MetaObject MetaId
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)

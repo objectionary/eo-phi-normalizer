@@ -156,8 +156,8 @@ instance Print Language.EO.Phi.Syntax.Abs.Object where
     Language.EO.Phi.Syntax.Abs.Formation bindings -> prPrec i 0 (concatD [doc (showString "\10214"), prt 0 bindings, doc (showString "\10215")])
     Language.EO.Phi.Syntax.Abs.Application object bindings -> prPrec i 0 (concatD [prt 0 object, doc (showString "("), prt 0 bindings, doc (showString ")")])
     Language.EO.Phi.Syntax.Abs.ObjectDispatch object attribute -> prPrec i 0 (concatD [prt 0 object, doc (showString "."), prt 0 attribute])
-    Language.EO.Phi.Syntax.Abs.GlobalDispatch attribute -> prPrec i 0 (concatD [doc (showString "\934"), doc (showString "."), prt 0 attribute])
-    Language.EO.Phi.Syntax.Abs.ThisDispatch attribute -> prPrec i 0 (concatD [doc (showString "\958"), doc (showString "."), prt 0 attribute])
+    Language.EO.Phi.Syntax.Abs.GlobalObject -> prPrec i 0 (concatD [doc (showString "\934")])
+    Language.EO.Phi.Syntax.Abs.ThisObject -> prPrec i 0 (concatD [doc (showString "\958")])
     Language.EO.Phi.Syntax.Abs.Termination -> prPrec i 0 (concatD [doc (showString "\8869")])
     Language.EO.Phi.Syntax.Abs.MetaObject metaid -> prPrec i 0 (concatD [prt 0 metaid])
 

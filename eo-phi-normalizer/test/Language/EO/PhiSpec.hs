@@ -8,6 +8,8 @@
 module Language.EO.PhiSpec where
 
 import Control.Monad (forM_)
+import Data.Char (isSpace)
+import Data.List (dropWhileEnd)
 import Data.String.Interpolate (i)
 import Language.EO.Phi
 import Language.EO.Phi.Rules.Common (Context (..), Rule)
@@ -24,7 +26,7 @@ applyRule rule = \case
 
 spec :: Spec
 spec = do
-  describe "Pre-defined rules unit tests" $
+  describe "Pre-defined rules" $
     forM_ ([(1, rule1), (6, rule6)] :: [(Int, Rule)]) $
       \(idx, rule) -> do
         PhiTestGroup{..} <- runIO (fileTests [i|test/eo/phi/rule-#{idx}.yaml|])
@@ -33,3 +35,18 @@ spec = do
             \PhiTest{..} ->
               it name $
                 applyRule (rule (Context [])) input `shouldBe` [normalized]
+  describe "Programs translated from EO" $ do
+    phiTests <- runIO (allPhiTests "test/eo/phi/from-eo/")
+    forM_ phiTests $ \PhiTestGroup{..} ->
+      describe title $
+        forM_ tests $
+          \PhiTest{..} -> do
+            describe "normalize" $
+              it name $
+                normalize input `shouldBe` normalized
+            describe "pretty-print" $
+              it name $
+                printTree input `shouldBe` trim prettified
+
+trim :: String -> String
+trim = dropWhileEnd isSpace
