@@ -19,7 +19,7 @@ attribute access (`t.a`) that amounts to _dynamic dispatch_.
 Clone this repo.
 
 ```sh
-git clone https://github.com/objectionary/normalizer.git
+git clone --recurse-submodules https://github.com/objectionary/normalizer.git
 cd normalizer
 ```
 
@@ -185,7 +185,7 @@ The project is developed using the [Stack tool](https://docs.haskellstack.org/en
 We recommend using `stack` for quick local development and testing. Clone this project and run `stack build`.
 
 ```sh
-git clone https://github.com/objectionary/normalizer.git
+git clone --recurse-submodules https://github.com/objectionary/normalizer.git
 cd normalizer
 stack build
 ```
