@@ -16,6 +16,7 @@ import Data.Maybe (fromMaybe)
 import Data.String (IsString (..))
 import Data.Yaml qualified as Yaml
 import GHC.Generics (Generic)
+import Language.EO.Phi.Rules.Common (Context (outerFormations))
 import Language.EO.Phi.Rules.Common qualified as Common
 import Language.EO.Phi.Syntax.Abs
 
@@ -34,9 +35,16 @@ data RuleSet = RuleSet
   }
   deriving (Generic, FromJSON, Show)
 
+data RuleContext = RuleContext
+  { global_object :: Maybe Object
+  , current_object :: Maybe Object
+  }
+  deriving (Generic, FromJSON, Show)
+
 data Rule = Rule
   { name :: String
   , description :: String
+  , context :: Maybe RuleContext
   , pattern :: Object
   , result :: Object
   , when :: [Condition]
@@ -72,11 +80,25 @@ parseRuleSetFromFile = Yaml.decodeFileThrow
 convertRule :: Rule -> Common.Rule
 convertRule Rule{..} ctx obj =
   [ obj'
-  | subst <- matchObject pattern obj
+  | contextSubsts <- matchContext ctx obj context
+  , let pattern' = applySubst contextSubsts pattern
+  , let result' = applySubst contextSubsts result
+  , subst <- matchObject pattern' obj
   , all (\cond -> checkCond ctx cond subst) when
-  , obj' <- [applySubst subst result]
+  , obj' <- [applySubst subst result']
   , not (objectHasMetavars obj')
   ]
+
+matchContext :: Common.Context -> Object -> Maybe RuleContext -> [Subst]
+matchContext Common.Context{..} obj = \case
+  Nothing -> [emptySubst]
+  Just (RuleContext Nothing Nothing) -> [emptySubst]
+  Just (RuleContext (Just pattern) Nothing) -> matchObject pattern globalObject
+  Just (RuleContext Nothing (Just pattern)) -> matchObject pattern thisObject
+  Just (RuleContext (Just globalPattern) (Just thisPattern)) -> matchObject globalPattern globalObject ++ matchObject thisPattern thisObject
+ where
+  globalObject = last outerFormations
+  thisObject = head outerFormations
 
 objectHasMetavars :: Object -> Bool
 objectHasMetavars (Formation bindings) = any bindingHasMetavars bindings
