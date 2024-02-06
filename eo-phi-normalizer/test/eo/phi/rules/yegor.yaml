@@ -27,6 +27,21 @@ rules:
         output: '⟦ a ↦ ⟦ b ↦ ⟦ ⟧ ⟧ ⟧'
         matches: false
 
+  - name: Rule 4
+    description: 'Φ-dispatch'
+    context:
+      global_object: ⟦ !B ⟧
+    pattern: |
+      Φ.!a
+    result: |
+      ⟦ σ ↦ Φ, !B ⟧.!a
+    when: []
+    tests:
+      - name: Should match
+        input: Φ.a
+        output: ⟦ σ ↦ Φ ⟧.a
+        matches: true
+
   - name: Rule 5
     description: "ξ-dispatch"
     pattern: |
