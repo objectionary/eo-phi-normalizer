@@ -52,8 +52,8 @@ main = do
         Left err -> error ("An error occurred parsing the input program: " <> err)
         Right input@(Program bindings) -> do
           let results
-                | chain = applyRulesChain (Context (convertRule <$> ruleSet.rules)) (Formation bindings)
-                | otherwise = pure <$> applyRules (Context (convertRule <$> ruleSet.rules)) (Formation bindings)
+                | chain = applyRulesChain (Context (convertRule <$> ruleSet.rules) []) (Formation bindings)
+                | otherwise = pure <$> applyRules (Context (convertRule <$> ruleSet.rules) []) (Formation bindings)
               uniqueResults = nub results
               totalResults = length uniqueResults
           logStrLn "Input:"

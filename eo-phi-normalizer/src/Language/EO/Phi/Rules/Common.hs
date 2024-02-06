@@ -37,6 +37,7 @@ unsafeParseWith parser input =
 
 data Context = Context
   { allRules :: [Rule]
+  , outerFormations :: [Object]
   }
 
 -- | A rule tries to apply a transformation to the root object, if possible.
@@ -49,41 +50,47 @@ applyOneRuleAtRoot ctx@Context{..} obj =
   , obj' <- rule ctx obj
   ]
 
-withSubObject :: (Object -> [Object]) -> Object -> [Object]
-withSubObject f root =
-  f root
+extendContextWith :: Object -> Context -> Context
+extendContextWith obj ctx =
+  ctx
+    { outerFormations = obj : outerFormations ctx
+    }
+
+withSubObject :: (Context -> Object -> [Object]) -> Context -> Object -> [Object]
+withSubObject f ctx root =
+  f ctx root
     <|> case root of
       Formation bindings ->
-        Formation <$> withSubObjectBindings f bindings
+        Formation <$> withSubObjectBindings f (extendContextWith root ctx) bindings
       Application obj bindings ->
         asum
-          [ Application <$> withSubObject f obj <*> pure bindings
-          , Application obj <$> withSubObjectBindings f bindings
+          [ Application <$> withSubObject f ctx obj <*> pure bindings
+          , Application obj <$> withSubObjectBindings f ctx bindings
           ]
-      ObjectDispatch obj a -> ObjectDispatch <$> withSubObject f obj <*> pure a
+      ObjectDispatch obj a -> ObjectDispatch <$> withSubObject f ctx obj <*> pure a
       GlobalObject{} -> []
       ThisObject{} -> []
       Termination -> []
       MetaObject _ -> []
 
-withSubObjectBindings :: (Object -> [Object]) -> [Binding] -> [[Binding]]
-withSubObjectBindings _ [] = []
-withSubObjectBindings f (b : bs) =
+withSubObjectBindings :: (Context -> Object -> [Object]) -> Context -> [Binding] -> [[Binding]]
+withSubObjectBindings _ _ [] = []
+withSubObjectBindings f ctx (b : bs) =
   asum
-    [ [b' : bs | b' <- withSubObjectBinding f b]
-    , [b : bs' | bs' <- withSubObjectBindings f bs]
+    [ [b' : bs | b' <- withSubObjectBinding f ctx b]
+    , [b : bs' | bs' <- withSubObjectBindings f ctx bs]
     ]
 
-withSubObjectBinding :: (Object -> [Object]) -> Binding -> [Binding]
-withSubObjectBinding f = \case
-  AlphaBinding a obj -> AlphaBinding a <$> withSubObject f obj
+withSubObjectBinding :: (Context -> Object -> [Object]) -> Context -> Binding -> [Binding]
+withSubObjectBinding f ctx = \case
+  AlphaBinding a obj -> AlphaBinding a <$> withSubObject f ctx obj
   EmptyBinding{} -> []
   DeltaBinding{} -> []
   LambdaBinding{} -> []
   MetaBindings _ -> []
 
 applyOneRule :: Context -> Object -> [Object]
-applyOneRule = withSubObject . applyOneRuleAtRoot
+applyOneRule = withSubObject applyOneRuleAtRoot
 
 isNF :: Context -> Object -> Bool
 isNF ctx = null . applyOneRule ctx

@@ -34,7 +34,7 @@ spec = do
           forM_ tests $
             \PhiTest{..} ->
               it name $
-                applyRule (rule (Context [])) input `shouldBe` [normalized]
+                applyRule (rule (Context [] [])) input `shouldBe` [normalized]
   describe "Programs translated from EO" $ do
     phiTests <- runIO (allPhiTests "test/eo/phi/from-eo/")
     forM_ phiTests $ \PhiTestGroup{..} ->
