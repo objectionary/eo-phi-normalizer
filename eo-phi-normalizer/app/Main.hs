@@ -1,6 +1,5 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -16,6 +15,7 @@ import Language.EO.Phi (Object (Formation), Program (Program), defaultMain, pars
 import Language.EO.Phi.Rules.Common (Context (..), applyRules, applyRulesChain)
 import Language.EO.Phi.Rules.Yaml
 import Options.Generic
+import System.IO (IOMode (WriteMode), hClose, hPutStr, hPutStrLn, openFile, stdout)
 
 data CLINamedParams = CLINamedParams
   { chain :: Bool
@@ -41,8 +41,11 @@ main = do
   let (CLINamedParams{..}) = params
   case rulesYaml of
     Just path -> do
+      handle <- maybe (pure stdout) (`openFile` WriteMode) outPath
+      let logStr = hPutStr handle
+      let logStrLn = hPutStrLn handle
       ruleSet <- parseRuleSetFromFile path
-      putStrLn ruleSet.title
+      logStrLn ruleSet.title
       src <- maybe getContents readFile inPath
       let progOrError = parseProgram src
       case progOrError of
@@ -53,18 +56,18 @@ main = do
                 | otherwise = pure <$> applyRules (Context (convertRule <$> ruleSet.rules)) (Formation bindings)
               uniqueResults = nub results
               totalResults = length uniqueResults
-          -- TODO #48:15m use outPath to output to file if provided
-          putStrLn "Input:"
-          putStrLn (printTree input)
-          putStrLn "===================================================="
+          logStrLn "Input:"
+          logStrLn (printTree input)
+          logStrLn "===================================================="
           forM_ (zip [1 ..] uniqueResults) $ \(i, steps) -> do
-            putStrLn $
+            logStrLn $
               "Result " <> show i <> " out of " <> show totalResults <> ":"
             let n = length steps
             forM_ (zip [1 ..] steps) $ \(k, step) -> do
-              Control.Monad.when chain $ do
-                putStr ("[ " <> show k <> " / " <> show n <> " ]")
-              putStrLn (printTree step)
-            putStrLn "----------------------------------------------------"
+              Control.Monad.when chain $
+                logStr ("[ " <> show k <> " / " <> show n <> " ]")
+              logStrLn (printTree step)
+            logStrLn "----------------------------------------------------"
+      hClose handle
     -- TODO #48:15m still need to consider `chain` (should rewrite/change defaultMain to mainWithOptions)
     Nothing -> defaultMain
