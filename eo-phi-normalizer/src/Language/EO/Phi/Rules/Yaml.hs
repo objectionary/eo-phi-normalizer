@@ -12,6 +12,7 @@ module Language.EO.Phi.Rules.Yaml where
 import Data.Aeson (FromJSON (..), Options (sumEncoding), SumEncoding (UntaggedValue), genericParseJSON)
 import Data.Aeson.Types (defaultOptions)
 import Data.Coerce (coerce)
+import Data.List.NonEmpty qualified as NonEmpty
 import Data.Maybe (fromMaybe)
 import Data.String (IsString (..))
 import Data.Yaml qualified as Yaml
@@ -97,8 +98,8 @@ matchContext Common.Context{..} obj = \case
   Just (RuleContext Nothing (Just pattern)) -> matchObject pattern thisObject
   Just (RuleContext (Just globalPattern) (Just thisPattern)) -> matchObject globalPattern globalObject ++ matchObject thisPattern thisObject
  where
-  globalObject = last outerFormations
-  thisObject = head outerFormations
+  globalObject = NonEmpty.last outerFormations
+  thisObject = NonEmpty.head outerFormations
 
 objectHasMetavars :: Object -> Bool
 objectHasMetavars (Formation bindings) = any bindingHasMetavars bindings

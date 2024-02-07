@@ -5,6 +5,7 @@
 module Language.EO.Phi.Rules.Common where
 
 import Control.Applicative (Alternative ((<|>)), asum)
+import Data.List.NonEmpty (NonEmpty (..), (<|))
 import Data.String (IsString (..))
 import Language.EO.Phi.Syntax.Abs
 import Language.EO.Phi.Syntax.Lex (Token)
@@ -37,7 +38,7 @@ unsafeParseWith parser input =
 
 data Context = Context
   { allRules :: [Rule]
-  , outerFormations :: [Object]
+  , outerFormations :: NonEmpty Object
   }
 
 -- | A rule tries to apply a transformation to the root object, if possible.
@@ -53,7 +54,7 @@ applyOneRuleAtRoot ctx@Context{..} obj =
 extendContextWith :: Object -> Context -> Context
 extendContextWith obj ctx =
   ctx
-    { outerFormations = obj : outerFormations ctx
+    { outerFormations = obj <| outerFormations ctx
     }
 
 withSubObject :: (Context -> Object -> [Object]) -> Context -> Object -> [Object]

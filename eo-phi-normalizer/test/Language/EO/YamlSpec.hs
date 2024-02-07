@@ -1,4 +1,5 @@
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 
 module Language.EO.YamlSpec where
@@ -17,4 +18,4 @@ spec = describe "User-defined rules unit tests" do
       describe rule.name do
         forM_ rule.tests $ \ruleTest -> do
           it ruleTest.name $
-            convertRule rule (Context [] []) ruleTest.input `shouldBe` [ruleTest.output | ruleTest.matches]
+            convertRule rule (Context [] [ruleTest.input]) ruleTest.input `shouldBe` [ruleTest.output | ruleTest.matches]
