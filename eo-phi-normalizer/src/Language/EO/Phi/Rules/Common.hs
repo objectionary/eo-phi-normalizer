@@ -13,6 +13,7 @@ import Language.EO.Phi.Syntax.Par
 
 -- $setup
 -- >>> :set -XOverloadedStrings
+-- >>> :set -XOverloadedLists
 -- >>> import Language.EO.Phi.Syntax
 
 instance IsString Program where fromString = unsafeParseWith pProgram
@@ -98,8 +99,7 @@ isNF ctx = null . applyOneRule ctx
 
 -- | Apply rules until we get a normal form.
 --
--- >>> mapM_ (putStrLn . Language.EO.Phi.printTree) (applyRules (Context [rule6]) "⟦ a ↦ ⟦ b ↦ ⟦ ⟧ ⟧.b ⟧.a")
--- ⟦ ⟧ (ρ ↦ ⟦ ⟧) (ρ ↦ ⟦ ⟧)
+-- >>> mapM_ (putStrLn . Language.EO.Phi.printTree) (applyRules (Context [rule6] ["⟦ a ↦ ⟦ b ↦ ⟦ ⟧ ⟧.b ⟧"]) "⟦ a ↦ ⟦ b ↦ ⟦ ⟧ ⟧.b ⟧.a")
 applyRules :: Context -> Object -> [Object]
 applyRules ctx obj
   | isNF ctx obj = [obj]
