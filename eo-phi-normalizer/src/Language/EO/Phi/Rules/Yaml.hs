@@ -81,7 +81,7 @@ parseRuleSetFromFile = Yaml.decodeFileThrow
 convertRule :: Rule -> Common.Rule
 convertRule Rule{..} ctx obj =
   [ obj'
-  | contextSubsts <- matchContext ctx obj context
+  | contextSubsts <- matchContext ctx context
   , let pattern' = applySubst contextSubsts pattern
   , let result' = applySubst contextSubsts result
   , subst <- matchObject pattern' obj
@@ -90,13 +90,12 @@ convertRule Rule{..} ctx obj =
   , not (objectHasMetavars obj')
   ]
 
-matchContext :: Common.Context -> Object -> Maybe RuleContext -> [Subst]
-matchContext Common.Context{..} obj = \case
-  Nothing -> [emptySubst]
-  Just (RuleContext Nothing Nothing) -> [emptySubst]
-  Just (RuleContext (Just pattern) Nothing) -> matchObject pattern globalObject
-  Just (RuleContext Nothing (Just pattern)) -> matchObject pattern thisObject
-  Just (RuleContext (Just globalPattern) (Just thisPattern)) -> matchObject globalPattern globalObject ++ matchObject thisPattern thisObject
+matchContext :: Common.Context -> Maybe RuleContext -> [Subst]
+matchContext Common.Context{} Nothing = [emptySubst]
+matchContext Common.Context{..} (Just (RuleContext p1 p2)) = do
+  subst1 <- maybe [emptySubst] (`matchObject` globalObject) p1
+  subst2 <- maybe [emptySubst] ((`matchObject` thisObject) . applySubst subst1) p2
+  return (subst1 <> subst2)
  where
   globalObject = NonEmpty.last outerFormations
   thisObject = NonEmpty.head outerFormations
