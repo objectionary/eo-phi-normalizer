@@ -1,7 +1,7 @@
 title: "Rule set based on Yegor's draft"
 rules:
   - name: Rule 3
-    description: ""
+    description: 'Initialization of parent attribute'
     pattern: |
       ⟦ !B ⟧
     result: |
@@ -78,7 +78,7 @@ rules:
     tests: []
 
   - name: Rule 8
-    description: ""
+    description: 'Accessing a decorated object'
     pattern: |
       ⟦ φ ↦ !n, !B ⟧.!a
     result: |
@@ -107,7 +107,7 @@ rules:
     tests: []
 
   - name: Rule 10
-    description: ""
+    description: 'Invalid application'
     pattern: ⟦ !t ↦ !b1, !B1 ⟧(!t ↦ !b2, !B2)
     result: ⊥
     when:
@@ -119,7 +119,7 @@ rules:
         matches: true
 
   - name: Rule 11
-    description: ""
+    description: 'Invalid attribute access'
     pattern: |
       ⟦ !B ⟧.!a
     result: |
