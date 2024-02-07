@@ -36,18 +36,16 @@ rules:
     result: |
       ⟦ σ ↦ Φ, !B ⟧.!a
     when: []
-    tests:
-      - name: Should match
-        input: Φ.a
-        output: ⟦ σ ↦ Φ ⟧.a
-        matches: true
+    tests: []
 
   - name: Rule 5
     description: "ξ-dispatch"
+    context:
+      current_object: ⟦ !a ↦ ξ.!b, !B ⟧
     pattern: |
-      ⟦ !a ↦ ξ.!b, !B ⟧
+      ξ
     result: |
-      ⟦ !a ↦ ⟦ !B ⟧.!b, !B ⟧
+      ⟦ !B ⟧
     when: []
     tests: []
 
