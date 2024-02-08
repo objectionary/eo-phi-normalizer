@@ -45,3 +45,4 @@ __pycache__
 *.log
 pipeline/*
 !pipeline/config.yaml
+node_modules
