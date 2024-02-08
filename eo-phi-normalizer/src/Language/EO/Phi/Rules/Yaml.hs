@@ -108,6 +108,7 @@ objectHasMetavars GlobalObject = False
 objectHasMetavars ThisObject = False
 objectHasMetavars Termination = False
 objectHasMetavars (MetaObject _) = True
+objectHasMetavars (MetaFunction _ _) = True
 
 bindingHasMetavars :: Binding -> Bool
 bindingHasMetavars (AlphaBinding attr obj) = attrHasMetavars attr || objectHasMetavars obj

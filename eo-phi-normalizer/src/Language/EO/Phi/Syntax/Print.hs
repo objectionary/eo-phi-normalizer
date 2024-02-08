@@ -147,6 +147,8 @@ instance Print Language.EO.Phi.Syntax.Abs.AlphaIndex where
   prt _ (Language.EO.Phi.Syntax.Abs.AlphaIndex i) = doc $ showString i
 instance Print Language.EO.Phi.Syntax.Abs.MetaId where
   prt _ (Language.EO.Phi.Syntax.Abs.MetaId i) = doc $ showString i
+instance Print Language.EO.Phi.Syntax.Abs.MetaFunctionName where
+  prt _ (Language.EO.Phi.Syntax.Abs.MetaFunctionName i) = doc $ showString i
 instance Print Language.EO.Phi.Syntax.Abs.Program where
   prt i = \case
     Language.EO.Phi.Syntax.Abs.Program bindings -> prPrec i 0 (concatD [doc (showString "{"), prt 0 bindings, doc (showString "}")])
@@ -160,6 +162,7 @@ instance Print Language.EO.Phi.Syntax.Abs.Object where
     Language.EO.Phi.Syntax.Abs.ThisObject -> prPrec i 0 (concatD [doc (showString "\958")])
     Language.EO.Phi.Syntax.Abs.Termination -> prPrec i 0 (concatD [doc (showString "\8869")])
     Language.EO.Phi.Syntax.Abs.MetaObject metaid -> prPrec i 0 (concatD [prt 0 metaid])
+    Language.EO.Phi.Syntax.Abs.MetaFunction metafunctionname object -> prPrec i 0 (concatD [prt 0 metafunctionname, doc (showString "("), prt 0 object, doc (showString ")")])
 
 instance Print Language.EO.Phi.Syntax.Abs.Binding where
   prt i = \case

@@ -93,6 +93,7 @@ peelObject = \case
   ThisObject -> PeeledObject HeadThis []
   Termination -> PeeledObject HeadTermination []
   MetaObject _ -> PeeledObject HeadTermination []
+  MetaFunction _ _ -> error "To be honest, I'm not sure what should be here"
  where
   followedBy (PeeledObject object actions) action = PeeledObject object (actions ++ [action])
 

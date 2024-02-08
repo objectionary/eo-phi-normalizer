@@ -74,6 +74,7 @@ withSubObject f ctx root =
       ThisObject{} -> []
       Termination -> []
       MetaObject _ -> []
+      MetaFunction _ _ -> []
 
 withSubObjectBindings :: (Context -> Object -> [Object]) -> Context -> [Binding] -> [[Binding]]
 withSubObjectBindings _ _ [] = []

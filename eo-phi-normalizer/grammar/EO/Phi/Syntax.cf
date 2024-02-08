@@ -9,6 +9,7 @@ token Function upper (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
 token LabelId  lower (char - [" \r\n\t,.|':;!?][}{)(⟧⟦"])* ;
 token AlphaIndex ({"α0"} | {"α"} (digit - ["0"]) (digit)* ) ;
 token MetaId {"!"} (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
+token MetaFunctionName {"@"} (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
 
 Program. Program ::= "{" [Binding] "}" ;
 
@@ -19,6 +20,7 @@ GlobalObject.   Object ::= "Φ";
 ThisObject.     Object ::= "ξ";
 Termination.    Object ::= "⊥" ;
 MetaObject.     Object ::= MetaId ;
+MetaFunction.   Object ::= MetaFunctionName "(" Object ")" ;
 
 AlphaBinding.   Binding ::= Attribute "↦" Object ;
 EmptyBinding.   Binding ::= Attribute "↦" "∅" ;
