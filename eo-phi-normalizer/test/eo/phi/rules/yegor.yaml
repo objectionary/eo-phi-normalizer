@@ -1,5 +1,22 @@
 title: "Rule set based on Yegor's draft"
 rules:
+  - name: Rule 1
+    description: 'Initialization of vertex attribute'
+    pattern: |
+      ⟦ !a ↦ ⟦ !B ⟧, !B_rest ⟧
+    result: |
+      ⟦ !a ↦ ⟦ !B, ν ↦ @T(Φ) ⟧, !B_rest ⟧
+    when:
+      - absent_attrs:
+          attrs: ['ν']
+          bindings: ['!B']
+      - not_equal: ['!a', 'ν']
+    tests:
+      - name: Adds vertex attribute
+        input: '⟦ a ↦ ⟦ ⟧ ⟧'
+        output: '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧'
+        matches: true
+
   - name: Rule 3
     description: 'Initialization of parent attribute'
     pattern: |
