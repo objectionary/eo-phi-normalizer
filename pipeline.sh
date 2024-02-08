@@ -1,14 +1,16 @@
 set -euo pipefail
 
-stack run transform-eo-tests
-
 shopt -s expand_aliases
 EO="0.34.1"
-alias eo="eoc --parser=${EO}"
+alias eo="npx eoc --parser=${EO}"
 
+# generate EO test files
+stack run transform-eo-tests
+
+# convert EO to PHI
 cd pipeline/eo
-eoc clean
-eoc phi
+eo clean
+eo phi
 cd ..
 
 mkdir -p phi
