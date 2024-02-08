@@ -2,13 +2,13 @@ yamlDirectory: pipeline/yaml
 sets:
 - source: eo/eo-runtime/src/test/eo/org/eolang/as-phi-tests.eo
   yaml: pipeline/yaml/as-phi-tests.yaml
-  destination: pipeline/eolang/as-phi-tests.eo
+  destination: pipeline/eo/as-phi-tests.eo
   programs:
   - prints-itself
   - prints-itself-to-console
 - source: eo/eo-runtime/src/test/eo/org/eolang/bool-tests.eo
   yaml: pipeline/yaml/bool-tests.yaml
-  destination: pipeline/eolang/bool-tests.eo
+  destination: pipeline/eo/bool-tests.eo
   programs:
   - compares-two-bools
   - compares-two-different-types
