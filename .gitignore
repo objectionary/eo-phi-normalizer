@@ -43,3 +43,5 @@ __pycache__
 *.fdb_latexmk
 *.fls
 *.log
+pipeline/*
+!pipeline/config.yaml
