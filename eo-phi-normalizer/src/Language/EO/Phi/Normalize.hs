@@ -9,10 +9,9 @@ module Language.EO.Phi.Normalize (
 
 import Control.Monad.State
 import Data.Maybe (fromMaybe)
-import Numeric (showHex)
 
 import Control.Monad (forM)
-import Language.EO.Phi.Rules.Common (lookupBinding)
+import Language.EO.Phi.Rules.Common (intToBytesObject, lookupBinding, nuCount, objectBindings)
 import Language.EO.Phi.Syntax.Abs
 
 data Context = Context
@@ -34,14 +33,8 @@ normalize (Program bindings) = evalState (Program . objectBindings <$> normalize
     Context
       { globalObject = bindings
       , thisObject = bindings
-      , totalNuCount = nuCount bindings
+      , totalNuCount = nuCount (Formation bindings)
       }
-  nuCount binds = count isNu binds + sum (map (sum . map (nuCount . objectBindings) . values) binds)
-  count = (length .) . filter
-  values (AlphaBinding _ obj) = [obj]
-  values _ = []
-  objectBindings (Formation bs) = bs
-  objectBindings _ = []
 
 rule1 :: Object -> State Context Object
 rule1 (Formation bindings) = do
@@ -57,17 +50,7 @@ rule1 (Formation bindings) = do
       then do
         nus <- gets totalNuCount
         modify (\c -> c{totalNuCount = totalNuCount c + 1})
-        let pad s = (if even (length s) then "" else "0") ++ s
-        let insertDashes s
-              | length s <= 2 = s ++ "-"
-              | otherwise =
-                  let go = \case
-                        [] -> []
-                        [x] -> [x]
-                        [x, y] -> [x, y, '-']
-                        (x : y : xs) -> x : y : '-' : go xs
-                   in go s
-        let dataObject = Formation [DeltaBinding $ Bytes $ insertDashes $ pad $ showHex nus ""]
+        let dataObject = intToBytesObject nus
         pure (AlphaBinding VTX dataObject : normalizedBindings)
       else do
         pure normalizedBindings

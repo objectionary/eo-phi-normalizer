@@ -10,6 +10,7 @@ import Data.String (IsString (..))
 import Language.EO.Phi.Syntax.Abs
 import Language.EO.Phi.Syntax.Lex (Token)
 import Language.EO.Phi.Syntax.Par
+import Numeric (showHex)
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -128,3 +129,34 @@ lookupBinding a (AlphaBinding a' object : bindings)
   | a == a' = Just object
   | otherwise = lookupBinding a bindings
 lookupBinding _ _ = Nothing
+
+objectBindings :: Object -> [Binding]
+objectBindings (Formation bs) = bs
+objectBindings _ = []
+
+nuCount :: Object -> Int
+nuCount obj = count isNu (objectBindings obj) + sum (map (sum . map nuCount . values) (objectBindings obj))
+ where
+  isNu (AlphaBinding VTX _) = True
+  isNu (EmptyBinding VTX) = True
+  isNu _ = False
+  count = (length .) . filter
+  values (AlphaBinding _ obj') = [obj']
+  values _ = []
+
+intToBytesObject :: Int -> Object
+intToBytesObject n = Formation [DeltaBinding $ Bytes $ insertDashes $ pad $ showHex n ""]
+ where
+  pad s = (if even (length s) then "" else "0") ++ s
+  insertDashes s
+    | length s <= 2 = s ++ "-"
+    | otherwise =
+        let go = \case
+              [] -> []
+              [x] -> [x]
+              [x, y] -> [x, y, '-']
+              (x : y : xs) -> x : y : '-' : go xs
+         in go s
+
+nuCountAsDataObj :: Object -> Object
+nuCountAsDataObj = intToBytesObject . nuCount
