@@ -71,7 +71,7 @@ jobs:
           java-version: 21
 
       - name: Install EO
-        run: npm install -g eolang@0.15.1
+        run: npm i
 
       - name: Run pipeline
         run: ./pipeline.sh
