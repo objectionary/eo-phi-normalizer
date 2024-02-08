@@ -16,7 +16,6 @@ module Main (main) where
 import Control.Monad
 import Data.Function ((&))
 import Data.Functor ((<&>))
-import Data.List.Extra (split)
 import Data.String (IsString (..))
 import Data.Text qualified as T
 import Data.Yaml (FromJSON, ToJSON (..), Value (String), decodeFileThrow, encodeFile)
@@ -25,6 +24,7 @@ import GHC.Generics (Generic)
 import Main.Utf8 (withUtf8)
 import System.Directory.Extra (createDirectoryIfMissing, removeFile)
 import System.FilePath.Posix
+import Text.Read (readMaybe)
 
 main :: IO ()
 main = withUtf8 do
@@ -76,13 +76,11 @@ instance ToJSON Pos where
 
 instance FromJSON Pos where
     parseJSON = withText "Pos" $ \(T.unpack -> x) -> do
-        let ts = split (== ':') x
-        guard (length ts == 2)
-        let [file, line'] = ts
+        let (file, rs) = span (/= ':') x
         guard (not . null $ file)
-        guard (not . null $ line')
-        let line = read line'
-        pure Pos{..}
+        guard (length rs > 1)
+        let line' = readMaybe (drop 1 rs)
+        maybe (fail $ x <> " is not a number") (\line -> pure Pos{..}) line'
 
 data Program = Program
     { source :: Pos
