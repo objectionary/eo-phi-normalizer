@@ -6,6 +6,11 @@ shopt -s expand_aliases
 EO="0.34.1"
 alias eo="npx eoc --parser=${EO}"
 
+printf "\nClean the pipeline directory\n\n"
+
+rm -r pipeline/*/
+
+
 printf "\nGenerate EO test files\n\n"
 
 stack run transform-eo-tests
