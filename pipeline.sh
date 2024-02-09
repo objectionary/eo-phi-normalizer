@@ -21,6 +21,26 @@ eo phi
 cp .eoc/phi/*.phi ../phi
 cd ..
 
+
+printf "\nConvert PHI to EO without normalization\n\n"
+
+mkdir -p eo-not-normalized
+cd phi
+cp -r ../eo/.eoc .
+eo unphi
+cp .eoc/unphi/*.xmir ".eoc/2-optimize"
+eo print
+cp .eoc/print/*.eo ../eo-not-normalized
+cd ..
+
+
+printf "\nTest EO without normalization\n\n"
+
+cd eo-not-normalized
+eo test
+cd ..
+
+
 printf "\nNormalize PHI\n\n"
 
 mkdir -p phi-normalized
