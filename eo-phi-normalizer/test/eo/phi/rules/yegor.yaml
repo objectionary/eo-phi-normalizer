@@ -2,10 +2,12 @@ title: "Rule set based on Yegor's draft"
 rules:
   - name: Rule 1
     description: 'Initialization of vertex attribute'
+    context:
+      global_object: '!Phi'
     pattern: |
       ⟦ !a ↦ ⟦ !B ⟧, !B_rest ⟧
     result: |
-      ⟦ !a ↦ ⟦ !B, ν ↦ @T(Φ) ⟧, !B_rest ⟧
+      ⟦ !a ↦ ⟦ !B, ν ↦ @T(!Phi) ⟧, !B_rest ⟧
     when:
       - absent_attrs:
           attrs: ['ν']
