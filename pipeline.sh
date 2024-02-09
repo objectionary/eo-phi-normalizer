@@ -74,10 +74,5 @@ printf "\nTest EO\n\n"
 mkdir -p eo-normalized
 cd eo-normalized
 cp ../phi-normalized/.eoc/print/*.eo .
-for f in $(ls *.eo); do
-    if ! [ -s "${f}" ]; then
-        rm $f
-    fi
-done
 eo test
 cd ..
