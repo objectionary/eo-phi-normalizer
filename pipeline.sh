@@ -41,6 +41,7 @@ cd phi-normalized
 cp -r ../eo/.eoc .
 eo unphi
 cp .eoc/unphi/*.xmir ".eoc/2-optimize"
+eo print
 cd ..
 
 printf "\nTest EO\n\n"
