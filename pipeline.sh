@@ -10,10 +10,12 @@ printf "\nGenerate EO test files\n\n"
 
 stack run transform-eo-tests
 
+cd pipeline
+
 printf "\nConvert EO to PHI\n\n"
 
 mkdir -p phi
-cd pipeline/eo
+cd eo
 eo clean
 eo phi
 cp .eoc/phi/*.phi ../phi

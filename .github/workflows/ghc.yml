@@ -59,6 +59,7 @@ jobs:
       - name: 🧰 Setup Stack
         uses: freckle/stack-action@v5
         with:
+          test: false
           stack-build-arguments: --${{ github.ref_name != 'master' && 'fast' || '' }} --pedantic
 
       - uses: actions/setup-node@v4
@@ -69,9 +70,6 @@ jobs:
         with:
           distribution: "zulu"
           java-version: 21
-
-      - name: Install EO
-        run: npm i
 
       - name: Run pipeline
         run: ./pipeline.sh
