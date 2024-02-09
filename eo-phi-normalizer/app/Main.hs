@@ -60,7 +60,12 @@ main = do
               totalResults = length uniqueResults
           when (totalResults == 0) $ error "Could not normalize the program"
           if single
-            then logStrLn (printTree (head uniqueResults))
+            then
+              logStrLn
+                ( case head uniqueResults of
+                    [Formation bindings'] -> printTree $ Program bindings'
+                    x -> printTree x
+                )
             else do
               logStrLn "Input:"
               logStrLn (printTree input)
