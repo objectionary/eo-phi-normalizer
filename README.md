@@ -148,7 +148,7 @@ Use `--single` to print a single normalized program.
 stack run -- --single --rules-yaml ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml test.phi
 
 # Output
-⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧ ⟧) ⟧
+{ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧ ⟧) }
 ```
 
 ## Rulesets
