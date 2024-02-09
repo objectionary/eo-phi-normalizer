@@ -8,7 +8,7 @@ alias eo="npx eoc --parser=${EO}"
 
 printf "\nClean the pipeline directory\n\n"
 
-rm -r pipeline/*/
+rm -rf pipeline/*/
 
 
 printf "\nGenerate EO test files\n\n"
