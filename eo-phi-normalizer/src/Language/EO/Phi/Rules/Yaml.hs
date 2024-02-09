@@ -173,7 +173,6 @@ data Subst = Subst
   { objectMetas :: [(MetaId, Object)]
   , bindingsMetas :: [(MetaId, [Binding])]
   , attributeMetas :: [(MetaId, Attribute)]
-  , functionMetas :: [(MetaFunctionName, Object)]
   }
   deriving (Show)
 
@@ -184,7 +183,7 @@ instance Monoid Subst where
   mempty = emptySubst
 
 emptySubst :: Subst
-emptySubst = Subst [] [] [] []
+emptySubst = Subst [] [] []
 
 -- >>> putStrLn $ Language.EO.Phi.printTree (applySubst (Subst [("!n", "⟦ c ↦ ⟦ ⟧ ⟧")] [("!B", ["b ↦ ⟦ ⟧"])] [("!a", "a")]) "!n(ρ ↦ ⟦ !B ⟧)" :: Object)
 -- ⟦ c ↦ ⟦ ⟧ ⟧ (ρ ↦ ⟦ b ↦ ⟦ ⟧ ⟧)
@@ -220,8 +219,8 @@ applySubstBinding subst@Subst{..} = \case
   b@(MetaBindings m) -> fromMaybe [b] (lookup m bindingsMetas)
 
 mergeSubst :: Subst -> Subst -> Subst
-mergeSubst (Subst xs ys zs fs) (Subst xs' ys' zs' fs') =
-  Subst (xs ++ xs') (ys ++ ys') (zs ++ zs') (fs ++ fs')
+mergeSubst (Subst xs ys zs) (Subst xs' ys' zs') =
+  Subst (xs ++ xs') (ys ++ ys') (zs ++ zs')
 
 -- 1. need to implement applySubst' :: Subst -> Object -> Object
 -- 2. complete the code
@@ -241,7 +240,6 @@ matchObject (MetaObject m) obj =
       { objectMetas = [(m, obj)]
       , bindingsMetas = []
       , attributeMetas = []
-      , functionMetas = []
       }
 matchObject _ _ = [] -- ? emptySubst ?
 
@@ -264,7 +262,6 @@ matchBindings [MetaBindings b] bindings =
       { objectMetas = []
       , bindingsMetas = [(b, bindings)]
       , attributeMetas = []
-      , functionMetas = []
       }
 matchBindings (p : ps) bs = do
   (bs', subst1) <- matchFindBinding p bs
@@ -305,7 +302,6 @@ matchAttr (MetaAttr metaId) attr =
       { objectMetas = []
       , bindingsMetas = []
       , attributeMetas = [(metaId, attr)]
-      , functionMetas = []
       }
   ]
 matchAttr _ _ = []
