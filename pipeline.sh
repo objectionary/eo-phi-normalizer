@@ -15,6 +15,9 @@ printf "\nGenerate EO test files\n\n"
 
 stack run transform-eo-tests
 
+
+printf "\nEnter the pipeline directory\n\n"
+
 cd pipeline
 
 printf "\nConvert EO to PHI\n\n"
