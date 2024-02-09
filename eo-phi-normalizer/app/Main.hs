@@ -7,13 +7,13 @@
 
 module Main where
 
-import Control.Monad (when)
+import Control.Monad (unless, when)
 import Data.Foldable (forM_)
 
 import Data.List (nub)
 import Language.EO.Phi (Object (Formation), Program (Program), defaultMain, parseProgram, printTree)
 import Language.EO.Phi.Rules.Common (Context (..), applyRules, applyRulesChain)
-import Language.EO.Phi.Rules.Yaml
+import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRule, parseRuleSetFromFile)
 import Options.Generic
 import System.IO (IOMode (WriteMode), hClose, hPutStr, hPutStrLn, openFile, stdout)
 
@@ -21,6 +21,7 @@ data CLINamedParams = CLINamedParams
   { chain :: Bool
   , rulesYaml :: Maybe String
   , outPath :: Maybe String
+  , single :: Bool
   }
   deriving (Generic, Show, ParseRecord, Read, ParseField)
 
@@ -30,6 +31,7 @@ instance ParseFields CLINamedParams where
       <$> parseFields (Just "Print out steps of reduction") (Just "chain") (Just 'c') Nothing
       <*> parseFields (Just "Path to the Yaml file with custom rules") (Just "rules-yaml") Nothing Nothing
       <*> parseFields (Just "Output file path (defaults to stdout)") (Just "output") (Just 'o') Nothing
+      <*> parseFields (Just "Print a single normlized expression") (Just "single") (Just 's') Nothing
 
 data CLIOptions = CLIOptions CLINamedParams (Maybe FilePath)
   deriving (Generic, Show, ParseRecord)
@@ -45,7 +47,7 @@ main = do
       let logStr = hPutStr handle
       let logStrLn = hPutStrLn handle
       ruleSet <- parseRuleSetFromFile path
-      logStrLn ruleSet.title
+      unless single $ logStrLn ruleSet.title
       src <- maybe getContents readFile inPath
       let progOrError = parseProgram src
       case progOrError of
@@ -56,18 +58,22 @@ main = do
                 | otherwise = pure <$> applyRules (Context (convertRule <$> ruleSet.rules)) (Formation bindings)
               uniqueResults = nub results
               totalResults = length uniqueResults
-          logStrLn "Input:"
-          logStrLn (printTree input)
-          logStrLn "===================================================="
-          forM_ (zip [1 ..] uniqueResults) $ \(i, steps) -> do
-            logStrLn $
-              "Result " <> show i <> " out of " <> show totalResults <> ":"
-            let n = length steps
-            forM_ (zip [1 ..] steps) $ \(k, step) -> do
-              Control.Monad.when chain $
-                logStr ("[ " <> show k <> " / " <> show n <> " ]")
-              logStrLn (printTree step)
-            logStrLn "----------------------------------------------------"
+          when (totalResults == 0) $ error "Could not normalize the program"
+          if single
+            then logStrLn (printTree (head uniqueResults))
+            else do
+              logStrLn "Input:"
+              logStrLn (printTree input)
+              logStrLn "===================================================="
+              forM_ (zip [1 ..] uniqueResults) $ \(i, steps) -> do
+                logStrLn $
+                  "Result " <> show i <> " out of " <> show totalResults <> ":"
+                let n = length steps
+                forM_ (zip [1 ..] steps) $ \(k, step) -> do
+                  when chain $
+                    logStr ("[ " <> show k <> " / " <> show n <> " ]")
+                  logStrLn (printTree step)
+                logStrLn "----------------------------------------------------"
       hClose handle
     -- TODO #48:15m still need to consider `chain` (should rewrite/change defaultMain to mainWithOptions)
     Nothing -> defaultMain
