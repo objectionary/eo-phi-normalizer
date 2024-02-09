@@ -1,117 +1,55 @@
 set -euo pipefail
 
+if ! [ -d node_modules ]; then npm i; fi
+
 shopt -s expand_aliases
 EO="0.34.1"
 alias eo="npx eoc --parser=${EO}"
 
-# generate EO test files
+printf "\nGenerate EO test files\n\n"
+
 stack run transform-eo-tests
 
-# convert EO to PHI
+printf "\nConvert EO to PHI\n\n"
+
+mkdir -p phi
 cd pipeline/eo
 eo clean
 eo phi
+cp .eoc/phi/*.phi ../phi
 cd ..
 
-mkdir -p phi
-cp eo/.eoc/phi/*.phi phi
+printf "\nNormalize PHI\n\n"
 
+mkdir -p phi-normalized
 cd phi
-# TODO #100:15min run normalizer
-# normalizer should create phi-normalized
+for f in $(ls); do
+    stack run -- \
+        -s \
+        --rules-yaml \
+        ../../eo-phi-normalizer/test/eo/phi/rules/yegor.yaml \
+        "$f" \
+        > "../phi-normalized/$f"
+done
 cd ..
 
-# TODO #100:15min run unphi
-# cd phi-normalized
-# eo unphi
-# cd ..
-# mkdir -p eo-normalized
-# copy normalized files to eo-normalized
+printf "\nConvert normalized PHI to EO\n\n"
 
-# TODO #100:15min run tests
-# cd eo-normalized
-# eo test
+cd phi-normalized
+cp -r ../eo/.eoc .
+eo unphi
+cp .eoc/unphi/*.xmir ".eoc/2-optimize"
+cd ..
 
+printf "\nTest EO\n\n"
 
-
-# TODO #100:15min remove old code
-# eo phi
-
-# IO=".eoc/phi/app.phi"
-# I=".eoc/phi/app.bk.phi"
-# mv "$IO" "$I"
-
-# stack run normalize-phi < "$I" > "$IO" \
-#   || {
-#     cat <<EOF
-# Normalizer failed!
-
-
-# * EO expression:
-
-# $(cat app.eo)
-
-
-# * Phi expression:
-
-# $(cat "$I")
-
-
-# * Error:
-
-# $(cat "$IO")
-# EOF
-#     mv "$I" "$IO"
-#     exit 1
-#   }
-
-# {
-#   export LC_ALL="C"
-#   perl -i -pe 'chomp if eof' "$IO"
-# }
-
-# cat <<EOF
-# Normalizer succeeded!
-
-
-# * EO expression:
-
-# $(cat app.eo)
-
-
-# * Phi expression:
-
-# $(cat "$I")
-
-
-# * Normalized Phi expression:
-
-# $(cat "$IO")
-
-
-# * Diff:
-
-# $(diff "$I" "$IO" || true)
-# EOF
-
-# eo unphi
-
-# cp .eoc/unphi/app.xmir .eoc/2-optimize/app.xmir
-
-# eo print
-
-# cp .eoc/print/app.eo app.eo
-
-# eo clean
-# eo link
-# eo --alone dataize app > after.txt
-
-# # Check dataization with and without the normalizer
-# # produces the same results
-
-# if [ "$(cat before.txt)" == "$(cat after.txt)" ]; then
-#     echo 'SUCCESS'
-# else
-#     echo 'FAILURE'
-#     exit 1
-# fi
+mkdir -p eo-normalized
+cd eo-normalized
+cp ../phi-normalized/.eoc/print/*.eo .
+for f in $(ls *.eo); do
+    if ! [ -s "${f}" ]; then
+        rm $f
+    fi
+done
+eo test
+cd ..
