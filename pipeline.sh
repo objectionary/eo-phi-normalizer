@@ -20,6 +20,7 @@ printf "\nEnter the pipeline directory\n\n"
 
 cd pipeline
 
+
 printf "\nConvert EO to PHI\n\n"
 
 mkdir -p phi
@@ -63,6 +64,7 @@ for f in $(ls); do
 done
 cd ..
 
+
 printf "\nConvert normalized PHI to EO\n\n"
 
 cd phi-normalized
@@ -71,6 +73,7 @@ eo unphi
 cp .eoc/unphi/*.xmir ".eoc/2-optimize"
 eo print
 cd ..
+
 
 printf "\nTest EO\n\n"
 
