@@ -12,10 +12,12 @@ module Language.EO.Phi.Rules.Yaml where
 import Data.Aeson (FromJSON (..), Options (sumEncoding), SumEncoding (UntaggedValue), genericParseJSON)
 import Data.Aeson.Types (defaultOptions)
 import Data.Coerce (coerce)
+import Data.List.NonEmpty qualified as NonEmpty
 import Data.Maybe (fromMaybe)
 import Data.String (IsString (..))
 import Data.Yaml qualified as Yaml
 import GHC.Generics (Generic)
+import Language.EO.Phi.Rules.Common (Context (outerFormations))
 import Language.EO.Phi.Rules.Common qualified as Common
 import Language.EO.Phi.Syntax.Abs
 
@@ -34,9 +36,16 @@ data RuleSet = RuleSet
   }
   deriving (Generic, FromJSON, Show)
 
+data RuleContext = RuleContext
+  { global_object :: Maybe Object
+  , current_object :: Maybe Object
+  }
+  deriving (Generic, FromJSON, Show)
+
 data Rule = Rule
   { name :: String
   , description :: String
+  , context :: Maybe RuleContext
   , pattern :: Object
   , result :: Object
   , when :: [Condition]
@@ -72,11 +81,24 @@ parseRuleSetFromFile = Yaml.decodeFileThrow
 convertRule :: Rule -> Common.Rule
 convertRule Rule{..} ctx obj =
   [ obj'
-  | subst <- matchObject pattern obj
+  | contextSubsts <- matchContext ctx context
+  , let pattern' = applySubst contextSubsts pattern
+  , let result' = applySubst contextSubsts result
+  , subst <- matchObject pattern' obj
   , all (\cond -> checkCond ctx cond subst) when
-  , obj' <- [applySubst subst result]
+  , obj' <- [applySubst subst result']
   , not (objectHasMetavars obj')
   ]
+
+matchContext :: Common.Context -> Maybe RuleContext -> [Subst]
+matchContext Common.Context{} Nothing = [emptySubst]
+matchContext Common.Context{..} (Just (RuleContext p1 p2)) = do
+  subst1 <- maybe [emptySubst] (`matchObject` globalObject) p1
+  subst2 <- maybe [emptySubst] ((`matchObject` thisObject) . applySubst subst1) p2
+  return (subst1 <> subst2)
+ where
+  globalObject = NonEmpty.last outerFormations
+  thisObject = NonEmpty.head outerFormations
 
 objectHasMetavars :: Object -> Bool
 objectHasMetavars (Formation bindings) = any bindingHasMetavars bindings

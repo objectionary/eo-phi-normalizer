@@ -38,7 +38,7 @@ jobs:
       - name: 🧰 Setup Stack
         uses: freckle/stack-action@v5
         with:
-          stack-build-arguments: --${{ github.ref_name != 'master' && 'fast' || '' }} --pedantic
+          stack-build-arguments: ${{ github.ref_name != 'master' && '--fast' || '' }} --pedantic
 
   pipeline:
     name: "Run pipeline"

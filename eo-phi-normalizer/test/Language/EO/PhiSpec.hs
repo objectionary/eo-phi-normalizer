@@ -1,5 +1,6 @@
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -34,7 +35,7 @@ spec = do
           forM_ tests $
             \PhiTest{..} ->
               it name $
-                applyRule (rule (Context [])) input `shouldBe` [normalized]
+                applyRule (rule (Context [] [progToObj input])) input `shouldBe` [normalized]
   describe "Programs translated from EO" $ do
     phiTests <- runIO (allPhiTests "test/eo/phi/from-eo/")
     forM_ phiTests $ \PhiTestGroup{..} ->
@@ -50,3 +51,6 @@ spec = do
 
 trim :: String -> String
 trim = dropWhileEnd isSpace
+
+progToObj :: Program -> Object
+progToObj (Program bindings) = Formation bindings

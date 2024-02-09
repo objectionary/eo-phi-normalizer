@@ -139,6 +139,18 @@ Result 1 out of 1:
 ----------------------------------------------------
 ```
 
+#### `--single`
+
+Use `--single` to print a single normalized program.
+
+```sh
+# Command
+stack run -- --single --rules-yaml ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml test.phi
+
+# Output
+⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧ ⟧) ⟧
+```
+
 ## Rulesets
 
 A ruleset describes a set of user-defined rewriting rules.
