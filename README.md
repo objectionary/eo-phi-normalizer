@@ -101,7 +101,7 @@ Result 1 out of 1:
 ----------------------------------------------------
 ```
 
-#### stdin
+#### Input
 
 Normalize an expression using a ruleset (See [Rulesets](#rulesets)).
 Read the expression from stdin.
@@ -118,6 +118,11 @@ Input:
 Result 1 out of 1:
 ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧ ⟧) ⟧
 ----------------------------------------------------
+```
+
+Alternatively, the path to the file containing a Phi expression can be passed as a positional argument:
+```sh
+stack run -- --rules-yaml ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml test.phi
 ```
 
 #### `--chain`
