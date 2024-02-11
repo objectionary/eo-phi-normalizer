@@ -144,6 +144,14 @@ Result 1 out of 1:
 ----------------------------------------------------
 ```
 
+#### Output
+
+By default, the normalization output will be printed to `stdout`.
+The `--output` CLI option (or its shorthand `-o`) can be used to specify the path to the file to which the output will be written instead.
+The file will be created if it didn't originally exist.
+
+This is equivalent to redirecting the output from `stdout` to a file using `>`.
+
 ## Rulesets
 
 A ruleset describes a set of user-defined rewriting rules.
