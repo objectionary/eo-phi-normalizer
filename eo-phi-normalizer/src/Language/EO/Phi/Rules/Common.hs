@@ -132,6 +132,8 @@ lookupBinding _ _ = Nothing
 
 objectBindings :: Object -> [Binding]
 objectBindings (Formation bs) = bs
+objectBindings (Application obj bs) = objectBindings obj ++ bs
+objectBindings (ObjectDispatch obj _attr) = objectBindings obj
 objectBindings _ = []
 
 nuCount :: Object -> Int
