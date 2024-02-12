@@ -19,6 +19,26 @@ rules:
         output: '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧'
         matches: true
 
+  - name: Rule 2
+    description: ''
+    pattern: |
+      ⟦ !a ↦ ⟦ !b ↦ ⟦ !B1 ⟧, σ ↦ !obj, !B2 ⟧, !B_rest ⟧
+    result: |
+      ⟦ !a ↦ ⟦ !b ↦ ⟦ σ ↦ !obj.!a, !B1 ⟧, σ ↦ !obj, !B2 ⟧, !B_rest ⟧
+    when:
+      - absent_attrs:
+          attrs: ['σ']
+          bindings: ['!B1']
+    tests:
+      - name: 'Adds home attribute'
+        input: '⟦ a ↦ ⟦ b ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧ ⟧'
+        output: '⟦ a ↦ ⟦ b ↦ ⟦ σ ↦ ⟦ ⟧.a ⟧, σ ↦ ⟦ ⟧ ⟧ ⟧'
+        matches: true
+      - name: 'Leaves the object unchanged'
+        input: '⟦ a ↦ ⟦ b ↦ ⟦ σ ↦ ⟦ ⟧ ⟧ ⟧ ⟧'
+        output: '⟦ a ↦ ⟦ b ↦ ⟦ σ ↦ ⟦ ⟧ ⟧ ⟧ ⟧'
+        matches: false
+
   - name: Rule 3
     description: 'Initialization of parent attribute'
     pattern: |
