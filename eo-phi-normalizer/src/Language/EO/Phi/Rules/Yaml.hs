@@ -241,6 +241,7 @@ matchObject (MetaObject m) obj =
       , bindingsMetas = []
       , attributeMetas = []
       }
+matchObject Termination Termination = [emptySubst]
 matchObject _ _ = [] -- ? emptySubst ?
 
 evaluateMetaFuncs :: Object -> Object

@@ -175,3 +175,20 @@ rules:
         input: '⟦ ρ ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧.x'
         output: '⊥'
         matches: true
+
+  - name: Rule 12
+    description: 'Accessing an attribute on bottom'
+    pattern: |
+      ⊥.!a
+    result: |
+      ⊥
+    when: []
+    tests:
+      - name: 'Dispatch on bottom is bottom'
+        input: '⊥.a'
+        output: '⊥'
+        matches: true
+      - name: 'Dispatch on anything else is not touched'
+        input: '⟦ ⟧.a'
+        output: '⟦ ⟧.a'
+        matches: false
