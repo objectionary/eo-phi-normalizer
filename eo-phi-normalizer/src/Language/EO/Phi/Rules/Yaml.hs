@@ -86,7 +86,7 @@ convertRule Rule{..} ctx obj =
   , let result' = applySubst contextSubsts result
   , subst <- matchObject pattern' obj
   , all (\cond -> checkCond ctx cond subst) when
-  , obj' <- [applySubst subst result']
+  , obj' <- [applySubst subst (evaluateMetaFuncs result')]
   , not (objectHasMetavars obj')
   ]
 
@@ -108,6 +108,7 @@ objectHasMetavars GlobalObject = False
 objectHasMetavars ThisObject = False
 objectHasMetavars Termination = False
 objectHasMetavars (MetaObject _) = True
+objectHasMetavars (MetaFunction _ _) = True
 
 bindingHasMetavars :: Binding -> Bool
 bindingHasMetavars (AlphaBinding attr obj) = attrHasMetavars attr || objectHasMetavars obj
@@ -242,6 +243,17 @@ matchObject (MetaObject m) obj =
       }
 matchObject Termination Termination = [emptySubst]
 matchObject _ _ = [] -- ? emptySubst ?
+
+evaluateMetaFuncs :: Object -> Object
+evaluateMetaFuncs (MetaFunction (MetaFunctionName "@T") obj) = Common.nuCountAsDataObj obj
+evaluateMetaFuncs (Formation bindings) = Formation (map evaluateMetaFuncsBinding bindings)
+evaluateMetaFuncs (Application obj bindings) = Application (evaluateMetaFuncs obj) (map evaluateMetaFuncsBinding bindings)
+evaluateMetaFuncs (ObjectDispatch obj a) = ObjectDispatch (evaluateMetaFuncs obj) a
+evaluateMetaFuncs obj = obj
+
+evaluateMetaFuncsBinding :: Binding -> Binding
+evaluateMetaFuncsBinding (AlphaBinding attr obj) = AlphaBinding attr (evaluateMetaFuncs obj)
+evaluateMetaFuncsBinding binding = binding
 
 matchBindings :: [Binding] -> [Binding] -> [Subst]
 matchBindings [] [] = [emptySubst]

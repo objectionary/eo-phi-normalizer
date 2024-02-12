@@ -1,7 +1,26 @@
 title: "Rule set based on Yegor's draft"
 rules:
+  - name: Rule 1
+    description: 'Initialization of vertex attribute'
+    context:
+      global_object: '!Phi'
+    pattern: |
+      ⟦ !a ↦ ⟦ !B ⟧, !B_rest ⟧
+    result: |
+      ⟦ !a ↦ ⟦ !B, ν ↦ @T(!Phi) ⟧, !B_rest ⟧
+    when:
+      - absent_attrs:
+          attrs: ['ν']
+          bindings: ['!B']
+      - not_equal: ['!a', 'ν']
+    tests:
+      - name: Adds vertex attribute
+        input: '⟦ a ↦ ⟦ ⟧ ⟧'
+        output: '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧'
+        matches: true
+
   - name: Rule 3
-    description: ""
+    description: 'Initialization of parent attribute'
     pattern: |
       ⟦ !B ⟧
     result: |
@@ -78,7 +97,7 @@ rules:
     tests: []
 
   - name: Rule 8
-    description: ""
+    description: 'Accessing a decorated object'
     pattern: |
       ⟦ φ ↦ !n, !B ⟧.!a
     result: |
@@ -107,7 +126,7 @@ rules:
     tests: []
 
   - name: Rule 10
-    description: ""
+    description: 'Invalid application'
     pattern: ⟦ !t ↦ !b1, !B1 ⟧(!t ↦ !b2, !B2)
     result: ⊥
     when:
@@ -119,7 +138,7 @@ rules:
         matches: true
 
   - name: Rule 11
-    description: ""
+    description: 'Invalid attribute access'
     pattern: |
       ⟦ !B ⟧.!a
     result: |
