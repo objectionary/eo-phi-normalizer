@@ -3,7 +3,7 @@ set -euo pipefail
 if ! [ -d node_modules ]; then npm i; fi
 
 shopt -s expand_aliases
-EO="0.34.1"
+EO="0.35.2"
 alias eo="npx eoc --parser=${EO}"
 
 printf "\nClean the pipeline directory\n\n"
