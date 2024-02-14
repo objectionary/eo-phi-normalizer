@@ -44,6 +44,8 @@ dependencies:
   - yaml
   - mtl
   - string-interpolate
+  - lens
+  - generic-lens
 
 default-extensions:
   - ImportQualifiedPost

@@ -34,6 +34,7 @@ custom-setup
 library
   exposed-modules:
       Language.EO.Phi
+      Language.EO.Phi.Metrics.Collect
       Language.EO.Phi.Normalize
       Language.EO.Phi.Rules.Common
       Language.EO.Phi.Rules.PhiPaper
@@ -61,6 +62,8 @@ library
     , base >=4.7 && <5
     , directory
     , filepath
+    , generic-lens
+    , lens
     , mtl
     , string-interpolate
     , yaml
@@ -87,6 +90,8 @@ executable normalize-phi
     , directory
     , eo-phi-normalizer
     , filepath
+    , generic-lens
+    , lens
     , mtl
     , optparse-generic
     , string-interpolate
@@ -119,8 +124,10 @@ test-suite eo-phi-normalizer-test
     , directory
     , eo-phi-normalizer
     , filepath
+    , generic-lens
     , hspec
     , hspec-discover
+    , lens
     , mtl
     , string-interpolate
     , yaml
