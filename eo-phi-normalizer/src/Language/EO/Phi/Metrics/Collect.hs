@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE LambdaCase #-}
@@ -7,9 +8,11 @@ module Language.EO.Phi.Metrics.Collect where
 
 import Control.Lens ((+=))
 import Control.Monad (forM_)
-import Control.Monad.State (MonadState)
+import Control.Monad.State (State, execState)
+import Data.Aeson (FromJSON)
 import Data.Generics.Labels ()
 import GHC.Generics (Generic)
+import Language.EO.Phi.Rules.Common ()
 import Language.EO.Phi.Syntax.Abs
 
 data Metrics = Metrics
@@ -18,10 +21,22 @@ data Metrics = Metrics
     , formations :: Int
     , dispatches :: Int
     }
-    deriving (Generic)
+    deriving (Generic, Show, FromJSON, Eq)
+
+defaultMetrics :: Metrics
+defaultMetrics =
+    Metrics
+        { dataless = 0
+        , applications = 0
+        , formations = 0
+        , dispatches = 0
+        }
+
+collectMetrics :: (Inspectable a) => a -> Metrics
+collectMetrics a = execState (inspect a) defaultMetrics
 
 class Inspectable a where
-    inspect :: (MonadState Metrics m) => a -> m ()
+    inspect :: a -> State Metrics ()
 
 instance Inspectable Program where
     inspect (Program binding) = forM_ binding inspect
