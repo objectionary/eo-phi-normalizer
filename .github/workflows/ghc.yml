@@ -73,7 +73,7 @@ jobs:
 
       - name: Run pipeline
         shell: bash
-        run: ./pipeline.sh
+        run: ./scripts/pipeline.sh
 
   haddock:
     needs: [build]

@@ -155,7 +155,7 @@
             text =
               let mkProgram = n: ''
                 export PROGRAM="${builtins.toString n}"
-                ${builtins.readFile ./pipeline.sh}
+                ${builtins.readFile ./scripts/pipeline.sh}
               ''; in
 
               ''
