@@ -29,7 +29,6 @@ You can install the `normalizer-phi` executable globally via [stack](https://doc
 Then, the `normalize-phi` executable will be available on `PATH` and in `~/.local/bin/` on `Linux` and `macOS`.
 
 ```sh
-# Commands
 stack install
 normalize-phi --help
 ```
@@ -43,12 +42,16 @@ The `eo-phi-normalizer` package provides an executable `normalize-phi` that has 
 Run the executable via `stack run`.
 
 ```sh
-# Commands
 stack run normalize-phi -- --help
-# Or
-stack run -- --help
+```
 
-# Output:
+Or
+
+```sh
+stack run -- --help
+```
+
+```console
 Normalizer
 
 Usage: normalize-phi [-c|--chain] [--rules-yaml STRING] [-o|--output STRING]
@@ -88,10 +91,10 @@ Normalize a 𝜑-expression from `test.phi` using a ruleset (See [Rulesets](#rul
 There can be multiple numbered results that correspond to multiple rule application sequences.
 
 ```sh
-# Command
 stack run -- --rules-yaml ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml test.phi
+```
 
-# Output
+```console
 Rule set based on Yegor's draft
 Input:
 { a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e }
@@ -107,10 +110,10 @@ Normalize an expression using a ruleset (See [Rulesets](#rulesets)).
 Read the expression from stdin.
 
 ```sh
-# Command
 cat test.phi | stack run -- --rules-yaml ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml
+```
 
-# Output
+```console
 Rule set based on Yegor's draft
 Input:
 { a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e }
@@ -121,6 +124,7 @@ Result 1 out of 1:
 ```
 
 Alternatively, the path to the file containing a Phi expression can be passed as a positional argument:
+
 ```sh
 stack run -- --rules-yaml ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml test.phi
 ```
@@ -130,10 +134,10 @@ stack run -- --rules-yaml ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml test.
 Use `--chain` to see numbered normalization steps for each normalization result.
 
 ```sh
-# Command
 cat test.phi | stack run -- --chain --rules-yaml ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml
+```
 
-# Output
+```console
 Rule set based on Yegor's draft
 Input:
 { a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e }
@@ -149,10 +153,10 @@ Result 1 out of 1:
 Use `--single` to print a single normalized program.
 
 ```sh
-# Command
 stack run -- --single --rules-yaml ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml test.phi
+```
 
-# Output
+```console
 ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧ ⟧) ⟧
 ```
 
