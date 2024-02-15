@@ -28,7 +28,7 @@ $u = [. \n]          -- universal: any character
 
 -- Symbols and non-identifier-like reserved words
 
-@rsyms = \Φ | \ξ | \Δ | \λ | \φ | \ρ | \σ | \ν | \{ | \} | \⟦ | \⟧ | \( | \) | \. | \⊥ | \↦ | \∅ | \⤍ | \,
+@rsyms = \Φ | \ξ | \Δ | \λ | \φ | \ρ | \σ | \ν | \{ | \⟦ | \⟧ | \} | \( | \) | \. | \⊥ | \↦ | \∅ | \⤍ | \,
 
 :-
 

@@ -86,7 +86,7 @@ MetaId  : L_MetaId { Language.EO.Phi.Syntax.Abs.MetaId $1 }
 
 Program :: { Language.EO.Phi.Syntax.Abs.Program }
 Program
-  : '{' ListBinding '}' { Language.EO.Phi.Syntax.Abs.Program $2 }
+  : '{' '⟦' ListBinding '⟧' '}' { Language.EO.Phi.Syntax.Abs.Program $3 }
 
 Object :: { Language.EO.Phi.Syntax.Abs.Object }
 Object

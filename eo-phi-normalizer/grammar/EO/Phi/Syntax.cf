@@ -10,7 +10,7 @@ token LabelId  lower (char - [" \r\n\t,.|':;!?][}{)(⟧⟦"])* ;
 token AlphaIndex ({"α0"} | {"α"} (digit - ["0"]) (digit)* ) ;
 token MetaId {"!"} (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
 
-Program. Program ::= "{" [Binding] "}" ;
+Program. Program ::= "{" "⟦" [Binding] "⟧" "}" ;
 
 Formation.      Object ::= "⟦" [Binding] "⟧" ;
 Application.    Object ::= Object "(" [Binding] ")" ;
