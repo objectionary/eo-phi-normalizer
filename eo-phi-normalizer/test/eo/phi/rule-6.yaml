@@ -2,14 +2,14 @@ title: Tests for Rule 6
 tests:
   - name: "Case (1)"
     input: |
-      { a ↦ ⟦ b ↦ ⟦ Δ ⤍ 00- ⟧, c ↦ ⟦ Δ ⤍ 03- ⟧ ⟧.b }
+      { ⟦ a ↦ ⟦ b ↦ ⟦ Δ ⤍ 00- ⟧, c ↦ ⟦ Δ ⤍ 03- ⟧ ⟧.b ⟧ }
     normalized: |
-      { a ↦ ⟦ Δ ⤍ 00- ⟧(ρ ↦ ⟦ c ↦ ⟦ Δ ⤍ 03- ⟧ ⟧) }
+      { ⟦ a ↦ ⟦ Δ ⤍ 00- ⟧(ρ ↦ ⟦ c ↦ ⟦ Δ ⤍ 03- ⟧ ⟧) ⟧ }
     prettified: |
-      { a ↦ ⟦ b ↦ ⟦ Δ ⤍ 00- ⟧, c ↦ ⟦ Δ ⤍ 03- ⟧ ⟧.b }
+      { ⟦ a ↦ ⟦ b ↦ ⟦ Δ ⤍ 00- ⟧, c ↦ ⟦ Δ ⤍ 03- ⟧ ⟧.b ⟧ }
   - name: "Case (2)"
     input: |
-      {
+      { ⟦
         a ↦
           ⟦
             b ↦
@@ -19,11 +19,12 @@ tests:
               ⟧,
             e ↦ ξ.b(c ↦ ⟦⟧).d
           ⟧.e
+        ⟧
       }
     normalized: |
-      { a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧ ⟧) }
+      { ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧ ⟧) ⟧ }
     prettified: |
-      {
+      { ⟦
         a ↦
           ⟦
             b ↦
@@ -33,4 +34,5 @@ tests:
               ⟧,
             e ↦ ξ.b(c ↦ ⟦⟧).d
           ⟧.e
+        ⟧
       }
