@@ -151,7 +151,7 @@ instance Print Language.EO.Phi.Syntax.Abs.MetaFunctionName where
   prt _ (Language.EO.Phi.Syntax.Abs.MetaFunctionName i) = doc $ showString i
 instance Print Language.EO.Phi.Syntax.Abs.Program where
   prt i = \case
-    Language.EO.Phi.Syntax.Abs.Program bindings -> prPrec i 0 (concatD [doc (showString "{"), prt 0 bindings, doc (showString "}")])
+    Language.EO.Phi.Syntax.Abs.Program bindings -> prPrec i 0 (concatD [doc (showString "{"), doc (showString "\10214"), prt 0 bindings, doc (showString "\10215"), doc (showString "}")])
 
 instance Print Language.EO.Phi.Syntax.Abs.Object where
   prt i = \case

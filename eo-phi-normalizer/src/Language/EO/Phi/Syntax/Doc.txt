@@ -49,7 +49,7 @@ The reserved words used in Syntax are the following:
   | ``ξ`` | ``ρ`` | ``σ`` | ``φ``
 
 The symbols used in Syntax are the following:
-  | { | } | ⟦ | ⟧
+  | { | ⟦ | ⟧ | }
   | ( | ) | . | ⊥
   | ↦ | ∅ | ⤍ | ,
 
@@ -62,7 +62,7 @@ The symbols -> (production),  **|**  (union)
 and **eps** (empty rule) belong to the BNF notation.
 All other symbols are terminals.
 
-  | //Program// | -> | ``{`` //[Binding]// ``}``
+  | //Program// | -> | ``{`` ``⟦`` //[Binding]// ``⟧`` ``}``
   | //Object// | -> | ``⟦`` //[Binding]// ``⟧``
   |  |  **|**  | //Object// ``(`` //[Binding]// ``)``
   |  |  **|**  | //Object// ``.`` //Attribute//
