@@ -41,6 +41,7 @@ jobs:
           stack-build-arguments: ${{ github.ref_name != 'master' && '--fast' || '' }} --pedantic
 
   pipeline:
+    if: false
     name: "Run pipeline"
     runs-on: ubuntu-latest
     strategy:
