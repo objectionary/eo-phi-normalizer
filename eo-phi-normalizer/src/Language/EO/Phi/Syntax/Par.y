@@ -41,31 +41,32 @@ import Language.EO.Phi.Syntax.Lex
 %monad { Err } { (>>=) } { return }
 %tokentype {Token}
 %token
-  '('          { PT _ (TS _ 1)          }
-  ')'          { PT _ (TS _ 2)          }
-  ','          { PT _ (TS _ 3)          }
-  '.'          { PT _ (TS _ 4)          }
-  '{'          { PT _ (TS _ 5)          }
-  '}'          { PT _ (TS _ 6)          }
-  'Δ'          { PT _ (TS _ 7)          }
-  'Φ'          { PT _ (TS _ 8)          }
-  'λ'          { PT _ (TS _ 9)          }
-  'ν'          { PT _ (TS _ 10)         }
-  'ξ'          { PT _ (TS _ 11)         }
-  'ρ'          { PT _ (TS _ 12)         }
-  'σ'          { PT _ (TS _ 13)         }
-  'φ'          { PT _ (TS _ 14)         }
-  '↦'          { PT _ (TS _ 15)         }
-  '∅'          { PT _ (TS _ 16)         }
-  '⊥'          { PT _ (TS _ 17)         }
-  '⟦'          { PT _ (TS _ 18)         }
-  '⟧'          { PT _ (TS _ 19)         }
-  '⤍'          { PT _ (TS _ 20)         }
-  L_Bytes      { PT _ (T_Bytes $$)      }
-  L_Function   { PT _ (T_Function $$)   }
-  L_LabelId    { PT _ (T_LabelId $$)    }
-  L_AlphaIndex { PT _ (T_AlphaIndex $$) }
-  L_MetaId     { PT _ (T_MetaId $$)     }
+  '('                { PT _ (TS _ 1)                }
+  ')'                { PT _ (TS _ 2)                }
+  ','                { PT _ (TS _ 3)                }
+  '.'                { PT _ (TS _ 4)                }
+  '{'                { PT _ (TS _ 5)                }
+  '}'                { PT _ (TS _ 6)                }
+  'Δ'                { PT _ (TS _ 7)                }
+  'Φ'                { PT _ (TS _ 8)                }
+  'λ'                { PT _ (TS _ 9)                }
+  'ν'                { PT _ (TS _ 10)               }
+  'ξ'                { PT _ (TS _ 11)               }
+  'ρ'                { PT _ (TS _ 12)               }
+  'σ'                { PT _ (TS _ 13)               }
+  'φ'                { PT _ (TS _ 14)               }
+  '↦'                { PT _ (TS _ 15)               }
+  '∅'                { PT _ (TS _ 16)               }
+  '⊥'                { PT _ (TS _ 17)               }
+  '⟦'                { PT _ (TS _ 18)               }
+  '⟧'                { PT _ (TS _ 19)               }
+  '⤍'                { PT _ (TS _ 20)               }
+  L_Bytes            { PT _ (T_Bytes $$)            }
+  L_Function         { PT _ (T_Function $$)         }
+  L_LabelId          { PT _ (T_LabelId $$)          }
+  L_AlphaIndex       { PT _ (T_AlphaIndex $$)       }
+  L_MetaId           { PT _ (T_MetaId $$)           }
+  L_MetaFunctionName { PT _ (T_MetaFunctionName $$) }
 
 %%
 
@@ -84,6 +85,9 @@ AlphaIndex  : L_AlphaIndex { Language.EO.Phi.Syntax.Abs.AlphaIndex $1 }
 MetaId :: { Language.EO.Phi.Syntax.Abs.MetaId }
 MetaId  : L_MetaId { Language.EO.Phi.Syntax.Abs.MetaId $1 }
 
+MetaFunctionName :: { Language.EO.Phi.Syntax.Abs.MetaFunctionName }
+MetaFunctionName  : L_MetaFunctionName { Language.EO.Phi.Syntax.Abs.MetaFunctionName $1 }
+
 Program :: { Language.EO.Phi.Syntax.Abs.Program }
 Program
   : '{' '⟦' ListBinding '⟧' '}' { Language.EO.Phi.Syntax.Abs.Program $3 }
@@ -97,6 +101,7 @@ Object
   | 'ξ' { Language.EO.Phi.Syntax.Abs.ThisObject }
   | '⊥' { Language.EO.Phi.Syntax.Abs.Termination }
   | MetaId { Language.EO.Phi.Syntax.Abs.MetaObject $1 }
+  | MetaFunctionName '(' Object ')' { Language.EO.Phi.Syntax.Abs.MetaFunction $1 $3 }
 
 Binding :: { Language.EO.Phi.Syntax.Abs.Binding }
 Binding

@@ -59,6 +59,10 @@ $s [$u # [\t \n \r \  \! \' \( \) \, \. \: \; \? \[ \] \{ \| \} \⟦ \⟧]] *
 \! [$u # [\t \n \r \  \! \' \( \) \, \- \. \: \; \? \[ \] \{ \| \} \⟦ \⟧]] *
     { tok (eitherResIdent T_MetaId) }
 
+-- token MetaFunctionName
+\@ [$u # [\t \n \r \  \! \' \( \) \, \- \. \: \; \? \[ \] \{ \| \} \⟦ \⟧]] *
+    { tok (eitherResIdent T_MetaFunctionName) }
+
 -- Keywords and Ident
 $l $i*
     { tok (eitherResIdent TV) }
@@ -81,6 +85,7 @@ data Tok
   | T_LabelId !String
   | T_AlphaIndex !String
   | T_MetaId !String
+  | T_MetaFunctionName !String
   deriving (Eq, Show, Ord)
 
 -- | Smart constructor for 'Tok' for the sake of backwards compatibility.
@@ -148,6 +153,7 @@ tokenText t = case t of
   PT _ (T_LabelId s) -> s
   PT _ (T_AlphaIndex s) -> s
   PT _ (T_MetaId s) -> s
+  PT _ (T_MetaFunctionName s) -> s
 
 -- | Convert a token to a string.
 prToken :: Token -> String

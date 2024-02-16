@@ -1,18 +1,57 @@
 title: "Rule set based on Yegor's draft"
 rules:
+  - name: Rule 1
+    description: 'Initialization of vertex attribute'
+    context:
+      global_object: '!Phi'
+    pattern: |
+      ⟦ !a ↦ ⟦ !B ⟧, !B_rest ⟧
+    result: |
+      ⟦ !a ↦ ⟦ !B, ν ↦ @T(!Phi) ⟧, !B_rest ⟧
+    when:
+      - absent_attrs:
+          attrs: ['ν']
+          bindings: ['!B']
+      - not_equal: ['!a', 'ν']
+    tests:
+      - name: Adds vertex attribute
+        input: '⟦ a ↦ ⟦ ⟧ ⟧'
+        output: '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧'
+        matches: true
+
+  - name: Rule 2
+    description: ''
+    pattern: |
+      ⟦ !a ↦ ⟦ !b ↦ ⟦ !B1 ⟧, σ ↦ !obj, !B2 ⟧, !B_rest ⟧
+    result: |
+      ⟦ !a ↦ ⟦ !b ↦ ⟦ σ ↦ !obj.!a, !B1 ⟧, σ ↦ !obj, !B2 ⟧, !B_rest ⟧
+    when:
+      - absent_attrs:
+          attrs: ['σ']
+          bindings: ['!B1']
+    tests:
+      - name: 'Adds home attribute'
+        input: '⟦ a ↦ ⟦ b ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧ ⟧'
+        output: '⟦ a ↦ ⟦ b ↦ ⟦ σ ↦ ⟦ ⟧.a ⟧, σ ↦ ⟦ ⟧ ⟧ ⟧'
+        matches: true
+      - name: 'Leaves the object unchanged'
+        input: '⟦ a ↦ ⟦ b ↦ ⟦ σ ↦ ⟦ ⟧ ⟧ ⟧ ⟧'
+        output: '⟦ a ↦ ⟦ b ↦ ⟦ σ ↦ ⟦ ⟧ ⟧ ⟧ ⟧'
+        matches: false
+
   - name: Rule 3
-    description: ""
+    description: 'Initialization of parent attribute'
     pattern: |
       ⟦ !B ⟧
     result: |
       ⟦ !B, ρ ↦ ξ.σ ⟧
     when:
       - present_attrs:
-          attrs: ["σ"]
-          bindings: ["!B"]
+          attrs: ['σ']
+          bindings: ['!B']
       - absent_attrs:
-          attrs: ["ρ"]
-          bindings: ["!B"]
+          attrs: ['ρ']
+          bindings: ['!B']
     tests:
       - name: 'Has sigma and no rho'
         input: '⟦ b ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧ '
@@ -39,7 +78,7 @@ rules:
     tests: []
 
   - name: Rule 5
-    description: "ξ-dispatch"
+    description: 'ξ-dispatch'
     context:
       current_object: ⟦ !a ↦ ξ.!b, !B ⟧
     pattern: |
@@ -50,13 +89,13 @@ rules:
     tests: []
 
   - name: Rule 6
-    description: "Accessing an α-binding"
+    description: 'Accessing an α-binding'
     pattern: |
       ⟦ !a ↦ !n, !B ⟧.!a
     result: |
       !n(ρ ↦ ⟦ !B ⟧)
     when:
-      - nf: ["!n"]
+      - nf: ['!n']
     tests:
       - name: Should match
         input: ⟦ hello ↦ ⟦⟧ ⟧.hello
@@ -64,30 +103,30 @@ rules:
         matches: true
       - name: Shouldn't match
         input: ⟦ ⟧.hello
-        output: ""
+        output: ''
         matches: false
 
   - name: Rule 7
-    description: "Application"
+    description: 'Application'
     pattern: |
       ⟦ !a ↦ ∅, !B ⟧(!a ↦ !n)
     result: |
       ⟦ !a ↦ !n, !B ⟧
     when:
-      - nf: ["!n"]
+      - nf: ['!n']
     tests: []
 
   - name: Rule 8
-    description: ""
+    description: 'Accessing a decorated object'
     pattern: |
       ⟦ φ ↦ !n, !B ⟧.!a
     result: |
       !n.!a
     when:
-      - nf: ["!n"]
+      - nf: ['!n']
       - absent_attrs:
-          attrs: ["!a"]
-          bindings: ["!B"]
+          attrs: ['!a']
+          bindings: ['!B']
     tests:
       - name: 'Attribute does not exist'
         input: '⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧.b'
@@ -99,19 +138,19 @@ rules:
         matches: false
 
   - name: Rule 9
-    description: "Parent application"
+    description: 'Parent application'
     pattern: ⟦ ρ ↦ !t, !B ⟧(ρ ↦ !n)
     result: ⟦ ρ ↦ !n, !B ⟧
     when:
-      - nf: ["!n"]
+      - nf: ['!n']
     tests: []
 
   - name: Rule 10
-    description: ""
+    description: 'Invalid application'
     pattern: ⟦ !t ↦ !b1, !B1 ⟧(!t ↦ !b2, !B2)
     result: ⊥
     when:
-      - not_equal: ["!t", "ρ"]
+      - not_equal: ['!t', 'ρ']
     tests:
       - name: ''
         input: '⟦ t ↦ ⟦ a ↦ ∅ ⟧ ⟧(t ↦ ⟦ b ↦ ∅ ⟧)'
@@ -119,20 +158,37 @@ rules:
         matches: true
 
   - name: Rule 11
-    description: ""
+    description: 'Invalid attribute access'
     pattern: |
       ⟦ !B ⟧.!a
     result: |
       ⊥
     when:
       - absent_attrs:
-          attrs: ["!a", "φ", "λ"]
-          bindings: ["!B"]
+          attrs: ['!a', 'φ', 'λ']
+          bindings: ['!B']
       - present_attrs:
-          attrs: ["ρ", "σ"]
-          bindings: ["!B"]
+          attrs: ['ρ', 'σ']
+          bindings: ['!B']
     tests:
       - name: 'Accessing nonexistent attribute'
         input: '⟦ ρ ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧.x'
         output: '⊥'
         matches: true
+
+  - name: Rule 12
+    description: 'Accessing an attribute on bottom'
+    pattern: |
+      ⊥.!a
+    result: |
+      ⊥
+    when: []
+    tests:
+      - name: 'Dispatch on bottom is bottom'
+        input: '⊥.a'
+        output: '⊥'
+        matches: true
+      - name: 'Dispatch on anything else is not touched'
+        input: '⟦ ⟧.a'
+        output: '⟦ ⟧.a'
+        matches: false

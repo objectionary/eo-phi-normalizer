@@ -26,6 +26,7 @@ data Object
     | ThisObject
     | Termination
     | MetaObject MetaId
+    | MetaFunction MetaFunctionName Object
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data Binding
@@ -73,5 +74,8 @@ newtype AlphaIndex = AlphaIndex String
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic, Data.String.IsString)
 
 newtype MetaId = MetaId String
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic, Data.String.IsString)
+
+newtype MetaFunctionName = MetaFunctionName String
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic, Data.String.IsString)
 

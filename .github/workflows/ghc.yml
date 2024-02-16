@@ -75,10 +75,10 @@ jobs:
         shell: bash
         run: ./scripts/pipeline.sh
 
-  haddock:
+  docs:
     needs: [build]
     if: ${{ github.ref_name == 'master' }}
-    name: "Build and upload Haddock documentation (master)"
+    name: "Build and upload site (master)"
     runs-on: ubuntu-latest
 
     steps:
@@ -96,10 +96,23 @@ jobs:
           mkdir -p dist/haddock
           mv $(stack path --local-doc-root)/* dist/haddock
 
-      - name: 🚀 Publish Haddock Documentation
+      - name: Setup mdBook
+        uses: peaceiris/actions-mdbook@v1
+        with:
+          mdbook-version: 'latest'
+
+      - name: Build site
+        run: |
+          cd site/docs
+          mdbook build
+          mv docs ../../dist
+
+          cd ..
+          mv index.html ../dist
+
+      - name: 🚀 Publish Site
         uses: JamesIves/github-pages-deploy-action@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          folder: dist/haddock
-          target-folder: haddock
+          folder: dist
           single-commit: true

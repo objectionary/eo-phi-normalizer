@@ -10,9 +10,11 @@ import Data.String (IsString (..))
 import Language.EO.Phi.Syntax.Abs
 import Language.EO.Phi.Syntax.Lex (Token)
 import Language.EO.Phi.Syntax.Par
+import Numeric (showHex)
 
 -- $setup
 -- >>> :set -XOverloadedStrings
+-- >>> :set -XOverloadedLists
 -- >>> import Language.EO.Phi.Syntax
 
 instance IsString Program where fromString = unsafeParseWith pProgram
@@ -73,6 +75,7 @@ withSubObject f ctx root =
       ThisObject{} -> []
       Termination -> []
       MetaObject _ -> []
+      MetaFunction _ _ -> []
 
 withSubObjectBindings :: (Context -> Object -> [Object]) -> Context -> [Binding] -> [[Binding]]
 withSubObjectBindings _ _ [] = []
@@ -98,8 +101,7 @@ isNF ctx = null . applyOneRule ctx
 
 -- | Apply rules until we get a normal form.
 --
--- >>> mapM_ (putStrLn . Language.EO.Phi.printTree) (applyRules (Context [rule6]) "⟦ a ↦ ⟦ b ↦ ⟦ ⟧ ⟧.b ⟧.a")
--- ⟦ ⟧ (ρ ↦ ⟦ ⟧) (ρ ↦ ⟦ ⟧)
+-- >>> mapM_ (putStrLn . Language.EO.Phi.printTree) (applyRules (Context [rule6] ["⟦ a ↦ ⟦ b ↦ ⟦ ⟧ ⟧.b ⟧"]) "⟦ a ↦ ⟦ b ↦ ⟦ ⟧ ⟧.b ⟧.a")
 applyRules :: Context -> Object -> [Object]
 applyRules ctx obj
   | isNF ctx obj = [obj]
@@ -127,3 +129,36 @@ lookupBinding a (AlphaBinding a' object : bindings)
   | a == a' = Just object
   | otherwise = lookupBinding a bindings
 lookupBinding _ _ = Nothing
+
+objectBindings :: Object -> [Binding]
+objectBindings (Formation bs) = bs
+objectBindings (Application obj bs) = objectBindings obj ++ bs
+objectBindings (ObjectDispatch obj _attr) = objectBindings obj
+objectBindings _ = []
+
+nuCount :: Object -> Int
+nuCount obj = count isNu (objectBindings obj) + sum (map (sum . map nuCount . values) (objectBindings obj))
+ where
+  isNu (AlphaBinding VTX _) = True
+  isNu (EmptyBinding VTX) = True
+  isNu _ = False
+  count = (length .) . filter
+  values (AlphaBinding _ obj') = [obj']
+  values _ = []
+
+intToBytesObject :: Int -> Object
+intToBytesObject n = Formation [DeltaBinding $ Bytes $ insertDashes $ pad $ showHex n ""]
+ where
+  pad s = (if even (length s) then "" else "0") ++ s
+  insertDashes s
+    | length s <= 2 = s ++ "-"
+    | otherwise =
+        let go = \case
+              [] -> []
+              [x] -> [x]
+              [x, y] -> [x, y, '-']
+              (x : y : xs) -> x : y : '-' : go xs
+         in go s
+
+nuCountAsDataObj :: Object -> Object
+nuCountAsDataObj = intToBytesObject . nuCount

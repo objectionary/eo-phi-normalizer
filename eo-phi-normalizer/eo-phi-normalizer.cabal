@@ -5,7 +5,7 @@ cabal-version: 1.24
 -- see: https://github.com/sol/hpack
 
 name:           eo-phi-normalizer
-version:        0.1.0
+version:        0.2.0
 synopsis:       Command line normalizer of 𝜑-calculus expressions.
 description:    Please see the README on GitHub at <https://github.com/objectionary/eo-phi-normalizer#readme>
 homepage:       https://github.com/objectionary/eo-phi-normalizer#readme
@@ -34,6 +34,7 @@ custom-setup
 library
   exposed-modules:
       Language.EO.Phi
+      Language.EO.Phi.Metrics.Collect
       Language.EO.Phi.Normalize
       Language.EO.Phi.Rules.Common
       Language.EO.Phi.Rules.PhiPaper
@@ -61,6 +62,8 @@ library
     , base >=4.7 && <5
     , directory
     , filepath
+    , generic-lens
+    , lens
     , mtl
     , string-interpolate
     , yaml
@@ -87,6 +90,8 @@ executable normalize-phi
     , directory
     , eo-phi-normalizer
     , filepath
+    , generic-lens
+    , lens
     , mtl
     , optparse-generic
     , string-interpolate
@@ -101,6 +106,7 @@ test-suite eo-phi-normalizer-test
       Language.EO.YamlSpec
       Test.EO.Phi
       Test.EO.Yaml
+      Test.Metrics.Phi
       Paths_eo_phi_normalizer
   hs-source-dirs:
       test
@@ -119,8 +125,10 @@ test-suite eo-phi-normalizer-test
     , directory
     , eo-phi-normalizer
     , filepath
+    , generic-lens
     , hspec
     , hspec-discover
+    , lens
     , mtl
     , string-interpolate
     , yaml

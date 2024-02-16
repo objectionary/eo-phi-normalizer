@@ -1,6 +1,6 @@
 # Normalizer for 𝜑-calculus
 
-[![`rzk` on Hackage](https://img.shields.io/hackage/v/eo-phi-normalizer)](http://hackage.haskell.org/package/eo-phi-normalizer)
+[![`eo-phi-normalizer` on Hackage](https://img.shields.io/hackage/v/eo-phi-normalizer)](http://hackage.haskell.org/package/eo-phi-normalizer)
 [![Haddock](<https://shields.io/badge/Haddock%20(master)-Code%20documentation-informational>)](https://www.objectionary.com/normalizer/haddock/)
 
 Command line normalizer of 𝜑-calculus expressions (as produced by the [EO compiler](https://github.com/objectionary/eo)).
@@ -14,41 +14,52 @@ Contrary to traditional normalization in λ-calculus, we aim at rewriting rules 
 help reduce certain metrics of expressions. In particular, we are interested in reducing
 attribute access (`t.a`) that amounts to _dynamic dispatch_.
 
-## Usage
+## Install
 
-Clone this repo.
+You can install the `normalizer-phi` executable globally via [stack](https://docs.haskellstack.org/en/stable).
+Then, the `normalize-phi` executable will be available on `PATH`.
+
+### Install from the repository
 
 ```sh
 git clone --recurse-submodules https://github.com/objectionary/normalizer.git
 cd normalizer
-```
-
-### Install
-
-You can install the `normalizer-phi` executable globally via [stack](https://docs.haskellstack.org/en/stable/README/).
-Then, the `normalize-phi` executable will be available on `PATH` and in `~/.local/bin/` on `Linux` and `macOS`.
-
-```sh
-# Commands
-stack install
+export LANG=C.UTF-8
+stack install normalize-phi
 normalize-phi --help
 ```
 
-Alternatively, run the executable via `stack` without global installation (see the following sections).
-
-### CLI
-
-The `eo-phi-normalizer` package provides an executable `normalize-phi` that has a CLI.
-
-Run the executable via `stack run`.
+### Install from Hackage
 
 ```sh
-# Commands
-stack run normalize-phi -- --help
-# Or
-stack run -- --help
+stack update
+export LANG=C.UTF-8
+stack install --resolver lts-22.11 eo-phi-normalizer-0.1.0
+```
 
-# Output:
+### Uninstall
+
+Learn where `stack` installs programs.
+
+```sh
+stack path --programs
+```
+
+Learn how to uninstall a program.
+
+```sh
+stack uninstall
+```
+
+## Use
+
+Learn about `normalize-phi` options.
+
+```sh
+normalize-phi --help
+```
+
+```console
 Normalizer
 
 Usage: normalize-phi [-c|--chain] [--rules-yaml STRING] [-o|--output STRING]
@@ -61,12 +72,13 @@ Available options:
   -o,--output STRING       Output file path (defaults to stdout)
 ```
 
-#### expression
+### Sample program
 
-Save an expression into a file `test.phi` that will be used in subsequent commands.
+Save a $\varphi$-calculus program to a file.
+This program will be used in subsequent commands.
 
 ```sh
-cat > test.phi <<EOM
+cat > program.phi <<EOM
 {
   a ↦
     ⟦
@@ -81,17 +93,27 @@ cat > test.phi <<EOM
 EOM
 ```
 
+### Prepare environment
+
+The commands in the following sections access files that are available in the project repository.
+Clone and enter the repository directory.
+
+```sh
+git clone https://github.com/objectionary/normalizer
+cd normalizer
+```
+
 #### `--ruleset-yaml`
 
-Normalize a 𝜑-expression from `test.phi` using a ruleset (See [Rulesets](#rulesets)).
+Normalize a 𝜑-expression from `program.phi` using a ruleset (See [Rulesets](#rulesets)).
 
 There can be multiple numbered results that correspond to multiple rule application sequences.
 
 ```sh
-# Command
-stack run -- --rules-yaml ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml test.phi
+normalize-phi --rules-yaml ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml program.phi
+```
 
-# Output
+```console
 Rule set based on Yegor's draft
 Input:
 { a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e }
@@ -101,16 +123,16 @@ Result 1 out of 1:
 ----------------------------------------------------
 ```
 
-#### stdin
+#### Input
 
 Normalize an expression using a ruleset (See [Rulesets](#rulesets)).
 Read the expression from stdin.
 
 ```sh
-# Command
-cat test.phi | stack run -- --rules-yaml ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml
+cat program.phi | normalize-phi --rules-yaml ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml
+```
 
-# Output
+```console
 Rule set based on Yegor's draft
 Input:
 { a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e }
@@ -118,6 +140,12 @@ Input:
 Result 1 out of 1:
 ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧ ⟧) ⟧
 ----------------------------------------------------
+```
+
+Alternatively, the path to the file containing a Phi expression can be passed as a positional argument:
+
+```sh
+normalize-phi --rules-yaml ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml program.phi
 ```
 
 #### `--chain`
@@ -125,10 +153,10 @@ Result 1 out of 1:
 Use `--chain` to see numbered normalization steps for each normalization result.
 
 ```sh
-# Command
-cat test.phi | stack run -- --chain --rules-yaml ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml
+cat program.phi | normalize-phi --chain --rules-yaml ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml
+```
 
-# Output
+```console
 Rule set based on Yegor's draft
 Input:
 { a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e }
@@ -144,12 +172,20 @@ Result 1 out of 1:
 Use `--single` to print a single normalized program.
 
 ```sh
-# Command
-stack run -- --single --rules-yaml ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml test.phi
-
-# Output
-{ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧ ⟧) }
+normalize-phi --single --rules-yaml ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml program.phi
 ```
+
+```console
+⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧ ⟧) ⟧
+```
+
+#### Output
+
+By default, the normalization output will be printed to `stdout`.
+The `--output` CLI option (or its shorthand `-o`) can be used to specify the path to the file to which the output will be written instead.
+The file will be created if it didn't originally exist.
+
+This is equivalent to redirecting the output from `stdout` to a file using `>`.
 
 ## Rulesets
 
@@ -188,18 +224,30 @@ When there is a match, the matched parts of the expression are bound to metavari
 
 Additionally, there are unit tests for rules. Each unit test provides `input` and `output` expressions. An `output` expression is not reused in other tests, so it is safe to let it be an empty string when no match can happen.
 
-## Development
+## Develop
 
-### `stack`
+We recommend using [stack](https://docs.haskellstack.org/en/stable/README/) for quick local development and testing.
 
-The project is developed using the [Stack tool](https://docs.haskellstack.org/en/stable/README/).
-
-We recommend using `stack` for quick local development and testing. Clone this project and run `stack build`.
+Clone this project and run `stack build`.
 
 ```sh
 git clone --recurse-submodules https://github.com/objectionary/normalizer.git
 cd normalizer
 stack build
+```
+
+### Run
+
+Run the executable via `stack run`.
+
+```sh
+stack run normalize-phi -- --help
+```
+
+Or, omit the executable name.
+
+```sh
+stack run -- --help
 ```
 
 ### Test
