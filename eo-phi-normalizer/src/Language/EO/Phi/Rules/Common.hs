@@ -146,8 +146,8 @@ nuCount obj = count isNu (objectBindings obj) + sum (map (sum . map nuCount . va
   values (AlphaBinding _ obj') = [obj']
   values _ = []
 
-intToBytesObject :: Int -> Object
-intToBytesObject n = Formation [DeltaBinding $ Bytes $ insertDashes $ pad $ showHex n ""]
+intToBytes :: Int -> Bytes
+intToBytes n = Bytes $ insertDashes $ pad $ showHex n ""
  where
   pad s = (if even (length s) then "" else "0") ++ s
   insertDashes s
@@ -159,6 +159,9 @@ intToBytesObject n = Formation [DeltaBinding $ Bytes $ insertDashes $ pad $ show
               [x, y] -> [x, y, '-']
               (x : y : xs) -> x : y : '-' : go xs
          in go s
+
+intToBytesObject :: Int -> Object
+intToBytesObject n = Formation [DeltaBinding $ intToBytes n]
 
 nuCountAsDataObj :: Object -> Object
 nuCountAsDataObj = intToBytesObject . nuCount
