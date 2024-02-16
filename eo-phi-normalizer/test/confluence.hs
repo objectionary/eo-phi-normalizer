@@ -18,24 +18,35 @@ instance Arbitrary Attribute where
       ]
 
 instance Arbitrary Binding where
-  arbitrary =
-    oneof
-      [ EmptyBinding <$> arbitrary
-      , liftA2 AlphaBinding arbitrary arbitrary
-      , DeltaBinding . intToBytes <$> arbitrary
-      , LambdaBinding . Function <$> arbitrary
-      ]
+  arbitrary = sized $ \n -> do
+    let arbitraryObj = resize (n `div` 2) arbitrary
+    let arbitraryAttr = resize (n `div` 2) arbitrary
+    if n > 0
+      then
+        oneof
+          [ EmptyBinding <$> arbitraryAttr
+          , liftA2 AlphaBinding arbitraryAttr arbitraryObj
+          , DeltaBinding . intToBytes <$> arbitrary
+          , LambdaBinding . Function <$> arbitrary
+          ]
+      else EmptyBinding <$> arbitraryAttr
 
 instance Arbitrary Object where
-  arbitrary =
-    oneof
-      [ Formation <$> listOf arbitrary
-      , liftA2 Application arbitrary (listOf arbitrary)
-      , liftA2 ObjectDispatch arbitrary arbitrary
-      , pure GlobalObject
-      , pure ThisObject
-      , pure Termination
-      ]
+  arbitrary = sized $ \n -> do
+    let arbitraryBinding = resize (n `div` 2) arbitrary
+    let arbitraryAttr = resize (n `div` 2) arbitrary
+    let arbitraryObj = resize (n `div` 2) arbitrary
+    if n > 0
+      then
+        oneof
+          [ Formation <$> listOf arbitraryBinding
+          , liftA2 Application arbitraryObj (listOf arbitraryBinding)
+          , liftA2 ObjectDispatch arbitraryObj arbitraryAttr
+          , pure GlobalObject
+          , pure ThisObject
+          , pure Termination
+          ]
+      else pure $ Formation []
 
 confluence :: [Rule] -> Object -> Property
 confluence originalRules input = conjoin $ flip map rulesInAllOrders $ \rulesPermutation -> applyRules (Context rulesPermutation [input]) input === referenceApplication
