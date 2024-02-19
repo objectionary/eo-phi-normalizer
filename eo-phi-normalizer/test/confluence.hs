@@ -18,18 +18,13 @@ instance Arbitrary Attribute where
       ]
 
 instance Arbitrary Binding where
-  arbitrary = sized $ \n -> do
-    let arbitraryObj = resize (n `div` 2) arbitrary
-    let arbitraryAttr = resize (n `div` 2) arbitrary
-    if n > 0
-      then
-        oneof
-          [ EmptyBinding <$> arbitraryAttr
-          , liftA2 AlphaBinding arbitraryAttr arbitraryObj
-          , DeltaBinding . intToBytes <$> arbitrary
-          , LambdaBinding . Function <$> arbitrary
-          ]
-      else EmptyBinding <$> arbitraryAttr
+  arbitrary =
+    oneof
+      [ EmptyBinding <$> arbitrary
+      , liftA2 AlphaBinding arbitrary arbitrary
+      , DeltaBinding . intToBytes <$> arbitrary
+      , LambdaBinding . Function <$> arbitrary
+      ]
 
 instance Arbitrary Object where
   arbitrary = sized $ \n -> do
