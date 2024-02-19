@@ -5,6 +5,7 @@
 module Language.EO.Phi.Rules.Common where
 
 import Control.Applicative (Alternative ((<|>)), asum)
+import Data.List (nub)
 import Data.List.NonEmpty (NonEmpty (..), (<|))
 import Data.String (IsString (..))
 import Language.EO.Phi.Syntax.Abs
@@ -106,10 +107,11 @@ applyRules :: Context -> Object -> [Object]
 applyRules ctx obj
   | isNF ctx obj = [obj]
   | otherwise =
-      [ obj''
-      | obj' <- applyOneRule ctx obj
-      , obj'' <- applyRules ctx obj'
-      ]
+      nub
+        [ obj''
+        | obj' <- applyOneRule ctx obj
+        , obj'' <- applyRules ctx obj'
+        ]
 
 applyRulesChain :: Context -> Object -> [[Object]]
 applyRulesChain ctx obj

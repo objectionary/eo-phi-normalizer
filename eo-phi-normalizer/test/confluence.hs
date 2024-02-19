@@ -1,7 +1,6 @@
 {-# LANGUAGE OverloadedLists #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-import Data.List (nub)
 import Language.EO.Phi.Rules.Common (Context (Context), Rule, applyRules, intToBytes)
 import Language.EO.Phi.Rules.Yaml (convertRule, parseRuleSetFromFile, rules)
 import Language.EO.Phi.Syntax.Abs as Phi
@@ -55,7 +54,7 @@ instance Arbitrary Object where
   shrink = genericShrink
 
 confluence :: [Rule] -> Object -> Property
-confluence originalRules input = length (nub (applyRules ctx input)) === 1
+confluence originalRules input = length (applyRules ctx input) === 1
  where
   ctx = Context originalRules [input]
 
