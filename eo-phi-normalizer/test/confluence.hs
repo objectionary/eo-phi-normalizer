@@ -14,7 +14,7 @@ instance Arbitrary Attribute where
       , pure Rho
       , pure Sigma
       , pure VTX
-      , Label . LabelId <$> listOf (elements ['a' .. 'z'])
+      , Label . LabelId <$> listOf1 (elements ['a' .. 'z'])
       ]
 
 instance Arbitrary Binding where
