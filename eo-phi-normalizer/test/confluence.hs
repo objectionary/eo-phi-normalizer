@@ -4,7 +4,7 @@
 import Data.List (permutations)
 import Language.EO.Phi.Rules.Common (Context (Context), Rule, applyRules, intToBytes)
 import Language.EO.Phi.Rules.Yaml (convertRule, parseRuleSetFromFile, rules)
-import Language.EO.Phi.Syntax.Abs
+import Language.EO.Phi.Syntax.Abs as Phi
 import Test.QuickCheck
 
 instance Arbitrary Attribute where
@@ -17,6 +17,15 @@ instance Arbitrary Attribute where
       , Label . LabelId <$> listOf1 (elements ['a' .. 'z'])
       ]
 
+instance Arbitrary Bytes where
+  arbitrary = Bytes <$> arbitrary
+instance Arbitrary Phi.Function where
+  arbitrary = Phi.Function <$> arbitrary
+instance Arbitrary Phi.MetaId where
+  arbitrary = Phi.MetaId <$> arbitrary
+instance Arbitrary Phi.MetaFunctionName where
+  arbitrary = Phi.MetaFunctionName <$> arbitrary
+
 instance Arbitrary Binding where
   arbitrary =
     oneof
@@ -25,6 +34,7 @@ instance Arbitrary Binding where
       , DeltaBinding . intToBytes <$> arbitrarySizedNatural
       , LambdaBinding . Function <$> arbitrary
       ]
+  shrink = genericShrink
 
 instance Arbitrary Object where
   arbitrary = sized $ \n -> do
@@ -42,6 +52,7 @@ instance Arbitrary Object where
           , pure Termination
           ]
       else pure $ Formation []
+  shrink = genericShrink
 
 confluence :: [Rule] -> Object -> Property
 confluence originalRules input = conjoin $ flip map rulesInAllOrders $ \rulesPermutation -> applyRules (Context rulesPermutation [input]) input === referenceApplication
