@@ -22,7 +22,7 @@ instance Arbitrary Binding where
     oneof
       [ EmptyBinding <$> arbitrary
       , liftA2 AlphaBinding arbitrary arbitrary
-      , DeltaBinding . intToBytes <$> arbitrary
+      , DeltaBinding . intToBytes <$> arbitrarySizedNatural
       , LambdaBinding . Function <$> arbitrary
       ]
 
