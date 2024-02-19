@@ -1,7 +1,7 @@
 {-# LANGUAGE OverloadedLists #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-import Data.List (permutations)
+import Data.List (nub)
 import Language.EO.Phi.Rules.Common (Context (Context), Rule, applyRules, intToBytes)
 import Language.EO.Phi.Rules.Yaml (convertRule, parseRuleSetFromFile, rules)
 import Language.EO.Phi.Syntax.Abs as Phi
@@ -55,10 +55,9 @@ instance Arbitrary Object where
   shrink = genericShrink
 
 confluence :: [Rule] -> Object -> Property
-confluence originalRules input = conjoin $ flip map rulesInAllOrders $ \rulesPermutation -> applyRules (Context rulesPermutation [input]) input === referenceApplication
+confluence originalRules input = length (nub (applyRules ctx input)) === 1
  where
-  referenceApplication = applyRules (Context originalRules [input]) input
-  rulesInAllOrders = permutations originalRules
+  ctx = Context originalRules [input]
 
 main :: IO ()
 main = do
