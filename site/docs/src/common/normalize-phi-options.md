@@ -15,5 +15,5 @@ Available options:
   -c,--chain               Print out steps of reduction
   --rules-yaml STRING      Path to the Yaml file with custom rules
   -o,--output STRING       Output file path (defaults to stdout)
-  -s,--single              Print a single normlized expression
+  -s,--single              Print a single normalized expression
 ```
