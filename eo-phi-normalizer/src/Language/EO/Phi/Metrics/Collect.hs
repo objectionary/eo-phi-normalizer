@@ -59,19 +59,10 @@ instance Inspectable Binding where
       inspect obj
     EmptyBinding attr -> do
       inspect attr
-    DeltaBinding _ -> pure ()
-    LambdaBinding _ -> pure ()
-    MetaBindings _ -> pure ()
+    _ -> pure ()
 
 instance Inspectable Attribute where
-  inspect = \case
-    Phi -> pure ()
-    Rho -> pure ()
-    Sigma -> pure ()
-    VTX -> pure ()
-    Label _ -> pure ()
-    Alpha _ -> pure ()
-    MetaAttr _ -> pure ()
+  inspect _ = pure ()
 
 instance Inspectable Object where
   inspect = \case
@@ -87,8 +78,4 @@ instance Inspectable Object where
       #dispatches += 1
       inspect obj
       inspect attr
-    GlobalObject -> pure ()
-    ThisObject -> pure ()
-    Termination -> pure ()
-    MetaObject _ -> pure ()
-    MetaFunction _ _ -> pure ()
+    _ -> pure ()
