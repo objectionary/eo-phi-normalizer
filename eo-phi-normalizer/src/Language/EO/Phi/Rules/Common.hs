@@ -1,11 +1,14 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+
+{-# HLINT ignore "Use &&" #-}
 
 module Language.EO.Phi.Rules.Common where
 
 import Control.Applicative (Alternative ((<|>)), asum)
-import Data.List (nub)
+import Data.List (nubBy, sortOn)
 import Data.List.NonEmpty (NonEmpty (..), (<|))
 import Data.String (IsString (..))
 import Language.EO.Phi.Syntax.Abs
@@ -49,10 +52,12 @@ type Rule = Context -> Object -> [Object]
 
 applyOneRuleAtRoot :: Context -> Object -> [Object]
 applyOneRuleAtRoot ctx@Context{..} obj =
-  [ obj'
-  | rule <- allRules
-  , obj' <- rule ctx obj
-  ]
+  nubBy
+    equalObject
+    [ obj'
+    | rule <- allRules
+    , obj' <- rule ctx obj
+    ]
 
 extendContextWith :: Object -> Context -> Context
 extendContextWith obj ctx =
@@ -107,11 +112,43 @@ applyRules :: Context -> Object -> [Object]
 applyRules ctx obj
   | isNF ctx obj = [obj]
   | otherwise =
-      nub
+      nubBy
+        equalObject
         [ obj''
         | obj' <- applyOneRule ctx obj
         , obj'' <- applyRules ctx obj'
         ]
+
+equalObject :: Object -> Object -> Bool
+equalObject (Formation bindings1) (Formation bindings2) =
+  and
+    [ length bindings1 == length bindings2
+    , equalBindings bindings1 bindings2
+    ]
+equalObject (Application obj1 bindings1) (Application obj2 bindings2) =
+  and
+    [ equalObject obj1 obj2
+    , equalBindings bindings1 bindings2
+    ]
+equalObject (ObjectDispatch obj1 attr1) (ObjectDispatch obj2 attr2) =
+  and
+    [ equalObject obj1 obj2
+    , attr1 == attr2
+    ]
+equalObject obj1 obj2 = obj1 == obj2
+
+equalBindings :: [Binding] -> [Binding] -> Bool
+equalBindings bindings1 bindings2 = and (zipWith equalBinding (sortOn attr bindings1) (sortOn attr bindings2))
+ where
+  attr (AlphaBinding a _) = a
+  attr (EmptyBinding a) = a
+  attr (DeltaBinding _) = Label (LabelId "Δ")
+  attr (LambdaBinding _) = Label (LabelId "λ")
+  attr (MetaBindings metaId) = MetaAttr metaId
+
+equalBinding :: Binding -> Binding -> Bool
+equalBinding (AlphaBinding attr1 obj1) (AlphaBinding attr2 obj2) = attr1 == attr2 && equalObject obj1 obj2
+equalBinding b1 b2 = b1 == b2
 
 applyRulesChain :: Context -> Object -> [[Object]]
 applyRulesChain ctx obj
