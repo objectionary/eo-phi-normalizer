@@ -5,8 +5,8 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 import Data.List (intercalate)
-import qualified Data.List as List
-import Language.EO.Phi.Rules.Common (Context (Context), Rule, applyRules, intToBytes, applyOneRule)
+import Data.List qualified as List
+import Language.EO.Phi.Rules.Common (Context (Context), Rule, applyOneRule, applyRules, intToBytes)
 import Language.EO.Phi.Rules.Yaml (convertRule, parseRuleSetFromFile, rules)
 import Language.EO.Phi.Syntax (printTree)
 import Language.EO.Phi.Syntax.Abs as Phi
@@ -84,48 +84,57 @@ genCriticalPair :: [Rule] -> Gen CriticalPair
 genCriticalPair rules = do
   (sourceTerm, results) <- fan `suchThat` \(_, rs) -> length rs > 1
   case results of
-    x:y:_ -> return CriticalPair
-      { sourceTerm = sourceTerm
-      , criticalPair = (x, y)
-      }
+    x : y : _ ->
+      return
+        CriticalPair
+          { sourceTerm = sourceTerm
+          , criticalPair = (x, y)
+          }
     _ -> error "IMPOSSIBLE HAPPENED"
-  where
-    fan = do
-      obj <- Formation <$> listOf arbitrary
-      return (obj, applyOneRule (Context rules [obj]) obj)
+ where
+  fan = do
+    obj <- Formation <$> listOf arbitrary
+    return (obj, applyOneRule (Context rules [obj]) obj)
 
 shrinkCriticalPair :: [Rule] -> CriticalPair -> [CriticalPair]
 shrinkCriticalPair rules CriticalPair{..} =
   [ CriticalPair
-      { sourceTerm = sourceTerm'
-      , criticalPair = (x, y)
-      }
+    { sourceTerm = sourceTerm'
+    , criticalPair = (x, y)
+    }
   | sourceTerm'@Formation{} <- shrink sourceTerm
-  , x:y:_ <- [applyOneRule (Context rules [sourceTerm']) sourceTerm']
+  , x : y : _ <- [applyOneRule (Context rules [sourceTerm']) sourceTerm']
   ]
 
 descendantsN :: Int -> [Rule] -> [Object] -> [Object]
 descendantsN maxDepth rules objs
   | maxDepth <= 0 = objs
-  | otherwise = objs ++ descendantsN (maxDepth - 1) rules
-      [ obj'
-      | obj <- objs
-      , obj' <- applyOneRule (Context rules [obj]) obj ]
+  | otherwise =
+      objs
+        ++ descendantsN
+          (maxDepth - 1)
+          rules
+          [ obj'
+          | obj <- objs
+          , obj' <- applyOneRule (Context rules [obj]) obj
+          ]
 
 confluentCriticalPairN :: Int -> [Rule] -> CriticalPair -> Bool
 confluentCriticalPairN maxDepth rules CriticalPair{..} =
   not (null (descendantsN maxDepth rules [x] `List.intersect` descendantsN maxDepth rules [y]))
-  where
-    (x, y) = criticalPair
+ where
+  (x, y) = criticalPair
 
 instance Show CriticalPair where
-  show CriticalPair{criticalPair = (x, y), ..} = intercalate "\n"
-    [ "Source term:"
-    , "  " <> printTree sourceTerm
-    , "Critical pair:"
-    , "  " <> printTree x
-    , "  " <> printTree y
-    ]
+  show CriticalPair{criticalPair = (x, y), ..} =
+    intercalate
+      "\n"
+      [ "Source term:"
+      , "  " <> printTree sourceTerm
+      , "Critical pair:"
+      , "  " <> printTree x
+      , "  " <> printTree y
+      ]
 
 main :: IO ()
 main = do
@@ -139,4 +148,5 @@ main = do
     within 100_000 $
       forAllShrink (genCriticalPair rulesFromYaml) (shrinkCriticalPair rulesFromYaml) $
         confluentCriticalPairN 10 rulesFromYaml
-  -- quickCheck $ within 10_000_000 (forAllShrink genPrettyObject shrinkPrettyObject $ \(PrettyObject _ obj) -> confluence rulesFromYaml obj)
+
+-- quickCheck $ within 10_000_000 (forAllShrink genPrettyObject shrinkPrettyObject $ \(PrettyObject _ obj) -> confluence rulesFromYaml obj)
