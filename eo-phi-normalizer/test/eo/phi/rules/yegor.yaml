@@ -192,3 +192,12 @@ rules:
         input: '⟦ ⟧.a'
         output: '⟦ ⟧.a'
         matches: false
+
+  - name: Extra rule for bottom
+    description: 'Application on bottom is bottom'
+    pattern: |
+      ⊥(!B)
+    result: |
+      ⊥
+    when: []
+    tests: []
