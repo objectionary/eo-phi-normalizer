@@ -12,6 +12,9 @@ import Language.EO.Phi.Syntax (printTree)
 import Language.EO.Phi.Syntax.Abs as Phi
 import Test.QuickCheck
 
+arbitraryNonEmptyString :: Gen String
+arbitraryNonEmptyString = listOf1 (elements ['a' .. 'z'])
+
 instance Arbitrary Attribute where
   arbitrary =
     oneof
@@ -19,27 +22,27 @@ instance Arbitrary Attribute where
       , pure Rho
       , pure Sigma
       , pure VTX
-      , Label . LabelId <$> listOf1 (elements ['a' .. 'z'])
+      , Label . LabelId <$> abitraryNonEmptyString
       ]
   shrink = genericShrink
 
 instance Arbitrary LabelId where
-  arbitrary = LabelId <$> arbitrary
+  arbitrary = LabelId <$> arbitraryNonEmptyString
   shrink = genericShrink
 instance Arbitrary AlphaIndex where
-  arbitrary = AlphaIndex <$> arbitrary
+  arbitrary = AlphaIndex <$> arbitraryNonEmptyString
   shrink = genericShrink
 instance Arbitrary Bytes where
-  arbitrary = Bytes <$> arbitrary
+  arbitrary = intToBytes <$> arbitrarySizedNatural
   shrink = genericShrink
 instance Arbitrary Phi.Function where
-  arbitrary = Phi.Function <$> listOf1 (elements ['a' .. 'z'])
+  arbitrary = Phi.Function <$> arbitraryNonEmptyString
   shrink = genericShrink
 instance Arbitrary Phi.MetaId where
-  arbitrary = Phi.MetaId <$> arbitrary
+  arbitrary = Phi.MetaId . ("!" ++) <$> arbitraryNonEmptyString
   shrink = genericShrink
 instance Arbitrary Phi.MetaFunctionName where
-  arbitrary = Phi.MetaFunctionName <$> arbitrary
+  arbitrary = Phi.MetaFunctionName . ("@" ++) <$> arbitraryNonEmptyString
   shrink = genericShrink
 
 instance Arbitrary Binding where
