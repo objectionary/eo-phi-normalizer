@@ -6,7 +6,7 @@
 
 import Data.List (intercalate)
 import Data.List qualified as List
-import Language.EO.Phi.Rules.Common (Context (Context), Rule, applyOneRule, applyRules, intToBytes)
+import Language.EO.Phi.Rules.Common (Context (Context), Rule, applyOneRule, intToBytes)
 import Language.EO.Phi.Rules.Yaml (convertRule, parseRuleSetFromFile, rules)
 import Language.EO.Phi.Syntax (printTree)
 import Language.EO.Phi.Syntax.Abs as Phi
@@ -69,16 +69,6 @@ instance Arbitrary Object where
           ]
       else pure $ Formation []
   shrink = genericShrink
-
-confluence :: [Rule] -> Object -> Bool
-confluence originalRules input = length (applyRules ctx input) == 1
- where
-  ctx = Context originalRules [input]
-
-data PrettyObject = PrettyObject Context Object
-
-instance Show PrettyObject where
-  show (PrettyObject ctx obj) = intercalate "\n" (map printTree (obj : applyRules ctx obj))
 
 data CriticalPair = CriticalPair
   { sourceTerm :: Object
@@ -146,13 +136,7 @@ main :: IO ()
 main = do
   ruleset <- parseRuleSetFromFile "./test/eo/phi/rules/yegor.yaml"
   let rulesFromYaml = map convertRule (rules ruleset)
-  let genPrettyObject = do
-        obj <- arbitrary
-        return (PrettyObject (Context rulesFromYaml [obj]) obj)
-      shrinkPrettyObject (PrettyObject ctx obj) = PrettyObject ctx <$> shrink obj
   quickCheck $
     within 100_000 $
       forAllShrink (genCriticalPair rulesFromYaml) (shrinkCriticalPair rulesFromYaml) $
         confluentCriticalPairN 10 rulesFromYaml
-
--- quickCheck $ within 10_000_000 (forAllShrink genPrettyObject shrinkPrettyObject $ \(PrettyObject _ obj) -> confluence rulesFromYaml obj)
