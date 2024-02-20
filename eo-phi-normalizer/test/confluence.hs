@@ -22,7 +22,7 @@ instance Arbitrary Attribute where
       , pure Rho
       , pure Sigma
       , pure VTX
-      , Label . LabelId <$> abitraryNonEmptyString
+      , Label <$> arbitrary
       ]
   shrink = genericShrink
 
@@ -50,7 +50,7 @@ instance Arbitrary Binding where
     oneof
       [ EmptyBinding <$> arbitrary
       , AlphaBinding <$> arbitrary <*> arbitrary
-      , DeltaBinding . intToBytes <$> arbitrarySizedNatural
+      , DeltaBinding <$> arbitrary
       , LambdaBinding <$> arbitrary
       ]
   shrink = genericShrink
