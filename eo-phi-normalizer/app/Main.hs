@@ -1,5 +1,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -11,7 +12,11 @@ module Main where
 import Control.Monad (unless, when)
 import Data.Foldable (forM_)
 
+import Control.Lens ((^.))
+import Data.Aeson (ToJSON)
+import Data.Aeson.Text (encodeToLazyText)
 import Data.List (nub)
+import Data.Text.Lazy.Lens
 import Language.EO.Phi (Object (Formation), Program (Program), defaultMain, parseProgram, printTree)
 import Language.EO.Phi.Rules.Common (Context (..), applyRules, applyRulesChain)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRule, parseRuleSetFromFile)
@@ -23,6 +28,7 @@ data CLINamedParams = CLINamedParams
   , rulesYaml :: Maybe String
   , outPath :: Maybe String
   , single :: Bool
+  , json :: Bool
   }
   deriving (Generic, Show, ParseRecord, Read, ParseField)
 
@@ -33,9 +39,19 @@ instance ParseFields CLINamedParams where
       <*> parseFields (Just "Path to the Yaml file with custom rules") (Just "rules-yaml") Nothing Nothing
       <*> parseFields (Just "Output file path (defaults to stdout)") (Just "output") (Just 'o') Nothing
       <*> parseFields (Just "Print a single normalized expression") (Just "single") (Just 's') Nothing
+      <*> parseFields (Just "Print JSON") (Just "json") (Just 'j') Nothing
 
 data CLIOptions = CLIOptions CLINamedParams (Maybe FilePath)
   deriving (Generic, Show, ParseRecord)
+
+data StructuredJSON = StructuredJSON
+  { input :: String
+  , results :: [[String]]
+  }
+  deriving (Generic, ToJSON)
+
+encodeString :: (ToJSON a) => a -> String
+encodeString = (^. unpacked) . encodeToLazyText
 
 main :: IO ()
 main = do
@@ -48,7 +64,7 @@ main = do
       let logStr = hPutStr handle
       let logStrLn = hPutStrLn handle
       ruleSet <- parseRuleSetFromFile path
-      unless single $ logStrLn ruleSet.title
+      unless (single || json) $ logStrLn ruleSet.title
       src <- maybe getContents readFile inPath
       let progOrError = parseProgram src
       case progOrError of
@@ -59,28 +75,37 @@ main = do
                 | otherwise = pure <$> applyRules (Context (convertRule <$> ruleSet.rules) [Formation bindings]) (Formation bindings)
               uniqueResults = nub results
               totalResults = length uniqueResults
-          when (length uniqueResults == 0 || length (head uniqueResults) == 0) $ error "Could not normalize the program"
-          if single
-            then logStrLn $
-              case head (head uniqueResults) of
+          when (null uniqueResults || null (head uniqueResults)) $ error "Could not normalize the program"
+          let printFormationAsProgramOrObject = \case
                 Formation bindings' -> printTree $ Program bindings'
-                _ -> printTree (head uniqueResults)
+                x -> printTree x
+          if single
+            then
+              logStrLn
+                . (if json then encodeString else id)
+                . printFormationAsProgramOrObject
+                $ head (head uniqueResults)
             else do
-              logStrLn "Input:"
-              logStrLn (printTree input)
-              logStrLn "===================================================="
-              forM_ (zip [1 ..] uniqueResults) $ \(i, steps) -> do
-                logStrLn $
-                  "Result " <> show i <> " out of " <> show totalResults <> ":"
-                let n = length steps
-                forM_ (zip [1 ..] steps) $ \(k, step) -> do
-                  when chain $
-                    logStr ("[ " <> show k <> " / " <> show n <> " ]")
-                  logStrLn $
-                    case step of
-                      Formation bindings' -> printTree $ Program bindings'
-                      _ -> printTree step
-                logStrLn "----------------------------------------------------"
+              if json
+                then
+                  logStrLn . encodeString $
+                    StructuredJSON
+                      { input = printTree input
+                      , results = (printFormationAsProgramOrObject <$>) <$> results
+                      }
+                else do
+                  logStrLn "Input:"
+                  logStrLn (printTree input)
+                  logStrLn "===================================================="
+                  forM_ (zip [1 ..] uniqueResults) $ \(i, steps) -> do
+                    logStrLn $
+                      "Result " <> show i <> " out of " <> show totalResults <> ":"
+                    let n = length steps
+                    forM_ (zip [1 ..] steps) $ \(k, step) -> do
+                      when chain $
+                        logStr ("[ " <> show k <> " / " <> show n <> " ]")
+                      logStrLn . printFormationAsProgramOrObject $ step
+                    logStrLn "----------------------------------------------------"
       hClose handle
     -- TODO #48:15m still need to consider `chain` (should rewrite/change defaultMain to mainWithOptions)
     Nothing -> defaultMain
