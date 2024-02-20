@@ -25,16 +25,22 @@ instance Arbitrary Attribute where
 
 instance Arbitrary LabelId where
   arbitrary = LabelId <$> arbitrary
+  shrink = genericShrink
 instance Arbitrary AlphaIndex where
   arbitrary = AlphaIndex <$> arbitrary
+  shrink = genericShrink
 instance Arbitrary Bytes where
   arbitrary = Bytes <$> arbitrary
+  shrink = genericShrink
 instance Arbitrary Phi.Function where
   arbitrary = Phi.Function <$> listOf1 (elements ['a' .. 'z'])
+  shrink = genericShrink
 instance Arbitrary Phi.MetaId where
   arbitrary = Phi.MetaId <$> arbitrary
+  shrink = genericShrink
 instance Arbitrary Phi.MetaFunctionName where
   arbitrary = Phi.MetaFunctionName <$> arbitrary
+  shrink = genericShrink
 
 instance Arbitrary Binding where
   arbitrary =
