@@ -48,9 +48,7 @@ countDataless bindings = do
   when (deltas == 0) (#dataless += 1)
 
 instance Inspectable Program where
-  inspect (Program bindings) = do
-    countDataless bindings
-    forM_ bindings inspect
+  inspect (Program bindings) = inspect (Formation bindings)
 
 instance Inspectable Binding where
   inspect = \case

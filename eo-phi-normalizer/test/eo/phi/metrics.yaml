@@ -2,7 +2,8 @@ title: Metrics tests
 tests:
 - title: prints-itself
   phi: |
-    { ⟦
+    {
+      ⟦
         org ↦ ⟦
           eolang ↦ ⟦
             prints-itself ↦ ⟦
@@ -38,5 +39,5 @@ tests:
   metrics:
     dataless: 5
     applications: 8
-    formations: 4
+    formations: 5
     dispatches: 24
