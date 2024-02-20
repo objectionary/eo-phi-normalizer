@@ -36,7 +36,7 @@ tests:
       ⟧
     }
   metrics:
-    dataless: 2
+    dataless: 5
     applications: 8
     formations: 4
     dispatches: 24
