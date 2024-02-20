@@ -6,7 +6,7 @@
 
 import Data.List (intercalate)
 import Data.List qualified as List
-import Language.EO.Phi.Rules.Common (Context (Context), Rule, applyOneRule, intToBytes)
+import Language.EO.Phi.Rules.Common (Context (Context), Rule, applyOneRule, equalObject, intToBytes)
 import Language.EO.Phi.Rules.Yaml (convertRule, parseRuleSetFromFile, rules)
 import Language.EO.Phi.Syntax (printTree)
 import Language.EO.Phi.Syntax.Abs as Phi
@@ -120,7 +120,7 @@ descendantsN maxDepth rules objs
 
 confluentCriticalPairN :: Int -> [Rule] -> CriticalPair -> Bool
 confluentCriticalPairN maxDepth rules CriticalPair{..} =
-  not (null (descendantsN maxDepth rules [x] `List.intersect` descendantsN maxDepth rules [y]))
+  not (null (List.intersectBy equalObject (descendantsN maxDepth rules [x]) (descendantsN maxDepth rules [y])))
  where
   (x, y) = criticalPair
 
