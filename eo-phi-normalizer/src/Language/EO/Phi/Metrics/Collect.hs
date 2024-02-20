@@ -7,8 +7,8 @@
 module Language.EO.Phi.Metrics.Collect where
 
 import Control.Lens ((+=))
-import Control.Monad (forM_)
-import Control.Monad.State (State, execState)
+import Control.Monad (forM_, when)
+import Control.Monad.State (MonadState, State, execState)
 import Data.Aeson (FromJSON)
 import Data.Generics.Labels ()
 import GHC.Generics (Generic)
@@ -38,8 +38,19 @@ collectMetrics a = execState (inspect a) defaultMetrics
 class Inspectable a where
   inspect :: a -> State Metrics ()
 
+count :: (a -> Bool) -> [a] -> Int
+count x = length . filter x
+
+countDataless :: (MonadState Metrics m) => [Binding] -> m ()
+countDataless bindings = do
+  let countDeltas = count (\case DeltaBinding _ -> True; _ -> False)
+      deltas = countDeltas (bindings <> concatMap (\case AlphaBinding _ (Formation bindings') -> bindings'; _ -> []) bindings)
+  when (deltas == 0) (#dataless += 1)
+
 instance Inspectable Program where
-  inspect (Program binding) = forM_ binding inspect
+  inspect (Program bindings) = do
+    countDataless bindings
+    forM_ bindings inspect
 
 instance Inspectable Binding where
   inspect = \case
@@ -47,10 +58,9 @@ instance Inspectable Binding where
       inspect attr
       inspect obj
     EmptyBinding attr -> do
-      #dataless += 1
       inspect attr
     DeltaBinding _ -> pure ()
-    LambdaBinding _ -> #dataless += 1
+    LambdaBinding _ -> pure ()
     MetaBindings _ -> pure ()
 
 instance Inspectable Attribute where
@@ -66,6 +76,7 @@ instance Inspectable Attribute where
 instance Inspectable Object where
   inspect = \case
     Formation bindings -> do
+      countDataless bindings
       #formations += 1
       forM_ bindings inspect
     Application obj bindings -> do
