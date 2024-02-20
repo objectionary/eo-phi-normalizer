@@ -32,7 +32,7 @@ instance ParseFields CLINamedParams where
       <$> parseFields (Just "Print out steps of reduction") (Just "chain") (Just 'c') Nothing
       <*> parseFields (Just "Path to the Yaml file with custom rules") (Just "rules-yaml") Nothing Nothing
       <*> parseFields (Just "Output file path (defaults to stdout)") (Just "output") (Just 'o') Nothing
-      <*> parseFields (Just "Print a single normlized expression") (Just "single") (Just 's') Nothing
+      <*> parseFields (Just "Print a single normalized expression") (Just "single") (Just 's') Nothing
 
 data CLIOptions = CLIOptions CLINamedParams (Maybe FilePath)
   deriving (Generic, Show, ParseRecord)
