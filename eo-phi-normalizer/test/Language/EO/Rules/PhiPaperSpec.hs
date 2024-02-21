@@ -1,15 +1,22 @@
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE NumericUnderscores #-}
 {-# LANGUAGE OverloadedLists #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Language.EO.Rules.PhiPaperSpec where
 
+import Control.Monad (forM_)
+import Data.Aeson (FromJSON)
 import Data.Data (Data (toConstr))
 import Data.List (intercalate)
 import Data.List qualified as List
-import Language.EO.Phi.Rules.Common (Context (Context), Rule, applyOneRule, equalObject, intToBytes)
+import Data.Yaml qualified as Yaml
+import GHC.Generics (Generic)
+import Language.EO.Phi.Rules.Common (Context (Context), Rule, applyOneRule, applyRules, equalObject, intToBytes)
 import Language.EO.Phi.Rules.Yaml (convertRule, parseRuleSetFromFile, rules)
 import Language.EO.Phi.Syntax (printTree)
 import Language.EO.Phi.Syntax.Abs as Phi
@@ -150,10 +157,32 @@ confluent rulesFromYaml =
     forAllShrink (genCriticalPair rulesFromYaml) (shrinkCriticalPair rulesFromYaml) $
       confluentCriticalPairN 7 rulesFromYaml
 
+confluentOnObject :: [Rule] -> Object -> Bool
+confluentOnObject rules obj = isSingleton (applyRules ctx obj)
+ where
+  ctx = Context rules [obj]
+  -- To support possibly infinite results
+  isSingleton [_] = True
+  isSingleton _ = False
+
+data ConfluenceTests = ConfluenceTests
+  { title :: String
+  , tests :: [Object]
+  }
+  deriving (Generic, FromJSON, Show)
+
+parseTests :: String -> IO ConfluenceTests
+parseTests = Yaml.decodeFileThrow
+
 spec :: Spec
 spec = do
   ruleset <- runIO $ parseRuleSetFromFile "./test/eo/phi/rules/yegor.yaml"
   let rulesFromYaml = map convertRule (rules ruleset)
-  describe "Yegor's rules" $
-    it "Are confluent (via QuickCheck)" $
-      confluent rulesFromYaml
+  inputs <- runIO $ parseTests "./test/eo/phi/confluence.yaml"
+  describe "Yegor's rules" $ do
+    it "Are confluent (via QuickCheck)" (confluent rulesFromYaml)
+    describe
+      "Are confluent (manual tests)"
+      $ forM_ (tests inputs)
+      $ \input -> do
+        it (printTree input) (input `shouldSatisfy` confluentOnObject rulesFromYaml)
