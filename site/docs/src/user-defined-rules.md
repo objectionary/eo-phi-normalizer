@@ -20,7 +20,7 @@ Each rule has the following structure:
 
 - `name` - Rule name.
 - `description` - Rule description.
-- `context` - (optional) Rule context. A contex may contain:
+- `context` - (optional) Rule context. A context may contain:
   - `global-object` - (optional) Global object `MetaId`.
   - `current-object` - (optional) Current object `MetaId`.
 - `pattern` - Term pattern.
