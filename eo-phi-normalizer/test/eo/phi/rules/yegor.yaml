@@ -4,10 +4,11 @@ rules:
     description: 'Initialization of vertex attribute'
     context:
       global_object: '!Phi'
+      current_object: '⟦ !a ↦ ⟦ !B ⟧, !B_rest ⟧'
     pattern: |
-      ⟦ !a ↦ ⟦ !B ⟧, !B_rest ⟧
+      ⟦ !B ⟧
     result: |
-      ⟦ !a ↦ ⟦ !B, ν ↦ @T(!Phi) ⟧, !B_rest ⟧
+      ⟦ !B, ν ↦ @T(!Phi) ⟧
     when:
       - absent_attrs:
           attrs: ['ν']

@@ -85,8 +85,8 @@ convertRule Rule{..} ctx obj =
   , let pattern' = applySubst contextSubsts pattern
   , let result' = applySubst contextSubsts result
   , subst <- matchObject pattern' obj
-  , all (\cond -> checkCond ctx cond subst) when
-  , obj' <- [applySubst subst (evaluateMetaFuncs result')]
+  , all (\cond -> checkCond ctx cond (contextSubsts <> subst)) when
+  , obj' <- [applySubst (contextSubsts <> subst) (evaluateMetaFuncs result')]
   , not (objectHasMetavars obj')
   ]
 
