@@ -4,11 +4,18 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedLabels #-}
 
+{- FOURMOLU_DISABLE -}
+
+-- $setup
+-- >>> :set -XOverloadedStrings
+
+{- FOURMOLU_ENABLE -}
+
 module Language.EO.Phi.Metrics.Collect where
 
 import Control.Lens ((+=))
-import Control.Monad (forM_, when)
-import Control.Monad.State (MonadState, State, execState)
+import Control.Monad (forM_)
+import Control.Monad.State (State, execState)
 import Data.Aeson (FromJSON)
 import Data.Generics.Labels ()
 import GHC.Generics (Generic)
@@ -41,11 +48,29 @@ class Inspectable a where
 count :: (a -> Bool) -> [a] -> Int
 count x = length . filter x
 
-countDataless :: (MonadState Metrics m) => [Binding] -> m ()
-countDataless bindings = do
+-- | Count dataless formations in a list of bindings
+--
+-- >>> countDataless' :: Object -> Int; countDataless' x = let Formation bindings = x in countDataless bindings
+--
+-- >>> countDataless' "⟦ α0 ↦ ξ, α0 ↦ Φ.org.eolang.bytes( Δ ⤍ 00-00-00-00-00-00-00-2A ) ⟧"
+-- 1
+--
+-- >>> countDataless' "⟦ α0 ↦ ξ, Δ ⤍ 00-00-00-00-00-00-00-2A ⟧"
+-- 0
+--
+--
+-- >>> countDataless' "⟦ α0 ↦ ξ, α1 ↦ ⟦ Δ ⤍ 00-00-00-00-00-00-00-2A ⟧ ⟧"
+-- 0
+--
+--
+-- >>> countDataless' "⟦ α0 ↦ ξ, α1 ↦ ⟦ α2 ↦ ⟦ Δ ⤍ 00-00-00-00-00-00-00-2A ⟧ ⟧ ⟧"
+-- 1
+countDataless :: (Num a) => [Binding] -> a
+countDataless bindings =
   let countDeltas = count (\case DeltaBinding _ -> True; _ -> False)
-      deltas = countDeltas (bindings <> concatMap (\case AlphaBinding _ (Formation bindings') -> bindings'; _ -> []) bindings)
-  when (deltas == 0) (#dataless += 1)
+      nestedBindings = concatMap (\case AlphaBinding _ (Formation bindings') -> bindings'; _ -> []) bindings
+      deltas = countDeltas (bindings <> nestedBindings)
+   in if deltas == 0 then 1 else 0
 
 instance Inspectable Program where
   inspect (Program bindings) = inspect (Formation bindings)
@@ -65,7 +90,7 @@ instance Inspectable Attribute where
 instance Inspectable Object where
   inspect = \case
     Formation bindings -> do
-      countDataless bindings
+      #dataless += countDataless bindings
       #formations += 1
       forM_ bindings inspect
     Application obj bindings -> do
