@@ -10,7 +10,4 @@ cradle:
       component: "eo-phi-normalizer:exe:normalize-phi"
 
     - path: "eo-phi-normalizer/test"
-      component: "eo-phi-normalizer:test:confluence"
-
-    - path: "eo-phi-normalizer/test"
       component: "eo-phi-normalizer:test:eo-phi-normalizer-test"

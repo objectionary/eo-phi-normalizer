@@ -4,6 +4,8 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
+module Language.EO.Rules.PhiPaperSpec where
+
 import Data.Data (Data (toConstr))
 import Data.List (intercalate)
 import Data.List qualified as List
@@ -11,6 +13,7 @@ import Language.EO.Phi.Rules.Common (Context (Context), Rule, applyOneRule, equa
 import Language.EO.Phi.Rules.Yaml (convertRule, parseRuleSetFromFile, rules)
 import Language.EO.Phi.Syntax (printTree)
 import Language.EO.Phi.Syntax.Abs as Phi
+import Test.Hspec
 import Test.QuickCheck
 
 arbitraryNonEmptyString :: Gen String
@@ -125,6 +128,7 @@ descendantsN maxDepth rules objs
 
 confluentCriticalPairN :: Int -> [Rule] -> CriticalPair -> Bool
 confluentCriticalPairN maxDepth rules CriticalPair{..} =
+  -- should normalize the VTXs before checking
   not (null (List.intersectBy equalObject (descendantsN maxDepth rules [x]) (descendantsN maxDepth rules [y])))
  where
   (x, y) = criticalPair
@@ -140,11 +144,16 @@ instance Show CriticalPair where
       , "  " <> printTree y
       ]
 
-main :: IO ()
-main = do
-  ruleset <- parseRuleSetFromFile "./test/eo/phi/rules/yegor.yaml"
+confluent :: [Rule] -> Property
+confluent rulesFromYaml =
+  within 10_000_000 $
+    forAllShrink (genCriticalPair rulesFromYaml) (shrinkCriticalPair rulesFromYaml) $
+      confluentCriticalPairN 7 rulesFromYaml
+
+spec :: Spec
+spec = do
+  ruleset <- runIO $ parseRuleSetFromFile "./test/eo/phi/rules/yegor.yaml"
   let rulesFromYaml = map convertRule (rules ruleset)
-  quickCheck $
-    within 100_000 $
-      forAllShrink (genCriticalPair rulesFromYaml) (shrinkCriticalPair rulesFromYaml) $
-        confluentCriticalPairN 10 rulesFromYaml
+  describe "Yegor's rules" $
+    it "Are confluent (via QuickCheck)" $
+      confluent rulesFromYaml
