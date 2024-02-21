@@ -15,8 +15,8 @@ permissions:
   contents: write # to submit Haddock documentation to GitHub Pages
 
 jobs:
-  build:
-    name: "Build and test with GHC"
+  pipeline:
+    name: Run pipeline
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -40,29 +40,6 @@ jobs:
         with:
           stack-build-arguments: ${{ github.ref_name != 'master' && '--fast' || '' }} --pedantic
 
-  pipeline:
-    if: false
-    name: "Run pipeline"
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os:
-          - ubuntu-latest
-          - macos-latest
-          - windows-latest
-    steps:
-      - name: 📥 Checkout repository
-        uses: actions/checkout@v4
-        with:
-          submodules: true
-
-      - name: 🧰 Setup Stack
-        uses: freckle/stack-action@v5
-        with:
-          test: false
-          stack-build-arguments: --${{ github.ref_name != 'master' && 'fast' || '' }} --pedantic
-
       - uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -77,7 +54,7 @@ jobs:
         run: ./scripts/pipeline.sh
 
   docs:
-    needs: [build]
+    needs: [pipeline]
     if: ${{ github.ref_name == 'master' }}
     name: "Build and upload site (master)"
     runs-on: ubuntu-latest
