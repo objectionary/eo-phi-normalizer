@@ -18,12 +18,12 @@ These rules translated to `MetaPHI` are in [yegor.yaml](https://github.com/objec
 
 Each rule has the following structure:
 
-- `name` - Rule name;
-- `description` - Rule description;
-- `context` - (optional) Rule context. May contain:
-  - `global-object` - (optional) Global object `MetaId`;
+- `name` - Rule name.
+- `description` - Rule description.
+- `context` - (optional) Rule context. A context may contain:
+  - `global-object` - (optional) Global object `MetaId`.
   - `current-object` - (optional) Current object `MetaId`.
-- `pattern` - Term pattern;
+- `pattern` - Term pattern.
   - When this term pattern matches a subterm of a `PHI` term, `MetaId`s from the term pattern become associated with matching subexpressions of that subterm.
 - `result` - Substitution result.
   - `MetaId`s in the subterm pattern get replaced by their associated subexpressions.
@@ -36,14 +36,14 @@ Each rule has the following structure:
     - `attrs` - A list of attributes. Can include `MetaId`s.
     - `bindings` - A list of bindings that must not contain these attributes.
 - `tests` - A list of unit tests for this rule.
-  - `name` - Test name
+  - `name` - Test name.
   - `input` - An initial `PHI` term.
   - `output` - The initial `PHI` term after this rule was applied.
   - `matches` - Whether the term pattern should match any subterm.
 
 ### Normal form
 
-<!-- TODO -->
+<!-- TODO #119:30m  -->
 
 ## Use rules
 
