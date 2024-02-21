@@ -4,6 +4,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
+import Data.Data (Data (toConstr))
 import Data.List (intercalate)
 import Data.List qualified as List
 import Language.EO.Phi.Rules.Common (Context (Context), Rule, applyOneRule, equalObject, intToBytes)
@@ -60,11 +61,15 @@ instance Arbitrary Object where
     let arbitraryBinding = resize (n `div` 2) arbitrary
     let arbitraryAttr = resize (n `div` 2) arbitrary
     let arbitraryObj = resize (n `div` 2) arbitrary
+    let sameAttr (AlphaBinding attr1 _) (AlphaBinding attr2 _) = attr1 == attr2
+        sameAttr (EmptyBinding attr1) (EmptyBinding attr2) = attr1 == attr2
+        sameAttr b1 b2 = toConstr b1 == toConstr b2
+    let arbitraryBindings = List.nubBy sameAttr <$> listOf arbitraryBinding
     if n > 0
       then
         oneof
-          [ Formation <$> listOf arbitraryBinding
-          , liftA2 Application arbitraryObj (listOf arbitraryBinding)
+          [ Formation <$> arbitraryBindings
+          , liftA2 Application arbitraryObj arbitraryBindings
           , liftA2 ObjectDispatch arbitraryObj arbitraryAttr
           , ObjectDispatch GlobalObject <$> arbitraryAttr
           , pure ThisObject
