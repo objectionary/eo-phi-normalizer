@@ -32,7 +32,7 @@ instance ParseFields CLINamedParams where
       <$> parseFields (Just "Print out steps of reduction") (Just "chain") (Just 'c') Nothing
       <*> parseFields (Just "Path to the Yaml file with custom rules") (Just "rules-yaml") Nothing Nothing
       <*> parseFields (Just "Output file path (defaults to stdout)") (Just "output") (Just 'o') Nothing
-      <*> parseFields (Just "Print a single normlized expression") (Just "single") (Just 's') Nothing
+      <*> parseFields (Just "Print a single normalized expression") (Just "single") (Just 's') Nothing
 
 data CLIOptions = CLIOptions CLINamedParams (Maybe FilePath)
   deriving (Generic, Show, ParseRecord)
@@ -59,9 +59,12 @@ main = do
                 | otherwise = pure <$> applyRules (Context (convertRule <$> ruleSet.rules) [Formation bindings]) (Formation bindings)
               uniqueResults = nub results
               totalResults = length uniqueResults
-          when (totalResults == 0) $ error "Could not normalize the program"
+          when (length uniqueResults == 0 || length (head uniqueResults) == 0) $ error "Could not normalize the program"
           if single
-            then logStrLn (printTree (head uniqueResults))
+            then logStrLn $
+              case head (head uniqueResults) of
+                Formation bindings' -> printTree $ Program bindings'
+                _ -> printTree (head uniqueResults)
             else do
               logStrLn "Input:"
               logStrLn (printTree input)
@@ -73,7 +76,10 @@ main = do
                 forM_ (zip [1 ..] steps) $ \(k, step) -> do
                   when chain $
                     logStr ("[ " <> show k <> " / " <> show n <> " ]")
-                  logStrLn (printTree step)
+                  logStrLn $
+                    case step of
+                      Formation bindings' -> printTree $ Program bindings'
+                      _ -> printTree step
                 logStrLn "----------------------------------------------------"
       hClose handle
     -- TODO #48:15m still need to consider `chain` (should rewrite/change defaultMain to mainWithOptions)
