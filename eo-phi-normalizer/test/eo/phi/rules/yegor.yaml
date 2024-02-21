@@ -96,7 +96,7 @@ rules:
     result: |
       !n(ρ ↦ ⟦ !B ⟧)
     when:
-      - nf: ['!n']
+      - nf: '!n'
     tests:
       - name: Should match
         input: ⟦ hello ↦ ⟦⟧ ⟧.hello
@@ -114,7 +114,7 @@ rules:
     result: |
       ⟦ !a ↦ !n, !B ⟧
     when:
-      - nf: ['!n']
+      - nf: '!n'
     tests: []
 
   - name: Rule 8
@@ -124,7 +124,7 @@ rules:
     result: |
       !n.!a
     when:
-      - nf: ['!n']
+      - nf: '!n'
       - absent_attrs:
           attrs: ['!a']
           bindings: ['!B']
@@ -143,7 +143,7 @@ rules:
     pattern: ⟦ ρ ↦ !t, !B ⟧(ρ ↦ !n)
     result: ⟦ ρ ↦ !n, !B ⟧
     when:
-      - nf: ['!n']
+      - nf: '!n'
     tests: []
 
   - name: Rule 10
@@ -171,6 +171,7 @@ rules:
       - present_attrs:
           attrs: ['ρ', 'σ']
           bindings: ['!B']
+      - nf: '⟦ !B ⟧'
     tests:
       - name: 'Accessing nonexistent attribute'
         input: '⟦ ρ ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧.x'

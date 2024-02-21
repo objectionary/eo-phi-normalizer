@@ -67,7 +67,7 @@ data AttrsInBindings = AttrsInBindings
   }
   deriving (Generic, Show, FromJSON)
 data Condition
-  = IsNF {nf :: [MetaId]}
+  = IsNF {nf :: Object}
   | PresentAttrs {present_attrs :: AttrsInBindings}
   | AbsentAttrs {absent_attrs :: AttrsInBindings}
   | AttrNotEqual {not_equal :: (Attribute, Attribute)}
@@ -129,7 +129,7 @@ attrHasMetavars (MetaAttr _) = True
 -- | Given a condition, and a substition from object matching
 --   tells whether the condition matches the object
 checkCond :: Common.Context -> Condition -> Subst -> Bool
-checkCond ctx (IsNF metaIds) subst = all (Common.isNF ctx . applySubst subst . MetaObject) metaIds
+checkCond ctx (IsNF obj) subst = Common.isNF ctx $ applySubst subst obj
 checkCond _ctx (PresentAttrs (AttrsInBindings attrs bindings)) subst = any (`hasAttr` substitutedBindings) substitutedAttrs
  where
   substitutedBindings = concatMap (applySubstBinding subst) bindings
