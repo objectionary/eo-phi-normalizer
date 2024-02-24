@@ -12,11 +12,13 @@ module Language.EO.Phi.Rules.Yaml where
 import Data.Aeson (FromJSON (..), Options (sumEncoding), SumEncoding (UntaggedValue), genericParseJSON)
 import Data.Aeson.Types (defaultOptions)
 import Data.Coerce (coerce)
+import Data.List (intercalate)
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.Maybe (fromMaybe)
 import Data.String (IsString (..))
 import Data.Yaml qualified as Yaml
 import GHC.Generics (Generic)
+import Language.EO.Phi (printTree)
 import Language.EO.Phi.Rules.Common (Context (outerFormations))
 import Language.EO.Phi.Rules.Common qualified as Common
 import Language.EO.Phi.Syntax.Abs
@@ -174,7 +176,18 @@ data Subst = Subst
   , bindingsMetas :: [(MetaId, [Binding])]
   , attributeMetas :: [(MetaId, Attribute)]
   }
-  deriving (Show)
+instance Show Subst where
+  show Subst{..} =
+    intercalate
+      "\n"
+      [ "Subst {"
+      , "  objectMetas = [" <> showMappings objectMetas <> "]"
+      , "  bindingsMetas = [" <> showMappings bindingsMetas <> "]"
+      , "  attributeMetas = [" <> showMappings attributeMetas <> "]"
+      , "}"
+      ]
+   where
+    showMappings metas = intercalate "; " $ map (\(MetaId metaId, obj) -> metaId <> " -> " <> printTree obj) metas
 
 instance Semigroup Subst where
   (<>) = mergeSubst
