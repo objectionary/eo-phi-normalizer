@@ -20,6 +20,6 @@ spec = describe "User-defined rules unit tests" do
           it ruleTest.name $
             let rule' = convertRule rule
                 normalized = rule' (Context [rule'] [ruleTest.input]) ruleTest.input
-                expected = [ruleTest.output | ruleTest.matches]
+                expected = ruleTest.output
                 sameObjs objs1 objs2 = and ((length objs1 == length objs2) : zipWith equalObject objs2 objs1)
              in normalized `shouldSatisfy` sameObjs expected

@@ -58,8 +58,7 @@ data Rule = Rule
 data RuleTest = RuleTest
   { name :: String
   , input :: Object
-  , output :: Object
-  , matches :: Bool
+  , output :: [Object]
   }
   deriving (Generic, FromJSON, Show)
 
