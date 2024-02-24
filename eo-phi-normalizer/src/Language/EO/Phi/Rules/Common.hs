@@ -119,6 +119,9 @@ applyRules ctx obj
         , obj'' <- applyRules ctx obj'
         ]
 
+equalProgram :: Program -> Program -> Bool
+equalProgram (Program bindings1) (Program bindings2) = equalObject (Formation bindings1) (Formation bindings2)
+
 equalObject :: Object -> Object -> Bool
 equalObject (Formation bindings1) (Formation bindings2) =
   and

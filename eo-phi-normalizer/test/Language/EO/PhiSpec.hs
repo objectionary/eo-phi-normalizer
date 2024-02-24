@@ -17,7 +17,7 @@ import Data.String.Interpolate (i)
 import Data.Yaml (decodeFileThrow)
 import Language.EO.Phi
 import Language.EO.Phi.Metrics.Collect (collectMetrics)
-import Language.EO.Phi.Rules.Common (Context (..), Rule)
+import Language.EO.Phi.Rules.Common (Context (..), Rule, equalProgram)
 import Language.EO.Phi.Rules.PhiPaper (rule1, rule6)
 import Test.EO.Phi
 import Test.Hspec
@@ -49,7 +49,7 @@ spec = do
           \PhiTest{..} -> do
             describe "normalize" $
               it name $
-                normalize input `shouldBe` normalized
+                normalize input `shouldSatisfy` equalProgram normalized
             describe "pretty-print" $
               it name $
                 printTree input `shouldBe` trim prettified
