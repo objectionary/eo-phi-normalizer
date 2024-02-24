@@ -1,9 +1,8 @@
+{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
-
-{-# HLINT ignore "Use &&" #-}
 
 module Language.EO.Phi.Rules.Common where
 
@@ -14,7 +13,7 @@ import Data.String (IsString (..))
 import Language.EO.Phi.Syntax.Abs
 import Language.EO.Phi.Syntax.Lex (Token)
 import Language.EO.Phi.Syntax.Par
-import Numeric (showHex)
+import Numeric (readHex, showHex)
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -179,9 +178,13 @@ objectBindings (ObjectDispatch obj _attr) = objectBindings obj
 objectBindings _ = []
 
 nuCount :: Object -> Int
-nuCount obj = count isNu (objectBindings obj) + sum (map (sum . map nuCount . values) (objectBindings obj))
+nuCount obj = count isNu (objectBindings obj) + sum (sum . map nuCount . values <$> objectBindings obj)
  where
-  isNu (AlphaBinding VTX _) = True
+  isNu (AlphaBinding VTX x) =
+    case x of
+      MetaObject _ -> False
+      MetaFunction _ _ -> False
+      _ -> True
   isNu (EmptyBinding VTX) = True
   isNu _ = False
   count = (length .) . filter
@@ -201,6 +204,42 @@ intToBytes n = Bytes $ insertDashes $ pad $ showHex n ""
               [x, y] -> [x, y, '-']
               (x : y : xs) -> x : y : '-' : go xs
          in go s
+
+minNu :: Int
+minNu = -1
+
+class HasMaxNu a where
+  -- | get maximum vertex index
+  --
+  -- >>> getMaxNu @Object "⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧ ⟧, b ↦ ⟦ ⟧ ⟧"
+  -- 3
+  getMaxNu :: a -> Int
+
+instance HasMaxNu Program where
+  getMaxNu :: Program -> Int
+  getMaxNu (Program bindings) = maximum (minNu : (getMaxNu <$> bindings))
+
+instance HasMaxNu Object where
+  getMaxNu :: Object -> Int
+  getMaxNu = \case
+    Formation bindings -> maximum (minNu : (getMaxNu <$> bindings))
+    Application obj bindings -> max (getMaxNu obj) (maximum (minNu : (getMaxNu <$> bindings)))
+    ObjectDispatch obj _ -> getMaxNu obj
+    _ -> minNu
+
+instance HasMaxNu Binding where
+  getMaxNu :: Binding -> Int
+  getMaxNu = \case
+    AlphaBinding VTX (Formation [DeltaBinding (Bytes bs)]) ->
+      case readHex [x | x <- bs, x /= '-'] of
+        [(val, "")] -> val
+        _ -> error "Vertex number is incorrect"
+    AlphaBinding _ obj -> getMaxNu obj
+    _ -> minNu
+
+instance HasMaxNu Attribute where
+  getMaxNu :: Attribute -> Int
+  getMaxNu = const 0
 
 intToBytesObject :: Int -> Object
 intToBytesObject n = Formation [DeltaBinding $ intToBytes n]

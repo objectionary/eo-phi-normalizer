@@ -3,13 +3,18 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedLabels #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-partial-fields #-}
 
 module Language.EO.Phi.Rules.Yaml where
 
+import Control.Lens ((+=))
+import Control.Monad (guard)
+import Control.Monad.State (State, evalState, gets)
 import Data.Aeson (FromJSON (..), Options (sumEncoding), SumEncoding (UntaggedValue), genericParseJSON)
 import Data.Aeson.Types (defaultOptions)
 import Data.Coerce (coerce)
@@ -82,16 +87,17 @@ parseRuleSetFromFile :: FilePath -> IO RuleSet
 parseRuleSetFromFile = Yaml.decodeFileThrow
 
 convertRule :: Rule -> Common.Rule
-convertRule Rule{..} ctx obj =
-  [ obj'
-  | contextSubsts <- matchContext ctx context
-  , let pattern' = applySubst contextSubsts pattern
-  , let result' = applySubst contextSubsts result
-  , subst <- matchObject pattern' obj
-  , all (\cond -> checkCond ctx cond (contextSubsts <> subst)) when
-  , obj' <- [applySubst (contextSubsts <> subst) (evaluateMetaFuncs result')]
-  , not (objectHasMetavars obj')
-  ]
+convertRule Rule{..} ctx obj = do
+  contextSubsts <- matchContext ctx context
+  let pattern' = applySubst contextSubsts pattern
+      result' = applySubst contextSubsts result
+  subst <- matchObject pattern' obj
+  guard $ all (\cond -> checkCond ctx cond (contextSubsts <> subst)) when
+  let result'' = applySubst (contextSubsts <> subst) result'
+      -- TODO #152:30m what context should we pass to evaluate meta funcs?
+      obj' = evaluateMetaFuncs obj result''
+  guard $ not (objectHasMetavars obj')
+  pure obj'
 
 matchContext :: Common.Context -> Maybe RuleContext -> [Subst]
 matchContext Common.Context{} Nothing = [emptySubst]
@@ -260,16 +266,36 @@ matchObject ThisObject ThisObject = [emptySubst]
 matchObject GlobalObject GlobalObject = [emptySubst]
 matchObject _ _ = [] -- ? emptySubst ?
 
-evaluateMetaFuncs :: Object -> Object
-evaluateMetaFuncs (MetaFunction (MetaFunctionName "@T") obj) = Common.nuCountAsDataObj obj
-evaluateMetaFuncs (Formation bindings) = Formation (map evaluateMetaFuncsBinding bindings)
-evaluateMetaFuncs (Application obj bindings) = Application (evaluateMetaFuncs obj) (map evaluateMetaFuncsBinding bindings)
-evaluateMetaFuncs (ObjectDispatch obj a) = ObjectDispatch (evaluateMetaFuncs obj) a
-evaluateMetaFuncs obj = obj
+-- | Evaluate meta functions
+-- given top-level context as an object
+-- and an object
+--
+-- >>> evaluateMetaFuncs "⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧ ⟧, b ↦ ⟦ ⟧ ⟧" "⟦ a ↦ ⟦ ν ↦ @T(⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧ ⟧, b ↦ ⟦ ⟧ ⟧)  ⟧, b ↦ ⟦ ⟧ ⟧"
+-- Formation [AlphaBinding (Label (LabelId "a")) (Formation [AlphaBinding VTX (Formation [DeltaBinding (Bytes "04-")])]),AlphaBinding (Label (LabelId "b")) (Formation [])]
+evaluateMetaFuncs :: Object -> Object -> Object
+evaluateMetaFuncs obj' obj =
+  evalState
+    (evaluateMetaFuncs' obj)
+    MetaState{nuCount = Common.getMaxNu obj' + 1}
 
-evaluateMetaFuncsBinding :: Binding -> Binding
-evaluateMetaFuncsBinding (AlphaBinding attr obj) = AlphaBinding attr (evaluateMetaFuncs obj)
-evaluateMetaFuncsBinding binding = binding
+newtype MetaState = MetaState
+  { nuCount :: Int
+  }
+  deriving (Generic)
+
+evaluateMetaFuncs' :: Object -> State MetaState Object
+evaluateMetaFuncs' (MetaFunction (MetaFunctionName "@T") _) = do
+  res <- gets (Common.intToBytesObject . nuCount)
+  #nuCount += 1
+  pure res
+evaluateMetaFuncs' (Formation bindings) = Formation <$> mapM evaluateMetaFuncsBinding bindings
+evaluateMetaFuncs' (Application obj bindings) = Application <$> evaluateMetaFuncs' obj <*> mapM evaluateMetaFuncsBinding bindings
+evaluateMetaFuncs' (ObjectDispatch obj a) = ObjectDispatch <$> evaluateMetaFuncs' obj <*> pure a
+evaluateMetaFuncs' obj = pure obj
+
+evaluateMetaFuncsBinding :: Binding -> State MetaState Binding
+evaluateMetaFuncsBinding (AlphaBinding attr obj) = AlphaBinding attr <$> evaluateMetaFuncs' obj
+evaluateMetaFuncsBinding binding = pure binding
 
 matchBindings :: [Binding] -> [Binding] -> [Subst]
 matchBindings [] [] = [emptySubst]
