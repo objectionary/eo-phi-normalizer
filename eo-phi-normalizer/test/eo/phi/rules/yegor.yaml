@@ -6,9 +6,9 @@ rules:
       global_object: '!Phi'
       current_object: '⟦ !a ↦ ⟦ !B ⟧, !B_rest ⟧'
     pattern: |
-      ⟦ !B ⟧
+      ⟦ !a ↦ ⟦ !B ⟧, !B_rest ⟧
     result: |
-      ⟦ !B, ν ↦ @T(!Phi) ⟧
+      ⟦ !a ↦ ⟦ !B, ν ↦ @T(!Phi) ⟧, !B_rest ⟧
     when:
       - absent_attrs:
           attrs: ['ν']
