@@ -80,14 +80,16 @@ rules:
 
   - name: Rule 5
     description: 'ξ-dispatch'
-    context:
-      current_object: ⟦ !a ↦ ξ.!b, !B ⟧
     pattern: |
-      ξ
+      ⟦ !a ↦ ξ.!b, !B ⟧
     result: |
-      ⟦ !B ⟧
+      ⟦ !a ↦ ⟦ !B ⟧.!b, !B ⟧
     when: []
-    tests: []
+    tests:
+      - name: Replaces ξ with the actual object
+        input: '⟦ a ↦ ⟦ ⟧, x ↦ ξ.a, b ↦ ⟦ ⟧ ⟧'
+        output: '⟦ a ↦ ⟦ ⟧, x ↦ ⟦ a ↦ ⟦ ⟧, b ↦ ⟦ ⟧ ⟧.a, b ↦ ⟦ ⟧ ⟧'
+        matches: true
 
   - name: Rule 6
     description: 'Accessing an α-binding'
