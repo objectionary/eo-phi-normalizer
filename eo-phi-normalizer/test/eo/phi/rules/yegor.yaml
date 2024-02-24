@@ -19,6 +19,10 @@ rules:
         input: '⟦ a ↦ ⟦ ⟧ ⟧'
         output: '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧'
         matches: true
+      - name: Added vertices are incremental
+        input: '⟦ a ↦ ⟦ ⟧, b ↦ ⟦ ⟧ ⟧'
+        output: '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 01- ⟧ ⟧ ⟧'
+        matches: true
 
   - name: Rule 2
     description: ''
