@@ -4,7 +4,6 @@ rules:
     description: 'Initialization of vertex attribute'
     context:
       global_object: '!Phi'
-      current_object: '⟦ !a ↦ ⟦ !B ⟧, !B_rest ⟧'
     pattern: |
       ⟦ !a ↦ ⟦ !B ⟧, !B_rest ⟧
     result: |
