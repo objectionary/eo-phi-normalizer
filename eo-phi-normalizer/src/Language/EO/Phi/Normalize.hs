@@ -1,4 +1,6 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedLabels #-}
 
 module Language.EO.Phi.Normalize (
   normalizeObject,
@@ -10,7 +12,10 @@ module Language.EO.Phi.Normalize (
 import Control.Monad.State
 import Data.Maybe (fromMaybe)
 
+import Control.Lens.Setter ((+=))
 import Control.Monad (forM)
+import Data.Generics.Labels ()
+import GHC.Generics (Generic)
 import Language.EO.Phi.Rules.Common (intToBytesObject, lookupBinding, nuCount, objectBindings)
 import Language.EO.Phi.Syntax.Abs
 
@@ -19,6 +24,7 @@ data Context = Context
   , thisObject :: [Binding]
   , totalNuCount :: Int
   }
+  deriving (Generic)
 
 isNu :: Binding -> Bool
 isNu (AlphaBinding VTX _) = True
@@ -49,7 +55,7 @@ rule1 (Formation bindings) = do
     if not $ any isNu normalizedBindings
       then do
         nus <- gets totalNuCount
-        modify (\c -> c{totalNuCount = totalNuCount c + 1})
+        #totalNuCount += 1
         let dataObject = intToBytesObject nus
         pure (AlphaBinding VTX dataObject : normalizedBindings)
       else do
