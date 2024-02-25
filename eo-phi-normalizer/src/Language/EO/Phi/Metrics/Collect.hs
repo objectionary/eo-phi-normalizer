@@ -17,6 +17,7 @@ import Control.Lens ((+=))
 import Control.Monad (forM_)
 import Control.Monad.State (State, execState)
 import Data.Aeson (FromJSON)
+import Data.Aeson.Types (ToJSON)
 import Data.Generics.Labels ()
 import GHC.Generics (Generic)
 import Language.EO.Phi.Rules.Common ()
@@ -28,7 +29,7 @@ data Metrics = Metrics
   , formations :: Int
   , dispatches :: Int
   }
-  deriving (Generic, Show, FromJSON, Eq)
+  deriving (Generic, Show, FromJSON, ToJSON, Eq)
 
 defaultMetrics :: Metrics
 defaultMetrics =
