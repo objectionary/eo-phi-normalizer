@@ -123,20 +123,11 @@ equalProgram (Program bindings1) (Program bindings2) = equalObject (Formation bi
 
 equalObject :: Object -> Object -> Bool
 equalObject (Formation bindings1) (Formation bindings2) =
-  and
-    [ length bindings1 == length bindings2
-    , equalBindings bindings1 bindings2
-    ]
+  length bindings1 == length bindings2 && equalBindings bindings1 bindings2
 equalObject (Application obj1 bindings1) (Application obj2 bindings2) =
-  and
-    [ equalObject obj1 obj2
-    , equalBindings bindings1 bindings2
-    ]
+  equalObject obj1 obj2 && equalBindings bindings1 bindings2
 equalObject (ObjectDispatch obj1 attr1) (ObjectDispatch obj2 attr2) =
-  and
-    [ equalObject obj1 obj2
-    , attr1 == attr2
-    ]
+  equalObject obj1 obj2 && attr1 == attr2
 equalObject obj1 obj2 = obj1 == obj2
 
 equalBindings :: [Binding] -> [Binding] -> Bool
