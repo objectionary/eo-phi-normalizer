@@ -1,13 +1,16 @@
+{-# LANGUAGE ApplicativeDo #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE ImplicitParams #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TypeOperators #-}
 {-# OPTIONS_GHC -Wno-partial-fields #-}
 {-# OPTIONS_GHC -Wno-type-defaults #-}
 
@@ -19,127 +22,196 @@ import Data.Foldable (forM_)
 import Control.Lens ((^.))
 import Data.Aeson (ToJSON)
 import Data.Aeson.Text (encodeToLazyText)
-import Data.Function ((&))
-import Data.List (nub, stripPrefix)
-import Data.Maybe (fromMaybe)
+import Data.List (nub)
+import Data.String.Interpolate (i)
 import Data.Text.Lazy.Lens
-import Language.EO.Phi (Object (Formation), Program (Program), defaultMain, parseProgram, printTree)
+import GHC.Generics (Generic)
+import Language.EO.Phi (Object (Formation), Program (Program), parseProgram, printTree)
 import Language.EO.Phi.Metrics.Collect (collectMetrics)
-import Language.EO.Phi.Rules.Common (Context (..), applyRules, applyRulesChain)
+import Language.EO.Phi.Rules.Common (applyRules, applyRulesChain)
+import Language.EO.Phi.Rules.Common qualified as Common
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRule, parseRuleSetFromFile)
-import Options.Generic
-import System.IO (IOMode (WriteMode), hClose, hPutStr, hPutStrLn, openFile, stdout)
+import Options.Applicative
+import Options.Applicative.Types qualified as Optparse (Context (..))
+import System.IO (IOMode (WriteMode), hPutStr, hPutStrLn, openFile, stdout)
 
-data CLI'TransformPhi'Params = CLI'TransformPhi'Params
+data CLI'TransformPhi = CLI'TransformPhi
   { chain :: Bool
-  , rulesYaml :: Maybe String
-  , outPath :: Maybe String
+  , rulesPath :: String
+  , outputFile :: Maybe String
   , single :: Bool
   , json :: Bool
+  , inputFile :: Maybe FilePath
+  , program :: Maybe String
   }
-  deriving (Generic, Show, ParseRecord, Read, ParseField)
+  deriving (Show)
 
-instance ParseFields CLI'TransformPhi'Params where
-  parseFields _ _ _ _ =
-    CLI'TransformPhi'Params
-      <$> parseFields (Just "Print out steps of reduction") (Just "chain") (Just 'c') Nothing
-      <*> parseFields (Just "Path to the Yaml file with custom rules") (Just "rules-yaml") Nothing Nothing
-      <*> parseFields (Just "Output file path (defaults to stdout)") (Just "output") (Just 'o') Nothing
-      <*> parseFields (Just "Print a single normalized expression") (Just "single") (Just 's') Nothing
-      <*> parseFields (Just "Print JSON") (Just "json") (Just 'j') Nothing
+data CLI'MetricsPhi = CLI'MetricsPhi
+  { json :: Bool
+  , inputFile :: Maybe FilePath
+  , outputFile :: Maybe FilePath
+  , program :: Maybe String
+  }
+  deriving (Show)
 
 data CLI
-  = CLI'TransformPhi CLI'TransformPhi'Params (Maybe FilePath)
-  | CLI'MetricsPhi (Maybe FilePath)
-  deriving (Generic, Show)
+  = CLI'TransformPhi' CLI'TransformPhi
+  | CLI'MetricsPhi' CLI'MetricsPhi
+  deriving (Show)
 
-modifiers :: Modifiers
-modifiers =
-  lispCaseModifiers
-    { constructorNameModifier = \x ->
-        stripPrefix "CLI'" x
-          & fromMaybe ""
-          & lispCaseModifiers.constructorNameModifier
-    , shortNameModifier = firstLetter
-    }
+_FILE :: String
+_FILE = "FILE"
 
-instance ParseRecord CLI where
-  parseRecord = parseRecordWithModifiers modifiers
+_PROGRAM :: String
+_PROGRAM = "PROGRAM"
+
+fileMetavar :: Mod OptionFields a
+fileMetavar = metavar _FILE
+
+inputFileLongName :: String
+inputFileLongName = "input-file"
+
+inputFileOption :: Parser (Maybe FilePath)
+inputFileOption = optional $ strOption (long inputFileLongName <> short 'i' <> help [i|#{_FILE} to read input from. You must specify either this option or #{_PROGRAM}.|] <> fileMetavar)
+
+outputFileOption :: Parser (Maybe String)
+outputFileOption = optional $ strOption (long "output-file" <> short 'o' <> help [i|Output to #{_FILE}. Output to stdout otherwise.|] <> fileMetavar)
+
+programArg :: Parser (Maybe String)
+programArg = optional $ strArgument (metavar _PROGRAM <> help "Program to work with.")
+
+jsonSwitch :: Parser Bool
+jsonSwitch = switch (long "json" <> short 'j' <> help "Output JSON.")
+
+cli'TransformPhi :: Parser CLI'TransformPhi
+cli'TransformPhi = do
+  rulesPath <- strOption (long "rules" <> short 'r' <> help [i|#{_FILE} with user-defined rules.|] <> fileMetavar)
+  inputFile <- inputFileOption
+  program <- programArg
+  chain <- switch (long "chain" <> short 'c' <> help "Output transformation steps.")
+  json <- jsonSwitch
+  outputFile <- outputFileOption
+  single <- switch (long "single" <> short 's' <> help "Output a single expression.")
+  pure CLI'TransformPhi{..}
+
+cli'MetricsPhi :: Parser CLI'MetricsPhi
+cli'MetricsPhi = do
+  json <- jsonSwitch
+  inputFile <- inputFileOption
+  outputFile <- outputFileOption
+  program <- programArg
+  pure CLI'MetricsPhi{..}
+
+metricsParserInfo :: ParserInfo CLI
+metricsParserInfo = info (CLI'MetricsPhi' <$> cli'MetricsPhi) (progDesc "Collect metrics for a PHI program.")
+
+transformParserInfo :: ParserInfo CLI
+transformParserInfo = info (CLI'TransformPhi' <$> cli'TransformPhi) (progDesc "Transform a PHI program.")
+
+transformCommandName :: String
+transformCommandName = "transform"
+
+metricsCommandName :: String
+metricsCommandName = "metrics"
+
+cli :: Parser CLI
+cli =
+  hsubparser
+    ( command transformCommandName transformParserInfo
+        <> command metricsCommandName metricsParserInfo
+    )
+
+cliOpts :: ParserInfo CLI
+cliOpts =
+  info
+    (cli <**> helper)
+    (fullDesc <> progDesc "Work with PHI expressions.")
 
 data StructuredJSON = StructuredJSON
   { input :: String
-  , results :: [[String]]
+  , output :: [[String]]
   }
   deriving (Generic, ToJSON)
 
 encodeToJSONString :: (ToJSON a) => a -> String
 encodeToJSONString = (^. unpacked) . encodeToLazyText
 
+pprefs :: ParserPrefs
+pprefs = prefs (showHelpOnEmpty <> showHelpOnError)
+
+type Context = (?parserContext :: Optparse.Context)
+
+die :: (Context) => String -> IO a
+die message = do
+  handleParseResult . Failure $
+    parserFailure pprefs cliOpts (ErrorMsg message) [?parserContext]
+
+getProgram :: (Context) => Maybe FilePath -> Maybe String -> IO Program
+getProgram inputFile expression = do
+  src <-
+    case (inputFile, expression) of
+      (Just inputFile', Nothing) -> readFile inputFile'
+      (Nothing, Just expression') -> pure expression'
+      _ -> die [i|You must specify either -#{head inputFileLongName}|--#{inputFileLongName} #{_FILE} or #{_PROGRAM}|]
+  case parseProgram src of
+    Left err -> die [i|"An error occurred parsing the input program: #{err}|]
+    Right program -> pure program
+
+getLoggers :: Maybe FilePath -> IO (String -> IO (), String -> IO ())
+getLoggers outputFile = do
+  handle <- maybe (pure stdout) (`openFile` WriteMode) outputFile
+  pure (hPutStrLn handle, hPutStr handle)
+
 main :: IO ()
 main = do
-  opts <- getRecord "Normalizer"
+  opts <- customExecParser pprefs cliOpts
   case opts of
-    CLI'MetricsPhi inPath -> do
-      src <- maybe getContents readFile inPath
-      let progOrError = parseProgram src
-      case progOrError of
-        Left err -> error ("An error occurred parsing the input program: " <> err)
-        Right a -> do
-          let handle = stdout
-          let logStrLn = hPutStrLn handle
-              metrics = collectMetrics a
-          logStrLn $ encodeToJSONString metrics
-    CLI'TransformPhi params inPath -> do
-      let (CLI'TransformPhi'Params{..}) = params
-      case rulesYaml of
-        Just path -> do
-          handle <- maybe (pure stdout) (`openFile` WriteMode) outPath
-          let logStr = hPutStr handle
-              logStrLn = hPutStrLn handle
-          ruleSet <- parseRuleSetFromFile path
-          unless (single || json) $ logStrLn ruleSet.title
-          src <- maybe getContents readFile inPath
-          let progOrError = parseProgram src
-          case progOrError of
-            Left err -> error ("An error occurred parsing the input program: " <> err)
-            Right input@(Program bindings) -> do
-              let
-                results
-                  | chain = applyRulesChain (Context (convertRule <$> ruleSet.rules) [Formation bindings]) (Formation bindings)
-                  | otherwise = pure <$> applyRules (Context (convertRule <$> ruleSet.rules) [Formation bindings]) (Formation bindings)
-                uniqueResults = nub results
-                totalResults = length uniqueResults
-              when (null uniqueResults || null (head uniqueResults)) $ error "Could not normalize the program"
-              let printFormationAsProgramOrObject = \case
-                    Formation bindings' -> printTree $ Program bindings'
-                    x -> printTree x
-              if single
-                then
-                  logStrLn
-                    . (if json then encodeToJSONString else id)
-                    . printFormationAsProgramOrObject
-                    $ head (head uniqueResults)
-                else do
-                  if json
-                    then
-                      logStrLn . encodeToJSONString $
-                        StructuredJSON
-                          { input = printTree input
-                          , results = (printFormationAsProgramOrObject <$>) <$> results
-                          }
-                    else do
-                      logStrLn "Input:"
-                      logStrLn (printTree input)
-                      logStrLn "===================================================="
-                      forM_ (zip [1 ..] uniqueResults) $ \(i, steps) -> do
-                        logStrLn $
-                          "Result " <> show i <> " out of " <> show totalResults <> ":"
-                        let n = length steps
-                        forM_ (zip [1 ..] steps) $ \(k, step) -> do
-                          when chain $
-                            logStr ("[ " <> show k <> " / " <> show n <> " ]")
-                          logStrLn . printFormationAsProgramOrObject $ step
-                        logStrLn "----------------------------------------------------"
-          hClose handle
-        -- TODO #48:15m still need to consider `chain` (should rewrite/change defaultMain to mainWithOptions)
-        Nothing -> defaultMain
+    CLI'MetricsPhi' CLI'MetricsPhi{..} -> do
+      let ?parserContext = Optparse.Context metricsCommandName metricsParserInfo
+      program' <- getProgram inputFile program
+      (logStrLn, _) <- getLoggers outputFile
+      let metrics = collectMetrics program'
+      logStrLn $ encodeToJSONString metrics
+    CLI'TransformPhi' CLI'TransformPhi{..} -> do
+      let ?parserContext = Optparse.Context transformCommandName transformParserInfo
+      program' <- getProgram inputFile program
+      (logStrLn, logStr) <- getLoggers outputFile
+      ruleSet <- parseRuleSetFromFile rulesPath
+      unless (single || json) $ logStrLn ruleSet.title
+      let Program bindings = program'
+          results
+            | chain = applyRulesChain (Common.Context (convertRule <$> ruleSet.rules) [Formation bindings]) (Formation bindings)
+            | otherwise = pure <$> applyRules (Common.Context (convertRule <$> ruleSet.rules) [Formation bindings]) (Formation bindings)
+          uniqueResults = nub results
+          totalResults = length uniqueResults
+      when (null uniqueResults || null (head uniqueResults)) $ die [i|Could not normalize the #{_PROGRAM}.|]
+      let printAsProgramOrAsObject = \case
+            Formation bindings' -> printTree $ Program bindings'
+            x -> printTree x
+      if single
+        then
+          logStrLn
+            . (if json then encodeToJSONString else id)
+            . printAsProgramOrAsObject
+            $ head (head uniqueResults)
+        else do
+          if json
+            then
+              logStrLn . encodeToJSONString $
+                StructuredJSON
+                  { input = printTree program'
+                  , output = (printAsProgramOrAsObject <$>) <$> results
+                  }
+            else do
+              logStrLn "Input:"
+              logStrLn (printTree program')
+              logStrLn "===================================================="
+              forM_ (zip [1 ..] uniqueResults) $ \(index, steps) -> do
+                logStrLn $
+                  "Result " <> show index <> " out of " <> show totalResults <> ":"
+                let n = length steps
+                forM_ (zip [1 ..] steps) $ \(k, step) -> do
+                  when chain $
+                    logStr ("[ " <> show k <> " / " <> show n <> " ]")
+                  logStrLn . printAsProgramOrAsObject $ step
+                logStrLn "----------------------------------------------------"
