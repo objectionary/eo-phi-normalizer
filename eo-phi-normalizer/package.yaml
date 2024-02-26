@@ -84,7 +84,7 @@ executables:
       - -with-rtsopts=-N
     dependencies:
       - eo-phi-normalizer
-      - optparse-generic
+      - optparse-applicative
 
 tests:
   eo-phi-normalizer-test:
