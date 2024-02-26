@@ -182,7 +182,7 @@ spec = do
   describe "Yegor's rules" $ do
     it "Are confluent (via QuickCheck)" (confluent rulesFromYaml)
     describe
-      "Are confluent (manual tests)"
+      "Are confluent (regression tests)"
       $ forM_ (tests inputs)
       $ \input -> do
         it (printTree input) (input `shouldSatisfy` confluentOnObject rulesFromYaml)
