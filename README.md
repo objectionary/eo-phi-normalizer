@@ -55,22 +55,21 @@ stack uninstall
 
 Learn about `normalize-phi` options.
 
-```sh
-normalize-phi --help
+```$ as console
+normalizer --help
 ```
 
 ```console
-Normalizer
+Usage: normalizer COMMAND
 
-Usage: normalize-phi [-c|--chain] [--rules-yaml STRING] [-o|--output STRING]
-                     [-s|--single] [STRING]
+  Work with PHI expressions.
 
 Available options:
   -h,--help                Show this help text
-  -c,--chain               Print out steps of reduction
-  --rules-yaml STRING      Path to the Yaml file with custom rules
-  -o,--output STRING       Output file path (defaults to stdout)
-  -s,--single              Print a single normalized expression
+
+Available commands:
+  transform                Transform a PHI program.
+  metrics                  Collect metrics for a PHI program.
 ```
 
 ### Sample program
@@ -78,7 +77,7 @@ Available options:
 Save a $\varphi$-calculus program to a file.
 This program will be used in subsequent commands.
 
-```sh
+```$
 cat > program.phi <<EOM
 {
   ⟦
@@ -112,8 +111,8 @@ Normalize a 𝜑-expression from `program.phi` using a ruleset (See [Rulesets](#
 
 There can be multiple numbered results that correspond to multiple rule application sequences.
 
-```sh
-normalize-phi --rules-yaml ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml program.phi
+```$ as console
+normalizer transform --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml --input-file program.phi
 ```
 
 ```console
@@ -129,10 +128,9 @@ Result 1 out of 1:
 #### Input
 
 Normalize an expression using a ruleset (See [Rulesets](#rulesets)).
-Read the expression from stdin.
 
-```sh
-cat program.phi | normalize-phi --rules-yaml ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml
+```$ as console
+normalizer transform --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml --input-file program.phi
 ```
 
 ```console
@@ -145,18 +143,12 @@ Result 1 out of 1:
 ----------------------------------------------------
 ```
 
-Alternatively, the path to the file containing a Phi expression can be passed as a positional argument:
-
-```sh
-normalize-phi --rules-yaml ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml program.phi
-```
-
 #### `--chain`
 
 Use `--chain` to see numbered normalization steps for each normalization result.
 
-```sh
-cat program.phi | normalize-phi --chain --rules-yaml ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml
+```$ as console
+normalizer transform --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml --input-file program.phi
 ```
 
 ```console
@@ -206,8 +198,8 @@ Result 6 out of 6:
 
 Use `--single` to print a single normalized program.
 
-```sh
-normalize-phi --single --rules-yaml ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml program.phi
+```$ as console
+normalizer transform --single --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml --input-file program.phi
 ```
 
 ```console
@@ -275,14 +267,40 @@ stack build
 
 Run the executable via `stack run`.
 
-```sh
-stack run normalize-phi -- --help
+```$ as console
+stack run normalizer -- --help
+```
+
+```console
+Usage: normalizer COMMAND
+
+  Work with PHI expressions.
+
+Available options:
+  -h,--help                Show this help text
+
+Available commands:
+  transform                Transform a PHI program.
+  metrics                  Collect metrics for a PHI program.
 ```
 
 Or, omit the executable name.
 
-```sh
+```$ as console
 stack run -- --help
+```
+
+```console
+Usage: normalizer COMMAND
+
+  Work with PHI expressions.
+
+Available options:
+  -h,--help                Show this help text
+
+Available commands:
+  transform                Transform a PHI program.
+  metrics                  Collect metrics for a PHI program.
 ```
 
 ### Test
