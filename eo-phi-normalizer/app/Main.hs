@@ -47,8 +47,7 @@ data CLI'TransformPhi = CLI'TransformPhi
   deriving (Show)
 
 data CLI'MetricsPhi = CLI'MetricsPhi
-  { json :: Bool
-  , inputFile :: Maybe FilePath
+  { inputFile :: Maybe FilePath
   , outputFile :: Maybe FilePath
   , program :: Maybe String
   }
@@ -96,7 +95,6 @@ cli'TransformPhi = do
 
 cli'MetricsPhi :: Parser CLI'MetricsPhi
 cli'MetricsPhi = do
-  json <- jsonSwitch
   inputFile <- inputFileOption
   outputFile <- outputFileOption
   program <- programArg
