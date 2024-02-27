@@ -16,7 +16,7 @@ import Control.Lens.Setter ((+=))
 import Control.Monad (forM)
 import Data.Generics.Labels ()
 import GHC.Generics (Generic)
-import Language.EO.Phi.Rules.Common (intToBytesObject, lookupBinding, nuCount, objectBindings)
+import Language.EO.Phi.Rules.Common (getMaxNu, intToBytesObject, lookupBinding, objectBindings)
 import Language.EO.Phi.Syntax.Abs
 
 data Context = Context
@@ -39,7 +39,7 @@ normalize (Program bindings) = evalState (Program . objectBindings <$> normalize
     Context
       { globalObject = bindings
       , thisObject = bindings
-      , totalNuCount = nuCount (Formation bindings)
+      , totalNuCount = getMaxNu (Formation bindings)
       }
 
 rule1 :: Object -> State Context Object
