@@ -178,7 +178,19 @@
             text = ''
               export LANG=C.utf8
               mdsh
-              mdsh -i site/docs/src/user-defined-rules.md --work_dir .
+              # create sample program
+              mdsh -i site/docs/src/common/sample-program.md --work_dir .
+              # run commands on it
+
+              ${lib.concatMapStringsSep "\n"
+                (x: "mdsh -i site/docs/src/${x} --work_dir .")
+                [
+                  "commands/normalizer.md"
+                  "commands/normalizer-transform.md"
+                  "commands/normalizer-metrics.md"
+                  "contributing.md"
+                ]
+              }
               prettier -w "**/*.md"
             '';
           };
