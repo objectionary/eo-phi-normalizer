@@ -232,10 +232,6 @@ instance HasMaxNu Binding where
     AlphaBinding _ obj -> getMaxNu obj
     _ -> minNu
 
-instance HasMaxNu Attribute where
-  getMaxNu :: Attribute -> Int
-  getMaxNu = const 0
-
 intToBytesObject :: Int -> Object
 intToBytesObject n = Formation [DeltaBinding $ intToBytes n]
 
