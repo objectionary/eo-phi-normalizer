@@ -33,7 +33,7 @@ import Language.EO.Phi.Rules.Common qualified as Common
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRule, parseRuleSetFromFile)
 import Options.Applicative
 import Options.Applicative.Types qualified as Optparse (Context (..))
-import System.IO (IOMode (WriteMode), hPutStr, hPutStrLn, openFile, stdout)
+import System.IO (IOMode (WriteMode), hFlush, hPutStr, hPutStrLn, openFile, stdout)
 
 data CLI'TransformPhi = CLI'TransformPhi
   { chain :: Bool
@@ -158,7 +158,10 @@ getProgram inputFile expression = do
 getLoggers :: Maybe FilePath -> IO (String -> IO (), String -> IO ())
 getLoggers outputFile = do
   handle <- maybe (pure stdout) (`openFile` WriteMode) outputFile
-  pure (hPutStrLn handle, hPutStr handle)
+  pure
+    ( \x -> hPutStrLn handle x >> hFlush handle
+    , \x -> hPutStr handle x >> hFlush handle
+    )
 
 main :: IO ()
 main = do
