@@ -6,4 +6,3 @@
 Command line normalizer of 𝜑-calculus expressions (as produced by the [EO compiler](https://github.com/objectionary/eo)).
 
 Consult the [project documentation](https://www.objectionary.com/normalizer/) for more details.
-

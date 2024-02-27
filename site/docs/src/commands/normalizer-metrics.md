@@ -75,7 +75,12 @@ normalizer metrics --input-file program.phi
 ```
 
 ```json
-{ "applications": 1, "dataless": 5, "dispatches": 5, "formations": 5 }
+{
+  "applications": 1,
+  "dataless": 5,
+  "dispatches": 5,
+  "formations": 5
+}
 ```
 
 ### --input-file -
@@ -85,5 +90,10 @@ cat program.phi | normalizer metrics --input-file -
 ```
 
 ```json
-{ "applications": 1, "dataless": 5, "dispatches": 5, "formations": 5 }
+{
+  "applications": 1,
+  "dataless": 5,
+  "dispatches": 5,
+  "formations": 5
+}
 ```
