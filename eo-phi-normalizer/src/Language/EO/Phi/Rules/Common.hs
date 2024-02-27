@@ -218,7 +218,7 @@ instance HasMaxNu Object where
   getMaxNu :: Object -> Int
   getMaxNu = \case
     Formation bindings -> maximum (minNu : (getMaxNu <$> bindings))
-    Application obj bindings -> max (getMaxNu obj) (maximum (minNu : (getMaxNu <$> bindings)))
+    Application obj bindings -> maximum (getMaxNu obj : minNu : (getMaxNu <$> bindings))
     ObjectDispatch obj _ -> getMaxNu obj
     _ -> minNu
 
