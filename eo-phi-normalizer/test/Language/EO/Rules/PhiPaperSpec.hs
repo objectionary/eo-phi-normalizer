@@ -9,14 +9,14 @@
 
 module Language.EO.Rules.PhiPaperSpec where
 
-import Control.Monad (forM_)
+import Control.Monad (forM_, guard)
 import Data.Aeson (FromJSON)
 import Data.Data (Data (toConstr))
 import Data.List (intercalate)
 import Data.List qualified as List
 import Data.Yaml qualified as Yaml
 import GHC.Generics (Generic)
-import Language.EO.Phi.Rules.Common (Context (Context), Rule, applyOneRule, applyRules, equalObject, intToBytes)
+import Language.EO.Phi.Rules.Common (Context (Context), Rule, applyOneRule, equalObject, intToBytes)
 import Language.EO.Phi.Rules.Yaml (convertRule, parseRuleSetFromFile, rules)
 import Language.EO.Phi.Syntax (printTree)
 import Language.EO.Phi.Syntax.Abs as Phi
@@ -110,6 +110,20 @@ genCriticalPair rules = do
     obj <- Formation <$> listOf arbitrary
     return (obj, applyOneRule (Context rules [obj]) obj)
 
+findCriticalPairs :: [Rule] -> Object -> [CriticalPair]
+findCriticalPairs rules obj = do
+  let ctx = Context rules [obj]
+  let results = applyOneRule ctx obj
+  guard (length results > 1)
+  case results of
+    x : y : _ ->
+      return
+        CriticalPair
+          { sourceTerm = obj
+          , criticalPair = (x, y)
+          }
+    _ -> error "IMPOSSIBLE HAPPENED"
+
 shrinkCriticalPair :: [Rule] -> CriticalPair -> [CriticalPair]
 shrinkCriticalPair rules CriticalPair{..} =
   [ CriticalPair
@@ -151,19 +165,17 @@ instance Show CriticalPair where
       , "  " <> printTree y
       ]
 
+maxDepth :: Int
+maxDepth = 7
+
 confluent :: [Rule] -> Property
 confluent rulesFromYaml =
   within 10_000_000 $
     forAllShrink (genCriticalPair rulesFromYaml) (shrinkCriticalPair rulesFromYaml) $
-      confluentCriticalPairN 7 rulesFromYaml
+      confluentCriticalPairN maxDepth rulesFromYaml
 
 confluentOnObject :: [Rule] -> Object -> Bool
-confluentOnObject rules obj = isSingleton (applyRules ctx obj)
- where
-  ctx = Context rules [obj]
-  -- To support possibly infinite results
-  isSingleton [_] = True
-  isSingleton _ = False
+confluentOnObject rules obj = all (confluentCriticalPairN maxDepth rules) (findCriticalPairs rules obj)
 
 data ConfluenceTests = ConfluenceTests
   { title :: String
