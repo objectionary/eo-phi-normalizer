@@ -46,6 +46,7 @@ dependencies:
   - string-interpolate
   - lens
   - generic-lens
+  - text
 
 default-extensions:
   - ImportQualifiedPost
@@ -85,6 +86,7 @@ executables:
     dependencies:
       - eo-phi-normalizer
       - optparse-applicative
+      - aeson-pretty
 
 tests:
   eo-phi-normalizer-test:
