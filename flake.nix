@@ -99,6 +99,7 @@
           stack
           pkgs.gh
           mdsh
+          pkgs.mdbook
           # `cabal` already has a `ghc` on its `PATH`,
           # so you may remove `ghc` from this list.
           # Then, you can access `ghc` like `cabal exec -- ghc --version`.
