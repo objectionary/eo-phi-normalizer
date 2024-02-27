@@ -1,6 +1,17 @@
 # normalizer transform
 
-Jump to [CLI](#cli).
+- [normalizer transform](#normalizer-transform)
+  - [`MetaPHI`](#metaphi)
+  - [phi-paper rules](#phi-paper-rules)
+    - [yegor.yaml](#yegoryaml)
+    - [Normal form](#normal-form)
+  - [Environment](#environment)
+    - [Repository](#repository)
+    - [Sample program](#sample-program)
+  - [CLI](#cli)
+    - [`--rules`](#rules)
+    - [`--chain`](#chain)
+    - [`--single`](#single)
 
 ## `MetaPHI`
 
@@ -45,7 +56,23 @@ Each rule has the following structure:
 
 ### Normal form
 
-<!-- TODO #119:30m  -->
+An expression is in normal form when no rule can be applied to that expression.
+
+## Environment
+
+### Repository
+
+The commands in the following sections access files that are available in the project repository.
+Clone and enter the repository directory.
+
+```sh
+git clone https://github.com/objectionary/normalizer
+cd normalizer
+```
+
+### Sample program
+
+{{#include ../common/sample-program.md}}
 
 ## CLI
 
@@ -73,21 +100,7 @@ Available options:
   -h,--help                Show this help text
 ```
 
-### Sample program
-
-{{#include ./common/sample-program.md}}
-
-### Prepare environment
-
-The commands in the following sections access files that are available in the project repository.
-Clone and enter the repository directory.
-
-```sh
-git clone https://github.com/objectionary/normalizer
-cd normalizer
-```
-
-#### `--ruleset-yaml`
+### `--rules`
 
 Normalize a 𝜑-expression from `program.phi` using the [yegor.yaml](#yegoryaml) rules.
 
@@ -107,7 +120,7 @@ Result 1 out of 1:
 ----------------------------------------------------
 ```
 
-#### `--chain`
+### `--chain`
 
 Use `--chain` to see numbered normalization steps for each normalization result.
 
@@ -158,7 +171,7 @@ Result 6 out of 6:
 ----------------------------------------------------
 ```
 
-#### `--single`
+### `--single`
 
 Use `--single` to print a single normalized program.
 
@@ -168,4 +181,54 @@ normalizer transform --single --rules ./eo-phi-normalizer/test/eo/phi/rules/yego
 
 ```console
 { ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }
+```
+
+### `--json`
+
+```$ as json
+normalizer transform --json --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml --input-file program.phi
+```
+
+```json
+{
+  "input": "{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }",
+  "output": [
+    [
+      "{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }",
+      "{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧ ⟧) ⟧ }",
+      "{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }",
+      "{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }"
+    ],
+    [
+      "{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }",
+      "{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧ ⟧) ⟧ }",
+      "{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅ ⟧ ⟧) ⟧ }",
+      "{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }"
+    ],
+    [
+      "{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }",
+      "{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }",
+      "{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }",
+      "{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }"
+    ],
+    [
+      "{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }",
+      "{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }",
+      "{ ⟦ a ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }",
+      "{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }"
+    ],
+    [
+      "{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }",
+      "{ ⟦ a ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }",
+      "{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅ ⟧ ⟧) ⟧ }",
+      "{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }"
+    ],
+    [
+      "{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }",
+      "{ ⟦ a ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }",
+      "{ ⟦ a ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }",
+      "{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }"
+    ]
+  ]
+}
 ```
