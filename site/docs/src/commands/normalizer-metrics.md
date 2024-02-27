@@ -1,14 +1,5 @@
 # normalizer metrics
 
-- [normalizer metrics](#normalizer-metrics)
-  - [Metrics](#metrics)
-    - [PHI grammar](#phi-grammar)
-    - [Object formations](#object-formations)
-    - [Object applications](#object-applications)
-    - [Dynamic dispatches](#dynamic-dispatches)
-    - [Dataless formations](#dataless-formations)
-  - [CLI](#cli)
-
 ## Metrics
 
 We count:

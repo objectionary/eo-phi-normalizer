@@ -1,18 +1,5 @@
 # normalizer transform
 
-- [normalizer transform](#normalizer-transform)
-  - [`MetaPHI`](#metaphi)
-  - [phi-paper rules](#phi-paper-rules)
-    - [yegor.yaml](#yegoryaml)
-    - [Normal form](#normal-form)
-  - [Environment](#environment)
-    - [Repository](#repository)
-    - [Sample program](#sample-program)
-  - [CLI](#cli)
-    - [`--rules`](#rules)
-    - [`--chain`](#chain)
-    - [`--single`](#single)
-
 ## `MetaPHI`
 
 You can define [rewrite rules](https://en.wikipedia.org/wiki/Rewriting#Term_rewriting_systems) for the `PHI` language (the $\varphi$-calculus language) using `YAML` and the `MetaPHI` language that is a superset of `PHI`.
