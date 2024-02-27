@@ -1,4 +1,6 @@
-# User-defined rules
+# normalizer transform
+
+Jump to [CLI](#cli).
 
 ## `MetaPHI`
 
@@ -47,8 +49,6 @@ Each rule has the following structure:
 
 ## CLI
 
-Use the `transform` command to transform `PHI` programs.
-
 ```$ as console
 normalizer transform --help
 ```
@@ -62,8 +62,9 @@ Usage: normalizer transform (-r|--rules FILE) [-i|--input-file FILE] [PROGRAM]
 
 Available options:
   -r,--rules FILE          FILE with user-defined rules.
-  -i,--input-file FILE     FILE to read input from. You must specify either this
-                           option or PROGRAM.
+  -i,--input-file FILE     FILE to read input from. When FILE is -, read from
+                           stdin. You must specify either this option or
+                           PROGRAM.
   PROGRAM                  Program to work with.
   -c,--chain               Output transformation steps.
   -j,--json                Output JSON.
@@ -71,10 +72,6 @@ Available options:
   -s,--single              Output a single expression.
   -h,--help                Show this help text
 ```
-
-## Use rules
-
-{{#include ./common/normalize-phi-options.md}}
 
 ### Sample program
 
