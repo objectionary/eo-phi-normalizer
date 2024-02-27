@@ -18,15 +18,15 @@ rules:
       - name: Adds vertex attribute
         input: '⟦ a ↦ ⟦ ⟧ ⟧'
         output: ['⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧']
-      - name: Added vertices are incremental (1)
+      - name: Adds vertices in all non-top-level formations
         input: '⟦ a ↦ ⟦ ⟧, b ↦ ⟦ ⟧ ⟧'
         output:
           - '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, b ↦ ⟦ ⟧ ⟧'
           - '⟦ a ↦ ⟦ ⟧, b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧'
-      - name: Added vertices are incremental (2)
+      - name: Added vertices are incremental (1)
         input: '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧ ⟧, b ↦ ⟦ ⟧ ⟧'
         output: ['⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧ ⟧, b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 04- ⟧ ⟧ ⟧']
-      - name: Added vertices are incremental (3)
+      - name: Added vertices are incremental (2)
         input: '⟦ a ↦ ⟦ ⟧(ν ↦ ⟦ Δ ⤍ 06- ⟧), b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 05- ⟧ ⟧, c ↦ ⟦ ⟧ ⟧'
         output:
           - '⟦ a ↦ ⟦ ⟧(ν ↦ ⟦ Δ ⤍ 06- ⟧), b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 05- ⟧ ⟧, c ↦ ⟦ ν ↦ ⟦ Δ ⤍ 07- ⟧ ⟧ ⟧'
