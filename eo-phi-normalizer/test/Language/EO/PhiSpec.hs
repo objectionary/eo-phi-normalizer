@@ -19,6 +19,7 @@ import Language.EO.Phi
 import Language.EO.Phi.Metrics.Collect (collectMetrics)
 import Language.EO.Phi.Rules.Common (Context (..), Rule, equalProgram)
 import Language.EO.Phi.Rules.PhiPaper (rule1, rule6)
+import Language.EO.Phi.Syntax.Abs (Attribute (Sigma))
 import Test.EO.Phi
 import Test.Hspec
 import Test.Metrics.Phi (MetricsTest (..), MetricsTestSet (..))
@@ -40,7 +41,7 @@ spec = do
           forM_ tests $
             \PhiTest{..} ->
               it name $
-                applyRule (rule (Context [] [progToObj input])) input `shouldBe` [normalized]
+                applyRule (rule (Context [] [progToObj input] Sigma)) input `shouldBe` [normalized]
   describe "Programs translated from EO" $ do
     phiTests <- runIO (allPhiTests "test/eo/phi/from-eo/")
     forM_ phiTests $ \PhiTestGroup{..} ->

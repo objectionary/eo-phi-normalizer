@@ -44,6 +44,7 @@ unsafeParseWith parser input =
 data Context = Context
   { allRules :: [Rule]
   , outerFormations :: NonEmpty Object
+  , currentAttr :: Attribute
   }
 
 -- | A rule tries to apply a transformation to the root object, if possible.
@@ -92,7 +93,7 @@ withSubObjectBindings f ctx (b : bs) =
 
 withSubObjectBinding :: (Context -> Object -> [Object]) -> Context -> Binding -> [Binding]
 withSubObjectBinding f ctx = \case
-  AlphaBinding a obj -> AlphaBinding a <$> withSubObject f ctx obj
+  AlphaBinding a obj -> AlphaBinding a <$> withSubObject f (ctx{currentAttr = a}) obj
   EmptyBinding{} -> []
   DeltaBinding{} -> []
   LambdaBinding{} -> []

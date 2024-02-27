@@ -11,7 +11,7 @@ module Main where
 import Control.Monad (unless, when)
 import Data.Foldable (forM_)
 
-import Language.EO.Phi (Object (Formation), Program (Program), defaultMain, parseProgram, printTree)
+import Language.EO.Phi (Attribute (Sigma), Object (Formation), Program (Program), defaultMain, parseProgram, printTree)
 import Language.EO.Phi.Rules.Common (Context (..), applyRules, applyRulesChain)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRule, parseRuleSetFromFile)
 import Options.Generic
@@ -54,8 +54,8 @@ main = do
         Left err -> error ("An error occurred parsing the input program: " <> err)
         Right input@(Program bindings) -> do
           let uniqueResults
-                | chain = applyRulesChain (Context (convertRule <$> ruleSet.rules) [Formation bindings]) (Formation bindings)
-                | otherwise = pure <$> applyRules (Context (convertRule <$> ruleSet.rules) [Formation bindings]) (Formation bindings)
+                | chain = applyRulesChain (Context (convertRule <$> ruleSet.rules) [Formation bindings] Sigma) (Formation bindings)
+                | otherwise = pure <$> applyRulesN 15 (Context (convertRule <$> ruleSet.rules) [Formation bindings] Sigma) (Formation bindings)
               totalResults = length uniqueResults
           when (totalResults == 0) $ error "Could not normalize the program"
           if single

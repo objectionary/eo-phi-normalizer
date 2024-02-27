@@ -4,10 +4,11 @@ rules:
     description: 'Initialization of vertex attribute'
     context:
       global_object: '!Phi'
+      current_attribute: '!a'
     pattern: |
-      ⟦ !a ↦ ⟦ !B ⟧, !B_rest ⟧
+      ⟦ !B ⟧
     result: |
-      ⟦ !a ↦ ⟦ !B, ν ↦ @T(!Phi) ⟧, !B_rest ⟧
+      ⟦ !B, ν ↦ @T(!Phi) ⟧
     when:
       - absent_attrs:
           attrs: ['ν']
@@ -27,14 +28,17 @@ rules:
         output: ['⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧ ⟧, b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 04- ⟧ ⟧ ⟧']
       - name: Added vertices are incremental (3)
         input: '⟦ a ↦ ⟦ ⟧(ν ↦ ⟦ Δ ⤍ 06- ⟧), b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 05- ⟧ ⟧, c ↦ ⟦ ⟧ ⟧'
-        output: [ '⟦ a ↦ ⟦ ⟧(ν ↦ ⟦ Δ ⤍ 06- ⟧), b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 05- ⟧ ⟧, c ↦ ⟦ ν ↦ ⟦ Δ ⤍ 07- ⟧ ⟧ ⟧' ]
+        output:
+          - '⟦ a ↦ ⟦ ⟧(ν ↦ ⟦ Δ ⤍ 06- ⟧), b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 05- ⟧ ⟧, c ↦ ⟦ ν ↦ ⟦ Δ ⤍ 07- ⟧ ⟧ ⟧'
 
   - name: Rule 2
     description: ''
+    context:
+      current_attribute: '!a'
     pattern: |
-      ⟦ !a ↦ ⟦ !b ↦ ⟦ !B1 ⟧, σ ↦ !obj, !B2 ⟧, !B_rest ⟧
+      ⟦ !b ↦ ⟦ !B1 ⟧, σ ↦ !obj, !B2 ⟧
     result: |
-      ⟦ !a ↦ ⟦ !b ↦ ⟦ σ ↦ !obj.!a, !B1 ⟧, σ ↦ !obj, !B2 ⟧, !B_rest ⟧
+      ⟦ !b ↦ ⟦ σ ↦ !obj.!a, !B1 ⟧, σ ↦ !obj, !B2 ⟧
     when:
       - absent_attrs:
           attrs: ['σ']

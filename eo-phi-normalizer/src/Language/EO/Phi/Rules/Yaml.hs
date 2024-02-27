@@ -48,6 +48,7 @@ data RuleSet = RuleSet
 data RuleContext = RuleContext
   { global_object :: Maybe Object
   , current_object :: Maybe Object
+  , current_attribute :: Maybe Attribute
   }
   deriving (Generic, FromJSON, Show)
 
@@ -104,7 +105,8 @@ matchContext Common.Context{} Nothing = [emptySubst]
 matchContext Common.Context{..} (Just (RuleContext{..})) = do
   subst1 <- maybe [emptySubst] (`matchObject` globalObject) global_object
   subst2 <- maybe [emptySubst] ((`matchObject` thisObject) . applySubst subst1) current_object
-  return (subst1 <> subst2)
+  subst3 <- maybe [emptySubst] (`matchAttr` currentAttr) current_attribute
+  return (subst1 <> subst2 <> subst3)
  where
   globalObject = NonEmpty.last outerFormations
   thisObject = NonEmpty.head outerFormations

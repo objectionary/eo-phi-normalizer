@@ -108,11 +108,11 @@ genCriticalPair rules = do
  where
   fan = do
     obj <- Formation <$> listOf arbitrary
-    return (obj, applyOneRule (Context rules [obj]) obj)
+    return (obj, applyOneRule (Context rules [obj] Phi.Sigma) obj)
 
 findCriticalPairs :: [Rule] -> Object -> [CriticalPair]
 findCriticalPairs rules obj = do
-  let ctx = Context rules [obj]
+  let ctx = Context rules [obj] Phi.Sigma
   let results = applyOneRule ctx obj
   guard (length results > 1)
   case results of
@@ -131,7 +131,7 @@ shrinkCriticalPair rules CriticalPair{..} =
     , criticalPair = (x, y)
     }
   | sourceTerm'@Formation{} <- shrink sourceTerm
-  , x : y : _ <- [applyOneRule (Context rules [sourceTerm']) sourceTerm']
+  , x : y : _ <- [applyOneRule (Context rules [sourceTerm'] Phi.Sigma) sourceTerm']
   ]
 
 descendantsN :: Int -> [Rule] -> [Object] -> [Object]
@@ -144,7 +144,7 @@ descendantsN maxDepth rules objs
           rules
           [ obj'
           | obj <- objs
-          , obj' <- applyOneRule (Context rules [obj]) obj
+          , obj' <- applyOneRule (Context rules [obj] Phi.Sigma) obj
           ]
 
 confluentCriticalPairN :: Int -> [Rule] -> CriticalPair -> Bool
