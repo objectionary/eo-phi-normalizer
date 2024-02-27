@@ -135,12 +135,12 @@ shrinkCriticalPair rules CriticalPair{..} =
   ]
 
 descendantsN :: Int -> [Rule] -> [Object] -> [Object]
-descendantsN maxDepth rules objs
-  | maxDepth <= 0 = objs
+descendantsN depth rules objs
+  | depth <= 0 = objs
   | otherwise =
       objs
         ++ descendantsN
-          (maxDepth - 1)
+          (depth - 1)
           rules
           [ obj'
           | obj <- objs
@@ -148,9 +148,9 @@ descendantsN maxDepth rules objs
           ]
 
 confluentCriticalPairN :: Int -> [Rule] -> CriticalPair -> Bool
-confluentCriticalPairN maxDepth rules CriticalPair{..} =
+confluentCriticalPairN depth rules CriticalPair{..} =
   -- should normalize the VTXs before checking
-  not (null (List.intersectBy equalObject (descendantsN maxDepth rules [x]) (descendantsN maxDepth rules [y])))
+  not (null (List.intersectBy equalObject (descendantsN depth rules [x]) (descendantsN depth rules [y])))
  where
   (x, y) = criticalPair
 
