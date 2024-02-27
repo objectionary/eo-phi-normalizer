@@ -21,9 +21,10 @@ import Data.Foldable (forM_)
 
 import Control.Lens ((^.))
 import Data.Aeson (ToJSON)
-import Data.Aeson.Text (encodeToLazyText)
+import Data.Aeson.Encode.Pretty (Config (..), Indent (..), defConfig, encodePrettyToTextBuilder')
 import Data.List (nub)
 import Data.String.Interpolate (i)
+import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy.Lens
 import GHC.Generics (Generic)
 import Language.EO.Phi (Object (Formation), Program (Program), parseProgram, printTree)
@@ -132,7 +133,7 @@ data StructuredJSON = StructuredJSON
   deriving (Generic, ToJSON)
 
 encodeToJSONString :: (ToJSON a) => a -> String
-encodeToJSONString = (^. unpacked) . encodeToLazyText
+encodeToJSONString = (^. unpacked) . toLazyText . encodePrettyToTextBuilder' defConfig{confIndent = Spaces 2}
 
 pprefs :: ParserPrefs
 pprefs = prefs (showHelpOnEmpty <> showHelpOnError)
