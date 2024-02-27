@@ -33,7 +33,7 @@ import Language.EO.Phi.Rules.Common qualified as Common
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRule, parseRuleSetFromFile)
 import Options.Applicative
 import Options.Applicative.Types qualified as Optparse (Context (..))
-import System.IO (IOMode (WriteMode), hFlush, hPutStr, hPutStrLn, openFile, stdout)
+import System.IO (IOMode (WriteMode), getContents', hFlush, hPutStr, hPutStrLn, openFile, stdout)
 
 data CLI'TransformPhi = CLI'TransformPhi
   { chain :: Bool
@@ -71,7 +71,7 @@ inputFileLongName :: String
 inputFileLongName = "input-file"
 
 inputFileOption :: Parser (Maybe FilePath)
-inputFileOption = optional $ strOption (long inputFileLongName <> short 'i' <> help [i|#{_FILE} to read input from. You must specify either this option or #{_PROGRAM}.|] <> fileMetavar)
+inputFileOption = optional $ strOption (long inputFileLongName <> short 'i' <> help [i|#{_FILE} to read input from. When #{_FILE} is -, read from stdin. You must specify either this option or #{_PROGRAM}.|] <> fileMetavar)
 
 outputFileOption :: Parser (Maybe String)
 outputFileOption = optional $ strOption (long "output-file" <> short 'o' <> help [i|Output to #{_FILE}. Output to stdout otherwise.|] <> fileMetavar)
@@ -148,7 +148,10 @@ getProgram :: (Context) => Maybe FilePath -> Maybe String -> IO Program
 getProgram inputFile expression = do
   src <-
     case (inputFile, expression) of
-      (Just inputFile', Nothing) -> readFile inputFile'
+      (Just inputFile', Nothing) ->
+        if inputFile' == "-"
+          then getContents'
+          else readFile inputFile'
       (Nothing, Just expression') -> pure expression'
       _ -> die [i|You must specify either -#{head inputFileLongName}|--#{inputFileLongName} #{_FILE} or #{_PROGRAM}|]
   case parseProgram src of
