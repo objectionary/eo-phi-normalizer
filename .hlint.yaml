@@ -8,7 +8,11 @@
 
 # Specify additional command line arguments
 #
-# - arguments: [--color, --cpp-simple, -XQuasiQuotes]
+- arguments:
+  - --color
+  - --cpp-simple
+  # https://github.com/ndmitchell/hlint/issues/216#issuecomment-599262628
+  - -XNoPatternSynonyms
 
 
 # Control which extensions/flags/modules/functions can be used
@@ -59,7 +63,9 @@
 # Ignore some builtin hints
 # - ignore: {name: Use let}
 # - ignore: {name: Use const, within: SpecialModule} # Only within certain modules
-
+- ignore:
+    name: Unused LANGUAGE pragma
+    within: Language.EO.Phi.Metrics.Collect
 
 # Define some custom infix operators
 # - fixity: infixr 3 ~^#^~
