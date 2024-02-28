@@ -212,7 +212,7 @@ class HasMaxNu a where
 
 instance HasMaxNu Program where
   getMaxNu :: Program -> Int
-  getMaxNu (Program bindings) = maximum (minNu : (getMaxNu <$> bindings))
+  getMaxNu (Program bindings) = getMaxNu (Formation bindings)
 
 instance HasMaxNu Object where
   getMaxNu :: Object -> Int
