@@ -64,17 +64,17 @@ fileMetavar :: Mod OptionFields a
 fileMetavar = metavar fileMetavarName
 
 outputFileOption :: Parser (Maybe String)
-outputFileOption = optional $ strOption (long "output-file" <> short 'o' <> help [i|Output to #{fileMetavarName}. Output to stdout otherwise.|] <> fileMetavar)
+outputFileOption = optional $ strOption (long "output-file" <> short 'o' <> help [i|Output to #{fileMetavarName}. When this option is not specified, output to stdout.|] <> fileMetavar)
 
 inputFileArg :: Parser (Maybe String)
-inputFileArg = optional $ strArgument (metavar fileMetavarName <> help [i|#{fileMetavarName} to read input from. When not specified, read from stdin.|])
+inputFileArg = optional $ strArgument (metavar fileMetavarName <> help [i|#{fileMetavarName} to read input from. When no #{fileMetavarName} is specified, read from stdin.|])
 
 jsonSwitch :: Parser Bool
 jsonSwitch = switch (long "json" <> short 'j' <> help "Output JSON.")
 
 cliTransformPhiParser :: Parser CLI'TransformPhi
 cliTransformPhiParser = do
-  rulesPath <- strOption (long "rules" <> short 'r' <> help [i|#{fileMetavarName} with user-defined rules.|] <> fileMetavar)
+  rulesPath <- strOption (long "rules" <> short 'r' <> help [i|#{fileMetavarName} with user-defined rules. Must be specified.|] <> fileMetavar)
   chain <- switch (long "chain" <> short 'c' <> help "Output transformation steps.")
   json <- jsonSwitch
   outputFile <- outputFileOption
