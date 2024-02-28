@@ -40,7 +40,7 @@ We count:
 
 ## CLI
 
-### --help
+### `--help`
 
 ```$ as console
 normalizer metrics --help
@@ -52,13 +52,14 @@ Usage: normalizer metrics [FILE] [-o|--output-file FILE]
   Collect metrics for a PHI program.
 
 Available options:
-  FILE                     FILE to read input from. When not specified, read
-                           from stdin.
-  -o,--output-file FILE    Output to FILE. Output to stdout otherwise.
+  FILE                     FILE to read input from. When no FILE is specified,
+                           read from stdin.
+  -o,--output-file FILE    Output to FILE. When this option is not specified,
+                           output to stdout.
   -h,--help                Show this help text
 ```
 
-### PROGRAM
+### `FILE`
 
 ```$ as json
 normalizer metrics program.phi
@@ -73,7 +74,7 @@ normalizer metrics program.phi
 }
 ```
 
-### PROGRAM not specified
+### `FILE` not specified (read from stdin)
 
 ```$ as json
 cat program.phi | normalizer metrics

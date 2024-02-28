@@ -63,6 +63,8 @@ cd normalizer
 
 ## CLI
 
+### `--help`
+
 ```$ as console
 normalizer transform --help
 ```
@@ -74,13 +76,14 @@ Usage: normalizer transform (-r|--rules FILE) [-c|--chain] [-j|--json]
   Transform a PHI program.
 
 Available options:
-  -r,--rules FILE          FILE with user-defined rules.
+  -r,--rules FILE          FILE with user-defined rules. Must be specified.
   -c,--chain               Output transformation steps.
   -j,--json                Output JSON.
-  -o,--output-file FILE    Output to FILE. Output to stdout otherwise.
+  -o,--output-file FILE    Output to FILE. When this option is not specified,
+                           output to stdout.
   -s,--single              Output a single expression.
-  FILE                     FILE to read input from. When not specified, read
-                           from stdin.
+  FILE                     FILE to read input from. When no FILE is specified,
+                           read from stdin.
   -h,--help                Show this help text
 ```
 
@@ -155,18 +158,6 @@ Result 6 out of 6:
 ----------------------------------------------------
 ```
 
-### `--single`
-
-Use `--single` to print a single normalized program.
-
-```$ as console
-normalizer transform --single --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml program.phi
-```
-
-```console
-{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }
-```
-
 ### `--json`
 
 ```$ as json
@@ -215,4 +206,34 @@ normalizer transform --json --chain --rules ./eo-phi-normalizer/test/eo/phi/rule
     ]
   ]
 }
+```
+
+### `--single`
+
+```$ as console
+normalizer transform --single --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml program.phi
+```
+
+```console
+{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }
+```
+
+### `--single` `--json`
+
+```$ as console
+normalizer transform --single --json --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml program.phi
+```
+
+```console
+"{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }"
+```
+
+### `FILE` not specified (read from stdin)
+
+```$ as console
+cat program.phi | normalizer transform --single --json --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml
+```
+
+```console
+"{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }"
 ```
