@@ -30,6 +30,18 @@ jobs:
             !eo-phi-normalizer/src/Language/EO/Phi/Syntax/**/*.hs
             !eo-phi-normalizer/Setup.hs
 
+      - uses: haskell-actions/hlint-setup@v2
+
+      - name: Get hlint-bin
+        id: get-hlint-bin
+        run: |
+          chmod +x scripts/run-hlint.sh
+          echo "hlint-bin=$(realpath scripts/run-hlint.sh)" >> $GITHUB_OUTPUT
+
+      - uses: haskell-actions/hlint-run@v2
+        with:
+          hlint-bin: ${{ steps.get-hlint-bin.outputs.hlint-bin }}
+
   build:
     name: "Build and test with GHC"
     needs: check
@@ -50,9 +62,6 @@ jobs:
             eo-phi-normalizer/**/*.hs
             !eo-phi-normalizer/src/Language/EO/Phi/Syntax/**/*.hs
             !eo-phi-normalizer/Setup.hs
-
-      - uses: haskell-actions/hlint-scan@v1.1.0
-        if: matrix.os == 'ubuntu-latest'
 
       - name: 🧰 Setup Stack
         uses: freckle/stack-action@v5
