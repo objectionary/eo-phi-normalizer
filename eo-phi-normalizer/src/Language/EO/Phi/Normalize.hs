@@ -1,4 +1,6 @@
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedLabels #-}
 
 module Language.EO.Phi.Normalize (
   normalizeObject,
@@ -10,15 +12,19 @@ module Language.EO.Phi.Normalize (
 import Control.Monad.State
 import Data.Maybe (fromMaybe)
 
+import Control.Lens.Setter ((+=))
 import Control.Monad (forM)
-import Language.EO.Phi.Rules.Common (intToBytesObject, lookupBinding, nuCount, objectBindings)
+import Data.Generics.Labels ()
+import GHC.Generics (Generic)
+import Language.EO.Phi.Rules.Common (getMaxNu, intToBytesObject, lookupBinding, objectBindings)
 import Language.EO.Phi.Syntax.Abs
 
 data Context = Context
   { globalObject :: [Binding]
   , thisObject :: [Binding]
-  , totalNuCount :: Int
+  , maxNu :: Int
   }
+  deriving (Generic)
 
 isNu :: Binding -> Bool
 isNu (AlphaBinding VTX _) = True
@@ -33,7 +39,7 @@ normalize (Program bindings) = evalState (Program . objectBindings <$> normalize
     Context
       { globalObject = bindings
       , thisObject = bindings
-      , totalNuCount = nuCount (Formation bindings)
+      , maxNu = getMaxNu (Formation bindings)
       }
 
 rule1 :: Object -> State Context Object
@@ -48,8 +54,8 @@ rule1 (Formation bindings) = do
   finalBindings <-
     if not $ any isNu normalizedBindings
       then do
-        nus <- gets totalNuCount
-        modify (\c -> c{totalNuCount = totalNuCount c + 1})
+        #maxNu += 1
+        nus <- gets maxNu
         let dataObject = intToBytesObject nus
         pure (AlphaBinding VTX dataObject : normalizedBindings)
       else do

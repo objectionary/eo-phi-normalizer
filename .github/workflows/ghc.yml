@@ -6,7 +6,6 @@ on:
     branches: [master]
     tags: [v*]
   pull_request:
-    branches: [master]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -15,8 +14,36 @@ permissions:
   contents: write # to submit Haddock documentation to GitHub Pages
 
 jobs:
+  check:
+    name: "Run static checks"
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: haskell-actions/run-fourmolu@v10
+        with:
+          version: "0.14.0.0"
+          pattern: |
+            eo-phi-normalizer/**/*.hs
+            !eo-phi-normalizer/src/Language/EO/Phi/Syntax/**/*.hs
+            !eo-phi-normalizer/Setup.hs
+
+      - uses: haskell-actions/hlint-setup@v2
+
+      - name: Get hlint-bin
+        id: get-hlint-bin
+        run: |
+          chmod +x scripts/run-hlint.sh
+          echo "hlint-bin=$(realpath scripts/run-hlint.sh)" >> $GITHUB_OUTPUT
+
+      - uses: haskell-actions/hlint-run@v2
+        with:
+          hlint-bin: ${{ steps.get-hlint-bin.outputs.hlint-bin }}
+
   build:
     name: "Build and test with GHC"
+    needs: check
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:

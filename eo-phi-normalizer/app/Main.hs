@@ -22,15 +22,13 @@ import Data.Foldable (forM_)
 import Control.Lens ((^.))
 import Data.Aeson (ToJSON)
 import Data.Aeson.Encode.Pretty (Config (..), Indent (..), defConfig, encodePrettyToTextBuilder')
-import Data.List (nub)
 import Data.String.Interpolate (i)
 import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy.Lens
 import GHC.Generics (Generic)
-import Language.EO.Phi (Object (Formation), Program (Program), parseProgram, printTree)
+import Language.EO.Phi (Attribute (Sigma), Object (Formation), Program (Program), parseProgram, printTree)
 import Language.EO.Phi.Metrics.Collect (collectMetrics)
-import Language.EO.Phi.Rules.Common (applyRules, applyRulesChain)
-import Language.EO.Phi.Rules.Common qualified as Common
+import Language.EO.Phi.Rules.Common (Context (..), applyRules, applyRulesChain)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRule, parseRuleSetFromFile)
 import Options.Applicative
 import Options.Applicative.Types qualified as Optparse (Context (..))
@@ -162,10 +160,9 @@ main = do
       ruleSet <- parseRuleSetFromFile rulesPath
       unless (single || json) $ logStrLn ruleSet.title
       let Program bindings = program'
-          results
-            | chain = applyRulesChain (Common.Context (convertRule <$> ruleSet.rules) [Formation bindings]) (Formation bindings)
-            | otherwise = pure <$> applyRules (Common.Context (convertRule <$> ruleSet.rules) [Formation bindings]) (Formation bindings)
-          uniqueResults = nub results
+          uniqueResults
+            | chain = applyRulesChain (Context (convertRule <$> ruleSet.rules) [Formation bindings] Sigma) (Formation bindings)
+            | otherwise = pure <$> applyRules (Context (convertRule <$> ruleSet.rules) [Formation bindings] Sigma) (Formation bindings)
           totalResults = length uniqueResults
       when (null uniqueResults || null (head uniqueResults)) $ die parserContext [i|Could not normalize the program.|]
       let printAsProgramOrAsObject = \case
@@ -185,7 +182,7 @@ main = do
             logStrLn . encodeToJSONString $
               StructuredJSON
                 { input = printTree program'
-                , output = (printAsProgramOrAsObject <$>) <$> results
+                , output = (printAsProgramOrAsObject <$>) <$> uniqueResults
                 }
         | otherwise -> do
             logStrLn "Input:"
