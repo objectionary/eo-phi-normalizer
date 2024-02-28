@@ -15,8 +15,24 @@ permissions:
   contents: write # to submit Haddock documentation to GitHub Pages
 
 jobs:
+  check:
+    name: "Run static checks"
+    runs-on: ubuntu-latest
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: haskell-actions/run-fourmolu@v10
+        with:
+          version: "0.14.0.0"
+          pattern: |
+            eo-phi-normalizer/**/*.hs
+            !eo-phi-normalizer/src/Language/EO/Phi/Syntax/**/*.hs
+            !eo-phi-normalizer/Setup.hs
+
   build:
     name: "Build and test with GHC"
+    needs: check
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
