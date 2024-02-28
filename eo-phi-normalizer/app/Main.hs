@@ -59,33 +59,33 @@ data CLI
   | CLI'MetricsPhi' CLI'MetricsPhi
   deriving (Show)
 
-_FILE :: String
-_FILE = "FILE"
+fileMetavarName :: String
+fileMetavarName = "FILE"
 
-_PROGRAM :: String
-_PROGRAM = "PROGRAM"
+programMetavarName :: String
+programMetavarName = "PROGRAM"
 
 fileMetavar :: Mod OptionFields a
-fileMetavar = metavar _FILE
+fileMetavar = metavar fileMetavarName
 
-inputFileLongName :: String
-inputFileLongName = "input-file"
+inputFileOptionLongName :: String
+inputFileOptionLongName = "input-file"
 
 inputFileOption :: Parser (Maybe FilePath)
-inputFileOption = optional $ strOption (long inputFileLongName <> short 'i' <> help [i|#{_FILE} to read input from. When #{_FILE} is -, read from stdin. You must specify either this option or #{_PROGRAM}.|] <> fileMetavar)
+inputFileOption = optional $ strOption (long inputFileOptionLongName <> short 'i' <> help [i|#{fileMetavarName} to read input from. When #{fileMetavarName} is -, read from stdin. You must specify either this option or #{programMetavarName}.|] <> fileMetavar)
 
 outputFileOption :: Parser (Maybe String)
-outputFileOption = optional $ strOption (long "output-file" <> short 'o' <> help [i|Output to #{_FILE}. Output to stdout otherwise.|] <> fileMetavar)
+outputFileOption = optional $ strOption (long "output-file" <> short 'o' <> help [i|Output to #{fileMetavarName}. Output to stdout otherwise.|] <> fileMetavar)
 
 programArg :: Parser (Maybe String)
-programArg = optional $ strArgument (metavar _PROGRAM <> help "Program to work with.")
+programArg = optional $ strArgument (metavar programMetavarName <> help "Program to work with.")
 
 jsonSwitch :: Parser Bool
 jsonSwitch = switch (long "json" <> short 'j' <> help "Output JSON.")
 
-cli'TransformPhi :: Parser CLI'TransformPhi
-cli'TransformPhi = do
-  rulesPath <- strOption (long "rules" <> short 'r' <> help [i|#{_FILE} with user-defined rules.|] <> fileMetavar)
+cliTransformPhiParser :: Parser CLI'TransformPhi
+cliTransformPhiParser = do
+  rulesPath <- strOption (long "rules" <> short 'r' <> help [i|#{fileMetavarName} with user-defined rules.|] <> fileMetavar)
   inputFile <- inputFileOption
   program <- programArg
   chain <- switch (long "chain" <> short 'c' <> help "Output transformation steps.")
@@ -94,18 +94,18 @@ cli'TransformPhi = do
   single <- switch (long "single" <> short 's' <> help "Output a single expression.")
   pure CLI'TransformPhi{..}
 
-cli'MetricsPhi :: Parser CLI'MetricsPhi
-cli'MetricsPhi = do
+cliMetricsPhiParser :: Parser CLI'MetricsPhi
+cliMetricsPhiParser = do
   inputFile <- inputFileOption
   outputFile <- outputFileOption
   program <- programArg
   pure CLI'MetricsPhi{..}
 
 metricsParserInfo :: ParserInfo CLI
-metricsParserInfo = info (CLI'MetricsPhi' <$> cli'MetricsPhi) (progDesc "Collect metrics for a PHI program.")
+metricsParserInfo = info (CLI'MetricsPhi' <$> cliMetricsPhiParser) (progDesc "Collect metrics for a PHI program.")
 
 transformParserInfo :: ParserInfo CLI
-transformParserInfo = info (CLI'TransformPhi' <$> cli'TransformPhi) (progDesc "Transform a PHI program.")
+transformParserInfo = info (CLI'TransformPhi' <$> cliTransformPhiParser) (progDesc "Transform a PHI program.")
 
 transformCommandName :: String
 transformCommandName = "transform"
@@ -152,7 +152,7 @@ getProgram parserContext inputFile expression = do
           then getContents'
           else readFile inputFile'
       (Nothing, Just expression') -> pure expression'
-      _ -> die parserContext [i|You must specify either -#{head inputFileLongName}|--#{inputFileLongName} #{_FILE} or #{_PROGRAM}|]
+      _ -> die parserContext [i|You must specify either -#{head inputFileOptionLongName}|--#{inputFileOptionLongName} #{fileMetavarName} or #{programMetavarName}|]
   case parseProgram src of
     Left err -> die parserContext [i|"An error occurred parsing the input program: #{err}|]
     Right program -> pure program
@@ -187,7 +187,7 @@ main = do
             | otherwise = pure <$> applyRules (Common.Context (convertRule <$> ruleSet.rules) [Formation bindings]) (Formation bindings)
           uniqueResults = nub results
           totalResults = length uniqueResults
-      when (null uniqueResults || null (head uniqueResults)) $ die parserContext [i|Could not normalize the #{_PROGRAM}.|]
+      when (null uniqueResults || null (head uniqueResults)) $ die parserContext [i|Could not normalize the #{programMetavarName}.|]
       let printAsProgramOrAsObject = \case
             Formation bindings' -> printTree $ Program bindings'
             x -> printTree x
