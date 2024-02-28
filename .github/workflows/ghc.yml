@@ -35,6 +35,9 @@ jobs:
             !eo-phi-normalizer/src/Language/EO/Phi/Syntax/**/*.hs
             !eo-phi-normalizer/Setup.hs
 
+      - uses: haskell-actions/hlint-scan@v1.1.0
+        if: matrix.os == 'ubuntu-latest'
+
       - name: 🧰 Setup Stack
         uses: freckle/stack-action@v5
         with:
