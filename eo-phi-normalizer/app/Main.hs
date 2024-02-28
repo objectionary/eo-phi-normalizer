@@ -5,6 +5,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -190,30 +191,32 @@ main = do
       let printAsProgramOrAsObject = \case
             Formation bindings' -> printTree $ Program bindings'
             x -> printTree x
-      if single
-        then
-          logStrLn
-            . (if json then encodeToJSONString else id)
-            . printAsProgramOrAsObject
-            $ head (head uniqueResults)
-        else do
-          if json
-            then
-              logStrLn . encodeToJSONString $
-                StructuredJSON
-                  { input = printTree program'
-                  , output = (printAsProgramOrAsObject <$>) <$> results
-                  }
-            else do
-              logStrLn "Input:"
-              logStrLn (printTree program')
-              logStrLn "===================================================="
-              forM_ (zip [1 ..] uniqueResults) $ \(index, steps) -> do
-                logStrLn $
-                  "Result " <> show index <> " out of " <> show totalResults <> ":"
-                let n = length steps
-                forM_ (zip [1 ..] steps) $ \(k, step) -> do
-                  when chain $
-                    logStr ("[ " <> show k <> " / " <> show n <> " ]")
-                  logStrLn . printAsProgramOrAsObject $ step
-                logStrLn "----------------------------------------------------"
+      if
+        | single && json ->
+            logStrLn
+              . encodeToJSONString
+              . printAsProgramOrAsObject
+              $ head (head uniqueResults)
+        | single ->
+            logStrLn
+              . printAsProgramOrAsObject
+              $ head (head uniqueResults)
+        | json ->
+            logStrLn . encodeToJSONString $
+              StructuredJSON
+                { input = printTree program'
+                , output = (printAsProgramOrAsObject <$>) <$> results
+                }
+        | otherwise -> do
+            logStrLn "Input:"
+            logStrLn (printTree program')
+            logStrLn "===================================================="
+            forM_ (zip [1 ..] uniqueResults) $ \(index, steps) -> do
+              logStrLn $
+                "Result " <> show index <> " out of " <> show totalResults <> ":"
+              let n = length steps
+              forM_ (zip [1 ..] steps) $ \(k, step) -> do
+                when chain $
+                  logStr ("[ " <> show k <> " / " <> show n <> " ]")
+                logStrLn . printAsProgramOrAsObject $ step
+              logStrLn "----------------------------------------------------"
