@@ -4,6 +4,13 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedLabels #-}
 
+{- FOURMOLU_DISABLE -}
+
+-- $setup
+-- >>> :set -XOverloadedStrings
+
+{- FOURMOLU_ENABLE -}
+
 module Language.EO.Phi.Metrics.Collect where
 
 import Control.Lens ((+=))
@@ -38,8 +45,35 @@ collectMetrics a = execState (inspect a) defaultMetrics
 class Inspectable a where
   inspect :: a -> State Metrics ()
 
+count :: (a -> Bool) -> [a] -> Int
+count x = length . filter x
+
+-- | Count dataless formations in a list of bindings
+--
+-- >>> countDataless' :: Object -> Int; countDataless' x = let Formation bindings = x in countDataless bindings
+--
+-- >>> countDataless' "⟦ α0 ↦ ξ, α0 ↦ Φ.org.eolang.bytes( Δ ⤍ 00-00-00-00-00-00-00-2A ) ⟧"
+-- 1
+--
+-- >>> countDataless' "⟦ α0 ↦ ξ, Δ ⤍ 00-00-00-00-00-00-00-2A ⟧"
+-- 0
+--
+--
+-- >>> countDataless' "⟦ α0 ↦ ξ, α1 ↦ ⟦ Δ ⤍ 00-00-00-00-00-00-00-2A ⟧ ⟧"
+-- 0
+--
+--
+-- >>> countDataless' "⟦ α0 ↦ ξ, α1 ↦ ⟦ α2 ↦ ⟦ Δ ⤍ 00-00-00-00-00-00-00-2A ⟧ ⟧ ⟧"
+-- 1
+countDataless :: (Num a) => [Binding] -> a
+countDataless bindings =
+  let countDeltas = count (\case DeltaBinding _ -> True; _ -> False)
+      nestedBindings = concatMap (\case AlphaBinding _ (Formation bindings') -> bindings'; _ -> []) bindings
+      deltas = countDeltas (bindings <> nestedBindings)
+   in if deltas == 0 then 1 else 0
+
 instance Inspectable Program where
-  inspect (Program binding) = forM_ binding inspect
+  inspect (Program bindings) = inspect (Formation bindings)
 
 instance Inspectable Binding where
   inspect = \case
@@ -47,25 +81,16 @@ instance Inspectable Binding where
       inspect attr
       inspect obj
     EmptyBinding attr -> do
-      #dataless += 1
       inspect attr
-    DeltaBinding _ -> pure ()
-    LambdaBinding _ -> #dataless += 1
-    MetaBindings _ -> pure ()
+    _ -> pure ()
 
 instance Inspectable Attribute where
-  inspect = \case
-    Phi -> pure ()
-    Rho -> pure ()
-    Sigma -> pure ()
-    VTX -> pure ()
-    Label _ -> pure ()
-    Alpha _ -> pure ()
-    MetaAttr _ -> pure ()
+  inspect _ = pure ()
 
 instance Inspectable Object where
   inspect = \case
     Formation bindings -> do
+      #dataless += countDataless bindings
       #formations += 1
       forM_ bindings inspect
     Application obj bindings -> do
@@ -76,8 +101,4 @@ instance Inspectable Object where
       #dispatches += 1
       inspect obj
       inspect attr
-    GlobalObject -> pure ()
-    ThisObject -> pure ()
-    Termination -> pure ()
-    MetaObject _ -> pure ()
-    MetaFunction _ _ -> pure ()
+    _ -> pure ()
