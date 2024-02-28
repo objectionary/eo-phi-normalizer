@@ -4,7 +4,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE ImplicitParams #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedRecordDot #-}
@@ -138,15 +137,13 @@ encodeToJSONString = (^. unpacked) . toLazyText . encodePrettyToTextBuilder' def
 pprefs :: ParserPrefs
 pprefs = prefs (showHelpOnEmpty <> showHelpOnError)
 
-type Context = (?parserContext :: Optparse.Context)
-
-die :: (Context) => String -> IO a
-die message = do
+die :: Optparse.Context -> String -> IO a
+die parserContext message = do
   handleParseResult . Failure $
-    parserFailure pprefs cliOpts (ErrorMsg message) [?parserContext]
+    parserFailure pprefs cliOpts (ErrorMsg message) [parserContext]
 
-getProgram :: (Context) => Maybe FilePath -> Maybe String -> IO Program
-getProgram inputFile expression = do
+getProgram :: Optparse.Context -> Maybe FilePath -> Maybe String -> IO Program
+getProgram parserContext inputFile expression = do
   src <-
     case (inputFile, expression) of
       (Just inputFile', Nothing) ->
@@ -154,9 +151,9 @@ getProgram inputFile expression = do
           then getContents'
           else readFile inputFile'
       (Nothing, Just expression') -> pure expression'
-      _ -> die [i|You must specify either -#{head inputFileLongName}|--#{inputFileLongName} #{_FILE} or #{_PROGRAM}|]
+      _ -> die parserContext [i|You must specify either -#{head inputFileLongName}|--#{inputFileLongName} #{_FILE} or #{_PROGRAM}|]
   case parseProgram src of
-    Left err -> die [i|"An error occurred parsing the input program: #{err}|]
+    Left err -> die parserContext [i|"An error occurred parsing the input program: #{err}|]
     Right program -> pure program
 
 getLoggers :: Maybe FilePath -> IO (String -> IO (), String -> IO ())
@@ -172,14 +169,14 @@ main = do
   opts <- customExecParser pprefs cliOpts
   case opts of
     CLI'MetricsPhi' CLI'MetricsPhi{..} -> do
-      let ?parserContext = Optparse.Context metricsCommandName metricsParserInfo
-      program' <- getProgram inputFile program
+      let parserContext = Optparse.Context metricsCommandName metricsParserInfo
+      program' <- getProgram parserContext inputFile program
       (logStrLn, _) <- getLoggers outputFile
       let metrics = collectMetrics program'
       logStrLn $ encodeToJSONString metrics
     CLI'TransformPhi' CLI'TransformPhi{..} -> do
-      let ?parserContext = Optparse.Context transformCommandName transformParserInfo
-      program' <- getProgram inputFile program
+      let parserContext = Optparse.Context transformCommandName transformParserInfo
+      program' <- getProgram parserContext inputFile program
       (logStrLn, logStr) <- getLoggers outputFile
       ruleSet <- parseRuleSetFromFile rulesPath
       unless (single || json) $ logStrLn ruleSet.title
@@ -189,7 +186,7 @@ main = do
             | otherwise = pure <$> applyRules (Common.Context (convertRule <$> ruleSet.rules) [Formation bindings]) (Formation bindings)
           uniqueResults = nub results
           totalResults = length uniqueResults
-      when (null uniqueResults || null (head uniqueResults)) $ die [i|Could not normalize the #{_PROGRAM}.|]
+      when (null uniqueResults || null (head uniqueResults)) $ die parserContext [i|Could not normalize the #{_PROGRAM}.|]
       let printAsProgramOrAsObject = \case
             Formation bindings' -> printTree $ Program bindings'
             x -> printTree x
