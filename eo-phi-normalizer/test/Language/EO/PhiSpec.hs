@@ -19,7 +19,6 @@ import Language.EO.Phi
 import Language.EO.Phi.Metrics.Collect (collectMetrics)
 import Language.EO.Phi.Rules.Common (Context (..), Rule, equalProgram)
 import Language.EO.Phi.Rules.PhiPaper (rule1, rule6)
-import Language.EO.Phi.Syntax.Abs (Attribute (Sigma))
 import Test.EO.Phi
 import Test.Hspec
 import Test.Metrics.Phi (MetricsTest (..), MetricsTestSet (..))
