@@ -55,7 +55,7 @@ main = do
         Right input@(Program bindings) -> do
           let uniqueResults
                 | chain = applyRulesChain (Context (convertRule <$> ruleSet.rules) [Formation bindings] Sigma) (Formation bindings)
-                | otherwise = pure <$> applyRulesN 15 (Context (convertRule <$> ruleSet.rules) [Formation bindings] Sigma) (Formation bindings)
+                | otherwise = pure <$> applyRules (Context (convertRule <$> ruleSet.rules) [Formation bindings] Sigma) (Formation bindings)
               totalResults = length uniqueResults
           when (totalResults == 0) $ error "Could not normalize the program"
           if single
