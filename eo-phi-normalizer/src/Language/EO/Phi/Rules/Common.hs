@@ -172,20 +172,6 @@ objectBindings (Application obj bs) = objectBindings obj ++ bs
 objectBindings (ObjectDispatch obj _attr) = objectBindings obj
 objectBindings _ = []
 
-nuCount :: Object -> Int
-nuCount obj = count isNu (objectBindings obj) + sum (sum . map nuCount . values <$> objectBindings obj)
- where
-  isNu (AlphaBinding VTX x) =
-    case x of
-      MetaObject _ -> False
-      MetaFunction _ _ -> False
-      _ -> True
-  isNu (EmptyBinding VTX) = True
-  isNu _ = False
-  count = (length .) . filter
-  values (AlphaBinding _ obj') = [obj']
-  values _ = []
-
 intToBytes :: Int -> Bytes
 intToBytes n = Bytes $ insertDashes $ pad $ showHex n ""
  where
@@ -236,4 +222,4 @@ intToBytesObject :: Int -> Object
 intToBytesObject n = Formation [DeltaBinding $ intToBytes n]
 
 nuCountAsDataObj :: Object -> Object
-nuCountAsDataObj = intToBytesObject . nuCount
+nuCountAsDataObj = intToBytesObject . getMaxNu
