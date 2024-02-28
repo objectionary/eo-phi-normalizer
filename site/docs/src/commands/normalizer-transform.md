@@ -68,22 +68,19 @@ normalizer transform --help
 ```
 
 ```console
-Usage: normalizer transform (-r|--rules FILE) [-i|--input-file FILE] [PROGRAM]
-                            [-c|--chain] [-j|--json] [-o|--output-file FILE]
-                            [-s|--single]
+Usage: normalizer transform (-r|--rules FILE) [-c|--chain] [-j|--json]
+                            [-o|--output-file FILE] [-s|--single] [FILE]
 
   Transform a PHI program.
 
 Available options:
   -r,--rules FILE          FILE with user-defined rules.
-  -i,--input-file FILE     FILE to read input from. When FILE is -, read from
-                           stdin. You must specify either this option or
-                           PROGRAM.
-  PROGRAM                  Program to work with.
   -c,--chain               Output transformation steps.
   -j,--json                Output JSON.
   -o,--output-file FILE    Output to FILE. Output to stdout otherwise.
   -s,--single              Output a single expression.
+  FILE                     FILE to read input from. When not specified, read
+                           from stdin.
   -h,--help                Show this help text
 ```
 
@@ -94,7 +91,7 @@ Normalize a 𝜑-expression from `program.phi` using the [yegor.yaml](#yegoryaml
 There can be multiple numbered results that correspond to multiple rule application sequences.
 
 ```$ as console
-normalizer transform --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml -i program.phi
+normalizer transform --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml program.phi
 ```
 
 ```console
@@ -112,7 +109,7 @@ Result 1 out of 1:
 Use `--chain` to see numbered normalization steps for each normalization result.
 
 ```$ as console
-normalizer transform --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml --input-file program.phi
+normalizer transform --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml program.phi
 ```
 
 ```console
@@ -163,7 +160,7 @@ Result 6 out of 6:
 Use `--single` to print a single normalized program.
 
 ```$ as console
-normalizer transform --single --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml --input-file program.phi
+normalizer transform --single --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml program.phi
 ```
 
 ```console
@@ -173,7 +170,7 @@ normalizer transform --single --rules ./eo-phi-normalizer/test/eo/phi/rules/yego
 ### `--json`
 
 ```$ as json
-normalizer transform --json --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml --input-file program.phi
+normalizer transform --json --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml program.phi
 ```
 
 ```json

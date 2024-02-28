@@ -47,24 +47,21 @@ normalizer metrics --help
 ```
 
 ```console
-Usage: normalizer metrics [-i|--input-file FILE] [-o|--output-file FILE]
-                          [PROGRAM]
+Usage: normalizer metrics [FILE] [-o|--output-file FILE]
 
   Collect metrics for a PHI program.
 
 Available options:
-  -i,--input-file FILE     FILE to read input from. When FILE is -, read from
-                           stdin. You must specify either this option or
-                           PROGRAM.
+  FILE                     FILE to read input from. When not specified, read
+                           from stdin.
   -o,--output-file FILE    Output to FILE. Output to stdout otherwise.
-  PROGRAM                  Program to work with.
   -h,--help                Show this help text
 ```
 
-### --input-file program.phi
+### PROGRAM
 
 ```$ as json
-normalizer metrics --input-file program.phi
+normalizer metrics program.phi
 ```
 
 ```json
@@ -76,10 +73,10 @@ normalizer metrics --input-file program.phi
 }
 ```
 
-### --input-file -
+### PROGRAM not specified
 
 ```$ as json
-cat program.phi | normalizer metrics --input-file -
+cat program.phi | normalizer metrics
 ```
 
 ```json
