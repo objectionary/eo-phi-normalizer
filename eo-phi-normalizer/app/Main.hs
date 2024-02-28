@@ -43,14 +43,12 @@ data CLI'TransformPhi = CLI'TransformPhi
   , single :: Bool
   , json :: Bool
   , inputFile :: Maybe FilePath
-  , program :: Maybe String
   }
   deriving (Show)
 
 data CLI'MetricsPhi = CLI'MetricsPhi
   { inputFile :: Maybe FilePath
   , outputFile :: Maybe FilePath
-  , program :: Maybe String
   }
   deriving (Show)
 
@@ -62,23 +60,14 @@ data CLI
 fileMetavarName :: String
 fileMetavarName = "FILE"
 
-programMetavarName :: String
-programMetavarName = "PROGRAM"
-
 fileMetavar :: Mod OptionFields a
 fileMetavar = metavar fileMetavarName
-
-inputFileOptionLongName :: String
-inputFileOptionLongName = "input-file"
-
-inputFileOption :: Parser (Maybe FilePath)
-inputFileOption = optional $ strOption (long inputFileOptionLongName <> short 'i' <> help [i|#{fileMetavarName} to read input from. When #{fileMetavarName} is -, read from stdin. You must specify either this option or #{programMetavarName}.|] <> fileMetavar)
 
 outputFileOption :: Parser (Maybe String)
 outputFileOption = optional $ strOption (long "output-file" <> short 'o' <> help [i|Output to #{fileMetavarName}. Output to stdout otherwise.|] <> fileMetavar)
 
-programArg :: Parser (Maybe String)
-programArg = optional $ strArgument (metavar programMetavarName <> help "Program to work with.")
+inputFileArg :: Parser (Maybe String)
+inputFileArg = optional $ strArgument (metavar fileMetavarName <> help [i|#{fileMetavarName} to read input from. When not specified, read from stdin.|])
 
 jsonSwitch :: Parser Bool
 jsonSwitch = switch (long "json" <> short 'j' <> help "Output JSON.")
@@ -86,19 +75,17 @@ jsonSwitch = switch (long "json" <> short 'j' <> help "Output JSON.")
 cliTransformPhiParser :: Parser CLI'TransformPhi
 cliTransformPhiParser = do
   rulesPath <- strOption (long "rules" <> short 'r' <> help [i|#{fileMetavarName} with user-defined rules.|] <> fileMetavar)
-  inputFile <- inputFileOption
-  program <- programArg
   chain <- switch (long "chain" <> short 'c' <> help "Output transformation steps.")
   json <- jsonSwitch
   outputFile <- outputFileOption
   single <- switch (long "single" <> short 's' <> help "Output a single expression.")
+  inputFile <- inputFileArg
   pure CLI'TransformPhi{..}
 
 cliMetricsPhiParser :: Parser CLI'MetricsPhi
 cliMetricsPhiParser = do
-  inputFile <- inputFileOption
+  inputFile <- inputFileArg
   outputFile <- outputFileOption
-  program <- programArg
   pure CLI'MetricsPhi{..}
 
 metricsParserInfo :: ParserInfo CLI
@@ -143,18 +130,11 @@ die parserContext message = do
   handleParseResult . Failure $
     parserFailure pprefs cliOpts (ErrorMsg message) [parserContext]
 
-getProgram :: Optparse.Context -> Maybe FilePath -> Maybe String -> IO Program
-getProgram parserContext inputFile expression = do
-  src <-
-    case (inputFile, expression) of
-      (Just inputFile', Nothing) ->
-        if inputFile' == "-"
-          then getContents'
-          else readFile inputFile'
-      (Nothing, Just expression') -> pure expression'
-      _ -> die parserContext [i|You must specify either -#{head inputFileOptionLongName}|--#{inputFileOptionLongName} #{fileMetavarName} or #{programMetavarName}|]
+getProgram :: Optparse.Context -> Maybe FilePath -> IO Program
+getProgram parserContext inputFile = do
+  src <- maybe getContents' readFile inputFile
   case parseProgram src of
-    Left err -> die parserContext [i|"An error occurred parsing the input program: #{err}|]
+    Left err -> die parserContext [i|"An error occurred when parsing the input program: #{err}|]
     Right program -> pure program
 
 getLoggers :: Maybe FilePath -> IO (String -> IO (), String -> IO ())
@@ -171,13 +151,13 @@ main = do
   case opts of
     CLI'MetricsPhi' CLI'MetricsPhi{..} -> do
       let parserContext = Optparse.Context metricsCommandName metricsParserInfo
-      program' <- getProgram parserContext inputFile program
+      program' <- getProgram parserContext inputFile
       (logStrLn, _) <- getLoggers outputFile
       let metrics = collectMetrics program'
       logStrLn $ encodeToJSONString metrics
     CLI'TransformPhi' CLI'TransformPhi{..} -> do
       let parserContext = Optparse.Context transformCommandName transformParserInfo
-      program' <- getProgram parserContext inputFile program
+      program' <- getProgram parserContext inputFile
       (logStrLn, logStr) <- getLoggers outputFile
       ruleSet <- parseRuleSetFromFile rulesPath
       unless (single || json) $ logStrLn ruleSet.title
@@ -187,7 +167,7 @@ main = do
             | otherwise = pure <$> applyRules (Common.Context (convertRule <$> ruleSet.rules) [Formation bindings]) (Formation bindings)
           uniqueResults = nub results
           totalResults = length uniqueResults
-      when (null uniqueResults || null (head uniqueResults)) $ die parserContext [i|Could not normalize the #{programMetavarName}.|]
+      when (null uniqueResults || null (head uniqueResults)) $ die parserContext [i|Could not normalize the program.|]
       let printAsProgramOrAsObject = \case
             Formation bindings' -> printTree $ Program bindings'
             x -> printTree x
