@@ -27,10 +27,12 @@ We count:
 
 ### Dataless formations
 
-- `Primitive formation` - a formation that has a Δ-attribute.
+- `Primitive formation` - a formation that has a `Δ` attribute.
   - `⟦ Δ ⤍ 00- ⟧`
-- `Dataless formation` - not primitive and does not have attributes bound to primitive formations.
+- `Dataless formation` - not primitive and does not have attributes that map to primitive formations.
   - `⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅ ⟧`
+    - the outermost formation with attributes `d` and `c` is dataless because it is not primitive and its attributes do not map to primitive formations.
+    - `d` is not dataless because it has an attribute `ν` that maps to a primitive formation.
 
 ## Environment
 
