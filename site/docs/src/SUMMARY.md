@@ -1,4 +1,9 @@
 # Summary
 
-- [README](./README.md)
-- [User-defined rules](./user-defined-rules.md)
+- [Introduction](./introduction.md)
+- [Installation](./installation.md)
+- [Commands](./commands.md)
+  - [normalizer](./commands/normalizer.md)
+    - [normalizer transform](./commands/normalizer-transform.md)
+    - [normalizer metrics](./commands/normalizer-metrics.md)
+- [Contributing](./contributing.md)

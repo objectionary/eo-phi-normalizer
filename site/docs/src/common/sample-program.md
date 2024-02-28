@@ -1,7 +1,7 @@
 Save a `PHI` program to a file.
 This program will be used in subsequent commands.
 
-```sh
+```$
 cat > program.phi <<EOM
 {
   ⟦

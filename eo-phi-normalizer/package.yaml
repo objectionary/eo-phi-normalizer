@@ -46,6 +46,7 @@ dependencies:
   - string-interpolate
   - lens
   - generic-lens
+  - text
 
 default-extensions:
   - ImportQualifiedPost
@@ -75,7 +76,7 @@ library:
         - Language.EO.Phi.Rules.Syntax.Skel
 
 executables:
-  normalize-phi:
+  normalizer:
     main: Main.hs
     source-dirs: app
     ghc-options:
@@ -84,7 +85,8 @@ executables:
       - -with-rtsopts=-N
     dependencies:
       - eo-phi-normalizer
-      - optparse-generic
+      - optparse-applicative
+      - aeson-pretty
 
 tests:
   eo-phi-normalizer-test:

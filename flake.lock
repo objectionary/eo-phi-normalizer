@@ -16,6 +16,24 @@
         "type": "github"
       }
     },
+    "flake-utils": {
+      "inputs": {
+        "systems": "systems"
+      },
+      "locked": {
+        "lastModified": 1705309234,
+        "narHash": "sha256-uNRRNRKmJyCRC/8y1RqBkqWBLM034y4qN7EprSdmgyA=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "1ef2e671c3b0c19053962c07dbda38332dcebf26",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
     "flakes": {
       "locked": {
         "lastModified": 1704589266,
@@ -43,11 +61,63 @@
         "url": "https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.2.0/maven-wrapper-3.2.0.jar"
       }
     },
+    "mdsh": {
+      "inputs": {
+        "flake-utils": "flake-utils",
+        "nixpkgs": "nixpkgs"
+      },
+      "locked": {
+        "lastModified": 1708988125,
+        "narHash": "sha256-nx9+tTLliKBPT/TSKTBSYOYxglewOKiw+gYLBvV+9Bg=",
+        "owner": "deemp",
+        "repo": "mdsh",
+        "rev": "ab378bfd391e5147e29fb0812e1dea7e079a1559",
+        "type": "github"
+      },
+      "original": {
+        "owner": "deemp",
+        "ref": "update-flake",
+        "repo": "mdsh",
+        "type": "github"
+      }
+    },
+    "nixpkgs": {
+      "locked": {
+        "lastModified": 1708847675,
+        "narHash": "sha256-RUZ7KEs/a4EzRELYDGnRB6i7M1Izii3JD/LyzH0c6Tg=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "2a34566b67bef34c551f204063faeecc444ae9da",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixpkgs-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "root": {
       "inputs": {
         "eoc": "eoc",
         "flakes": "flakes",
-        "maven-wrapper-jar": "maven-wrapper-jar"
+        "maven-wrapper-jar": "maven-wrapper-jar",
+        "mdsh": "mdsh"
+      }
+    },
+    "systems": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
       }
     }
   },
