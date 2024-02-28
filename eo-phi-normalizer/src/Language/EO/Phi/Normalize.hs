@@ -22,7 +22,7 @@ import Language.EO.Phi.Syntax.Abs
 data Context = Context
   { globalObject :: [Binding]
   , thisObject :: [Binding]
-  , totalNuCount :: Int
+  , maxNu :: Int
   }
   deriving (Generic)
 
@@ -39,7 +39,7 @@ normalize (Program bindings) = evalState (Program . objectBindings <$> normalize
     Context
       { globalObject = bindings
       , thisObject = bindings
-      , totalNuCount = getMaxNu (Formation bindings)
+      , maxNu = getMaxNu (Formation bindings)
       }
 
 rule1 :: Object -> State Context Object
@@ -54,8 +54,8 @@ rule1 (Formation bindings) = do
   finalBindings <-
     if not $ any isNu normalizedBindings
       then do
-        nus <- gets totalNuCount
-        #totalNuCount += 1
+        #maxNu += 1
+        nus <- gets maxNu
         let dataObject = intToBytesObject nus
         pure (AlphaBinding VTX dataObject : normalizedBindings)
       else do
