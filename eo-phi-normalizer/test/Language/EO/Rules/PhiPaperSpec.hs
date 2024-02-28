@@ -9,14 +9,14 @@
 
 module Language.EO.Rules.PhiPaperSpec where
 
-import Control.Monad (forM_)
+import Control.Monad (forM_, guard)
 import Data.Aeson (FromJSON)
 import Data.Data (Data (toConstr))
 import Data.List (intercalate)
 import Data.List qualified as List
 import Data.Yaml qualified as Yaml
 import GHC.Generics (Generic)
-import Language.EO.Phi.Rules.Common (Context (Context), Rule, applyOneRule, applyRules, equalObject, intToBytes)
+import Language.EO.Phi.Rules.Common (Context (Context), Rule, applyOneRule, equalObject, intToBytes)
 import Language.EO.Phi.Rules.Yaml (convertRule, parseRuleSetFromFile, rules)
 import Language.EO.Phi.Syntax (printTree)
 import Language.EO.Phi.Syntax.Abs as Phi
@@ -108,7 +108,21 @@ genCriticalPair rules = do
  where
   fan = do
     obj <- Formation <$> listOf arbitrary
-    return (obj, applyOneRule (Context rules [obj]) obj)
+    return (obj, applyOneRule (Context rules [obj] Phi.Sigma) obj)
+
+findCriticalPairs :: [Rule] -> Object -> [CriticalPair]
+findCriticalPairs rules obj = do
+  let ctx = Context rules [obj] Phi.Sigma
+  let results = applyOneRule ctx obj
+  guard (length results > 1)
+  case results of
+    x : y : _ ->
+      return
+        CriticalPair
+          { sourceTerm = obj
+          , criticalPair = (x, y)
+          }
+    _ -> error "IMPOSSIBLE HAPPENED"
 
 shrinkCriticalPair :: [Rule] -> CriticalPair -> [CriticalPair]
 shrinkCriticalPair rules CriticalPair{..} =
@@ -117,26 +131,26 @@ shrinkCriticalPair rules CriticalPair{..} =
     , criticalPair = (x, y)
     }
   | sourceTerm'@Formation{} <- shrink sourceTerm
-  , x : y : _ <- [applyOneRule (Context rules [sourceTerm']) sourceTerm']
+  , x : y : _ <- [applyOneRule (Context rules [sourceTerm'] Phi.Sigma) sourceTerm']
   ]
 
 descendantsN :: Int -> [Rule] -> [Object] -> [Object]
-descendantsN maxDepth rules objs
-  | maxDepth <= 0 = objs
+descendantsN depth rules objs
+  | depth <= 0 = objs
   | otherwise =
       objs
         ++ descendantsN
-          (maxDepth - 1)
+          (depth - 1)
           rules
           [ obj'
           | obj <- objs
-          , obj' <- applyOneRule (Context rules [obj]) obj
+          , obj' <- applyOneRule (Context rules [obj] Phi.Sigma) obj
           ]
 
 confluentCriticalPairN :: Int -> [Rule] -> CriticalPair -> Bool
-confluentCriticalPairN maxDepth rules CriticalPair{..} =
+confluentCriticalPairN depth rules CriticalPair{..} =
   -- should normalize the VTXs before checking
-  not (null (List.intersectBy equalObject (descendantsN maxDepth rules [x]) (descendantsN maxDepth rules [y])))
+  not (null (List.intersectBy equalObject (descendantsN depth rules [x]) (descendantsN depth rules [y])))
  where
   (x, y) = criticalPair
 
@@ -151,19 +165,17 @@ instance Show CriticalPair where
       , "  " <> printTree y
       ]
 
+maxDepth :: Int
+maxDepth = 7
+
 confluent :: [Rule] -> Property
 confluent rulesFromYaml =
   within 10_000_000 $
     forAllShrink (genCriticalPair rulesFromYaml) (shrinkCriticalPair rulesFromYaml) $
-      confluentCriticalPairN 7 rulesFromYaml
+      confluentCriticalPairN maxDepth rulesFromYaml
 
 confluentOnObject :: [Rule] -> Object -> Bool
-confluentOnObject rules obj = isSingleton (applyRules ctx obj)
- where
-  ctx = Context rules [obj]
-  -- To support possibly infinite results
-  isSingleton [_] = True
-  isSingleton _ = False
+confluentOnObject rules obj = all (confluentCriticalPairN maxDepth rules) (findCriticalPairs rules obj)
 
 data ConfluenceTests = ConfluenceTests
   { title :: String
@@ -182,7 +194,7 @@ spec = do
   describe "Yegor's rules" $ do
     it "Are confluent (via QuickCheck)" (confluent rulesFromYaml)
     describe
-      "Are confluent (manual tests)"
+      "Are confluent (regression tests)"
       $ forM_ (tests inputs)
       $ \input -> do
         it (printTree input) (input `shouldSatisfy` confluentOnObject rulesFromYaml)

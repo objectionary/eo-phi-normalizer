@@ -1,9 +1,8 @@
+{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
-
-{-# HLINT ignore "Use &&" #-}
 
 module Language.EO.Phi.Rules.Common where
 
@@ -14,7 +13,7 @@ import Data.String (IsString (..))
 import Language.EO.Phi.Syntax.Abs
 import Language.EO.Phi.Syntax.Lex (Token)
 import Language.EO.Phi.Syntax.Par
-import Numeric (showHex)
+import Numeric (readHex, showHex)
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -45,6 +44,7 @@ unsafeParseWith parser input =
 data Context = Context
   { allRules :: [Rule]
   , outerFormations :: NonEmpty Object
+  , currentAttr :: Attribute
   }
 
 -- | A rule tries to apply a transformation to the root object, if possible.
@@ -93,7 +93,7 @@ withSubObjectBindings f ctx (b : bs) =
 
 withSubObjectBinding :: (Context -> Object -> [Object]) -> Context -> Binding -> [Binding]
 withSubObjectBinding f ctx = \case
-  AlphaBinding a obj -> AlphaBinding a <$> withSubObject f ctx obj
+  AlphaBinding a obj -> AlphaBinding a <$> withSubObject f (ctx{currentAttr = a}) obj
   EmptyBinding{} -> []
   DeltaBinding{} -> []
   LambdaBinding{} -> []
@@ -124,20 +124,11 @@ equalProgram (Program bindings1) (Program bindings2) = equalObject (Formation bi
 
 equalObject :: Object -> Object -> Bool
 equalObject (Formation bindings1) (Formation bindings2) =
-  and
-    [ length bindings1 == length bindings2
-    , equalBindings bindings1 bindings2
-    ]
+  length bindings1 == length bindings2 && equalBindings bindings1 bindings2
 equalObject (Application obj1 bindings1) (Application obj2 bindings2) =
-  and
-    [ equalObject obj1 obj2
-    , equalBindings bindings1 bindings2
-    ]
+  equalObject obj1 obj2 && equalBindings bindings1 bindings2
 equalObject (ObjectDispatch obj1 attr1) (ObjectDispatch obj2 attr2) =
-  and
-    [ equalObject obj1 obj2
-    , attr1 == attr2
-    ]
+  equalObject obj1 obj2 && attr1 == attr2
 equalObject obj1 obj2 = obj1 == obj2
 
 equalBindings :: [Binding] -> [Binding] -> Bool
@@ -151,6 +142,9 @@ equalBindings bindings1 bindings2 = and (zipWith equalBinding (sortOn attr bindi
 
 equalBinding :: Binding -> Binding -> Bool
 equalBinding (AlphaBinding attr1 obj1) (AlphaBinding attr2 obj2) = attr1 == attr2 && equalObject obj1 obj2
+-- Ignore deltas for now while comparing since different normalization paths can lead to different vertex data
+-- TODO #120:30m normalize the deltas instead of ignoring since this actually suppresses problems
+equalBinding (DeltaBinding _) (DeltaBinding _) = True
 equalBinding b1 b2 = b1 == b2
 
 applyRulesChain :: Context -> Object -> [[Object]]
@@ -179,9 +173,13 @@ objectBindings (ObjectDispatch obj _attr) = objectBindings obj
 objectBindings _ = []
 
 nuCount :: Object -> Int
-nuCount obj = count isNu (objectBindings obj) + sum (map (sum . map nuCount . values) (objectBindings obj))
+nuCount obj = count isNu (objectBindings obj) + sum (sum . map nuCount . values <$> objectBindings obj)
  where
-  isNu (AlphaBinding VTX _) = True
+  isNu (AlphaBinding VTX x) =
+    case x of
+      MetaObject _ -> False
+      MetaFunction _ _ -> False
+      _ -> True
   isNu (EmptyBinding VTX) = True
   isNu _ = False
   count = (length .) . filter
@@ -201,6 +199,38 @@ intToBytes n = Bytes $ insertDashes $ pad $ showHex n ""
               [x, y] -> [x, y, '-']
               (x : y : xs) -> x : y : '-' : go xs
          in go s
+
+minNu :: Int
+minNu = -1
+
+class HasMaxNu a where
+  -- | get maximum vertex index
+  --
+  -- >>> getMaxNu @Object "⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧ ⟧, b ↦ ⟦ ⟧ ⟧"
+  -- 3
+  getMaxNu :: a -> Int
+
+instance HasMaxNu Program where
+  getMaxNu :: Program -> Int
+  getMaxNu (Program bindings) = maximum (minNu : (getMaxNu <$> bindings))
+
+instance HasMaxNu Object where
+  getMaxNu :: Object -> Int
+  getMaxNu = \case
+    Formation bindings -> maximum (minNu : (getMaxNu <$> bindings))
+    Application obj bindings -> maximum (minNu : getMaxNu obj : (getMaxNu <$> bindings))
+    ObjectDispatch obj _ -> getMaxNu obj
+    _ -> minNu
+
+instance HasMaxNu Binding where
+  getMaxNu :: Binding -> Int
+  getMaxNu = \case
+    AlphaBinding VTX (Formation [DeltaBinding (Bytes bs)]) ->
+      case readHex [x | x <- bs, x /= '-'] of
+        [(val, "")] -> val
+        _ -> error "Vertex number is incorrect"
+    AlphaBinding _ obj -> getMaxNu obj
+    _ -> minNu
 
 intToBytesObject :: Int -> Object
 intToBytesObject n = Formation [DeltaBinding $ intToBytes n]

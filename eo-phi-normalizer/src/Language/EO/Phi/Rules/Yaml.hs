@@ -3,12 +3,18 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedLabels #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-partial-fields #-}
 
 module Language.EO.Phi.Rules.Yaml where
 
+import Control.Lens ((+=))
+import Control.Monad (guard)
+import Control.Monad.State (State, evalState, gets)
 import Data.Aeson (FromJSON (..), Options (sumEncoding), SumEncoding (UntaggedValue), genericParseJSON)
 import Data.Aeson.Types (defaultOptions)
 import Data.Coerce (coerce)
@@ -16,6 +22,7 @@ import Data.List (intercalate)
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.Maybe (fromMaybe)
 import Data.String (IsString (..))
+import Data.String.Interpolate (i)
 import Data.Yaml qualified as Yaml
 import GHC.Generics (Generic)
 import Language.EO.Phi (printTree)
@@ -41,6 +48,7 @@ data RuleSet = RuleSet
 data RuleContext = RuleContext
   { global_object :: Maybe Object
   , current_object :: Maybe Object
+  , current_attribute :: Maybe Attribute
   }
   deriving (Generic, FromJSON, Show)
 
@@ -58,8 +66,7 @@ data Rule = Rule
 data RuleTest = RuleTest
   { name :: String
   , input :: Object
-  , output :: Object
-  , matches :: Bool
+  , output :: [Object]
   }
   deriving (Generic, FromJSON, Show)
 
@@ -81,23 +88,25 @@ parseRuleSetFromFile :: FilePath -> IO RuleSet
 parseRuleSetFromFile = Yaml.decodeFileThrow
 
 convertRule :: Rule -> Common.Rule
-convertRule Rule{..} ctx obj =
-  [ obj'
-  | contextSubsts <- matchContext ctx context
-  , let pattern' = applySubst contextSubsts pattern
-  , let result' = applySubst contextSubsts result
-  , subst <- matchObject pattern' obj
-  , all (\cond -> checkCond ctx cond (contextSubsts <> subst)) when
-  , obj' <- [applySubst (contextSubsts <> subst) (evaluateMetaFuncs result')]
-  , not (objectHasMetavars obj')
-  ]
+convertRule Rule{..} ctx obj = do
+  contextSubsts <- matchContext ctx context
+  let pattern' = applySubst contextSubsts pattern
+      result' = applySubst contextSubsts result
+  subst <- matchObject pattern' obj
+  guard $ all (\cond -> checkCond ctx cond (contextSubsts <> subst)) when
+  let result'' = applySubst (contextSubsts <> subst) result'
+      -- TODO #152:30m what context should we pass to evaluate meta funcs?
+      obj' = evaluateMetaFuncs obj result''
+  guard $ not (objectHasMetavars obj')
+  pure obj'
 
 matchContext :: Common.Context -> Maybe RuleContext -> [Subst]
 matchContext Common.Context{} Nothing = [emptySubst]
-matchContext Common.Context{..} (Just (RuleContext p1 p2)) = do
-  subst1 <- maybe [emptySubst] (`matchObject` globalObject) p1
-  subst2 <- maybe [emptySubst] ((`matchObject` thisObject) . applySubst subst1) p2
-  return (subst1 <> subst2)
+matchContext Common.Context{..} (Just (RuleContext{..})) = do
+  subst1 <- maybe [emptySubst] (`matchObject` globalObject) global_object
+  subst2 <- maybe [emptySubst] ((`matchObject` thisObject) . applySubst subst1) current_object
+  subst3 <- maybe [emptySubst] (`matchAttr` currentAttr) current_attribute
+  return (subst1 <> subst2 <> subst3)
  where
   globalObject = NonEmpty.last outerFormations
   thisObject = NonEmpty.head outerFormations
@@ -187,7 +196,7 @@ instance Show Subst where
       , "}"
       ]
    where
-    showMappings metas = intercalate "; " $ map (\(MetaId metaId, obj) -> metaId <> " -> " <> printTree obj) metas
+    showMappings metas = intercalate "; " $ map (\(MetaId metaId, obj) -> [i|#{metaId} -> '#{printTree obj}'|]) metas
 
 instance Semigroup Subst where
   (<>) = mergeSubst
@@ -259,16 +268,36 @@ matchObject ThisObject ThisObject = [emptySubst]
 matchObject GlobalObject GlobalObject = [emptySubst]
 matchObject _ _ = [] -- ? emptySubst ?
 
-evaluateMetaFuncs :: Object -> Object
-evaluateMetaFuncs (MetaFunction (MetaFunctionName "@T") obj) = Common.nuCountAsDataObj obj
-evaluateMetaFuncs (Formation bindings) = Formation (map evaluateMetaFuncsBinding bindings)
-evaluateMetaFuncs (Application obj bindings) = Application (evaluateMetaFuncs obj) (map evaluateMetaFuncsBinding bindings)
-evaluateMetaFuncs (ObjectDispatch obj a) = ObjectDispatch (evaluateMetaFuncs obj) a
-evaluateMetaFuncs obj = obj
+-- | Evaluate meta functions
+-- given top-level context as an object
+-- and an object
+--
+-- >>> evaluateMetaFuncs "⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧ ⟧, b ↦ ⟦ ⟧ ⟧" "⟦ a ↦ ⟦ ν ↦ @T(⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧ ⟧, b ↦ ⟦ ⟧ ⟧)  ⟧, b ↦ ⟦ ⟧ ⟧"
+-- Formation [AlphaBinding (Label (LabelId "a")) (Formation [AlphaBinding VTX (Formation [DeltaBinding (Bytes "04-")])]),AlphaBinding (Label (LabelId "b")) (Formation [])]
+evaluateMetaFuncs :: Object -> Object -> Object
+evaluateMetaFuncs obj' obj =
+  evalState
+    (evaluateMetaFuncs' obj)
+    MetaState{nuCount = Common.getMaxNu obj' + 1}
 
-evaluateMetaFuncsBinding :: Binding -> Binding
-evaluateMetaFuncsBinding (AlphaBinding attr obj) = AlphaBinding attr (evaluateMetaFuncs obj)
-evaluateMetaFuncsBinding binding = binding
+newtype MetaState = MetaState
+  { nuCount :: Int
+  }
+  deriving (Generic)
+
+evaluateMetaFuncs' :: Object -> State MetaState Object
+evaluateMetaFuncs' (MetaFunction (MetaFunctionName "@T") _) = do
+  res <- gets (Common.intToBytesObject . nuCount)
+  #nuCount += 1
+  pure res
+evaluateMetaFuncs' (Formation bindings) = Formation <$> mapM evaluateMetaFuncsBinding bindings
+evaluateMetaFuncs' (Application obj bindings) = Application <$> evaluateMetaFuncs' obj <*> mapM evaluateMetaFuncsBinding bindings
+evaluateMetaFuncs' (ObjectDispatch obj a) = ObjectDispatch <$> evaluateMetaFuncs' obj <*> pure a
+evaluateMetaFuncs' obj = pure obj
+
+evaluateMetaFuncsBinding :: Binding -> State MetaState Binding
+evaluateMetaFuncsBinding (AlphaBinding attr obj) = AlphaBinding attr <$> evaluateMetaFuncs' obj
+evaluateMetaFuncsBinding binding = pure binding
 
 matchBindings :: [Binding] -> [Binding] -> [Subst]
 matchBindings [] [] = [emptySubst]
