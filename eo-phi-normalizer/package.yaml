@@ -98,3 +98,4 @@ tests:
       - eo-phi-normalizer
       - hspec
       - hspec-discover
+      - QuickCheck

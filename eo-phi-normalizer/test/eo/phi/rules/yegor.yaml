@@ -4,10 +4,11 @@ rules:
     description: 'Initialization of vertex attribute'
     context:
       global_object: '!Phi'
+      current_attribute: '!a'
     pattern: |
-      ⟦ !a ↦ ⟦ !B ⟧, !B_rest ⟧
+      ⟦ !B ⟧
     result: |
-      ⟦ !a ↦ ⟦ !B, ν ↦ @T(!Phi) ⟧, !B_rest ⟧
+      ⟦ !B, ν ↦ @T(!Phi) ⟧
     when:
       - absent_attrs:
           attrs: ['ν']
@@ -16,15 +17,35 @@ rules:
     tests:
       - name: Adds vertex attribute
         input: '⟦ a ↦ ⟦ ⟧ ⟧'
-        output: '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧'
-        matches: true
+        output:
+          - '⟦ a ↦ ⟦ ⟧, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧'
+          - '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧'
+      - name: Adds vertices in all non-top-level formations
+        input: '⟦ a ↦ ⟦ ⟧, b ↦ ⟦ ⟧ ⟧'
+        output:
+          - '⟦ a ↦ ⟦ ⟧, b ↦ ⟦ ⟧, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧'
+          - '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, b ↦ ⟦ ⟧ ⟧'
+          - '⟦ a ↦ ⟦ ⟧, b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧'
+      - name: Added vertices are incremental (1)
+        input: '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧ ⟧, b ↦ ⟦ ⟧ ⟧'
+        output:
+          - '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧ ⟧, b ↦ ⟦ ⟧, ν ↦ ⟦ Δ ⤍ 04- ⟧ ⟧'
+          - '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧ ⟧, b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 04- ⟧ ⟧ ⟧'
+      - name: Added vertices are incremental (2)
+        input: '⟦ a ↦ ⟦ ⟧(ν ↦ ⟦ Δ ⤍ 06- ⟧), b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 05- ⟧ ⟧, c ↦ ⟦ ⟧ ⟧'
+        output:
+          - '⟦ a ↦ ⟦ ⟧(ν ↦ ⟦ Δ ⤍ 06- ⟧), b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 05- ⟧ ⟧, c ↦ ⟦ ⟧, ν ↦ ⟦ Δ ⤍ 07- ⟧ ⟧'
+          - '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 07- ⟧ ⟧(ν ↦ ⟦ Δ ⤍ 06- ⟧), b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 05- ⟧ ⟧, c ↦ ⟦ ⟧ ⟧'
+          - '⟦ a ↦ ⟦ ⟧(ν ↦ ⟦ Δ ⤍ 06- ⟧), b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 05- ⟧ ⟧, c ↦ ⟦ ν ↦ ⟦ Δ ⤍ 07- ⟧ ⟧ ⟧'
 
   - name: Rule 2
     description: ''
+    context:
+      current_attribute: '!a'
     pattern: |
-      ⟦ !a ↦ ⟦ !b ↦ ⟦ !B1 ⟧, σ ↦ !obj, !B2 ⟧, !B_rest ⟧
+      ⟦ !b ↦ ⟦ !B1 ⟧, σ ↦ !obj, !B2 ⟧
     result: |
-      ⟦ !a ↦ ⟦ !b ↦ ⟦ σ ↦ !obj.!a, !B1 ⟧, σ ↦ !obj, !B2 ⟧, !B_rest ⟧
+      ⟦ !b ↦ ⟦ σ ↦ !obj.!a, !B1 ⟧, σ ↦ !obj, !B2 ⟧
     when:
       - absent_attrs:
           attrs: ['σ']
@@ -32,12 +53,10 @@ rules:
     tests:
       - name: 'Adds home attribute'
         input: '⟦ a ↦ ⟦ b ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧ ⟧'
-        output: '⟦ a ↦ ⟦ b ↦ ⟦ σ ↦ ⟦ ⟧.a ⟧, σ ↦ ⟦ ⟧ ⟧ ⟧'
-        matches: true
+        output: ['⟦ a ↦ ⟦ b ↦ ⟦ σ ↦ ⟦ ⟧.a ⟧, σ ↦ ⟦ ⟧ ⟧ ⟧']
       - name: 'Leaves the object unchanged'
         input: '⟦ a ↦ ⟦ b ↦ ⟦ σ ↦ ⟦ ⟧ ⟧ ⟧ ⟧'
-        output: '⟦ a ↦ ⟦ b ↦ ⟦ σ ↦ ⟦ ⟧ ⟧ ⟧ ⟧'
-        matches: false
+        output: []
 
   - name: Rule 3
     description: 'Initialization of parent attribute'
@@ -55,16 +74,13 @@ rules:
     tests:
       - name: 'Has sigma and no rho'
         input: '⟦ b ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧ '
-        output: '⟦ b ↦ ⟦ ⟧, σ ↦ ⟦ ⟧, ρ ↦ ξ.σ ⟧'
-        matches: true
+        output: ['⟦ b ↦ ⟦ ⟧, σ ↦ ⟦ ⟧, ρ ↦ ξ.σ ⟧']
       - name: 'Has both sigma and rho'
         input: '⟦ a ↦ ⟦ b ↦ ⟦ ⟧, ρ ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧ ⟧'
-        output: '⟦ a ↦ ⟦ b ↦ ⟦ ⟧, ρ ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧ ⟧'
-        matches: false
+        output: []
       - name: 'Has neither sigma nor rho'
         input: '⟦ a ↦ ⟦ b ↦ ⟦ ⟧ ⟧ ⟧'
-        output: '⟦ a ↦ ⟦ b ↦ ⟦ ⟧ ⟧ ⟧'
-        matches: false
+        output: []
 
   - name: Rule 4
     description: 'Φ-dispatch'
@@ -79,14 +95,15 @@ rules:
 
   - name: Rule 5
     description: 'ξ-dispatch'
-    context:
-      current_object: ⟦ !a ↦ ξ.!b, !B ⟧
     pattern: |
-      ξ
+      ⟦ !a ↦ ξ.!b, !B ⟧
     result: |
-      ⟦ !B ⟧
+      ⟦ !a ↦ ⟦ !B ⟧.!b, !B ⟧
     when: []
-    tests: []
+    tests:
+      - name: Replaces ξ with the actual object
+        input: '⟦ a ↦ ⟦ ⟧, x ↦ ξ.a, b ↦ ⟦ ⟧ ⟧'
+        output: ['⟦ a ↦ ⟦ ⟧, x ↦ ⟦ a ↦ ⟦ ⟧, b ↦ ⟦ ⟧ ⟧.a, b ↦ ⟦ ⟧ ⟧']
 
   - name: Rule 6
     description: 'Accessing an α-binding'
@@ -95,16 +112,14 @@ rules:
     result: |
       !n(ρ ↦ ⟦ !B ⟧)
     when:
-      - nf: ['!n']
+      - nf: '!n'
     tests:
       - name: Should match
         input: ⟦ hello ↦ ⟦⟧ ⟧.hello
-        output: ⟦⟧(ρ ↦ ⟦⟧)
-        matches: true
+        output: ['⟦⟧(ρ ↦ ⟦⟧)']
       - name: Shouldn't match
         input: ⟦ ⟧.hello
-        output: ''
-        matches: false
+        output: []
 
   - name: Rule 7
     description: 'Application'
@@ -113,7 +128,7 @@ rules:
     result: |
       ⟦ !a ↦ !n, !B ⟧
     when:
-      - nf: ['!n']
+      - nf: '!n'
     tests: []
 
   - name: Rule 8
@@ -123,26 +138,24 @@ rules:
     result: |
       !n.!a
     when:
-      - nf: ['!n']
+      - nf: '!n'
       - absent_attrs:
           attrs: ['!a']
           bindings: ['!B']
     tests:
       - name: 'Attribute does not exist'
         input: '⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧.b'
-        output: '⟦ ⟧.b'
-        matches: true
+        output: ['⟦ ⟧.b']
       - name: 'Attribute exists'
         input: '⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧.a'
-        output: '⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧.a'
-        matches: false
+        output: []
 
   - name: Rule 9
     description: 'Parent application'
     pattern: ⟦ ρ ↦ !t, !B ⟧(ρ ↦ !n)
     result: ⟦ ρ ↦ !n, !B ⟧
     when:
-      - nf: ['!n']
+      - nf: '!n'
     tests: []
 
   - name: Rule 10
@@ -154,8 +167,7 @@ rules:
     tests:
       - name: ''
         input: '⟦ t ↦ ⟦ a ↦ ∅ ⟧ ⟧(t ↦ ⟦ b ↦ ∅ ⟧)'
-        output: '⊥'
-        matches: true
+        output: ['⊥']
 
   - name: Rule 11
     description: 'Invalid attribute access'
@@ -170,11 +182,11 @@ rules:
       - present_attrs:
           attrs: ['ρ', 'σ']
           bindings: ['!B']
+      - nf: '⟦ !B ⟧'
     tests:
       - name: 'Accessing nonexistent attribute'
         input: '⟦ ρ ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧.x'
-        output: '⊥'
-        matches: true
+        output: ['⊥']
 
   - name: Rule 12
     description: 'Accessing an attribute on bottom'
@@ -186,9 +198,16 @@ rules:
     tests:
       - name: 'Dispatch on bottom is bottom'
         input: '⊥.a'
-        output: '⊥'
-        matches: true
+        output: ['⊥']
       - name: 'Dispatch on anything else is not touched'
         input: '⟦ ⟧.a'
-        output: '⟦ ⟧.a'
-        matches: false
+        output: []
+
+  - name: Extra rule for bottom
+    description: 'Application on bottom is bottom'
+    pattern: |
+      ⊥(!B)
+    result: |
+      ⊥
+    when: []
+    tests: []

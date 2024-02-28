@@ -103,6 +103,7 @@ test-suite eo-phi-normalizer-test
   main-is: Spec.hs
   other-modules:
       Language.EO.PhiSpec
+      Language.EO.Rules.PhiPaperSpec
       Language.EO.YamlSpec
       Test.EO.Phi
       Test.EO.Yaml
@@ -119,7 +120,8 @@ test-suite eo-phi-normalizer-test
   build-tool-depends:
       BNFC:bnfc >=2.9.4.1
   build-depends:
-      aeson
+      QuickCheck
+    , aeson
     , array >=0.5.5.0
     , base >=4.7 && <5
     , directory
