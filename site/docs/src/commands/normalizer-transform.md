@@ -53,7 +53,7 @@ The commands in the following sections access files that are available in the pr
 Clone and enter the repository directory.
 
 ```sh
-git clone https://github.com/objectionary/normalizer
+git clone https://github.com/objectionary/normalizer --recurse-submodules
 cd normalizer
 ```
 
