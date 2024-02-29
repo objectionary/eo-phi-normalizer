@@ -1,0 +1,4 @@
+title: Manual (regression) tests for confluence
+tests:
+  - '⟦ φ ↦ ⟦ φ ↦ ⟦ ⟧ ⟧.σ ⟧'
+  - '⟦ ρ ↦ ⟦ σ ↦ Φ ⟧.σ ⟧'

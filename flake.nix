@@ -11,6 +11,7 @@
       flake = false;
       url = "https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.2.0/maven-wrapper-3.2.0.jar";
     };
+    mdsh.url = "github:deemp/mdsh/update-flake";
   };
   outputs = inputs: inputs.flakes.makeFlake {
     inputs = {
@@ -18,7 +19,7 @@
         haskell-tools drv-tools devshell
         flakes-tools nixpkgs formatter
         slimlock;
-      inherit (inputs) eoc maven-wrapper-jar;
+      inherit (inputs) eoc maven-wrapper-jar mdsh;
     };
     perSystem = { inputs, system }:
       let
@@ -33,6 +34,7 @@
         inherit (inputs.drv-tools.lib.${system}) mkShellApps;
         inherit (inputs.flakes-tools.lib.${system}) mkFlakesTools;
         inherit (inputs.haskell-tools.lib.${system}) toolsGHC;
+        mdsh = inputs.mdsh.packages.${system}.default;
 
         # --- Parameters ---
 
@@ -96,6 +98,8 @@
           cabal
           stack
           pkgs.gh
+          mdsh
+          pkgs.mdbook
           # `cabal` already has a `ghc` on its `PATH`,
           # so you may remove `ghc` from this list.
           # Then, you can access `ghc` like `cabal exec -- ghc --version`.
@@ -131,7 +135,7 @@
             };
           };
 
-          # 
+          #
 
           # --- Haskell package ---
 
@@ -164,6 +168,32 @@
               '';
             description = "Run pipeline";
             excludeShellChecks = [ "SC2139" ];
+          };
+
+          mdsh = {
+            runtimeInputs = [
+              mdsh
+              pkgs.nodePackages.prettier
+              stack
+            ];
+            text = ''
+              export LANG=C.utf8
+              mdsh
+              # create sample program
+              mdsh -i site/docs/src/common/sample-program.md --work_dir .
+              # run commands on it
+
+              ${lib.concatMapStringsSep "\n"
+                (x: "mdsh -i site/docs/src/${x} --work_dir .")
+                [
+                  "commands/normalizer.md"
+                  "commands/normalizer-transform.md"
+                  "commands/normalizer-metrics.md"
+                  "contributing.md"
+                ]
+              }
+              prettier -w "**/*.md"
+            '';
           };
         };
 
