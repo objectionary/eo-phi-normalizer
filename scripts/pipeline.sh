@@ -3,7 +3,7 @@ set -euo pipefail
 if ! [ -d node_modules ]; then npm i; fi
 
 shopt -s expand_aliases
-EO="0.35.2"
+EO="0.35.5"
 alias eo="npx eoc --parser=${EO}"
 
 printf "\nClean the pipeline directory\n\n"
@@ -27,7 +27,7 @@ mkdir -p phi
 cd eo
 eo clean
 eo phi
-cp .eoc/phi/*.phi ../phi
+rsync -r .eoc/phi/* --exclude org ../phi
 cd ..
 
 
@@ -35,17 +35,29 @@ printf "\nConvert PHI to EO without normalization\n\n"
 
 mkdir -p eo-not-normalized
 cd phi
-cp -r ../eo/.eoc .
+rsync -r ../eo/.eoc .
 eo unphi
-cp .eoc/unphi/*.xmir ".eoc/2-optimize"
+rsync -r .eoc/unphi/* --exclude org .eoc/2-optimize
 eo print
-cp .eoc/print/*.eo ../eo-not-normalized
+rsync -r .eoc/print/* --exclude org ../eo-not-normalized
 cd ..
 
+
+function add_metas {
+    EO_FILES="$(find -name '*.eo' -not -path '.eoc/**')"
+    for f in $EO_FILES;
+    do
+        cat $f > $f.bk
+        printf "+tests\n" > $f
+        cat $f.bk >> $f
+        rm $f.bk
+    done
+}
 
 printf "\nTest EO without normalization\n\n"
 
 cd eo-not-normalized
+add_metas
 eo test
 cd ..
 
@@ -54,13 +66,17 @@ printf "\nNormalize PHI\n\n"
 
 mkdir -p phi-normalized
 cd phi
-for f in $(ls); do
+PHI_FILES="$(find -name '*.phi' -not -path '.eoc/**')"
+for f in $PHI_FILES; do
+    destination="../phi-normalized/$f"
+    mkdir -p $(dirname $destination)
     stack run -- \
-        -s \
-        --rules-yaml \
+        transform \
+        --single \
+        --rules \
         ../../eo-phi-normalizer/test/eo/phi/rules/yegor.yaml \
         "$f" \
-        > "../phi-normalized/$f"
+        > $destination
 done
 cd ..
 
@@ -68,9 +84,9 @@ cd ..
 printf "\nConvert normalized PHI to EO\n\n"
 
 cd phi-normalized
-cp -r ../eo/.eoc .
+rsync -r ../eo/.eoc .
 eo unphi
-cp .eoc/unphi/*.xmir ".eoc/2-optimize"
+rsync -r .eoc/unphi/* --exclude org .eoc/2-optimize
 eo print
 cd ..
 
@@ -79,6 +95,7 @@ printf "\nTest EO\n\n"
 
 mkdir -p eo-normalized
 cd eo-normalized
-cp ../phi-normalized/.eoc/print/*.eo .
+rsync -r ../phi-normalized/.eoc/print/* --exclude org  .
+add_metas
 eo test
 cd ..
