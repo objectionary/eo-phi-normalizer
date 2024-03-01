@@ -91,7 +91,10 @@ rules:
       Φ.!a
     result: |
       ⟦ σ ↦ Φ, !B ⟧.!a
-    when: []
+    when:
+      - present_attrs:
+          attrs: ['ν']
+          bindings: ['!B']
     tests: []
 
   - name: Rule 5
