@@ -86,15 +86,12 @@ rules:
   - name: Rule 4
     description: 'Φ-dispatch'
     context:
-      global_object: ⟦ !B ⟧
+      global_object: ⟦ !a ↦ !obj, !B ⟧
     pattern: |
       Φ.!a
     result: |
-      ⟦ σ ↦ Φ, !B ⟧.!a
-    when:
-      - present_attrs:
-          attrs: ['ν']
-          bindings: ['!B']
+      !obj
+    when: []
     tests: []
 
   - name: Rule 5
@@ -143,6 +140,7 @@ rules:
       !n.!a
     when:
       - nf: '!n'
+      - not_equal: ['!a', 'φ']
       - absent_attrs:
           attrs: ['!a']
           bindings: ['!B']
