@@ -71,7 +71,9 @@ instance Arbitrary Binding where
       , DeltaBinding <$> arbitrary
       , LambdaBinding <$> arbitrary
       ]
-  shrink = genericShrink
+  shrink (AlphaBinding VTX _) = []  -- do not shrink vertex bindings
+  shrink (AlphaBinding attr obj) = AlphaBinding attr <$> shrink obj
+  shrink _ = [] -- do not shrink deltas and lambdas
 
 instance Arbitrary Object where
   arbitrary = sized $ \n -> do
@@ -246,7 +248,7 @@ defaultSearchLimits :: Int -> SearchLimits
 defaultSearchLimits sourceTermSize =
   SearchLimits
     { maxSearchDepth = 7
-    , maxTermSize = sourceTermSize * 10
+    , maxTermSize = sourceTermSize * 5
     }
 
 confluent :: [Rule] -> Property
