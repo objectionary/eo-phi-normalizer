@@ -238,21 +238,21 @@ instance Show CriticalPair where
       , "  " <> printTree y
       ]
 
-defaultSearchLimits :: SearchLimits
-defaultSearchLimits = SearchLimits
+defaultSearchLimits :: Int -> SearchLimits
+defaultSearchLimits sourceTermSize = SearchLimits
   { maxSearchDepth = 7
-  , maxTermSize = 30
+  , maxTermSize = sourceTermSize * 10
   }
 
 confluent :: [Rule] -> Property
 confluent rulesFromYaml =
   forAllShrink (genCriticalPair rulesFromYaml) (shrinkCriticalPair rulesFromYaml) $
-    \pair ->
-      within 1_000_000 $  -- one second timeout per test
-        confluentCriticalPairN defaultSearchLimits rulesFromYaml pair
+    \pair@CriticalPair{..} ->
+      within 100_000 $  -- 0.1 second timeout per test
+        confluentCriticalPairN (defaultSearchLimits (objectSize sourceTerm)) rulesFromYaml pair
 
 confluentOnObject :: [Rule] -> Object -> Bool
-confluentOnObject rules obj = all (confluentCriticalPairN defaultSearchLimits rules) (findCriticalPairs rules obj)
+confluentOnObject rules obj = all (confluentCriticalPairN (defaultSearchLimits (objectSize obj)) rules) (findCriticalPairs rules obj)
 
 data ConfluenceTests = ConfluenceTests
   { title :: String
