@@ -58,8 +58,15 @@ instance Arbitrary Phi.MetaFunctionName where
 instance Arbitrary Binding where
   arbitrary =
     oneof
-      [ EmptyBinding <$> arbitrary
-      , AlphaBinding <$> arbitrary <*> arbitrary
+      [ EmptyBinding . Label <$> arbitrary
+      , do
+          attr <- arbitrary
+          obj <- case attr of
+            VTX -> Formation <$> do
+              bytes <- arbitrary
+              return [DeltaBinding bytes]
+            _   -> arbitrary
+          return (AlphaBinding attr obj)
       , DeltaBinding <$> arbitrary
       , LambdaBinding <$> arbitrary
       ]
@@ -68,17 +75,20 @@ instance Arbitrary Binding where
 instance Arbitrary Object where
   arbitrary = sized $ \n -> do
     let arbitraryBinding = resize (n `div` 2) arbitrary
-    let arbitraryAttr = resize (n `div` 2) arbitrary
-    let arbitraryObj = resize (n `div` 2) arbitrary
-    let sameAttr (AlphaBinding attr1 _) (AlphaBinding attr2 _) = attr1 == attr2
+        arbitraryAttr = resize (n `div` 2) arbitrary
+        arbitraryObj = resize (n `div` 2) arbitrary
+        sameAttr (AlphaBinding attr1 _) (AlphaBinding attr2 _) = attr1 == attr2
         sameAttr (EmptyBinding attr1) (EmptyBinding attr2) = attr1 == attr2
         sameAttr b1 b2 = toConstr b1 == toConstr b2
-    let arbitraryBindings = List.nubBy sameAttr <$> listOf arbitraryBinding
+        arbitraryBindings = List.nubBy sameAttr <$> listOf arbitraryBinding
+        arbitraryAlphaLabelBinding = resize (n `div` 2) $
+          AlphaBinding <$> (Label <$> arbitrary) <*> arbitrary
+        arbitraryAlphaLabelBindings = List.nubBy sameAttr <$> listOf arbitraryAlphaLabelBinding
     if n > 0
       then
         oneof
           [ Formation <$> arbitraryBindings
-          , liftA2 Application arbitraryObj arbitraryBindings
+          , liftA2 Application arbitraryObj arbitraryAlphaLabelBindings
           , liftA2 ObjectDispatch arbitraryObj arbitraryAttr
           , ObjectDispatch GlobalObject <$> arbitraryAttr
           , pure ThisObject
