@@ -1,12 +1,12 @@
 {-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE TupleSections #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NumericUnderscores #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TupleSections #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Language.EO.Rules.PhiPaperSpec where
@@ -62,10 +62,11 @@ instance Arbitrary Binding where
       , do
           attr <- arbitrary
           obj <- case attr of
-            VTX -> Formation <$> do
-              bytes <- arbitrary
-              return [DeltaBinding bytes]
-            _   -> arbitrary
+            VTX ->
+              Formation <$> do
+                bytes <- arbitrary
+                return [DeltaBinding bytes]
+            _ -> arbitrary
           return (AlphaBinding attr obj)
       , DeltaBinding <$> arbitrary
       , LambdaBinding <$> arbitrary
@@ -81,8 +82,9 @@ instance Arbitrary Object where
         sameAttr (EmptyBinding attr1) (EmptyBinding attr2) = attr1 == attr2
         sameAttr b1 b2 = toConstr b1 == toConstr b2
         arbitraryBindings = List.nubBy sameAttr <$> listOf arbitraryBinding
-        arbitraryAlphaLabelBinding = resize (n `div` 2) $
-          AlphaBinding <$> (Label <$> arbitrary) <*> arbitrary
+        arbitraryAlphaLabelBinding =
+          resize (n `div` 2) $
+            AlphaBinding <$> (Label <$> arbitrary) <*> arbitrary
         arbitraryAlphaLabelBindings = List.nubBy sameAttr <$> listOf arbitraryAlphaLabelBinding
     if n > 0
       then
@@ -156,8 +158,8 @@ objectSize = \case
   GlobalObject -> 1
   ThisObject -> 1
   Termination -> 1
-  MetaObject{} -> 1     -- should be impossible
-  MetaFunction{} -> 1   -- should be impossible
+  MetaObject{} -> 1 -- should be impossible
+  MetaFunction{} -> 1 -- should be impossible
 
 bindingSize :: Binding -> Int
 bindingSize = \case
@@ -165,15 +167,15 @@ bindingSize = \case
   EmptyBinding _attr -> 1
   DeltaBinding _bytes -> 1
   LambdaBinding _lam -> 1
-  MetaBindings{} -> 1   -- should be impossible
+  MetaBindings{} -> 1 -- should be impossible
 
 descendantsN :: SearchLimits -> [Rule] -> [Object] -> [[Object]]
 descendantsN SearchLimits{..} rules objs
   | maxSearchDepth <= 0 = [objs]
   | otherwise =
-      objs :
-        descendantsN
-          SearchLimits{ maxSearchDepth = maxSearchDepth - 1, ..}
+      objs
+        : descendantsN
+          SearchLimits{maxSearchDepth = maxSearchDepth - 1, ..}
           rules
           [ obj'
           | obj <- objs
@@ -195,23 +197,25 @@ descendantsN SearchLimits{..} rules objs
 -- [(1,1),(2,1),(1,2),(2,2),(3,1),(3,2),(1,3),(2,3),(3,3),(4,1)]
 pairByLevel :: [a] -> [b] -> [(a, b)]
 pairByLevel = go [] []
-  where
-    go :: [a] -> [b] -> [a] -> [b] -> [(a, b)]
-    go _xs _ys [] _ = []
-    go _xs _ys _ [] = []
-    go xs ys (a:as) (b:bs) =
-      map (a,) ys ++
-      map (,b) xs ++
-      (a, b) : go (xs ++ [a]) (ys ++ [b]) as bs
+ where
+  go :: [a] -> [b] -> [a] -> [b] -> [(a, b)]
+  go _xs _ys [] _ = []
+  go _xs _ys _ [] = []
+  go xs ys (a : as) (b : bs) =
+    map (a,) ys
+      ++ map (,b) xs
+      ++ (a, b)
+      : go (xs ++ [a]) (ys ++ [b]) as bs
 
 -- | Find intersection of two lists, represented as lists of groups.
 -- Intersection of groups with lower indicies is considered before
 -- moving on to groups with larger index.
 intersectByLevelBy :: (a -> a -> Bool) -> [[a]] -> [[a]] -> [a]
-intersectByLevelBy eq xs ys = concat
-  [ List.intersectBy eq l r
-  | (l, r) <- pairByLevel xs ys
-  ]
+intersectByLevelBy eq xs ys =
+  concat
+    [ List.intersectBy eq l r
+    | (l, r) <- pairByLevel xs ys
+    ]
 
 confluentCriticalPairN :: SearchLimits -> [Rule] -> CriticalPair -> Bool
 confluentCriticalPairN limits rules CriticalPair{..} =
@@ -219,7 +223,7 @@ confluentCriticalPairN limits rules CriticalPair{..} =
   -- NOTE: we are using intersectByLevelBy to ensure that we first check
   -- terms generated after one rule application, then include terms after two rules applications, etc.
   -- This helps find the confluence points without having to compute all terms up to depth N,
-  -- **if** the term is confluent.
+  -- \**if** the term is confluent.
   -- We expect confluence to be satisfied at depth 1 in practice for most terms,
   -- since most critical pairs apply non-overlapping rules.
   -- However, if the term is NOT confluent, we will still check all options, which may take some time.
@@ -239,16 +243,17 @@ instance Show CriticalPair where
       ]
 
 defaultSearchLimits :: Int -> SearchLimits
-defaultSearchLimits sourceTermSize = SearchLimits
-  { maxSearchDepth = 7
-  , maxTermSize = sourceTermSize * 10
-  }
+defaultSearchLimits sourceTermSize =
+  SearchLimits
+    { maxSearchDepth = 7
+    , maxTermSize = sourceTermSize * 10
+    }
 
 confluent :: [Rule] -> Property
 confluent rulesFromYaml =
   forAllShrink (genCriticalPair rulesFromYaml) (shrinkCriticalPair rulesFromYaml) $
     \pair@CriticalPair{..} ->
-      within 100_000 $  -- 0.1 second timeout per test
+      within 100_000 $ -- 0.1 second timeout per test
         confluentCriticalPairN (defaultSearchLimits (objectSize sourceTerm)) rulesFromYaml pair
 
 confluentOnObject :: [Rule] -> Object -> Bool
