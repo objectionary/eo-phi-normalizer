@@ -71,7 +71,7 @@ instance Arbitrary Binding where
       , DeltaBinding <$> arbitrary
       , LambdaBinding <$> arbitrary
       ]
-  shrink (AlphaBinding VTX _) = []  -- do not shrink vertex bindings
+  shrink (AlphaBinding VTX _) = [] -- do not shrink vertex bindings
   shrink (AlphaBinding attr obj) = AlphaBinding attr <$> shrink obj
   shrink _ = [] -- do not shrink deltas and lambdas
 
@@ -120,8 +120,12 @@ genCriticalPair rules = do
     _ -> error "IMPOSSIBLE HAPPENED"
  where
   fan = do
-    obj <- Formation <$> listOf arbitrary
+    obj <- Formation . List.nubBy sameAttr <$> listOf arbitrary
     return (obj, applyOneRule (Context rules [obj] Phi.Sigma) obj)
+
+  sameAttr (AlphaBinding attr1 _) (AlphaBinding attr2 _) = attr1 == attr2
+  sameAttr (EmptyBinding attr1) (EmptyBinding attr2) = attr1 == attr2
+  sameAttr b1 b2 = toConstr b1 == toConstr b2
 
 findCriticalPairs :: [Rule] -> Object -> [CriticalPair]
 findCriticalPairs rules obj = do
@@ -248,7 +252,7 @@ defaultSearchLimits :: Int -> SearchLimits
 defaultSearchLimits sourceTermSize =
   SearchLimits
     { maxSearchDepth = 7
-    , maxTermSize = sourceTermSize * 5
+    , maxTermSize = sourceTermSize * 10
     }
 
 confluent :: [Rule] -> Property
