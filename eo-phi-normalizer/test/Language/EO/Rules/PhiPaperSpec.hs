@@ -256,8 +256,8 @@ defaultSearchLimits sourceTermSize =
     }
 
 confluent :: [Rule] -> Property
-confluent rulesFromYaml =
-  forAllShrink (genCriticalPair rulesFromYaml) (shrinkCriticalPair rulesFromYaml) $
+confluent rulesFromYaml = withMaxSuccess 1000 $
+  forAllShrink (resize 40 $ genCriticalPair rulesFromYaml) (shrinkCriticalPair rulesFromYaml) $
     \pair@CriticalPair{..} ->
       within 100_000 $ -- 0.1 second timeout per test
         confluentCriticalPairN (defaultSearchLimits (objectSize sourceTerm)) rulesFromYaml pair
