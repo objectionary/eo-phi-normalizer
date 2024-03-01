@@ -41,11 +41,12 @@ rules:
   - name: Rule 2
     description: ''
     context:
+      current_object: ⟦ σ ↦ !obj, !B2 ⟧
       current_attribute: '!a'
     pattern: |
-      ⟦ !b ↦ ⟦ !B1 ⟧, σ ↦ !obj, !B2 ⟧
+      ⟦ !B1 ⟧
     result: |
-      ⟦ !b ↦ ⟦ σ ↦ !obj.!a, !B1 ⟧, σ ↦ !obj, !B2 ⟧
+      ⟦ σ ↦ !obj.!a, !B1 ⟧
     when:
       - absent_attrs:
           attrs: ['σ']
