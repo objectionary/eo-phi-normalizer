@@ -105,7 +105,7 @@ matchContext Common.Context{} Nothing = [emptySubst]
 matchContext Common.Context{..} (Just (RuleContext{..})) = do
   subst1 <- maybe [emptySubst] (`matchObject` globalObject) global_object
   subst2 <- maybe [emptySubst] ((`matchObject` thisObject) . applySubst subst1) current_object
-  subst3 <- maybe [emptySubst] (`matchAttr` currentAttr) current_attribute
+  subst3 <- maybe [emptySubst] ((`matchAttr` currentAttr) . applySubstAttr (subst1 <> subst2)) current_attribute
   return (subst1 <> subst2 <> subst3)
  where
   globalObject = NonEmpty.last outerFormations
