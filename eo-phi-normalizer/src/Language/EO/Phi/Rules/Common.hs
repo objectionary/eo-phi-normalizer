@@ -119,6 +119,19 @@ applyRules ctx obj
         , obj'' <- applyRules ctx obj'
         ]
 
+-- | A variant of `applyRules` with a maximum application depth.
+applyRulesN :: Int -> Context -> Object -> [Object]
+applyRulesN 0 _ctx obj = [obj]
+applyRulesN depth ctx obj
+  | isNF ctx obj = [obj]
+  | otherwise =
+      nubBy
+        equalObject
+        [ obj''
+        | obj' <- applyOneRule ctx obj
+        , obj'' <- applyRulesN (depth - 1) ctx obj'
+        ]
+
 equalProgram :: Program -> Program -> Bool
 equalProgram (Program bindings1) (Program bindings2) = equalObject (Formation bindings1) (Formation bindings2)
 
@@ -148,6 +161,7 @@ equalBinding (AlphaBinding attr1 obj1) (AlphaBinding attr2 obj2) = attr1 == attr
 equalBinding (DeltaBinding _) (DeltaBinding _) = True
 equalBinding b1 b2 = b1 == b2
 
+-- | Apply the rules until the object is normalized, preserving the history (chain) of applications.
 applyRulesChain :: Context -> Object -> [[Object]]
 applyRulesChain ctx obj
   | isNF ctx obj = [[obj]]
@@ -155,6 +169,17 @@ applyRulesChain ctx obj
       [ obj : chain
       | obj' <- applyOneRule ctx obj
       , chain <- applyRulesChain ctx obj'
+      ]
+
+-- | A variant of `applyRulesChain` with a maximum application depth.
+applyRulesChainN :: Int -> Context -> Object -> [[Object]]
+applyRulesChainN 0 _ctx obj = [[obj]]
+applyRulesChainN depth ctx obj
+  | isNF ctx obj = [[obj]]
+  | otherwise =
+      [ obj : chain
+      | obj' <- applyOneRule ctx obj
+      , chain <- applyRulesChainN (depth - 1) ctx obj'
       ]
 
 -- * Helpers

@@ -79,6 +79,7 @@ Available options:
   -r,--rules FILE          FILE with user-defined rules. Must be specified.
   -c,--chain               Output transformation steps.
   -j,--json                Output JSON.
+  --max-depth ARG          Maximum depth of rules application. Defaults to 10.
   -o,--output-file FILE    Output to FILE. When this option is not specified,
                            output to stdout.
   -s,--single              Output a single expression.
