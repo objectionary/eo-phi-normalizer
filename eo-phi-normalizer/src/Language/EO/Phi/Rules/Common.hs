@@ -119,17 +119,49 @@ applyRules ctx obj
         , obj'' <- applyRules ctx obj'
         ]
 
+data ApplicationLimits = ApplicationLimits
+  { maxDepth :: Int
+  , maxTermSize :: Int
+  }
+
+defaultApplicationLimits :: Int -> ApplicationLimits
+defaultApplicationLimits sourceTermSize =
+  ApplicationLimits
+    { maxDepth = 10
+    , maxTermSize = sourceTermSize * 10
+    }
+
+objectSize :: Object -> Int
+objectSize = \case
+  Formation bindings -> 1 + sum (map bindingSize bindings)
+  Application obj bindings -> 1 + objectSize obj + sum (map bindingSize bindings)
+  ObjectDispatch obj _attr -> 1 + objectSize obj
+  GlobalObject -> 1
+  ThisObject -> 1
+  Termination -> 1
+  MetaObject{} -> 1 -- should be impossible
+  MetaFunction{} -> 1 -- should be impossible
+
+bindingSize :: Binding -> Int
+bindingSize = \case
+  AlphaBinding _attr obj -> objectSize obj
+  EmptyBinding _attr -> 1
+  DeltaBinding _bytes -> 1
+  LambdaBinding _lam -> 1
+  MetaBindings{} -> 1 -- should be impossible
+
 -- | A variant of `applyRules` with a maximum application depth.
-applyRulesN :: Int -> Context -> Object -> [Object]
-applyRulesN 0 _ctx obj = [obj]
-applyRulesN depth ctx obj
+applyRulesWith :: ApplicationLimits -> Context -> Object -> [Object]
+applyRulesWith limits@ApplicationLimits{..} ctx obj
+  | maxDepth <= 0 = [obj]
   | isNF ctx obj = [obj]
   | otherwise =
       nubBy
         equalObject
         [ obj''
         | obj' <- applyOneRule ctx obj
-        , obj'' <- applyRulesN (depth - 1) ctx obj'
+        , objectSize obj' < maxTermSize
+        , obj'' <- applyRulesWith limits{maxDepth = maxDepth - 1} ctx obj'
         ]
 
 equalProgram :: Program -> Program -> Bool
@@ -172,14 +204,15 @@ applyRulesChain ctx obj
       ]
 
 -- | A variant of `applyRulesChain` with a maximum application depth.
-applyRulesChainN :: Int -> Context -> Object -> [[Object]]
-applyRulesChainN 0 _ctx obj = [[obj]]
-applyRulesChainN depth ctx obj
+applyRulesChainWith :: ApplicationLimits -> Context -> Object -> [[Object]]
+applyRulesChainWith limits@ApplicationLimits{..} ctx obj
+  | maxDepth <= 0 = [[obj]]
   | isNF ctx obj = [[obj]]
   | otherwise =
       [ obj : chain
       | obj' <- applyOneRule ctx obj
-      , chain <- applyRulesChainN (depth - 1) ctx obj'
+      , objectSize obj' < maxTermSize
+      , chain <- applyRulesChainWith limits{maxDepth = maxDepth - 1} ctx obj'
       ]
 
 -- * Helpers

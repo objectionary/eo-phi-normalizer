@@ -18,7 +18,7 @@ import Data.List (intercalate)
 import Data.List qualified as List
 import Data.Yaml qualified as Yaml
 import GHC.Generics (Generic)
-import Language.EO.Phi.Rules.Common (Context (Context), Rule, applyOneRule, equalObject, intToBytes)
+import Language.EO.Phi.Rules.Common (Context (Context), Rule, applyOneRule, equalObject, intToBytes, objectSize)
 import Language.EO.Phi.Rules.Yaml (convertRule, parseRuleSetFromFile, rules)
 import Language.EO.Phi.Syntax (printTree)
 import Language.EO.Phi.Syntax.Abs as Phi
@@ -151,29 +151,7 @@ shrinkCriticalPair rules CriticalPair{..} =
   , x : y : _ <- [applyOneRule (Context rules [sourceTerm'] Phi.Sigma) sourceTerm']
   ]
 
-data SearchLimits = SearchLimits
-  { maxSearchDepth :: Int
-  , maxTermSize :: Int
-  }
-
-objectSize :: Object -> Int
-objectSize = \case
-  Formation bindings -> 1 + sum (map bindingSize bindings)
-  Application obj bindings -> 1 + objectSize obj + sum (map bindingSize bindings)
-  ObjectDispatch obj _attr -> 1 + objectSize obj
-  GlobalObject -> 1
-  ThisObject -> 1
-  Termination -> 1
-  MetaObject{} -> 1 -- should be impossible
-  MetaFunction{} -> 1 -- should be impossible
-
-bindingSize :: Binding -> Int
-bindingSize = \case
-  AlphaBinding _attr obj -> objectSize obj
-  EmptyBinding _attr -> 1
-  DeltaBinding _bytes -> 1
-  LambdaBinding _lam -> 1
-  MetaBindings{} -> 1 -- should be impossible
+type SearchLimits = ApplicationLimits
 
 descendantsN :: SearchLimits -> [Rule] -> [Object] -> [[Object]]
 descendantsN SearchLimits{..} rules objs
