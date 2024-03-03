@@ -2,3 +2,6 @@ title: Manual (regression) tests for confluence
 tests:
   - '⟦ φ ↦ ⟦ φ ↦ ⟦ ⟧ ⟧.σ ⟧'
   - '⟦ ρ ↦ ⟦ σ ↦ Φ ⟧.σ ⟧'
+  - '⟦ ρ ↦ ⊥.a ⟧'
+  - '⟦ ρ ↦ ⊥ () ⟧'
+  - '⟦ v4 ↦ Φ (e6 ↦ ⟦ φ ↦ Φ ⟧.φ) ⟧'

@@ -89,7 +89,7 @@ executables:
       - aeson-pretty
 
 tests:
-  eo-phi-normalizer-test:
+  spec:
     main: Spec.hs
     source-dirs: test
     ghc-options:
