@@ -13,6 +13,7 @@ function prepare_directory {
 
     printf "\nGenerate EO test files\n\n"
 
+    mkdir -p pipeline/eo
     stack run transform-eo-tests
 }
 
@@ -22,6 +23,16 @@ function enter_directory {
     cd pipeline
 }
 
+function add_metas {
+    EO_FILES="$(find -name '*.eo' -not -path '.eoc/**')"
+    for f in $EO_FILES;
+    do
+        cat $f > $f.bk
+        printf "+tests\n" > $f
+        cat $f.bk >> $f
+        rm $f.bk
+    done
+}
 
 function tests_without_normalization {
     printf "\nConvert EO to PHI\n\n"
@@ -30,7 +41,7 @@ function tests_without_normalization {
     cd eo
     eo clean
     eo phi
-    rsync -r .eoc/phi/* --exclude org ../phi
+    rsync -r .eoc/phi/ --exclude org ../phi
     cd ..
 
 
@@ -40,22 +51,10 @@ function tests_without_normalization {
     cd phi
     rsync -r ../eo/.eoc .
     eo unphi
-    rsync -r .eoc/unphi/* --exclude org .eoc/2-optimize
+    rsync -r .eoc/unphi/ --exclude org .eoc/2-optimize
     eo print
-    rsync -r .eoc/print/* --exclude org ../eo-not-normalized
+    rsync -r .eoc/print/ --exclude org ../eo-not-normalized
     cd ..
-
-
-    function add_metas {
-        EO_FILES="$(find -name '*.eo' -not -path '.eoc/**')"
-        for f in $EO_FILES;
-        do
-            cat $f > $f.bk
-            printf "+tests\n" > $f
-            cat $f.bk >> $f
-            rm $f.bk
-        done
-    }
 
     printf "\nTest EO without normalization\n\n"
 
@@ -95,7 +94,7 @@ function tests_with_normalization {
     cd phi-normalized
     rsync -r ../eo/.eoc .
     eo unphi
-    rsync -r .eoc/unphi/* --exclude org .eoc/2-optimize
+    rsync -r .eoc/unphi/ --exclude org .eoc/2-optimize
     eo print
     cd ..
 
