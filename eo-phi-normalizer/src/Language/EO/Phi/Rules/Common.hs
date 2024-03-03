@@ -109,15 +109,7 @@ isNF ctx = null . applyOneRule ctx
 --
 -- >>> mapM_ (putStrLn . Language.EO.Phi.printTree) (applyRules (Context [rule6] ["⟦ a ↦ ⟦ b ↦ ⟦ ⟧ ⟧.b ⟧"]) "⟦ a ↦ ⟦ b ↦ ⟦ ⟧ ⟧.b ⟧.a")
 applyRules :: Context -> Object -> [Object]
-applyRules ctx obj
-  | isNF ctx obj = [obj]
-  | otherwise =
-      nubBy
-        equalObject
-        [ obj''
-        | obj' <- applyOneRule ctx obj
-        , obj'' <- applyRules ctx obj'
-        ]
+applyRules ctx obj = applyRulesWith (defaultApplicationLimits (objectSize obj)) ctx obj
 
 data ApplicationLimits = ApplicationLimits
   { maxDepth :: Int
@@ -195,13 +187,7 @@ equalBinding b1 b2 = b1 == b2
 
 -- | Apply the rules until the object is normalized, preserving the history (chain) of applications.
 applyRulesChain :: Context -> Object -> [[Object]]
-applyRulesChain ctx obj
-  | isNF ctx obj = [[obj]]
-  | otherwise =
-      [ obj : chain
-      | obj' <- applyOneRule ctx obj
-      , chain <- applyRulesChain ctx obj'
-      ]
+applyRulesChain ctx obj = applyRulesChainWith (defaultApplicationLimits (objectSize obj)) ctx obj
 
 -- | A variant of `applyRulesChain` with a maximum application depth.
 applyRulesChainWith :: ApplicationLimits -> Context -> Object -> [[Object]]
