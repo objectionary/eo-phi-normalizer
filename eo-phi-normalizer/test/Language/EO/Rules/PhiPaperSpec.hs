@@ -18,7 +18,7 @@ import Data.List (intercalate)
 import Data.List qualified as List
 import Data.Yaml qualified as Yaml
 import GHC.Generics (Generic)
-import Language.EO.Phi.Rules.Common (Context (Context), Rule, applyOneRule, equalObject, intToBytes, objectSize)
+import Language.EO.Phi.Rules.Common (ApplicationLimits(..), defaultApplicationLimits, Context (Context), Rule, applyOneRule, equalObject, intToBytes, objectSize)
 import Language.EO.Phi.Rules.Yaml (convertRule, parseRuleSetFromFile, rules)
 import Language.EO.Phi.Syntax (printTree)
 import Language.EO.Phi.Syntax.Abs as Phi
@@ -154,12 +154,12 @@ shrinkCriticalPair rules CriticalPair{..} =
 type SearchLimits = ApplicationLimits
 
 descendantsN :: SearchLimits -> [Rule] -> [Object] -> [[Object]]
-descendantsN SearchLimits{..} rules objs
-  | maxSearchDepth <= 0 = [objs]
+descendantsN ApplicationLimits{..} rules objs
+  | maxDepth <= 0 = [objs]
   | otherwise =
       objs
         : descendantsN
-          SearchLimits{maxSearchDepth = maxSearchDepth - 1, ..}
+          ApplicationLimits{maxDepth = maxDepth - 1, ..}
           rules
           [ obj'
           | obj <- objs
@@ -227,11 +227,7 @@ instance Show CriticalPair where
       ]
 
 defaultSearchLimits :: Int -> SearchLimits
-defaultSearchLimits sourceTermSize =
-  SearchLimits
-    { maxSearchDepth = 7
-    , maxTermSize = sourceTermSize * 10
-    }
+defaultSearchLimits = defaultApplicationLimits
 
 confluent :: [Rule] -> Property
 confluent rulesFromYaml = withMaxSuccess 1000 $
