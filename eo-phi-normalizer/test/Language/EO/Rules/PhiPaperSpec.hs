@@ -18,7 +18,7 @@ import Data.List (intercalate)
 import Data.List qualified as List
 import Data.Yaml qualified as Yaml
 import GHC.Generics (Generic)
-import Language.EO.Phi.Rules.Common (ApplicationLimits(..), defaultApplicationLimits, Context (Context), Rule, applyOneRule, equalObject, intToBytes, objectSize)
+import Language.EO.Phi.Rules.Common (ApplicationLimits (..), Context (Context), Rule, applyOneRule, defaultApplicationLimits, equalObject, intToBytes, objectSize)
 import Language.EO.Phi.Rules.Yaml (convertRule, parseRuleSetFromFile, rules)
 import Language.EO.Phi.Syntax (printTree)
 import Language.EO.Phi.Syntax.Abs as Phi
