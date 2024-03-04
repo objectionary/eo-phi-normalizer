@@ -100,6 +100,12 @@ convertRule Rule{..} ctx obj = do
   guard $ not (objectHasMetavars obj')
   pure obj'
 
+-- >>> matchContext (Context [] ["⟦ a ↦ ⟦ ⟧, x ↦ ξ.a ⟧"] (Label (LabelId "x"))) (Just (RuleContext Nothing (Just "⟦ !a ↦ !obj, !B ⟧") (Just "!a")))
+-- [Subst {
+--   objectMetas = [!obj -> 'ξ.a']
+--   bindingsMetas = [!B -> 'a ↦ ⟦ ⟧']
+--   attributeMetas = [!a -> 'x']
+-- }]
 matchContext :: Common.Context -> Maybe RuleContext -> [Subst]
 matchContext Common.Context{} Nothing = [emptySubst]
 matchContext Common.Context{..} (Just (RuleContext{..})) = do
