@@ -71,7 +71,8 @@ normalizer transform --help
 
 ```console
 Usage: normalizer transform (-r|--rules FILE) [-c|--chain] [-j|--json]
-                            [-o|--output-file FILE] [-s|--single] [FILE]
+                            [-o|--output-file FILE] [-s|--single]
+                            [--max-depth INT] [--max-growth-factor INT] [FILE]
 
   Transform a PHI program.
 
@@ -79,12 +80,12 @@ Available options:
   -r,--rules FILE          FILE with user-defined rules. Must be specified.
   -c,--chain               Output transformation steps.
   -j,--json                Output JSON.
-  --max-depth INT          Maximum depth of rules application. Defaults to 10.
-  --max-growth-factor INT  The factor by which to allow the input term to grow
-                           before stopping. Defaults to 10.
   -o,--output-file FILE    Output to FILE. When this option is not specified,
                            output to stdout.
   -s,--single              Output a single expression.
+  --max-depth INT          Maximum depth of rules application. Defaults to 10.
+  --max-growth-factor INT  The factor by which to allow the input term to grow
+                           before stopping. Defaults to 10.
   FILE                     FILE to read input from. When no FILE is specified,
                            read from stdin.
   -h,--help                Show this help text
@@ -106,7 +107,7 @@ Input:
 { ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }
 ====================================================
 Result 1 out of 1:
-{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }
+{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧ ⟧) ⟧ }
 ----------------------------------------------------
 ```
 
@@ -123,41 +124,9 @@ Rule set based on Yegor's draft
 Input:
 { ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }
 ====================================================
-Result 1 out of 6:
-[ 1 / 4 ]{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }
-[ 2 / 4 ]{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧ ⟧) ⟧ }
-[ 3 / 4 ]{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }
-[ 4 / 4 ]{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }
-----------------------------------------------------
-Result 2 out of 6:
-[ 1 / 4 ]{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }
-[ 2 / 4 ]{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧ ⟧) ⟧ }
-[ 3 / 4 ]{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅ ⟧ ⟧) ⟧ }
-[ 4 / 4 ]{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }
-----------------------------------------------------
-Result 3 out of 6:
-[ 1 / 4 ]{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }
-[ 2 / 4 ]{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }
-[ 3 / 4 ]{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }
-[ 4 / 4 ]{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }
-----------------------------------------------------
-Result 4 out of 6:
-[ 1 / 4 ]{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }
-[ 2 / 4 ]{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }
-[ 3 / 4 ]{ ⟦ a ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }
-[ 4 / 4 ]{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }
-----------------------------------------------------
-Result 5 out of 6:
-[ 1 / 4 ]{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }
-[ 2 / 4 ]{ ⟦ a ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }
-[ 3 / 4 ]{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅ ⟧ ⟧) ⟧ }
-[ 4 / 4 ]{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }
-----------------------------------------------------
-Result 6 out of 6:
-[ 1 / 4 ]{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }
-[ 2 / 4 ]{ ⟦ a ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }
-[ 3 / 4 ]{ ⟦ a ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }
-[ 4 / 4 ]{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }
+Result 1 out of 1:
+[ 1 / 2 ]{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }
+[ 2 / 2 ]{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧ ⟧) ⟧ }
 ----------------------------------------------------
 ```
 
@@ -173,39 +142,7 @@ normalizer transform --json --chain --rules ./eo-phi-normalizer/test/eo/phi/rule
   "output": [
     [
       "{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }",
-      "{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧ ⟧) ⟧ }",
-      "{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }",
-      "{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }"
-    ],
-    [
-      "{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }",
-      "{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧ ⟧) ⟧ }",
-      "{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅ ⟧ ⟧) ⟧ }",
-      "{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }"
-    ],
-    [
-      "{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }",
-      "{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }",
-      "{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }",
-      "{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }"
-    ],
-    [
-      "{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }",
-      "{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }",
-      "{ ⟦ a ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }",
-      "{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }"
-    ],
-    [
-      "{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }",
-      "{ ⟦ a ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }",
-      "{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅ ⟧ ⟧) ⟧ }",
-      "{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }"
-    ],
-    [
-      "{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }",
-      "{ ⟦ a ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }",
-      "{ ⟦ a ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧.e ⟧ }",
-      "{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }"
+      "{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧ ⟧) ⟧ }"
     ]
   ]
 }
@@ -218,7 +155,7 @@ normalizer transform --single --rules ./eo-phi-normalizer/test/eo/phi/rules/yego
 ```
 
 ```console
-{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }
+{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧ ⟧) ⟧ }
 ```
 
 ### `--single` `--json`
@@ -228,7 +165,7 @@ normalizer transform --single --json --rules ./eo-phi-normalizer/test/eo/phi/rul
 ```
 
 ```console
-"{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }"
+"{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧ ⟧) ⟧ }"
 ```
 
 ### `FILE` not specified (read from stdin)
@@ -238,5 +175,5 @@ cat program.phi | normalizer transform --single --json --rules ./eo-phi-normaliz
 ```
 
 ```console
-"{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧) ⟧ }"
+"{ ⟦ a ↦ ξ.b (c ↦ ⟦ ⟧).d (ρ ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧ ⟧) ⟧ }"
 ```
