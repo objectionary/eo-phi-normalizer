@@ -74,17 +74,14 @@ function tests_with_normalization {
     for f in $PHI_FILES; do
         destination="../phi-normalized/$f"
         mkdir -p $(dirname $destination)
-        cp $f $destination
 
-        # TODO #100:5min run normalizer instead
-
-        # stack run -- \
-        #     transform \
-        #     --single \
-        #     --rules \
-        #     ../../eo-phi-normalizer/test/eo/phi/rules/yegor.yaml \
-        #     "$f" \
-        #     > $destination
+        stack run -- \
+            transform \
+            --single \
+            --rules \
+            ../../eo-phi-normalizer/test/eo/phi/rules/yegor.yaml \
+            "$f" \
+            > $destination
     done
     cd ..
 
