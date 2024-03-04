@@ -1,109 +1,110 @@
 title: "Rule set based on Yegor's draft"
 rules:
-  - name: Rule 1
-    description: 'Initialization of vertex attribute'
-    context:
-      global_object: '!Phi'
-      current_attribute: '!a'
-    pattern: |
-      ⟦ !B ⟧
-    result: |
-      ⟦ !B, ν ↦ @T(!Phi) ⟧
-    when:
-      - absent_attrs:
-          attrs: ['ν']
-          bindings: ['!B']
-      - not_equal: ['!a', 'ν']
-    tests:
-      - name: Adds vertex attribute
-        input: '⟦ a ↦ ⟦ ⟧ ⟧'
-        output:
-          - '⟦ a ↦ ⟦ ⟧, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧'
-          - '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧'
-      - name: Adds vertices in all non-top-level formations
-        input: '⟦ a ↦ ⟦ ⟧, b ↦ ⟦ ⟧ ⟧'
-        output:
-          - '⟦ a ↦ ⟦ ⟧, b ↦ ⟦ ⟧, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧'
-          - '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, b ↦ ⟦ ⟧ ⟧'
-          - '⟦ a ↦ ⟦ ⟧, b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧'
-      - name: Added vertices are incremental (1)
-        input: '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧ ⟧, b ↦ ⟦ ⟧ ⟧'
-        output:
-          - '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧ ⟧, b ↦ ⟦ ⟧, ν ↦ ⟦ Δ ⤍ 04- ⟧ ⟧'
-          - '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧ ⟧, b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 04- ⟧ ⟧ ⟧'
-      - name: Added vertices are incremental (2)
-        input: '⟦ a ↦ ⟦ ⟧(ν ↦ ⟦ Δ ⤍ 06- ⟧), b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 05- ⟧ ⟧, c ↦ ⟦ ⟧ ⟧'
-        output:
-          - '⟦ a ↦ ⟦ ⟧(ν ↦ ⟦ Δ ⤍ 06- ⟧), b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 05- ⟧ ⟧, c ↦ ⟦ ⟧, ν ↦ ⟦ Δ ⤍ 07- ⟧ ⟧'
-          - '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 07- ⟧ ⟧(ν ↦ ⟦ Δ ⤍ 06- ⟧), b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 05- ⟧ ⟧, c ↦ ⟦ ⟧ ⟧'
-          - '⟦ a ↦ ⟦ ⟧(ν ↦ ⟦ Δ ⤍ 06- ⟧), b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 05- ⟧ ⟧, c ↦ ⟦ ν ↦ ⟦ Δ ⤍ 07- ⟧ ⟧ ⟧'
+  # - name: Rule 1
+  #   description: 'Initialization of vertex attribute'
+  #   context:
+  #     global_object: '!Phi'
+  #     current_attribute: '!a'
+  #   pattern: |
+  #     ⟦ !B ⟧
+  #   result: |
+  #     ⟦ !B, ν ↦ @T(!Phi) ⟧
+  #   when:
+  #     - absent_attrs:
+  #         attrs: ['ν']
+  #         bindings: ['!B']
+  #     - not_equal: ['!a', 'ν']
+  #   tests:
+  #     - name: Adds vertex attribute
+  #       input: '⟦ a ↦ ⟦ ⟧ ⟧'
+  #       output:
+  #         - '⟦ a ↦ ⟦ ⟧, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧'
+  #         - '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧'
+  #     - name: Adds vertices in all non-top-level formations
+  #       input: '⟦ a ↦ ⟦ ⟧, b ↦ ⟦ ⟧ ⟧'
+  #       output:
+  #         - '⟦ a ↦ ⟦ ⟧, b ↦ ⟦ ⟧, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧'
+  #         - '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, b ↦ ⟦ ⟧ ⟧'
+  #         - '⟦ a ↦ ⟦ ⟧, b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧'
+  #     - name: Added vertices are incremental (1)
+  #       input: '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧ ⟧, b ↦ ⟦ ⟧ ⟧'
+  #       output:
+  #         - '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧ ⟧, b ↦ ⟦ ⟧, ν ↦ ⟦ Δ ⤍ 04- ⟧ ⟧'
+  #         - '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧ ⟧, b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 04- ⟧ ⟧ ⟧'
+  #     - name: Added vertices are incremental (2)
+  #       input: '⟦ a ↦ ⟦ ⟧(ν ↦ ⟦ Δ ⤍ 06- ⟧), b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 05- ⟧ ⟧, c ↦ ⟦ ⟧ ⟧'
+  #       output:
+  #         - '⟦ a ↦ ⟦ ⟧(ν ↦ ⟦ Δ ⤍ 06- ⟧), b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 05- ⟧ ⟧, c ↦ ⟦ ⟧, ν ↦ ⟦ Δ ⤍ 07- ⟧ ⟧'
+  #         - '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 07- ⟧ ⟧(ν ↦ ⟦ Δ ⤍ 06- ⟧), b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 05- ⟧ ⟧, c ↦ ⟦ ⟧ ⟧'
+  #         - '⟦ a ↦ ⟦ ⟧(ν ↦ ⟦ Δ ⤍ 06- ⟧), b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 05- ⟧ ⟧, c ↦ ⟦ ν ↦ ⟦ Δ ⤍ 07- ⟧ ⟧ ⟧'
 
-  - name: Rule 2
-    description: ''
-    context:
-      current_attribute: '!a'
-    pattern: |
-      ⟦ !b ↦ ⟦ !B1 ⟧, σ ↦ !obj, !B2 ⟧
-    result: |
-      ⟦ !b ↦ ⟦ σ ↦ !obj.!a, !B1 ⟧, σ ↦ !obj, !B2 ⟧
-    when:
-      - absent_attrs:
-          attrs: ['σ']
-          bindings: ['!B1']
-    tests:
-      - name: 'Adds home attribute'
-        input: '⟦ a ↦ ⟦ b ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧ ⟧'
-        output: ['⟦ a ↦ ⟦ b ↦ ⟦ σ ↦ ⟦ ⟧.a ⟧, σ ↦ ⟦ ⟧ ⟧ ⟧']
-      - name: 'Leaves the object unchanged'
-        input: '⟦ a ↦ ⟦ b ↦ ⟦ σ ↦ ⟦ ⟧ ⟧ ⟧ ⟧'
-        output: []
+  # - name: Rule 2
+  #   description: ''
+  #   context:
+  #     current_object: ⟦ σ ↦ !obj, !B2 ⟧
+  #     current_attribute: '!a'
+  #   pattern: |
+  #     ⟦ !B1 ⟧
+  #   result: |
+  #     ⟦ σ ↦ !obj.!a, !B1 ⟧
+  #   when:
+  #     - absent_attrs:
+  #         attrs: ['σ']
+  #         bindings: ['!B1']
+  #   tests:
+  #     - name: 'Adds home attribute'
+  #       input: '⟦ a ↦ ⟦ b ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧ ⟧'
+  #       output: ['⟦ a ↦ ⟦ b ↦ ⟦ σ ↦ ⟦ ⟧.a ⟧, σ ↦ ⟦ ⟧ ⟧ ⟧']
+  #     - name: 'Leaves the object unchanged'
+  #       input: '⟦ a ↦ ⟦ b ↦ ⟦ σ ↦ ⟦ ⟧ ⟧ ⟧ ⟧'
+  #       output: []
 
-  - name: Rule 3
-    description: 'Initialization of parent attribute'
-    pattern: |
-      ⟦ !B ⟧
-    result: |
-      ⟦ !B, ρ ↦ ξ.σ ⟧
-    when:
-      - present_attrs:
-          attrs: ['σ']
-          bindings: ['!B']
-      - absent_attrs:
-          attrs: ['ρ']
-          bindings: ['!B']
-    tests:
-      - name: 'Has sigma and no rho'
-        input: '⟦ b ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧ '
-        output: ['⟦ b ↦ ⟦ ⟧, σ ↦ ⟦ ⟧, ρ ↦ ξ.σ ⟧']
-      - name: 'Has both sigma and rho'
-        input: '⟦ a ↦ ⟦ b ↦ ⟦ ⟧, ρ ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧ ⟧'
-        output: []
-      - name: 'Has neither sigma nor rho'
-        input: '⟦ a ↦ ⟦ b ↦ ⟦ ⟧ ⟧ ⟧'
-        output: []
+  # - name: Rule 3
+  #   description: 'Initialization of parent attribute'
+  #   pattern: |
+  #     ⟦ !B ⟧
+  #   result: |
+  #     ⟦ !B, ρ ↦ ξ.σ ⟧
+  #   when:
+  #     - present_attrs:
+  #         attrs: ['σ']
+  #         bindings: ['!B']
+  #     - absent_attrs:
+  #         attrs: ['ρ']
+  #         bindings: ['!B']
+  #   tests:
+  #     - name: 'Has sigma and no rho'
+  #       input: '⟦ b ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧ '
+  #       output: ['⟦ b ↦ ⟦ ⟧, σ ↦ ⟦ ⟧, ρ ↦ ξ.σ ⟧']
+  #     - name: 'Has both sigma and rho'
+  #       input: '⟦ a ↦ ⟦ b ↦ ⟦ ⟧, ρ ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧ ⟧'
+  #       output: []
+  #     - name: 'Has neither sigma nor rho'
+  #       input: '⟦ a ↦ ⟦ b ↦ ⟦ ⟧ ⟧ ⟧'
+  #       output: []
 
-  - name: Rule 4
-    description: 'Φ-dispatch'
-    context:
-      global_object: ⟦ !B ⟧
-    pattern: |
-      Φ.!a
-    result: |
-      ⟦ σ ↦ Φ, !B ⟧.!a
-    when: []
-    tests: []
+  # - name: Rule 4
+  #   description: 'Φ-dispatch'
+  #   context:
+  #     global_object: ⟦ !a ↦ !obj, !B ⟧
+  #   pattern: |
+  #     Φ.!a
+  #   result: |
+  #     !obj
+  #   when: []
+  #   tests: []
 
-  - name: Rule 5
-    description: 'ξ-dispatch'
-    pattern: |
-      ⟦ !a ↦ ξ.!b, !B ⟧
-    result: |
-      ⟦ !a ↦ ⟦ !B ⟧.!b, !B ⟧
-    when: []
-    tests:
-      - name: Replaces ξ with the actual object
-        input: '⟦ a ↦ ⟦ ⟧, x ↦ ξ.a, b ↦ ⟦ ⟧ ⟧'
-        output: ['⟦ a ↦ ⟦ ⟧, x ↦ ⟦ a ↦ ⟦ ⟧, b ↦ ⟦ ⟧ ⟧.a, b ↦ ⟦ ⟧ ⟧']
+  # - name: Rule 5
+  #   description: 'ξ-dispatch'
+  #   pattern: |
+  #     ⟦ !a ↦ ξ.!b, !B ⟧
+  #   result: |
+  #     ⟦ !a ↦ ⟦ !B ⟧.!b, !B ⟧
+  #   when: []
+  #   tests:
+  #     - name: Replaces ξ with the actual object
+  #       input: '⟦ a ↦ ⟦ ⟧, x ↦ ξ.a, b ↦ ⟦ ⟧ ⟧'
+  #       output: ['⟦ a ↦ ⟦ ⟧, x ↦ ⟦ a ↦ ⟦ ⟧, b ↦ ⟦ ⟧ ⟧.a, b ↦ ⟦ ⟧ ⟧']
 
   - name: Rule 6
     description: 'Accessing an α-binding'
@@ -139,6 +140,7 @@ rules:
       !n.!a
     when:
       - nf: '!n'
+      - not_equal: ['!a', 'φ']
       - absent_attrs:
           attrs: ['!a']
           bindings: ['!B']

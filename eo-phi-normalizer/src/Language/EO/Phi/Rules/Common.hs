@@ -109,14 +109,51 @@ isNF ctx = null . applyOneRule ctx
 --
 -- >>> mapM_ (putStrLn . Language.EO.Phi.printTree) (applyRules (Context [rule6] ["⟦ a ↦ ⟦ b ↦ ⟦ ⟧ ⟧.b ⟧"]) "⟦ a ↦ ⟦ b ↦ ⟦ ⟧ ⟧.b ⟧.a")
 applyRules :: Context -> Object -> [Object]
-applyRules ctx obj
+applyRules ctx obj = applyRulesWith (defaultApplicationLimits (objectSize obj)) ctx obj
+
+data ApplicationLimits = ApplicationLimits
+  { maxDepth :: Int
+  , maxTermSize :: Int
+  }
+
+defaultApplicationLimits :: Int -> ApplicationLimits
+defaultApplicationLimits sourceTermSize =
+  ApplicationLimits
+    { maxDepth = 10
+    , maxTermSize = sourceTermSize * 10
+    }
+
+objectSize :: Object -> Int
+objectSize = \case
+  Formation bindings -> 1 + sum (map bindingSize bindings)
+  Application obj bindings -> 1 + objectSize obj + sum (map bindingSize bindings)
+  ObjectDispatch obj _attr -> 1 + objectSize obj
+  GlobalObject -> 1
+  ThisObject -> 1
+  Termination -> 1
+  MetaObject{} -> 1 -- should be impossible
+  MetaFunction{} -> 1 -- should be impossible
+
+bindingSize :: Binding -> Int
+bindingSize = \case
+  AlphaBinding _attr obj -> objectSize obj
+  EmptyBinding _attr -> 1
+  DeltaBinding _bytes -> 1
+  LambdaBinding _lam -> 1
+  MetaBindings{} -> 1 -- should be impossible
+
+-- | A variant of `applyRules` with a maximum application depth.
+applyRulesWith :: ApplicationLimits -> Context -> Object -> [Object]
+applyRulesWith limits@ApplicationLimits{..} ctx obj
+  | maxDepth <= 0 = [obj]
   | isNF ctx obj = [obj]
   | otherwise =
       nubBy
         equalObject
         [ obj''
         | obj' <- applyOneRule ctx obj
-        , obj'' <- applyRules ctx obj'
+        , objectSize obj' < maxTermSize
+        , obj'' <- applyRulesWith limits{maxDepth = maxDepth - 1} ctx obj'
         ]
 
 equalProgram :: Program -> Program -> Bool
@@ -141,19 +178,27 @@ equalBindings bindings1 bindings2 = and (zipWith equalBinding (sortOn attr bindi
   attr (MetaBindings metaId) = MetaAttr metaId
 
 equalBinding :: Binding -> Binding -> Bool
+equalBinding (AlphaBinding VTX _) (AlphaBinding VTX _) = True -- TODO #166:15min Renumerate vertices uniformly instead of ignoring them
 equalBinding (AlphaBinding attr1 obj1) (AlphaBinding attr2 obj2) = attr1 == attr2 && equalObject obj1 obj2
 -- Ignore deltas for now while comparing since different normalization paths can lead to different vertex data
 -- TODO #120:30m normalize the deltas instead of ignoring since this actually suppresses problems
 equalBinding (DeltaBinding _) (DeltaBinding _) = True
 equalBinding b1 b2 = b1 == b2
 
+-- | Apply the rules until the object is normalized, preserving the history (chain) of applications.
 applyRulesChain :: Context -> Object -> [[Object]]
-applyRulesChain ctx obj
+applyRulesChain ctx obj = applyRulesChainWith (defaultApplicationLimits (objectSize obj)) ctx obj
+
+-- | A variant of `applyRulesChain` with a maximum application depth.
+applyRulesChainWith :: ApplicationLimits -> Context -> Object -> [[Object]]
+applyRulesChainWith limits@ApplicationLimits{..} ctx obj
+  | maxDepth <= 0 = [[obj]]
   | isNF ctx obj = [[obj]]
   | otherwise =
       [ obj : chain
       | obj' <- applyOneRule ctx obj
-      , chain <- applyRulesChain ctx obj'
+      , objectSize obj' < maxTermSize
+      , chain <- applyRulesChainWith limits{maxDepth = maxDepth - 1} ctx obj'
       ]
 
 -- * Helpers

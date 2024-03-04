@@ -101,7 +101,7 @@ executable normalizer
     , yaml
   default-language: Haskell2010
 
-test-suite eo-phi-normalizer-test
+test-suite spec
   type: exitcode-stdio-1.0
   main-is: Spec.hs
   other-modules:
