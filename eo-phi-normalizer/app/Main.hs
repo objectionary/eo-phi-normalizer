@@ -79,8 +79,8 @@ cliTransformPhiParser = do
   json <- jsonSwitch
   outputFile <- outputFileOption
   single <- switch (long "single" <> short 's' <> help "Output a single expression.")
-  maxDepth <- option auto (long "max-depth" <> value 10 <> help "Maximum depth of rules application. Defaults to 10.")
-  maxGrowthFactor <- option auto (long "max-growth-factor" <> value 10 <> help "The factor by which to allow the input term to grow before stopping. Defaults to 10.")
+  maxDepth <- option auto (long "max-depth" <> metavar "INT" <> value 10 <> help "Maximum depth of rules application. Defaults to 10.")
+  maxGrowthFactor <- option auto (long "max-growth-factor" <> metavar "INT" <> value 10 <> help "The factor by which to allow the input term to grow before stopping. Defaults to 10.")
   inputFile <- inputFileArg
   pure CLI'TransformPhi{..}
 
