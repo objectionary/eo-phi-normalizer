@@ -28,7 +28,7 @@ import Data.Text.Lazy.Lens
 import GHC.Generics (Generic)
 import Language.EO.Phi (Attribute (Sigma), Object (Formation), Program (Program), parseProgram, printTree)
 import Language.EO.Phi.Metrics.Collect (collectMetrics)
-import Language.EO.Phi.Rules.Common (Context (..), applyRules, applyRulesChain)
+import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), Context (..), applyRulesChainWith, applyRulesWith, objectSize)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRule, parseRuleSetFromFile)
 import Options.Applicative
 import Options.Applicative.Types qualified as Optparse (Context (..))
@@ -41,6 +41,8 @@ data CLI'TransformPhi = CLI'TransformPhi
   , single :: Bool
   , json :: Bool
   , inputFile :: Maybe FilePath
+  , maxDepth :: Int
+  , maxGrowthFactor :: Int
   }
   deriving (Show)
 
@@ -77,6 +79,8 @@ cliTransformPhiParser = do
   json <- jsonSwitch
   outputFile <- outputFileOption
   single <- switch (long "single" <> short 's' <> help "Output a single expression.")
+  maxDepth <- option auto (long "max-depth" <> metavar "INT" <> value 10 <> help "Maximum depth of rules application. Defaults to 10.")
+  maxGrowthFactor <- option auto (long "max-growth-factor" <> metavar "INT" <> value 10 <> help "The factor by which to allow the input term to grow before stopping. Defaults to 10.")
   inputFile <- inputFileArg
   pure CLI'TransformPhi{..}
 
@@ -161,8 +165,10 @@ main = do
       unless (single || json) $ logStrLn ruleSet.title
       let Program bindings = program'
           uniqueResults
-            | chain = applyRulesChain (Context (convertRule <$> ruleSet.rules) [Formation bindings] Sigma) (Formation bindings)
-            | otherwise = pure <$> applyRules (Context (convertRule <$> ruleSet.rules) [Formation bindings] Sigma) (Formation bindings)
+            | chain = applyRulesChainWith limits (Context (convertRule <$> ruleSet.rules) [Formation bindings] Sigma) (Formation bindings)
+            | otherwise = pure <$> applyRulesWith limits (Context (convertRule <$> ruleSet.rules) [Formation bindings] Sigma) (Formation bindings)
+           where
+            limits = ApplicationLimits maxDepth (maxGrowthFactor * objectSize (Formation bindings))
           totalResults = length uniqueResults
       when (null uniqueResults || null (head uniqueResults)) $ die parserContext [i|Could not normalize the program.|]
       let printAsProgramOrAsObject = \case
