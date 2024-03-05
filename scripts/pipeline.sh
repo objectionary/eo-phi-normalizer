@@ -2,6 +2,8 @@ set -euo pipefail
 
 if ! [ -d node_modules ]; then npm i; fi
 
+export LC_ALL=C.UTF-8
+
 shopt -s expand_aliases
 EO="0.35.5"
 alias eo="npx eoc --parser=${EO}"

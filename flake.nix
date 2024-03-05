@@ -177,7 +177,7 @@
               stack
             ];
             text = ''
-              export LANG=C.utf8
+              export LC_ALL=C.UTF-8
               mdsh
               # create sample program
               mdsh -i site/docs/src/common/sample-program.md --work_dir .
