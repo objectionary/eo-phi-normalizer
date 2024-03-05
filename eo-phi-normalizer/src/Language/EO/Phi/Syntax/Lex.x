@@ -32,6 +32,12 @@ $u = [. \n]          -- universal: any character
 
 :-
 
+-- Line comment "//"
+"//" [.]* ;
+
+-- Block comment "/*" "*/"
+\/ \* [$u # \*]* \* ([$u # [\* \/]] [$u # \*]* \* | \*)* \/ ;
+
 -- Whitespace (skipped)
 $white+ ;
 

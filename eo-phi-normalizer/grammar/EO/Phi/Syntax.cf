@@ -4,6 +4,9 @@
 --
 -- This is a non-ambiguous grammar for φ-programs.
 
+comment "//" ;
+comment "/*" "*/" ;
+
 token Bytes ({"--"} | ["0123456789ABCDEF"] ["0123456789ABCDEF"] {"-"} | ["0123456789ABCDEF"] ["0123456789ABCDEF"] ({"-"} ["0123456789ABCDEF"] ["0123456789ABCDEF"])+) ;
 token Function upper (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
 token LabelId  lower (char - [" \r\n\t,.|':;!?][}{)(⟧⟦"])* ;
