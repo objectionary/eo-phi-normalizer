@@ -59,8 +59,10 @@ jobs:
         uses: freckle/stack-action@v5
         with:
           stack-build-arguments: ${{ github.ref_name != 'master' && '--fast' || '' }} --pedantic
-        env:
-          LC_ALL: C.UTF-8
+          test: false
+
+      - name: Setup tmate session
+        uses: mxschmitt/action-tmate@v3
 
       - uses: actions/setup-node@v4
         with:
