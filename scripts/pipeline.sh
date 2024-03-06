@@ -5,7 +5,7 @@ if ! [ -d node_modules ]; then npm i; fi
 export LC_ALL=C.UTF-8
 
 shopt -s expand_aliases
-EO="0.35.7"
+EO="0.35.6"
 alias eo="npx eoc --parser=${EO}"
 
 function prepare_directory {
