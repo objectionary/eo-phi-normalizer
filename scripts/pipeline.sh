@@ -8,6 +8,8 @@ shopt -s expand_aliases
 EO="0.35.6"
 alias eo="npx eoc --parser=${EO}"
 
+shopt -s extglob
+
 function prepare_directory {
     printf "\nClean the pipeline directory\n\n"
 
@@ -43,7 +45,7 @@ function tests_without_normalization {
     cd eo
     eo clean
     eo phi
-    rsync -r .eoc/phi/ --exclude org ../phi
+    cp -r .eoc/phi/!(org) ../phi
     cd ..
 
 
@@ -51,11 +53,11 @@ function tests_without_normalization {
 
     mkdir -p eo-not-normalized
     cd phi
-    rsync -r ../eo/.eoc .
+    cp -r ../eo/.eoc .
     eo unphi --tests
-    rsync -r .eoc/unphi/ --exclude org .eoc/2-optimize
+    cp -r .eoc/unphi/!(org) .eoc/2-optimize
     eo print
-    rsync -r .eoc/print/ --exclude org ../eo-not-normalized
+    cp -r .eoc/print/!(org) ../eo-not-normalized
     cd ..
 
     printf "\nTest EO without normalization\n\n"
@@ -91,9 +93,9 @@ function tests_with_normalization {
     printf "\nConvert normalized PHI to EO\n\n"
 
     cd phi-normalized
-    rsync -r ../eo/.eoc .
+    cp -r ../eo/.eoc .
     eo unphi --tests
-    rsync -r .eoc/unphi/ --exclude org .eoc/2-optimize
+    cp -r .eoc/unphi/!(org) .eoc/2-optimize
     eo print
     cd ..
 
@@ -102,7 +104,7 @@ function tests_with_normalization {
 
     mkdir -p eo-normalized
     cd eo-normalized
-    rsync -r ../phi-normalized/.eoc/print/* --exclude org  .
+    cp -r ../phi-normalized/.eoc/print/!(org)  .
     add_metas
     eo test
     cd ..
