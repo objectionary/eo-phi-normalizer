@@ -59,7 +59,7 @@ jobs:
         uses: freckle/stack-action@v5
         with:
           stack-build-arguments: ${{ github.ref_name != 'master' && '--fast' || '' }} --pedantic
-          test: false
+          test: ${{ matrix.os != 'windows-latest' }}
 
       - name: Setup tmate session
         uses: mxschmitt/action-tmate@v3
