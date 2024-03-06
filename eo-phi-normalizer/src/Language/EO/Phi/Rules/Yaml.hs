@@ -131,6 +131,7 @@ bindingHasMetavars :: Binding -> Bool
 bindingHasMetavars (AlphaBinding attr obj) = attrHasMetavars attr || objectHasMetavars obj
 bindingHasMetavars (EmptyBinding attr) = attrHasMetavars attr
 bindingHasMetavars (DeltaBinding _) = False
+bindingHasMetavars DeltaEmptyBinding = False
 bindingHasMetavars (LambdaBinding _) = False
 bindingHasMetavars (MetaBindings _) = True
 
@@ -170,6 +171,7 @@ hasAttr attr = any (isAttr attr)
   isAttr (ObjectAttr a) (AlphaBinding a' _) = a == a'
   isAttr (ObjectAttr a) (EmptyBinding a') = a == a'
   isAttr DeltaAttr (DeltaBinding _) = True
+  isAttr DeltaAttr DeltaEmptyBinding = True
   isAttr LambdaAttr (LambdaBinding _) = True
   isAttr _ _ = False
 
@@ -243,6 +245,7 @@ applySubstBinding subst@Subst{..} = \case
   EmptyBinding a ->
     [EmptyBinding (applySubstAttr subst a)]
   DeltaBinding bytes -> [DeltaBinding (coerce bytes)]
+  DeltaEmptyBinding -> [DeltaEmptyBinding]
   LambdaBinding bytes -> [LambdaBinding (coerce bytes)]
   b@(MetaBindings m) -> fromMaybe [b] (lookup m bindingsMetas)
 
