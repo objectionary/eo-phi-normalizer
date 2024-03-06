@@ -96,6 +96,7 @@ withSubObjectBinding f ctx = \case
   AlphaBinding a obj -> AlphaBinding a <$> withSubObject f (ctx{currentAttr = a}) obj
   EmptyBinding{} -> []
   DeltaBinding{} -> []
+  DeltaEmptyBinding{} -> []
   LambdaBinding{} -> []
   MetaBindings _ -> []
 
@@ -139,6 +140,7 @@ bindingSize = \case
   AlphaBinding _attr obj -> objectSize obj
   EmptyBinding _attr -> 1
   DeltaBinding _bytes -> 1
+  DeltaEmptyBinding -> 1
   LambdaBinding _lam -> 1
   MetaBindings{} -> 1 -- should be impossible
 
@@ -174,6 +176,7 @@ equalBindings bindings1 bindings2 = and (zipWith equalBinding (sortOn attr bindi
   attr (AlphaBinding a _) = a
   attr (EmptyBinding a) = a
   attr (DeltaBinding _) = Label (LabelId "Δ")
+  attr DeltaEmptyBinding = Label (LabelId "Δ")
   attr (LambdaBinding _) = Label (LabelId "λ")
   attr (MetaBindings metaId) = MetaAttr metaId
 

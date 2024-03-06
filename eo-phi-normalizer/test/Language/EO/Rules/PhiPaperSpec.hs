@@ -70,6 +70,7 @@ instance Arbitrary Binding where
           return (AlphaBinding attr obj)
       , DeltaBinding <$> arbitrary
       , LambdaBinding <$> arbitrary
+      , pure DeltaEmptyBinding
       ]
   shrink (AlphaBinding VTX _) = [] -- do not shrink vertex bindings
   shrink (AlphaBinding attr obj) = AlphaBinding attr <$> shrink obj
