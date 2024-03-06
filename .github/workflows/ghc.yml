@@ -61,9 +61,6 @@ jobs:
           stack-build-arguments: ${{ github.ref_name != 'master' && '--fast' || '' }} --pedantic
           test: ${{ matrix.os != 'windows-latest' }}
 
-      - name: Setup tmate session
-        uses: mxschmitt/action-tmate@v3
-
       - uses: actions/setup-node@v4
         with:
           node-version: 20
