@@ -25,11 +25,12 @@ Termination.    Object ::= "⊥" ;
 MetaObject.     Object ::= MetaId ;
 MetaFunction.   Object ::= MetaFunctionName "(" Object ")" ;
 
-AlphaBinding.   Binding ::= Attribute "↦" Object ;
-EmptyBinding.   Binding ::= Attribute "↦" "∅" ;
-DeltaBinding.   Binding ::= "Δ" "⤍" Bytes ;
-LambdaBinding.  Binding ::= "λ" "⤍" Function ;
-MetaBindings.   Binding ::= MetaId ;
+AlphaBinding.       Binding ::= Attribute "↦" Object ;
+EmptyBinding.       Binding ::= Attribute "↦" "∅" ;
+DeltaBinding.       Binding ::= "Δ" "⤍" Bytes ;
+DeltaEmptyBinding.  Binding ::= "Δ" "⤍" "∅" ;
+LambdaBinding.      Binding ::= "λ" "⤍" Function ;
+MetaBindings.       Binding ::= MetaId ;
 separator Binding "," ;
 
 Phi.    Attribute ::= "φ" ;   -- decoratee object

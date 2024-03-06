@@ -169,6 +169,7 @@ instance Print Language.EO.Phi.Syntax.Abs.Binding where
     Language.EO.Phi.Syntax.Abs.AlphaBinding attribute object -> prPrec i 0 (concatD [prt 0 attribute, doc (showString "\8614"), prt 0 object])
     Language.EO.Phi.Syntax.Abs.EmptyBinding attribute -> prPrec i 0 (concatD [prt 0 attribute, doc (showString "\8614"), doc (showString "\8709")])
     Language.EO.Phi.Syntax.Abs.DeltaBinding bytes -> prPrec i 0 (concatD [doc (showString "\916"), doc (showString "\10509"), prt 0 bytes])
+    Language.EO.Phi.Syntax.Abs.DeltaEmptyBinding -> prPrec i 0 (concatD [doc (showString "\916"), doc (showString "\10509"), doc (showString "\8709")])
     Language.EO.Phi.Syntax.Abs.LambdaBinding function -> prPrec i 0 (concatD [doc (showString "\955"), doc (showString "\10509"), prt 0 function])
     Language.EO.Phi.Syntax.Abs.MetaBindings metaid -> prPrec i 0 (concatD [prt 0 metaid])
 

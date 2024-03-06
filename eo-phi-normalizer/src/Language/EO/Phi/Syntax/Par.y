@@ -108,6 +108,7 @@ Binding
   : Attribute '↦' Object { Language.EO.Phi.Syntax.Abs.AlphaBinding $1 $3 }
   | Attribute '↦' '∅' { Language.EO.Phi.Syntax.Abs.EmptyBinding $1 }
   | 'Δ' '⤍' Bytes { Language.EO.Phi.Syntax.Abs.DeltaBinding $3 }
+  | 'Δ' '⤍' '∅' { Language.EO.Phi.Syntax.Abs.DeltaEmptyBinding }
   | 'λ' '⤍' Function { Language.EO.Phi.Syntax.Abs.LambdaBinding $3 }
   | MetaId { Language.EO.Phi.Syntax.Abs.MetaBindings $1 }
 
