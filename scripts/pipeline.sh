@@ -62,7 +62,7 @@ function tests_with_normalization {
 
     mkdir -p phi-normalized
     cd phi
-    PHI_FILES="$(find -name '*.phi' -not -path '.eoc/**')"
+    PHI_FILES="$(find . -name '*.phi' -not -path '.eoc/**')"
     for f in $PHI_FILES; do
         destination="../phi-normalized/$f"
         mkdir -p $(dirname $destination)
