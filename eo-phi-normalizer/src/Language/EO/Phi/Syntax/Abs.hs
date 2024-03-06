@@ -33,6 +33,7 @@ data Binding
     = AlphaBinding Attribute Object
     | EmptyBinding Attribute
     | DeltaBinding Bytes
+    | DeltaEmptyBinding
     | LambdaBinding Function
     | MetaBindings MetaId
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
