@@ -27,17 +27,6 @@ function enter_directory {
     cd pipeline
 }
 
-function add_metas {
-    EO_FILES="$(find -name '*.eo' -not -path '.eoc/**')"
-    for f in $EO_FILES;
-    do
-        cat $f > $f.bk
-        printf "+tests\n" > $f
-        cat $f.bk >> $f
-        rm $f.bk
-    done
-}
-
 function tests_without_normalization {
     printf "\nConvert EO to PHI\n\n"
 
@@ -63,7 +52,6 @@ function tests_without_normalization {
     printf "\nTest EO without normalization\n\n"
 
     cd eo-not-normalized
-    add_metas
     eo test
     cd ..
 }
@@ -105,7 +93,6 @@ function tests_with_normalization {
     mkdir -p eo-normalized
     cd eo-normalized
     cp -r ../phi-normalized/.eoc/print/!(org)  .
-    add_metas
     eo test
     cd ..
 }
