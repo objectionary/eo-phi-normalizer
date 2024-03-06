@@ -5,7 +5,7 @@ if ! [ -d node_modules ]; then npm i; fi
 export LC_ALL=C.UTF-8
 
 shopt -s expand_aliases
-EO="0.35.5"
+EO="0.35.7"
 alias eo="npx eoc --parser=${EO}"
 
 function prepare_directory {
@@ -52,7 +52,7 @@ function tests_without_normalization {
     mkdir -p eo-not-normalized
     cd phi
     rsync -r ../eo/.eoc .
-    eo unphi
+    eo unphi --tests
     rsync -r .eoc/unphi/ --exclude org .eoc/2-optimize
     eo print
     rsync -r .eoc/print/ --exclude org ../eo-not-normalized
@@ -92,7 +92,7 @@ function tests_with_normalization {
 
     cd phi-normalized
     rsync -r ../eo/.eoc .
-    eo unphi
+    eo unphi --tests
     rsync -r .eoc/unphi/ --exclude org .eoc/2-optimize
     eo print
     cd ..
