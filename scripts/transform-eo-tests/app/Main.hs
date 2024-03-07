@@ -32,29 +32,32 @@ main = withUtf8 do
   config <- decodeFileThrow @_ @TestConfig (testDir </> "config.yaml")
   createDirectoryIfMissing True config.yamlDirectory
   forM_ config.sets $ \set -> do
-    test@Test{source, meta, license} <- parseTest set.source
-    let programs = filter (\x -> x.name `elem` set.programs) test.programs
+    test@Test{source, meta} <- parseTest set.source
+    let programs =
+          maybe
+            test.programs
+            (\programs' -> filter (\x -> x.name `elem` programs') test.programs)
+            set.programs
         testContent = TestContent{..}
 
     -- write yaml
     let target = set.yaml
         targetTmp = target <.> ".tmp"
     createDirectoryIfMissing True (takeDirectory target)
-    writeFile target license
     encodeFile targetTmp testContent
     readFile targetTmp >>= appendFile target
     removeFile targetTmp
 
     -- write eo
     createDirectoryIfMissing True (takeDirectory set.destination)
-    writeFile set.destination (license <> meta)
+    writeFile set.destination meta
     forM_ programs (\x -> appendFile set.destination x.text)
 
 data TestSet = TestSet
   { source :: FilePath
   , yaml :: FilePath
   , destination :: FilePath
-  , programs :: [String]
+  , programs :: Maybe [String]
   }
   deriving (Show, Generic, FromJSON)
 
