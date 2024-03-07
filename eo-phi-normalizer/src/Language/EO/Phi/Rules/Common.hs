@@ -1,6 +1,7 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
@@ -233,6 +234,12 @@ intToBytes n = Bytes $ insertDashes $ pad $ showHex n ""
               [x, y] -> [x, y, '-']
               (x : y : xs) -> x : y : '-' : go xs
          in go s
+
+-- | Assuming the bytes are well-formed (otherwise crashes)
+bytesToInt :: Bytes -> Int
+bytesToInt (Bytes (filter (/= '-') . dropWhile (== '0') -> bytes))
+  | null bytes = 0
+  | otherwise = fst $ head $ readHex bytes
 
 minNu :: Int
 minNu = -1
