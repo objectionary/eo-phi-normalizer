@@ -68,7 +68,7 @@ count x = length . filter x
 -- 1
 countDataless :: (Num a) => [Binding] -> a
 countDataless bindings =
-  let countDeltas = count (\case DeltaBinding _ -> True; _ -> False)
+  let countDeltas = count (\case DeltaBinding _ -> True; DeltaEmptyBinding -> True; _ -> False)
       nestedBindings = concatMap (\case AlphaBinding _ (Formation bindings') -> bindings'; _ -> []) bindings
       deltas = countDeltas (bindings <> nestedBindings)
    in if deltas == 0 then 1 else 0

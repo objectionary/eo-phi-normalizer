@@ -54,7 +54,7 @@ The symbols used in Syntax are the following:
   | ↦ | ∅ | ⤍ | ,
 
 ===Comments===
-There are no single-line comments in the grammar.There are no multiple-line comments in the grammar.
+Single-line comments begin with //.Multiple-line comments are  enclosed with /* and */.
 
 ==The syntactic structure of Syntax==
 Non-terminals are enclosed between < and >.
@@ -74,6 +74,7 @@ All other symbols are terminals.
   | //Binding// | -> | //Attribute// ``↦`` //Object//
   |  |  **|**  | //Attribute// ``↦`` ``∅``
   |  |  **|**  | ``Δ`` ``⤍`` //Bytes//
+  |  |  **|**  | ``Δ`` ``⤍`` ``∅``
   |  |  **|**  | ``λ`` ``⤍`` //Function//
   |  |  **|**  | //MetaId//
   | //[Binding]// | -> | **eps**
