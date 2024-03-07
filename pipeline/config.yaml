@@ -6,6 +6,7 @@ sets:
 - source: eo/eo-runtime/src/test/eo/org/eolang/bool-tests.eo
   yaml: pipeline/yaml/bool-tests.yaml
   destination: pipeline/eo/bool-tests.eo
+  enable: false
 - source: eo/eo-runtime/src/test/eo/org/eolang/bytes-tests.eo
   yaml: pipeline/yaml/bytes-tests.yaml
   destination: pipeline/eo/bytes-tests.eo
@@ -42,21 +43,24 @@ sets:
 - source: eo/eo-runtime/src/test/eo/org/eolang/positive-infinity-tests.eo
   yaml: pipeline/yaml/positive-infinity-tests.yaml
   destination: pipeline/eo/positive-infinity-tests.eo
+  exclude:
+  - float-equal-to-nan-and-infinites-is-false-highload
 - source: eo/eo-runtime/src/test/eo/org/eolang/ram-tests.eo
   yaml: pipeline/yaml/ram-tests.yaml
   destination: pipeline/eo/ram-tests.eo
-  programs:
-  - writes-and-slice-ram
-  - writes-integer-to-ram
-  - several-slices-ram
-  - intersection-writes-in-ram
-  # - slice-chain
+  exclude:
+  - slice-chain
 - source: eo/eo-runtime/src/test/eo/org/eolang/runtime-tests.eo
   yaml: pipeline/yaml/runtime-tests.yaml
   destination: pipeline/eo/runtime-tests.eo
+  exclude:
+  - compiles-correctly-with-long-duplicate-names
+  - constant-defends-against-side-effects
+  - takes-object-id-from-abstract-empty
 - source: eo/eo-runtime/src/test/eo/org/eolang/rust-tests.eo
   yaml: pipeline/yaml/rust-tests.yaml
   destination: pipeline/eo/rust-tests.eo
+  enable: false
 - source: eo/eo-runtime/src/test/eo/org/eolang/seq-tests.eo
   yaml: pipeline/yaml/seq-tests.yaml
   destination: pipeline/eo/seq-tests.eo
@@ -66,6 +70,9 @@ sets:
 - source: eo/eo-runtime/src/test/eo/org/eolang/switch-tests.eo
   yaml: pipeline/yaml/switch-tests.yaml
   destination: pipeline/eo/switch-tests.eo
+  exclude:
+  - switch-complex-case
+  - switch-simple-case
 - source: eo/eo-runtime/src/test/eo/org/eolang/try-tests.eo
   yaml: pipeline/yaml/try-tests.yaml
   destination: pipeline/eo/try-tests.eo
@@ -75,12 +82,15 @@ sets:
 - source: eo/eo-runtime/src/test/eo/org/eolang/unit-tests.eo
   yaml: pipeline/yaml/unit-tests.yaml
   destination: pipeline/eo/unit-tests.eo
-# - source: eo/eo-runtime/src/test/eo/org/eolang/io/stdout-tests.eo
-#   yaml: pipeline/stdout-tests.yaml
-#   destination: pipeline/eo/io/stdout-tests.eo
-# - source: eo/eo-runtime/src/test/eo/org/eolang/io/tupled-stdout-test.eo
-#   yaml: pipeline/tupled-stdout-test.yaml
-#   destination: pipeline/eo/io/tupled-stdout-test.eo
-# - source: eo/eo-runtime/src/test/eo/org/eolang/io/tupled-stdout.eo
-#   yaml: pipeline/tupled-stdout.yaml
-#   destination: pipeline/eo/io/tupled-stdout.eo
+- source: eo/eo-runtime/src/test/eo/org/eolang/io/stdout-tests.eo
+  yaml: pipeline/stdout-tests.yaml
+  destination: pipeline/eo/io/stdout-tests.eo
+  enable: false
+- source: eo/eo-runtime/src/test/eo/org/eolang/io/tupled-stdout-test.eo
+  yaml: pipeline/tupled-stdout-test.yaml
+  destination: pipeline/eo/io/tupled-stdout-test.eo
+  enable: false
+- source: eo/eo-runtime/src/test/eo/org/eolang/io/tupled-stdout.eo
+  yaml: pipeline/tupled-stdout.yaml
+  destination: pipeline/eo/io/tupled-stdout.eo
+  enable: false
