@@ -16,6 +16,7 @@ module Main (main) where
 import Control.Monad
 import Data.Function ((&))
 import Data.Functor ((<&>))
+import Data.Maybe (fromMaybe)
 import Data.String (IsString (..))
 import Data.Text qualified as T
 import Data.Yaml (FromJSON, Parser, ToJSON (..), Value (String), decodeFileThrow, encodeFile)
@@ -31,13 +32,11 @@ main = withUtf8 do
   let testDir = "pipeline"
   config <- decodeFileThrow @_ @TestConfig (testDir </> "config.yaml")
   createDirectoryIfMissing True config.yamlDirectory
-  forM_ config.sets $ \set -> do
+  forM_ (filter (fromMaybe True . (.enable)) config.sets) $ \set -> do
     test@Test{source, meta} <- parseTest set.source
-    let programs =
-          maybe
-            test.programs
-            (\programs' -> filter (\x -> x.name `elem` programs') test.programs)
-            set.programs
+    let exclude = fromMaybe [] set.exclude
+        include = fromMaybe (test.programs <&> (.name)) set.include & filter (`notElem` exclude)
+        programs = filter (\x -> x.name `elem` include) test.programs
         testContent = TestContent{..}
 
     -- write yaml
@@ -57,7 +56,19 @@ data TestSet = TestSet
   { source :: FilePath
   , yaml :: FilePath
   , destination :: FilePath
-  , programs :: Maybe [String]
+  , include :: Maybe [String]
+  -- ^
+  -- Program names to include.
+  --
+  -- `Nothing` is equivalent to all programs.
+  , exclude :: Maybe [String]
+  -- ^
+  -- Program names to exclude
+  --
+  -- `Nothing` is equivalent to no programs.
+  , enable :: Maybe Bool
+  -- ^
+  -- Whether to enable this test set.
   }
   deriving (Show, Generic, FromJSON)
 
