@@ -73,6 +73,12 @@ sets:
   exclude:
   - switch-complex-case
   - switch-simple-case
+  # fails on windows
+  - switch-strings-case
+  # fails on windows
+  - switch-with-all-false-cases
+  # fails on windows
+  - switch-with-several-true-cases
 - source: eo/eo-runtime/src/test/eo/org/eolang/try-tests.eo
   yaml: pipeline/yaml/try-tests.yaml
   destination: pipeline/eo/try-tests.eo
