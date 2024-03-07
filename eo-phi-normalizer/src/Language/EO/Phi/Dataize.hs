@@ -21,13 +21,7 @@ dataizeStep :: Context -> Object -> Either Object Bytes
 dataizeStep ctx obj@(Formation bs)
   | Just (DeltaBinding bytes) <- find isDelta bs = Right bytes
   | Just (LambdaBinding (Function funcName)) <- find isLambda bs = Left $ fst $ evaluateBuiltinFun ctx funcName obj ()
-  -- Need to ask Yegor if dataization of decorated object should be explicitly implemented
-  -- or if it's just a property proven about "dataizeStep + normalize"
-  -- And if it should be implemented, which of the following 2 cases implements it correctly?
-  -- \| Just (AlphaBinding Phi decoratee) <- find isPhi bs = dataizeStep ctx decoratee
-  -- \| Just (AlphaBinding Phi decoratee) <- find isPhi bs = case dataizeStep ctx decoratee of
-  --     Right bytes -> Right bytes
-  --     Left dataizedObj -> Left $ Formation (AlphaBinding Phi dataizedObj : filter (not . isPhi) bs)
+  | Just (AlphaBinding Phi decoratee) <- find isPhi bs = dataizeStep ctx decoratee
   | otherwise = Left obj -- TODO: Need to differentiate between `Left` due to no matches and a "partial Right"
  where
   isDelta (DeltaBinding _) = True
