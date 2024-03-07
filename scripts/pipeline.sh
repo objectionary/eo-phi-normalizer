@@ -88,7 +88,7 @@ function tests_with_normalization {
     cd ..
 
 
-    printf "\nTest EO\n\n"
+    printf "\nTest EO with normalization\n\n"
 
     mkdir -p eo-normalized
     cd eo-normalized
