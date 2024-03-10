@@ -94,24 +94,24 @@ rules:
   #   when: []
   #   tests: []
 
-  - name: Rule 5
-    description: 'ξ-dispatch'
-    context:
-      current_object: '⟦ !a ↦ !obj, !B ⟧'
-      current_attribute: '!a'
-    pattern: |
-      ξ
-    result: |
-      ⟦ !B ⟧
-    when:
-      - present_attrs:
-          attrs: ['ν', 'σ', 'ρ']
-          bindings: ['!B']
-    tests:
-      - name: Replaces ξ with the actual object
-        input: '⟦ a ↦ ⟦ ⟧, x ↦ ξ.a, ν ↦ ⟦ ⟧, σ ↦ ⟦ ⟧, ρ ↦ ⟦ ⟧ ⟧'
-        output:
-          - '⟦ a ↦ ⟦ ⟧, x ↦ ⟦ a ↦ ⟦ ⟧, ν ↦ ⟦ ⟧, σ ↦ ⟦ ⟧, ρ ↦ ⟦ ⟧ ⟧.a, ν ↦ ⟦ ⟧, σ ↦ ⟦ ⟧, ρ ↦ ⟦ ⟧ ⟧'
+  # - name: Rule 5
+  #   description: 'ξ-dispatch'
+  #   context:
+  #     current_object: '⟦ !a ↦ !obj, !B ⟧'
+  #     current_attribute: '!a'
+  #   pattern: |
+  #     ξ
+  #   result: |
+  #     ⟦ !B ⟧
+  #   when:
+  #     - present_attrs:
+  #         attrs: ['ν', 'σ', 'ρ']
+  #         bindings: ['!B']
+  #   tests:
+  #     - name: Replaces ξ with the actual object
+  #       input: '⟦ a ↦ ⟦ ⟧, x ↦ ξ.a, ν ↦ ⟦ ⟧, σ ↦ ⟦ ⟧, ρ ↦ ⟦ ⟧ ⟧'
+  #       output:
+  #         - '⟦ a ↦ ⟦ ⟧, x ↦ ⟦ a ↦ ⟦ ⟧, ν ↦ ⟦ ⟧, σ ↦ ⟦ ⟧, ρ ↦ ⟦ ⟧ ⟧.a, ν ↦ ⟦ ⟧, σ ↦ ⟦ ⟧, ρ ↦ ⟦ ⟧ ⟧'
 
   - name: Rule 6
     description: 'Accessing an α-binding'

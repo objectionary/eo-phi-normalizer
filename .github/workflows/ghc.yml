@@ -41,49 +41,26 @@ jobs:
         with:
           hlint-bin: ${{ steps.get-hlint-bin.outputs.hlint-bin }}
 
-  build:
-    name: "Build and test with GHC"
+  pipeline:
+    name: Run pipeline
     needs: check
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-
-    steps:
-      - name: 📥 Checkout repository
-        uses: actions/checkout@v4
-
-      - uses: haskell-actions/run-fourmolu@v10
-        if: matrix.os == 'ubuntu-latest'
-        with:
-          version: "0.14.0.0"
-          pattern: |
-            eo-phi-normalizer/**/*.hs
-            !eo-phi-normalizer/src/Language/EO/Phi/Syntax/**/*.hs
-            !eo-phi-normalizer/Setup.hs
-
-      - name: 🧰 Setup Stack
-        uses: freckle/stack-action@v5
-        with:
-          stack-build-arguments: ${{ github.ref_name != 'master' && '--fast' || '' }} --pedantic
-
-  pipeline:
-    if: false
-    name: "Run pipeline"
-    runs-on: ubuntu-latest
-    strategy:
       fail-fast: false
-      matrix:
-        program: [1]
 
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: true
 
       - name: 🧰 Setup Stack
         uses: freckle/stack-action@v5
         with:
           stack-build-arguments: ${{ github.ref_name != 'master' && '--fast' || '' }} --pedantic
+          test: ${{ matrix.os != 'windows-latest' }}
 
       - uses: actions/setup-node@v4
         with:
@@ -94,16 +71,12 @@ jobs:
           distribution: "zulu"
           java-version: 21
 
-      - name: Install EO
-        run: npm install -g eolang@0.15.1
-
       - name: Run pipeline
-        run: ./pipeline.sh
-        env:
-          PROGRAM: ${{ matrix.program }}
+        shell: bash
+        run: ./scripts/pipeline.sh
 
   docs:
-    needs: [build]
+    needs: pipeline
     if: ${{ github.ref_name == 'master' }}
     name: "Build and upload site (master)"
     runs-on: ubuntu-latest
@@ -113,7 +86,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 🧰 Setup Stack
-        uses: freckle/stack-action@v4
+        uses: freckle/stack-action@v5
         with:
           test: false
 
@@ -126,7 +99,7 @@ jobs:
       - name: Setup mdBook
         uses: peaceiris/actions-mdbook@v1
         with:
-          mdbook-version: 'latest'
+          mdbook-version: "latest"
 
       - name: Build site
         run: |

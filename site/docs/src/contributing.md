@@ -5,7 +5,7 @@ We recommend using [stack](https://docs.haskellstack.org/en/stable/README/) for 
 Clone this project and run `stack build`.
 
 ```sh
-git clone https://github.com/objectionary/normalizer
+git clone https://github.com/objectionary/normalizer --recurse-submodules
 cd normalizer
 stack build
 ```
