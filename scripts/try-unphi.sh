@@ -53,6 +53,9 @@ EOM
         eo phi
     fi
 
+    rm -f .eoc/phi/test.phi
+    rm -f .eoc/2-optimize/test.xmir
+
     cd ..
 }
 
@@ -60,18 +63,18 @@ function unphi {
     printf "\nUnphi\n\n"
 
     cd tmp
+
     cp -r ../init/.eoc .
     cp -r ../phi/* .eoc/phi
 
-    rm .eoc/phi/test.phi
-
     eo unphi
+
     cp -r .eoc/unphi/!(org) .eoc/2-optimize
 
-    rm .eoc/2-optimize/test.xmir
-
     eo print
+
     cp -r .eoc/print/!(org) ../unphi
+
     cd ..
 }
 
