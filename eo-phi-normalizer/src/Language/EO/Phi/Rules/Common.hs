@@ -10,6 +10,7 @@ module Language.EO.Phi.Rules.Common where
 import Control.Applicative (Alternative ((<|>)), asum)
 import Data.List (nubBy, sortOn)
 import Data.List.NonEmpty (NonEmpty (..), (<|))
+import Data.List.NonEmpty qualified as NonEmpty
 import Data.String (IsString (..))
 import Language.EO.Phi.Syntax.Abs
 import Language.EO.Phi.Syntax.Lex (Token)
@@ -46,7 +47,18 @@ data Context = Context
   { allRules :: [Rule]
   , outerFormations :: NonEmpty Object
   , currentAttr :: Attribute
+  , insideFormation :: Bool
+  -- ^ Temporary hack for applying Ksi and Phi rules when dataizing
   }
+
+defaultContext :: [Rule] -> Object -> Context
+defaultContext rules obj =
+  Context
+    { allRules = rules
+    , outerFormations = NonEmpty.singleton obj
+    , currentAttr = Sigma
+    , insideFormation = False
+    }
 
 -- | A rule tries to apply a transformation to the root object, if possible.
 type Rule = Context -> Object -> [Object]
@@ -71,7 +83,7 @@ withSubObject f ctx root =
   f ctx root
     <|> case root of
       Formation bindings ->
-        Formation <$> withSubObjectBindings f (extendContextWith root ctx) bindings
+        Formation <$> withSubObjectBindings f ((extendContextWith root ctx){insideFormation = True}) bindings
       Application obj bindings ->
         asum
           [ Application <$> withSubObject f ctx obj <*> pure bindings

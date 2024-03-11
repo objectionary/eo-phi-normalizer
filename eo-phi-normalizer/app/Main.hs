@@ -29,7 +29,7 @@ import GHC.Generics (Generic)
 import Language.EO.Phi (Attribute (Sigma), Bytes (Bytes), Object (Formation), Program (Program), parseProgram, printTree)
 import Language.EO.Phi.Dataize (dataizeRecursively, dataizeStep)
 import Language.EO.Phi.Metrics.Collect (collectMetrics)
-import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), Context (..), applyRulesChainWith, applyRulesWith, objectSize)
+import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), Context (..), defaultContext, applyRulesChainWith, applyRulesWith, objectSize)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRule, parseRuleSetFromFile)
 import Options.Applicative
 import Options.Applicative.Types qualified as Optparse (Context (..))
@@ -193,10 +193,11 @@ main = do
       unless (single || json) $ logStrLn ruleSet.title
       let Program bindings = program'
           uniqueResults
-            | chain = applyRulesChainWith limits (Context (convertRule <$> ruleSet.rules) [Formation bindings] Sigma) (Formation bindings)
-            | otherwise = pure <$> applyRulesWith limits (Context (convertRule <$> ruleSet.rules) [Formation bindings] Sigma) (Formation bindings)
+            | chain = applyRulesChainWith limits ctx (Formation bindings)
+            | otherwise = pure <$> applyRulesWith limits ctx (Formation bindings)
            where
             limits = ApplicationLimits maxDepth (maxGrowthFactor * objectSize (Formation bindings))
+            ctx = defaultContext (convertRule <$> ruleSet.rules) (Formation bindings)
           totalResults = length uniqueResults
       when (null uniqueResults || null (head uniqueResults)) $ die parserContext [i|Could not normalize the program.|]
       if
@@ -235,7 +236,7 @@ main = do
       ruleSet <- parseRuleSetFromFile rulesPath
       let (Program bindings) = program'
       let inputObject = Formation bindings
-      let ctx = Context (convertRule <$> ruleSet.rules) [inputObject] Sigma
+      let ctx = defaultContext (convertRule <$> ruleSet.rules) inputObject
       let dataize
             -- This should be moved to a separate subcommand
             | recursive = dataizeRecursively
