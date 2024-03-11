@@ -11,11 +11,15 @@ shopt -s extglob
 DIR=try-unphi
 
 function prepare_directory {
-    printf "\nClean the $DIR directory\n\n"
+    printf "\nPrepare the $DIR directory\n\n"
 
-    mkdir -p $DIR/init
     mkdir -p $DIR/phi
+    mkdir -p $DIR/init
+
+    rm -rf $DIR/tmp
     mkdir -p $DIR/tmp
+
+    rm -rf $DIR/unphi
     mkdir -p $DIR/unphi
 }
 
@@ -56,10 +60,16 @@ function unphi {
     printf "\nUnphi\n\n"
 
     cd tmp
-    cp -r ../phi/ .
     cp -r ../init/.eoc .
+    cp -r ../phi/* .eoc/phi
+
+    rm .eoc/phi/test.phi
+
     eo unphi
     cp -r .eoc/unphi/!(org) .eoc/2-optimize
+
+    rm .eoc/2-optimize/test.xmir
+
     eo print
     cp -r .eoc/print/!(org) ../unphi
     cd ..
