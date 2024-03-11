@@ -6,6 +6,8 @@ shopt -s expand_aliases
 EO="0.35.8"
 alias eo="npx eoc --parser=${EO}"
 
+shopt -s extglob
+
 DIR=try-unphi
 
 function prepare_directory {
@@ -54,12 +56,12 @@ function unphi {
     printf "\nUnphi\n\n"
 
     cd tmp
-    rsync -r ../phi/ .
-    rsync -r ../init/.eoc .
+    cp -r ../phi/ .
+    cp -r ../init/.eoc .
     eo unphi
-    rsync -r .eoc/unphi/ --exclude org .eoc/2-optimize
+    cp -r .eoc/unphi/!(org) .eoc/2-optimize
     eo print
-    rsync -r .eoc/print/ --exclude org ../unphi
+    cp -r .eoc/print/!(org) ../unphi
     cd ..
 }
 
