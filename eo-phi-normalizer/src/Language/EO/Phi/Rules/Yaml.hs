@@ -26,7 +26,7 @@ import Data.String.Interpolate (i)
 import Data.Yaml qualified as Yaml
 import GHC.Generics (Generic)
 import Language.EO.Phi (printTree)
-import Language.EO.Phi.Rules.Common (Context (outerFormations))
+import Language.EO.Phi.Rules.Common (Context (insideFormation, outerFormations))
 import Language.EO.Phi.Rules.Common qualified as Common
 import Language.EO.Phi.Syntax.Abs
 
@@ -77,9 +77,11 @@ data AttrsInBindings = AttrsInBindings
   deriving (Generic, Show, FromJSON)
 data Condition
   = IsNF {nf :: Object}
+  | IsNFInsideFormation {nf_inside_formation :: Object}
   | PresentAttrs {present_attrs :: AttrsInBindings}
   | AbsentAttrs {absent_attrs :: AttrsInBindings}
   | AttrNotEqual {not_equal :: (Attribute, Attribute)}
+  | ApplyInSubformations {apply_in_subformations :: Bool}
   deriving (Generic, Show)
 instance FromJSON Condition where
   parseJSON = genericParseJSON defaultOptions{sumEncoding = UntaggedValue}
@@ -148,6 +150,7 @@ attrHasMetavars (MetaAttr _) = True
 --   tells whether the condition matches the object
 checkCond :: Common.Context -> Condition -> Subst -> Bool
 checkCond ctx (IsNF obj) subst = Common.isNF ctx $ applySubst subst obj
+checkCond ctx (IsNFInsideFormation obj) subst = Common.isNF ctx{insideFormation = True} $ applySubst subst obj
 checkCond _ctx (PresentAttrs (AttrsInBindings attrs bindings)) subst = any (`hasAttr` substitutedBindings) substitutedAttrs
  where
   substitutedBindings = concatMap (applySubstBinding subst) bindings
@@ -164,6 +167,9 @@ checkCond _ctx (PresentAttrs (AttrsInBindings attrs bindings)) subst = any (`has
   substitutedAttrs = map (normalToRuleAttr . applySubstAttr subst . ruleToNormalAttr) attrs
 checkCond ctx (AbsentAttrs s) subst = not $ checkCond ctx (PresentAttrs s) subst
 checkCond _ctx (AttrNotEqual (a1, a2)) subst = applySubstAttr subst a1 /= applySubstAttr subst a2
+checkCond ctx (ApplyInSubformations shouldApply) _subst
+  | shouldApply = True
+  | otherwise = not (insideFormation ctx)
 
 hasAttr :: RuleAttribute -> [Binding] -> Bool
 hasAttr attr = any (isAttr attr)

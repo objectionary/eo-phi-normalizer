@@ -6,7 +6,7 @@ module Language.EO.Phi.Dataize (dataizeStep, dataizeRecursively) where
 import Data.List (find)
 import Data.String.Interpolate (i)
 import Language.EO.Phi (printTree)
-import Language.EO.Phi.Rules.Common (Context, applyRules, bytesToInt, intToBytes)
+import Language.EO.Phi.Rules.Common (Context, applyRules, bytesToInt, extendContextWith, intToBytes)
 import Language.EO.Phi.Syntax.Abs (
   AlphaIndex (AlphaIndex),
   Attribute (Alpha, Phi, Rho),
@@ -21,7 +21,7 @@ dataizeStep :: Context -> Object -> Either Object Bytes
 dataizeStep ctx obj@(Formation bs)
   | Just (DeltaBinding bytes) <- find isDelta bs = Right bytes
   | Just (LambdaBinding (Function funcName)) <- find isLambda bs = Left $ fst $ evaluateBuiltinFun ctx funcName obj ()
-  | Just (AlphaBinding Phi decoratee) <- find isPhi bs = dataizeStep ctx decoratee
+  | Just (AlphaBinding Phi decoratee) <- find isPhi bs = dataizeStep (extendContextWith obj ctx) decoratee
   | otherwise = Left obj -- TODO: Need to differentiate between `Left` due to no matches and a "partial Right"
  where
   isDelta (DeltaBinding _) = True
