@@ -3,7 +3,7 @@ set -euo pipefail
 if ! [ -d node_modules ]; then npm i; fi
 
 shopt -s expand_aliases
-EO="0.35.5"
+EO="0.35.8"
 alias eo="npx eoc --parser=${EO}"
 
 DIR=try-unphi
