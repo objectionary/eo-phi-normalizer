@@ -136,6 +136,7 @@ bindingHasMetavars (DeltaBinding _) = False
 bindingHasMetavars DeltaEmptyBinding = False
 bindingHasMetavars (LambdaBinding _) = False
 bindingHasMetavars (MetaBindings _) = True
+bindingHasMetavars (MetaDeltaBinding _) = True
 
 attrHasMetavars :: Attribute -> Bool
 attrHasMetavars Phi = False
@@ -198,6 +199,7 @@ data Subst = Subst
   { objectMetas :: [(MetaId, Object)]
   , bindingsMetas :: [(MetaId, [Binding])]
   , attributeMetas :: [(MetaId, Attribute)]
+  , bytesMetas :: [(MetaId, Bytes)]
   }
 instance Show Subst where
   show Subst{..} =
@@ -207,6 +209,7 @@ instance Show Subst where
       , "  objectMetas = [" <> showMappings objectMetas <> "]"
       , "  bindingsMetas = [" <> showMappings bindingsMetas <> "]"
       , "  attributeMetas = [" <> showMappings attributeMetas <> "]"
+      , "  bytesMetas = [" <> showMappings bytesMetas <> "]"
       , "}"
       ]
    where
@@ -219,7 +222,7 @@ instance Monoid Subst where
   mempty = emptySubst
 
 emptySubst :: Subst
-emptySubst = Subst [] [] []
+emptySubst = Subst [] [] [] []
 
 -- >>> putStrLn $ Language.EO.Phi.printTree (applySubst (Subst [("!n", "⟦ c ↦ ⟦ ⟧ ⟧")] [("!B", ["b ↦ ⟦ ⟧"])] [("!a", "a")]) "!n(ρ ↦ ⟦ !B ⟧)" :: Object)
 -- ⟦ c ↦ ⟦ ⟧ ⟧ (ρ ↦ ⟦ b ↦ ⟦ ⟧ ⟧)
@@ -254,10 +257,11 @@ applySubstBinding subst@Subst{..} = \case
   DeltaEmptyBinding -> [DeltaEmptyBinding]
   LambdaBinding bytes -> [LambdaBinding (coerce bytes)]
   b@(MetaBindings m) -> fromMaybe [b] (lookup m bindingsMetas)
+  b@(MetaDeltaBinding m) -> maybe [b] (pure . DeltaBinding) (lookup m bytesMetas)
 
 mergeSubst :: Subst -> Subst -> Subst
-mergeSubst (Subst xs ys zs) (Subst xs' ys' zs') =
-  Subst (xs ++ xs') (ys ++ ys') (zs ++ zs')
+mergeSubst (Subst xs ys zs ws) (Subst xs' ys' zs' ws') =
+  Subst (xs ++ xs') (ys ++ ys') (zs ++ zs') (ws ++ ws')
 
 -- 1. need to implement applySubst' :: Subst -> Object -> Object
 -- 2. complete the code
@@ -272,12 +276,7 @@ matchObject (ObjectDispatch pat a) (ObjectDispatch obj a') = do
   subst2 <- matchAttr (applySubstAttr subst1 a) a'
   pure (subst1 <> subst2)
 matchObject (MetaObject m) obj =
-  pure
-    Subst
-      { objectMetas = [(m, obj)]
-      , bindingsMetas = []
-      , attributeMetas = []
-      }
+  pure emptySubst{objectMetas = [(m, obj)]}
 matchObject Termination Termination = [emptySubst]
 matchObject ThisObject ThisObject = [emptySubst]
 matchObject GlobalObject GlobalObject = [emptySubst]
@@ -318,14 +317,12 @@ matchBindings :: [Binding] -> [Binding] -> [Subst]
 matchBindings [] [] = [emptySubst]
 matchBindings [MetaBindings b] bindings =
   pure
-    Subst
-      { objectMetas = []
-      , bindingsMetas = [(b, bindings)]
-      , attributeMetas = []
+    emptySubst
+      { bindingsMetas = [(b, bindings)]
       }
 matchBindings (p : ps) bs = do
   (bs', subst1) <- matchFindBinding p bs
-  subst2 <- matchBindings ps bs'
+  subst2 <- matchBindings (applySubstBindings subst1 ps) bs'
   pure (subst1 <> subst2)
 matchBindings [] _ = []
 
@@ -353,15 +350,17 @@ matchBinding (AlphaBinding a obj) (AlphaBinding a' obj') = do
   subst1 <- matchAttr a a'
   subst2 <- matchObject obj obj'
   pure (subst1 <> subst2)
+matchBinding (MetaDeltaBinding m) (DeltaBinding bytes) = [emptySubst{bytesMetas = [(m, bytes)]}]
+matchBinding (DeltaBinding bytes) (DeltaBinding bytes')
+  | bytes == bytes' = [emptySubst]
+matchBinding DeltaEmptyBinding DeltaEmptyBinding = [emptySubst]
 matchBinding _ _ = []
 
 matchAttr :: Attribute -> Attribute -> [Subst]
 matchAttr l r | l == r = [emptySubst]
 matchAttr (MetaAttr metaId) attr =
-  [ Subst
-      { objectMetas = []
-      , bindingsMetas = []
-      , attributeMetas = [(metaId, attr)]
+  [ emptySubst
+      { attributeMetas = [(metaId, attr)]
       }
   ]
 matchAttr _ _ = []

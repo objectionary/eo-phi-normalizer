@@ -110,6 +110,7 @@ withSubObjectBinding f ctx = \case
   EmptyBinding{} -> []
   DeltaBinding{} -> []
   DeltaEmptyBinding{} -> []
+  MetaDeltaBinding{} -> []
   LambdaBinding{} -> []
   MetaBindings _ -> []
 
@@ -155,6 +156,7 @@ bindingSize = \case
   DeltaBinding _bytes -> 1
   DeltaEmptyBinding -> 1
   LambdaBinding _lam -> 1
+  MetaDeltaBinding{} -> 1 -- should be impossible
   MetaBindings{} -> 1 -- should be impossible
 
 -- | A variant of `applyRules` with a maximum application depth.
@@ -190,6 +192,7 @@ equalBindings bindings1 bindings2 = and (zipWith equalBinding (sortOn attr bindi
   attr (EmptyBinding a) = a
   attr (DeltaBinding _) = Label (LabelId "Δ")
   attr DeltaEmptyBinding = Label (LabelId "Δ")
+  attr (MetaDeltaBinding _) = Label (LabelId "Δ")
   attr (LambdaBinding _) = Label (LabelId "λ")
   attr (MetaBindings metaId) = MetaAttr metaId
 

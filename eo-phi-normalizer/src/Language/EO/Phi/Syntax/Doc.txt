@@ -77,6 +77,7 @@ All other symbols are terminals.
   |  |  **|**  | ``Δ`` ``⤍`` ``∅``
   |  |  **|**  | ``λ`` ``⤍`` //Function//
   |  |  **|**  | //MetaId//
+  |  |  **|**  | ``Δ`` ``⤍`` //MetaId//
   | //[Binding]// | -> | **eps**
   |  |  **|**  | //Binding//
   |  |  **|**  | //Binding// ``,`` //[Binding]//
