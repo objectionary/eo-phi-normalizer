@@ -11,7 +11,7 @@ import Language.EO.Phi.Syntax.Abs (
   AlphaIndex (AlphaIndex),
   Attribute (Alpha, Phi, Rho),
   Binding (AlphaBinding, DeltaBinding, LambdaBinding),
-  Bytes,
+  Bytes (Bytes),
   Function (Function),
   Object (Application, Formation, ObjectDispatch, Termination),
  )
@@ -62,13 +62,13 @@ dataizeRecursively ctx obj = case applyRules ctx obj of
 -- | Given normalization context, a function on data (bytes interpreted as integers), an object,
 -- and the current state of evaluation, returns the new object and a possibly modified state.
 evaluateDataizationFun :: Context -> (Int -> Int -> Int) -> Object -> EvaluationState -> (Object, EvaluationState)
-evaluateDataizationFun ctx func obj _state = ([i|Φ.org.eolang.float(Δ ⤍ #{result})|], ())
+evaluateDataizationFun ctx func obj _state = (result, ())
  where
   lhs = dataizeRecursively ctx (ObjectDispatch obj Rho)
   rhs = dataizeRecursively ctx (ObjectDispatch obj (Alpha (AlphaIndex "α0")))
   result = case (lhs, rhs) of
-    (Right l, Right r) -> Right $ intToBytes $ bytesToInt r `func` bytesToInt l
-    _ -> Left Termination
+    (Right l, Right r) -> let (Bytes bytes) = intToBytes (bytesToInt r `func` bytesToInt l) in [i|Φ.org.eolang.float(Δ ⤍ #{bytes})|]
+    _ -> Termination
 
 -- | Like `evaluateDataizationFun` but specifically for the built-in functions.
 -- This function is not safe. It returns undefined for unknown functions
