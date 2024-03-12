@@ -65,7 +65,7 @@ evaluateDataizationFun :: Context -> (Int -> Int -> Int) -> Object -> Evaluation
 evaluateDataizationFun ctx func obj _state = ([i|Φ.org.eolang.float(Δ ⤍ #{result})|], ())
  where
   lhs = dataizeRecursively ctx (ObjectDispatch obj Rho)
-  rhs = dataizeRecursively ctx (ObjectDispatch obj (Alpha (AlphaIndex "0")))
+  rhs = dataizeRecursively ctx (ObjectDispatch obj (Alpha (AlphaIndex "α0")))
   result = case (lhs, rhs) of
     (Right l, Right r) -> Right $ intToBytes $ bytesToInt r `func` bytesToInt l
     _ -> Left Termination
