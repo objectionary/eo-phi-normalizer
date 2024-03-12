@@ -354,6 +354,9 @@ matchBinding (MetaDeltaBinding m) (DeltaBinding bytes) = [emptySubst{bytesMetas 
 matchBinding (DeltaBinding bytes) (DeltaBinding bytes')
   | bytes == bytes' = [emptySubst]
 matchBinding DeltaEmptyBinding DeltaEmptyBinding = [emptySubst]
+matchBinding (EmptyBinding a1) (EmptyBinding a2) = matchAttr a1 a2
+matchBinding (LambdaBinding f1) (LambdaBinding f2)
+  | f1 == f2 = [emptySubst]
 matchBinding _ _ = []
 
 matchAttr :: Attribute -> Attribute -> [Subst]
