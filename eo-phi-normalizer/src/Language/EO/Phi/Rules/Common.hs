@@ -12,6 +12,7 @@ import Data.List (nubBy, sortOn)
 import Data.List.NonEmpty (NonEmpty (..), (<|))
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.String (IsString (..))
+import Debug.Trace (trace)
 import Language.EO.Phi.Syntax.Abs
 import Language.EO.Phi.Syntax.Lex (Token)
 import Language.EO.Phi.Syntax.Par
@@ -162,7 +163,7 @@ bindingSize = \case
 -- | A variant of `applyRules` with a maximum application depth.
 applyRulesWith :: ApplicationLimits -> Context -> Object -> [Object]
 applyRulesWith limits@ApplicationLimits{..} ctx obj
-  | maxDepth <= 0 = [obj]
+  | maxDepth <= 0 = "Hit max depth" `trace` [obj]
   | isNF ctx obj = [obj]
   | otherwise =
       nubBy
