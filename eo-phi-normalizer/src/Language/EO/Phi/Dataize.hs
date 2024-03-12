@@ -13,14 +13,14 @@ import Language.EO.Phi.Syntax.Abs (
   Binding (AlphaBinding, DeltaBinding, LambdaBinding),
   Bytes,
   Function (Function),
-  Object (Formation, ObjectDispatch, Termination),
+  Object (Application, Formation, ObjectDispatch, Termination),
  )
 
 -- | Perform one step of dataization to the object (if possible).
 dataizeStep :: Context -> Object -> Either Object Bytes
 dataizeStep ctx obj@(Formation bs)
   | Just (DeltaBinding bytes) <- find isDelta bs = Right bytes
-  | Just (LambdaBinding (Function funcName)) <- find isLambda bs = Left $ fst $ evaluateBuiltinFun ctx funcName obj ()
+  | Just (LambdaBinding (Function funcName)) <- find isLambda bs = Left (fst $ evaluateBuiltinFun ctx funcName obj ())
   | Just (AlphaBinding Phi decoratee) <- find isPhi bs = dataizeStep (extendContextWith obj ctx) decoratee
   | otherwise = Left obj -- TODO: Need to differentiate between `Left` due to no matches and a "partial Right"
  where
@@ -30,6 +30,12 @@ dataizeStep ctx obj@(Formation bs)
   isLambda _ = False
   isPhi (AlphaBinding Phi _) = True
   isPhi _ = False
+dataizeStep ctx (Application obj bindings) = case dataizeStep ctx obj of
+  Left dataized -> Left $ Application dataized bindings
+  Right _ -> error ("Application on bytes upon dataizing:\n  " <> printTree obj)
+dataizeStep ctx (ObjectDispatch obj attr) = case dataizeStep ctx obj of
+  Left dataized -> Left $ ObjectDispatch dataized attr
+  Right _ -> error ("Dispatch on bytes upon dataizing:\n  " <> printTree obj)
 dataizeStep _ obj = Left obj
 
 -- | State of evaluation is not needed yet, but it might be in the future
