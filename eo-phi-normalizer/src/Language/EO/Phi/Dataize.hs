@@ -43,7 +43,13 @@ dataizeRecursively ctx obj = case applyRules ctx obj of
       | stillObj == normObj -> Left stillObj -- dataization changed nothing
       | otherwise -> dataizeRecursively ctx stillObj -- partially dataized
     Right bytes -> Right bytes
-  a -> error (printTree a) -- Left Termination
+  objs -> error errMsg -- Left Termination
+   where
+    errMsg =
+      "Expected 1 result from normalization but got "
+        <> show (length objs)
+        <> ":\n"
+        <> unlines (map (("  - " ++) . printTree) objs)
 
 -- | Given normalization context, a function on data (bytes interpreted as integers), an object,
 -- and the current state of evaluation, returns the new object and a possibly modified state.
