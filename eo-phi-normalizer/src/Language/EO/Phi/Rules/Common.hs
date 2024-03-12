@@ -135,7 +135,7 @@ data ApplicationLimits = ApplicationLimits
 defaultApplicationLimits :: Int -> ApplicationLimits
 defaultApplicationLimits sourceTermSize =
   ApplicationLimits
-    { maxDepth = 10
+    { maxDepth = 13
     , maxTermSize = sourceTermSize * 10
     }
 
