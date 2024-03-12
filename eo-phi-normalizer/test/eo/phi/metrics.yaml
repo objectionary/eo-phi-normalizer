@@ -37,7 +37,15 @@ tests:
       ⟧
     }
   metrics:
-    dataless: 5
-    applications: 8
-    formations: 5
-    dispatches: 24
+    program:
+      dataless: 3
+      applications: 8
+      formations: 5
+      dispatches: 24
+    attributes:
+      - name: org
+        metrics:
+          dataless: 2
+          applications: 8
+          formations: 4
+          dispatches: 24
