@@ -65,7 +65,7 @@
 # - ignore: {name: Use const, within: SpecialModule} # Only within certain modules
 - ignore:
     name: Unused LANGUAGE pragma
-    within: Language.EO.Phi.Metrics.Collect
+    within: Language.EO.Phi.Metrics
 
 # Define some custom infix operators
 # - fixity: infixr 3 ~^#^~
