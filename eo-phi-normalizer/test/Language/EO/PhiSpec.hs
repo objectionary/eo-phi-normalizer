@@ -16,7 +16,7 @@ import Data.String (IsString (..))
 import Data.String.Interpolate (i)
 import Data.Yaml (decodeFileThrow)
 import Language.EO.Phi
-import Language.EO.Phi.Metrics.Collect (collectMetrics)
+import Language.EO.Phi.Metrics (collectMetrics)
 import Language.EO.Phi.Rules.Common (Context (..), Rule, equalProgram)
 import Language.EO.Phi.Rules.PhiPaper (rule1, rule6)
 import Test.EO.Phi

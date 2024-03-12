@@ -27,7 +27,7 @@ import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy.Lens
 import GHC.Generics (Generic)
 import Language.EO.Phi (Attribute (Sigma), Object (Formation), Program (Program), parseProgram, printTree)
-import Language.EO.Phi.Metrics.Collect (collectMetrics)
+import Language.EO.Phi.Metrics (collectMetrics)
 import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), Context (..), applyRulesChainWith, applyRulesWith, objectSize)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRule, parseRuleSetFromFile)
 import Options.Applicative

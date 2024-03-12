@@ -4,8 +4,6 @@
 {-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE NamedFieldPuns #-}
-{-# LANGUAGE NumericUnderscores #-}
 {-# LANGUAGE OverloadedLabels #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -17,7 +15,7 @@
 
 {- FOURMOLU_ENABLE -}
 
-module Language.EO.Phi.Metrics.Collect where
+module Language.EO.Phi.Metrics where
 
 import Control.Lens ((+=))
 import Control.Monad (forM_)
