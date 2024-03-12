@@ -50,6 +50,8 @@ dataizeRecursively ctx obj = case applyRules ctx obj of
         <> show (length objs)
         <> ":\n"
         <> unlines (map (("  - " ++) . printTree) objs)
+        <> "\nFor the input:\n  "
+        <> printTree obj
 
 -- | Given normalization context, a function on data (bytes interpreted as integers), an object,
 -- and the current state of evaluation, returns the new object and a possibly modified state.
