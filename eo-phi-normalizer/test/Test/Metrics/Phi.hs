@@ -6,7 +6,7 @@ module Test.Metrics.Phi where
 
 import Data.Yaml (FromJSON)
 import GHC.Generics (Generic)
-import Language.EO.Phi.Metrics.Collect (Metrics)
+import Language.EO.Phi.Metrics.Collect (ProgramMetrics)
 
 data MetricsTestSet = MetricsTestSet
   { title :: String
@@ -17,6 +17,6 @@ data MetricsTestSet = MetricsTestSet
 data MetricsTest = MetricsTest
   { title :: String
   , phi :: String
-  , metrics :: Metrics
+  , metrics :: ProgramMetrics
   }
   deriving (Generic, FromJSON)
