@@ -1,8 +1,14 @@
+{-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE NumericUnderscores #-}
 {-# LANGUAGE OverloadedLabels #-}
+{-# LANGUAGE OverloadedRecordDot #-}
+{-# LANGUAGE RecordWildCards #-}
 
 {- FOURMOLU_DISABLE -}
 
@@ -15,15 +21,19 @@ module Language.EO.Phi.Metrics.Collect where
 
 import Control.Lens ((+=))
 import Control.Monad (forM_)
-import Control.Monad.State (State, execState)
+import Control.Monad.State (State, runState)
 import Data.Aeson (FromJSON)
 import Data.Aeson.Types (ToJSON)
+import Data.Foldable (fold)
+import Data.Function ((&))
 import Data.Generics.Labels ()
+import Data.Maybe (catMaybes)
+import Data.Traversable (forM)
 import GHC.Generics (Generic)
 import Language.EO.Phi.Rules.Common ()
 import Language.EO.Phi.Syntax.Abs
 
-data Metrics = Metrics
+data ObjectMetrics = ObjectMetrics
   { dataless :: Int
   , applications :: Int
   , formations :: Int
@@ -31,75 +41,153 @@ data Metrics = Metrics
   }
   deriving (Generic, Show, FromJSON, ToJSON, Eq)
 
-defaultMetrics :: Metrics
-defaultMetrics =
-  Metrics
+defaultObjectMetrics :: ObjectMetrics
+defaultObjectMetrics =
+  ObjectMetrics
     { dataless = 0
     , applications = 0
     , formations = 0
     , dispatches = 0
     }
 
-collectMetrics :: (Inspectable a) => a -> Metrics
-collectMetrics a = execState (inspect a) defaultMetrics
+instance Semigroup ObjectMetrics where
+  (<>) :: ObjectMetrics -> ObjectMetrics -> ObjectMetrics
+  ObjectMetrics
+    { dataless = dataless1
+    , applications = applications1
+    , formations = formations1
+    , dispatches = dispatches1
+    }
+    <> ObjectMetrics
+      { dataless = dataless2
+      , applications = applications2
+      , formations = formations2
+      , dispatches = dispatches2
+      } =
+      ObjectMetrics
+        { dataless = dataless1 + dataless2
+        , applications = applications1 + applications2
+        , formations = formations1 + formations2
+        , dispatches = dispatches1 + dispatches2
+        }
+
+instance Monoid ObjectMetrics where
+  mempty :: ObjectMetrics
+  mempty = defaultObjectMetrics
+
+data BindingMetrics = BindingMetrics
+  { name :: String
+  , metrics :: ObjectMetrics
+  }
+  deriving (Show, Generic, FromJSON, ToJSON, Eq)
 
 class Inspectable a where
-  inspect :: a -> State Metrics ()
+  inspect :: a -> State ObjectMetrics (Maybe Int)
 
 count :: (a -> Bool) -> [a] -> Int
 count x = length . filter x
 
--- | Count dataless formations in a list of bindings
---
--- >>> countDataless' :: Object -> Int; countDataless' x = let Formation bindings = x in countDataless bindings
---
--- >>> countDataless' "⟦ α0 ↦ ξ, α0 ↦ Φ.org.eolang.bytes( Δ ⤍ 00-00-00-00-00-00-00-2A ) ⟧"
--- 1
---
--- >>> countDataless' "⟦ α0 ↦ ξ, Δ ⤍ 00-00-00-00-00-00-00-2A ⟧"
--- 0
---
---
--- >>> countDataless' "⟦ α0 ↦ ξ, α1 ↦ ⟦ Δ ⤍ 00-00-00-00-00-00-00-2A ⟧ ⟧"
--- 0
---
---
--- >>> countDataless' "⟦ α0 ↦ ξ, α1 ↦ ⟦ α2 ↦ ⟦ Δ ⤍ 00-00-00-00-00-00-00-2A ⟧ ⟧ ⟧"
--- 1
-countDataless :: (Num a) => [Binding] -> a
-countDataless bindings =
-  let countDeltas = count (\case DeltaBinding _ -> True; DeltaEmptyBinding -> True; _ -> False)
-      nestedBindings = concatMap (\case AlphaBinding _ (Formation bindings') -> bindings'; _ -> []) bindings
-      deltas = countDeltas (bindings <> nestedBindings)
-   in if deltas == 0 then 1 else 0
+getHeight :: (Ord b, Num b) => [Binding] -> [Maybe b] -> b
+getHeight bindings heights =
+  let
+    heightAttributes = heights & catMaybes & (\case [] -> 0; x -> minimum x + 1)
+    hasDeltaAttribute = not $ null [x | x@(DeltaBinding _, _) <- zip bindings heights]
+   in
+    if hasDeltaAttribute
+      then 1
+      else heightAttributes
 
-instance Inspectable Program where
-  inspect (Program bindings) = inspect (Formation bindings)
+countDataless :: Int -> Int
+countDataless x
+  | x == 0 || x > 2 = 1
+  | otherwise = 0
 
 instance Inspectable Binding where
+  inspect :: Binding -> State ObjectMetrics (Maybe Int)
   inspect = \case
-    AlphaBinding attr obj -> do
-      inspect attr
+    AlphaBinding _ obj -> do
       inspect obj
-    EmptyBinding attr -> do
-      inspect attr
-    _ -> pure ()
-
-instance Inspectable Attribute where
-  inspect _ = pure ()
+    _ -> pure Nothing
 
 instance Inspectable Object where
+  inspect :: Object -> State ObjectMetrics (Maybe Int)
   inspect = \case
     Formation bindings -> do
-      #dataless += countDataless bindings
       #formations += 1
-      forM_ bindings inspect
+      heights <- forM bindings inspect
+      let height = getHeight bindings heights
+      #dataless += countDataless height
+      pure (Just height)
     Application obj bindings -> do
       #applications += 1
-      inspect obj
+      _ <- inspect obj
       forM_ bindings inspect
-    ObjectDispatch obj attr -> do
+      pure Nothing
+    ObjectDispatch obj _ -> do
       #dispatches += 1
-      inspect obj
-      inspect attr
-    _ -> pure ()
+      _ <- inspect obj
+      pure Nothing
+    _ -> pure Nothing
+
+data ProgramMetrics = ProgramMetrics
+  { attributes :: [BindingMetrics]
+  , program :: ObjectMetrics
+  }
+  deriving (Show, Generic, FromJSON, ToJSON, Eq)
+
+defaultMetrics :: ProgramMetrics
+defaultMetrics =
+  ProgramMetrics
+    { attributes = []
+    , program = defaultObjectMetrics
+    }
+
+-- | Count dataless formations in a list of bindings
+--
+-- >>> collectMetrics "{⟦ α0 ↦ ξ, α0 ↦ Φ.org.eolang.bytes( Δ ⤍ 00- ) ⟧}"
+-- ProgramMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 0, dispatches = 0}},BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 0, applications = 1, formations = 0, dispatches = 3}}], program = ObjectMetrics {dataless = 1, applications = 1, formations = 1, dispatches = 3}}
+--
+-- >>> collectMetrics "{⟦ α0 ↦ ξ, Δ ⤍ 00- ⟧}"
+-- ProgramMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 0, dispatches = 0}}], program = ObjectMetrics {dataless = 0, applications = 0, formations = 1, dispatches = 0}}
+--
+--
+-- >>> collectMetrics "{⟦ α0 ↦ ξ, α1 ↦ ⟦ Δ ⤍ 00- ⟧ ⟧}"
+-- ProgramMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 0, dispatches = 0}},BindingMetrics {name = "\945\&1", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 1, dispatches = 0}}], program = ObjectMetrics {dataless = 0, applications = 0, formations = 2, dispatches = 0}}
+--
+--
+-- >>> collectMetrics "{⟦ α0 ↦ ξ, α1 ↦ ⟦ α2 ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧}"
+-- ProgramMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 0, dispatches = 0}},BindingMetrics {name = "\945\&1", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 2, dispatches = 0}}], program = ObjectMetrics {dataless = 1, applications = 0, formations = 3, dispatches = 0}}
+--
+-- >>> collectMetrics "{⟦ Δ ⤍ 00- ⟧}"
+-- ProgramMetrics {attributes = [], program = ObjectMetrics {dataless = 0, applications = 0, formations = 1, dispatches = 0}}
+--
+-- >>> collectMetrics "{⟦ α0 ↦ ⟦ α0 ↦ ∅ ⟧ ⟧}"
+-- ProgramMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 1, applications = 0, formations = 1, dispatches = 0}}], program = ObjectMetrics {dataless = 1, applications = 0, formations = 2, dispatches = 0}}
+--
+-- >>> collectMetrics "{⟦ α0 ↦ ⟦ α0 ↦ ⟦ α0 ↦ ∅ ⟧ ⟧ ⟧}"
+-- ProgramMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 1, applications = 0, formations = 2, dispatches = 0}}], program = ObjectMetrics {dataless = 1, applications = 0, formations = 3, dispatches = 0}}
+--
+-- >>> collectMetrics "{⟦ α0 ↦ ⟦ α0 ↦ ⟦ α0 ↦ ⟦ α0 ↦ ∅ ⟧ ⟧ ⟧ ⟧}"
+-- ProgramMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 1, applications = 0, formations = 3, dispatches = 0}}], program = ObjectMetrics {dataless = 2, applications = 0, formations = 4, dispatches = 0}}
+--
+-- >>> collectMetrics "{ ⟦ org ↦ ⟦ ⟧ ⟧ }"
+-- ProgramMetrics {attributes = [BindingMetrics {name = "org", metrics = ObjectMetrics {dataless = 1, applications = 0, formations = 1, dispatches = 0}}], program = ObjectMetrics {dataless = 1, applications = 0, formations = 2, dispatches = 0}}
+collectMetrics :: Program -> ProgramMetrics
+collectMetrics (Program bindings) =
+  let attributes' = flip runState mempty . inspect <$> bindings
+      (heights, objectMetrics) = unzip attributes'
+      attributes = do
+        x <- zip bindings objectMetrics
+        case x of
+          (AlphaBinding (Alpha (AlphaIndex name)) _, metrics) -> [BindingMetrics{..}]
+          (AlphaBinding (Label (LabelId name)) _, metrics) -> [BindingMetrics{..}]
+          _ -> []
+      height = getHeight bindings heights
+      program =
+        fold objectMetrics
+          & \x ->
+            x
+              { dataless = x.dataless + countDataless height
+              , formations = x.formations + 1
+              }
+   in ProgramMetrics{..}
