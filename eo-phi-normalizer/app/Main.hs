@@ -26,10 +26,10 @@ import Data.String.Interpolate (i)
 import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy.Lens
 import GHC.Generics (Generic)
-import Language.EO.Phi (Attribute (Sigma), Bytes (Bytes), Object (Formation), Program (Program), parseProgram, printTree)
+import Language.EO.Phi (Bytes (Bytes), Object (Formation), Program (Program), parseProgram, printTree)
 import Language.EO.Phi.Dataize (dataizeRecursively, dataizeStep)
 import Language.EO.Phi.Metrics.Collect (collectMetrics)
-import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), Context (..), defaultContext, applyRulesChainWith, applyRulesWith, objectSize)
+import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), defaultContext, applyRulesChainWith, applyRulesWith, objectSize)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRule, parseRuleSetFromFile)
 import Options.Applicative
 import Options.Applicative.Types qualified as Optparse (Context (..))
