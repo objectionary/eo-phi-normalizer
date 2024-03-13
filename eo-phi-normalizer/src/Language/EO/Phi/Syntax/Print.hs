@@ -172,6 +172,7 @@ instance Print Language.EO.Phi.Syntax.Abs.Binding where
     Language.EO.Phi.Syntax.Abs.DeltaEmptyBinding -> prPrec i 0 (concatD [doc (showString "\916"), doc (showString "\10509"), doc (showString "\8709")])
     Language.EO.Phi.Syntax.Abs.LambdaBinding function -> prPrec i 0 (concatD [doc (showString "\955"), doc (showString "\10509"), prt 0 function])
     Language.EO.Phi.Syntax.Abs.MetaBindings metaid -> prPrec i 0 (concatD [prt 0 metaid])
+    Language.EO.Phi.Syntax.Abs.MetaDeltaBinding metaid -> prPrec i 0 (concatD [doc (showString "\916"), doc (showString "\10509"), prt 0 metaid])
 
 instance Print [Language.EO.Phi.Syntax.Abs.Binding] where
   prt _ [] = concatD []

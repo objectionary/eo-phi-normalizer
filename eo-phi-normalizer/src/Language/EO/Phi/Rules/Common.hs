@@ -1,6 +1,7 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
@@ -9,7 +10,9 @@ module Language.EO.Phi.Rules.Common where
 import Control.Applicative (Alternative ((<|>)), asum)
 import Data.List (nubBy, sortOn)
 import Data.List.NonEmpty (NonEmpty (..), (<|))
+import Data.List.NonEmpty qualified as NonEmpty
 import Data.String (IsString (..))
+import Debug.Trace (trace)
 import Language.EO.Phi.Syntax.Abs
 import Language.EO.Phi.Syntax.Lex (Token)
 import Language.EO.Phi.Syntax.Par
@@ -45,7 +48,18 @@ data Context = Context
   { allRules :: [Rule]
   , outerFormations :: NonEmpty Object
   , currentAttr :: Attribute
+  , insideFormation :: Bool
+  -- ^ Temporary hack for applying Ksi and Phi rules when dataizing
   }
+
+defaultContext :: [Rule] -> Object -> Context
+defaultContext rules obj =
+  Context
+    { allRules = rules
+    , outerFormations = NonEmpty.singleton obj
+    , currentAttr = Sigma
+    , insideFormation = False
+    }
 
 -- | A rule tries to apply a transformation to the root object, if possible.
 type Rule = Context -> Object -> [Object]
@@ -70,7 +84,7 @@ withSubObject f ctx root =
   f ctx root
     <|> case root of
       Formation bindings ->
-        Formation <$> withSubObjectBindings f (extendContextWith root ctx) bindings
+        Formation <$> withSubObjectBindings f ((extendContextWith root ctx){insideFormation = True}) bindings
       Application obj bindings ->
         asum
           [ Application <$> withSubObject f ctx obj <*> pure bindings
@@ -97,6 +111,7 @@ withSubObjectBinding f ctx = \case
   EmptyBinding{} -> []
   DeltaBinding{} -> []
   DeltaEmptyBinding{} -> []
+  MetaDeltaBinding{} -> []
   LambdaBinding{} -> []
   MetaBindings _ -> []
 
@@ -120,7 +135,7 @@ data ApplicationLimits = ApplicationLimits
 defaultApplicationLimits :: Int -> ApplicationLimits
 defaultApplicationLimits sourceTermSize =
   ApplicationLimits
-    { maxDepth = 10
+    { maxDepth = 13
     , maxTermSize = sourceTermSize * 10
     }
 
@@ -142,12 +157,13 @@ bindingSize = \case
   DeltaBinding _bytes -> 1
   DeltaEmptyBinding -> 1
   LambdaBinding _lam -> 1
+  MetaDeltaBinding{} -> 1 -- should be impossible
   MetaBindings{} -> 1 -- should be impossible
 
 -- | A variant of `applyRules` with a maximum application depth.
 applyRulesWith :: ApplicationLimits -> Context -> Object -> [Object]
 applyRulesWith limits@ApplicationLimits{..} ctx obj
-  | maxDepth <= 0 = [obj]
+  | maxDepth <= 0 = "Hit max depth" `trace` [obj]
   | isNF ctx obj = [obj]
   | otherwise =
       nubBy
@@ -177,6 +193,7 @@ equalBindings bindings1 bindings2 = and (zipWith equalBinding (sortOn attr bindi
   attr (EmptyBinding a) = a
   attr (DeltaBinding _) = Label (LabelId "Δ")
   attr DeltaEmptyBinding = Label (LabelId "Δ")
+  attr (MetaDeltaBinding _) = Label (LabelId "Δ")
   attr (LambdaBinding _) = Label (LabelId "λ")
   attr (MetaBindings metaId) = MetaAttr metaId
 
@@ -233,6 +250,12 @@ intToBytes n = Bytes $ insertDashes $ pad $ showHex n ""
               [x, y] -> [x, y, '-']
               (x : y : xs) -> x : y : '-' : go xs
          in go s
+
+-- | Assuming the bytes are well-formed (otherwise crashes)
+bytesToInt :: Bytes -> Int
+bytesToInt (Bytes (filter (/= '-') . dropWhile (== '0') -> bytes))
+  | null bytes = 0
+  | otherwise = fst $ head $ readHex bytes
 
 minNu :: Int
 minNu = -1

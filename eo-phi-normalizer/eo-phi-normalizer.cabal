@@ -34,6 +34,7 @@ custom-setup
 library
   exposed-modules:
       Language.EO.Phi
+      Language.EO.Phi.Dataize
       Language.EO.Phi.Metrics.Collect
       Language.EO.Phi.Normalize
       Language.EO.Phi.Rules.Common

@@ -111,6 +111,7 @@ Binding
   | 'Δ' '⤍' '∅' { Language.EO.Phi.Syntax.Abs.DeltaEmptyBinding }
   | 'λ' '⤍' Function { Language.EO.Phi.Syntax.Abs.LambdaBinding $3 }
   | MetaId { Language.EO.Phi.Syntax.Abs.MetaBindings $1 }
+  | 'Δ' '⤍' MetaId { Language.EO.Phi.Syntax.Abs.MetaDeltaBinding $3 }
 
 ListBinding :: { [Language.EO.Phi.Syntax.Abs.Binding] }
 ListBinding

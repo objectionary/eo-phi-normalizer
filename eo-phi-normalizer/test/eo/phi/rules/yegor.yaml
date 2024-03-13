@@ -83,35 +83,37 @@ rules:
   #       input: '⟦ a ↦ ⟦ b ↦ ⟦ ⟧ ⟧ ⟧'
   #       output: []
 
-  # - name: Rule 4
-  #   description: 'Φ-dispatch'
-  #   context:
-  #     global_object: ⟦ !a ↦ !obj, !B ⟧
-  #   pattern: |
-  #     Φ.!a
-  #   result: |
-  #     !obj
-  #   when: []
-  #   tests: []
+  - name: Rule 4
+    description: 'Φ-dispatch'
+    context:
+      global_object: ⟦ !a ↦ !obj, !B ⟧
+    pattern: |
+      Φ.!a
+    result: |
+      !obj
+    when:
+      - apply_in_subformations: false
+    tests: []
 
-  # - name: Rule 5
-  #   description: 'ξ-dispatch'
-  #   context:
-  #     current_object: '⟦ !a ↦ !obj, !B ⟧'
-  #     current_attribute: '!a'
-  #   pattern: |
-  #     ξ
-  #   result: |
-  #     ⟦ !B ⟧
-  #   when:
-  #     - present_attrs:
-  #         attrs: ['ν', 'σ', 'ρ']
-  #         bindings: ['!B']
-  #   tests:
-  #     - name: Replaces ξ with the actual object
-  #       input: '⟦ a ↦ ⟦ ⟧, x ↦ ξ.a, ν ↦ ⟦ ⟧, σ ↦ ⟦ ⟧, ρ ↦ ⟦ ⟧ ⟧'
-  #       output:
-  #         - '⟦ a ↦ ⟦ ⟧, x ↦ ⟦ a ↦ ⟦ ⟧, ν ↦ ⟦ ⟧, σ ↦ ⟦ ⟧, ρ ↦ ⟦ ⟧ ⟧.a, ν ↦ ⟦ ⟧, σ ↦ ⟦ ⟧, ρ ↦ ⟦ ⟧ ⟧'
+  - name: Rule 5
+    description: 'ξ-dispatch'
+    context:
+      current_object: '⟦ !a ↦ !obj, !B ⟧'
+      current_attribute: '!a'
+    pattern: |
+      ξ
+    result: |
+      ⟦ !B ⟧
+    when:
+      - apply_in_subformations: false
+      # - present_attrs:
+      #     attrs: ['ν', 'σ', 'ρ']
+      #     bindings: ['!B']
+    tests:
+      - name: Does not replace ξ inside a subformation
+        input: '⟦ a ↦ ⟦ ⟧, x ↦ ξ.a, ν ↦ ⟦ ⟧, σ ↦ ⟦ ⟧, ρ ↦ ⟦ ⟧ ⟧'
+        output: []
+      # How to test replacing without already having context?
 
   - name: Rule 6
     description: 'Accessing an α-binding'
@@ -120,7 +122,7 @@ rules:
     result: |
       !n(ρ ↦ ⟦ !B ⟧)
     when:
-      - nf: '!n'
+      - nf_inside_formation: '!n'
     tests:
       - name: Should match
         input: ⟦ hello ↦ ⟦⟧ ⟧.hello
@@ -129,14 +131,23 @@ rules:
         input: ⟦ ⟧.hello
         output: []
 
-  - name: Rule 7
-    description: 'Application'
+  - name: Rule 7a
+    description: 'Application of α-binding'
     pattern: |
       ⟦ !a ↦ ∅, !B ⟧(!a ↦ !n)
     result: |
       ⟦ !a ↦ !n, !B ⟧
     when:
       - nf: '!n'
+    tests: []
+
+  - name: Rule 7b
+    description: 'Application of Δ-binding'
+    pattern: |
+      ⟦ Δ ⤍ ∅, !B ⟧(Δ ⤍ !bytes)
+    result: |
+      ⟦ Δ ⤍ !bytes, !B ⟧
+    when: []
     tests: []
 
   - name: Rule 8
@@ -146,7 +157,7 @@ rules:
     result: |
       !n.!a
     when:
-      - nf: '!n'
+      - nf_inside_formation: '!n'
       - not_equal: ['!a', 'φ']
       - absent_attrs:
           attrs: ['!a']
@@ -159,12 +170,23 @@ rules:
         input: '⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧.a'
         output: []
 
-  - name: Rule 9
-    description: 'Parent application'
+  - name: Rule 9a
+    description: 'Parent application (for existing parent)'
     pattern: ⟦ ρ ↦ !t, !B ⟧(ρ ↦ !n)
     result: ⟦ ρ ↦ !n, !B ⟧
     when:
       - nf: '!n'
+    tests: []
+
+  - name: Rule 9b
+    description: 'Parent application (without an existing parent)'
+    pattern: '⟦ !B ⟧(ρ ↦ !n)'
+    result: ⟦ ρ ↦ !n, !B ⟧
+    when:
+      - nf: '!n'
+      - absent_attrs:
+          attrs: ['ρ']
+          bindings: ['!B']
     tests: []
 
   - name: Rule 10
