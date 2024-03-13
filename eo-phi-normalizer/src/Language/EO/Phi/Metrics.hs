@@ -50,24 +50,13 @@ defaultObjectMetrics =
 
 instance Semigroup ObjectMetrics where
   (<>) :: ObjectMetrics -> ObjectMetrics -> ObjectMetrics
-  ObjectMetrics
-    { dataless = dataless1
-    , applications = applications1
-    , formations = formations1
-    , dispatches = dispatches1
-    }
-    <> ObjectMetrics
-      { dataless = dataless2
-      , applications = applications2
-      , formations = formations2
-      , dispatches = dispatches2
-      } =
-      ObjectMetrics
-        { dataless = dataless1 + dataless2
-        , applications = applications1 + applications2
-        , formations = formations1 + formations2
-        , dispatches = dispatches1 + dispatches2
-        }
+  x <> y =
+    ObjectMetrics
+      { dataless = x.dataless + y.dataless
+      , applications = x.applications + y.applications
+      , formations = x.formations + y.formations
+      , dispatches = x.dispatches + y.dispatches
+      }
 
 instance Monoid ObjectMetrics where
   mempty :: ObjectMetrics
@@ -79,26 +68,24 @@ data BindingMetrics = BindingMetrics
   }
   deriving (Show, Generic, FromJSON, ToJSON, Eq)
 
-class Inspectable a where
-  inspect :: a -> State ObjectMetrics (Maybe Int)
-
 count :: (a -> Bool) -> [a] -> Int
 count x = length . filter x
 
 getHeight :: (Ord b, Num b) => [Binding] -> [Maybe b] -> b
-getHeight bindings heights =
-  let
-    heightAttributes = heights & catMaybes & (\case [] -> 0; x -> minimum x + 1)
-    hasDeltaAttribute = not $ null [x | x@(DeltaBinding _, _) <- zip bindings heights]
-   in
-    if hasDeltaAttribute
-      then 1
-      else heightAttributes
+getHeight bindings heights
+  | hasDeltaAttribute = 1
+  | otherwise = heightAttributes
+ where
+  heightAttributes = heights & catMaybes & (\case [] -> 0; x -> minimum x + 1)
+  hasDeltaAttribute = not $ null [x | x@(DeltaBinding _, _) <- zip bindings heights]
 
 countDataless :: Int -> Int
 countDataless x
   | x == 0 || x > 2 = 1
   | otherwise = 0
+
+class Inspectable a where
+  inspect :: a -> State ObjectMetrics (Maybe Int)
 
 instance Inspectable Binding where
   inspect :: Binding -> State ObjectMetrics (Maybe Int)
