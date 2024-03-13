@@ -9,5 +9,14 @@ cradle:
     - path: "eo-phi-normalizer/app/Paths_eo_phi_normalizer.hs"
       component: "eo-phi-normalizer:exe:normalize-phi"
 
+    - path: "eo-phi-normalizer/app/Paths_eo_phi_normalizer.hs"
+      component: "eo-phi-normalizer:exe:normalize-phi"
+
     - path: "eo-phi-normalizer/test"
       component: "eo-phi-normalizer:test:eo-phi-normalizer-test"
+
+    - path: "scripts/transform-eo-tests/app/Main.hs"
+      component: "transform-eo-tests:exe:transform-eo-tests"
+
+    - path: "scripts/transform-eo-tests/app/Paths_transform_eo_tests.hs"
+      component: "transform-eo-tests:exe:transform-eo-tests"
