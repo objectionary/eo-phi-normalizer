@@ -22,7 +22,7 @@ dataizeStep ctx obj@(Formation bs)
   | Just (DeltaBinding bytes) <- find isDelta bs = Right bytes
   | Just (LambdaBinding (Function funcName)) <- find isLambda bs = Left (fst $ evaluateBuiltinFun ctx funcName obj ())
   | Just (AlphaBinding Phi decoratee) <- find isPhi bs = dataizeStep (extendContextWith obj ctx) decoratee
-  | otherwise = Left obj -- TODO: Need to differentiate between `Left` due to no matches and a "partial Right"
+  | otherwise = Left obj
  where
   isDelta (DeltaBinding _) = True
   isDelta _ = False
