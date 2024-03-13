@@ -110,10 +110,10 @@ rules:
       #     attrs: ['ν', 'σ', 'ρ']
       #     bindings: ['!B']
     tests:
-      - name: Replaces ξ with the actual object
+      - name: Does not replace ξ inside a subformation
         input: '⟦ a ↦ ⟦ ⟧, x ↦ ξ.a, ν ↦ ⟦ ⟧, σ ↦ ⟦ ⟧, ρ ↦ ⟦ ⟧ ⟧'
-        output:
-          - '⟦ a ↦ ⟦ ⟧, x ↦ ⟦ a ↦ ⟦ ⟧, ν ↦ ⟦ ⟧, σ ↦ ⟦ ⟧, ρ ↦ ⟦ ⟧ ⟧.a, ν ↦ ⟦ ⟧, σ ↦ ⟦ ⟧, ρ ↦ ⟦ ⟧ ⟧'
+        output: []
+      # How to test replacing without already having context?
 
   - name: Rule 6
     description: 'Accessing an α-binding'
