@@ -131,8 +131,8 @@ rules:
         input: ⟦ ⟧.hello
         output: []
 
-  - name: Rule 7
-    description: 'Application'
+  - name: Rule 7a
+    description: 'Application of α-binding'
     pattern: |
       ⟦ !a ↦ ∅, !B ⟧(!a ↦ !n)
     result: |
@@ -142,7 +142,7 @@ rules:
     tests: []
 
   - name: Rule 7b
-    description: 'Application'
+    description: 'Application of Δ-binding'
     pattern: |
       ⟦ Δ ⤍ ∅, !B ⟧(Δ ⤍ !bytes)
     result: |
@@ -171,7 +171,7 @@ rules:
         output: []
 
   - name: Rule 9a
-    description: 'Parent application'
+    description: 'Parent application (for existing parent)'
     pattern: ⟦ ρ ↦ !t, !B ⟧(ρ ↦ !n)
     result: ⟦ ρ ↦ !n, !B ⟧
     when:
@@ -179,7 +179,7 @@ rules:
     tests: []
 
   - name: Rule 9b
-    description: 'Parent application'
+    description: 'Parent application (without an existing parent)'
     pattern: '⟦ !B ⟧(ρ ↦ !n)'
     result: ⟦ ρ ↦ !n, !B ⟧
     when:
