@@ -6,14 +6,8 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedLabels #-}
 {-# LANGUAGE OverloadedRecordDot #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
-
-{- FOURMOLU_DISABLE -}
-
--- $setup
--- >>> :set -XOverloadedStrings
-
-{- FOURMOLU_ENABLE -}
 
 module Language.EO.Phi.Metrics where
 
@@ -129,38 +123,8 @@ defaultMetrics =
     , program = defaultObjectMetrics
     }
 
--- | Count dataless formations in a list of bindings
---
--- >>> collectMetrics "{⟦ α0 ↦ ξ, α0 ↦ Φ.org.eolang.bytes( Δ ⤍ 00- ) ⟧}"
--- ProgramMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 0, dispatches = 0}},BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 0, applications = 1, formations = 0, dispatches = 3}}], program = ObjectMetrics {dataless = 0, applications = 1, formations = 1, dispatches = 3}}
---
--- >>> collectMetrics "{⟦ α0 ↦ ξ, Δ ⤍ 00- ⟧}"
--- ProgramMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 0, dispatches = 0}}], program = ObjectMetrics {dataless = 0, applications = 0, formations = 1, dispatches = 0}}
---
---
--- >>> collectMetrics "{⟦ α0 ↦ ξ, α1 ↦ ⟦ Δ ⤍ 00- ⟧ ⟧}"
--- ProgramMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 0, dispatches = 0}},BindingMetrics {name = "\945\&1", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 1, dispatches = 0}}], program = ObjectMetrics {dataless = 0, applications = 0, formations = 2, dispatches = 0}}
---
---
--- >>> collectMetrics "{⟦ α0 ↦ ξ, α1 ↦ ⟦ α2 ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧}"
--- ProgramMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 0, dispatches = 0}},BindingMetrics {name = "\945\&1", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 2, dispatches = 0}}], program = ObjectMetrics {dataless = 0, applications = 0, formations = 3, dispatches = 0}}
---
--- >>> collectMetrics "{⟦ Δ ⤍ 00- ⟧}"
--- ProgramMetrics {attributes = [], program = ObjectMetrics {dataless = 0, applications = 0, formations = 1, dispatches = 0}}
---
--- >>> collectMetrics "{⟦ α0 ↦ ⟦ α0 ↦ ∅ ⟧ ⟧}"
--- ProgramMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 1, dispatches = 0}}], program = ObjectMetrics {dataless = 0, applications = 0, formations = 2, dispatches = 0}}
---
--- >>> collectMetrics "{⟦ α0 ↦ ⟦ α0 ↦ ⟦ α0 ↦ ∅ ⟧ ⟧ ⟧}"
--- ProgramMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 2, dispatches = 0}}], program = ObjectMetrics {dataless = 1, applications = 0, formations = 3, dispatches = 0}}
---
--- >>> collectMetrics "{⟦ α0 ↦ ⟦ α0 ↦ ⟦ α0 ↦ ⟦ α0 ↦ ∅ ⟧ ⟧ ⟧ ⟧}"
--- ProgramMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 1, applications = 0, formations = 3, dispatches = 0}}], program = ObjectMetrics {dataless = 2, applications = 0, formations = 4, dispatches = 0}}
---
--- >>> collectMetrics "{ ⟦ org ↦ ⟦ ⟧ ⟧ }"
--- ProgramMetrics {attributes = [BindingMetrics {name = "org", metrics = ObjectMetrics {dataless = 1, applications = 0, formations = 1, dispatches = 0}}], program = ObjectMetrics {dataless = 1, applications = 0, formations = 2, dispatches = 0}}
-collectMetrics :: Program -> ProgramMetrics
-collectMetrics (Program bindings) =
+collectBindingsMetrics :: [Binding] -> ProgramMetrics
+collectBindingsMetrics bindings =
   let attributes' = flip runState mempty . inspect <$> bindings
       (heights, objectMetrics) = unzip attributes'
       attributes = do
@@ -178,3 +142,56 @@ collectMetrics (Program bindings) =
               , formations = x.formations + 1
               }
    in ProgramMetrics{..}
+
+bindingsByPath :: [String] -> [Binding] -> [Binding]
+bindingsByPath path bindings =
+  case path of
+    [] -> bindings
+    (p : ps) ->
+      case bindings of
+        [] -> []
+        _ -> do
+          x <- bindings
+          bindingsByPath ps $
+            case x of
+              AlphaBinding (Alpha (AlphaIndex name)) (Formation bindings') | name == p -> bindings'
+              AlphaBinding (Label (LabelId name)) (Formation bindings') | name == p -> bindings'
+              _ -> []
+
+-- >>> programBindingsByPath ["org", "eolang"] "{⟦ org ↦ ⟦ eolang ↦ ⟦ x ↦ ⟦ φ ↦ Φ.org.eolang.bool ( α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-) ) ⟧, z ↦ ⟦ y ↦ ⟦ x ↦ ∅, φ ↦ ξ.x ⟧, φ ↦ Φ.org.eolang.bool ( α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-) ) ⟧, λ ⤍ Package ⟧, λ ⤍ Package ⟧⟧ }" & \x -> [y | AlphaBinding (Label (LabelId y)) _ <- x] <> [y | AlphaBinding (Alpha (AlphaIndex y)) _ <- x]
+-- ["x","z"]
+programBindingsByPath :: [String] -> Program -> [Binding]
+programBindingsByPath path (Program bindings) = bindingsByPath path bindings
+
+-- | Count dataless formations in a list of bindings
+--
+-- >>> collectProgramMetrics "{⟦ α0 ↦ ξ, α0 ↦ Φ.org.eolang.bytes( Δ ⤍ 00- ) ⟧}"
+-- ProgramMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 0, dispatches = 0}},BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 0, applications = 1, formations = 0, dispatches = 3}}], program = ObjectMetrics {dataless = 1, applications = 1, formations = 1, dispatches = 3}}
+--
+-- >>> collectProgramMetrics "{⟦ α0 ↦ ξ, Δ ⤍ 00- ⟧}"
+-- ProgramMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 0, dispatches = 0}}], program = ObjectMetrics {dataless = 0, applications = 0, formations = 1, dispatches = 0}}
+--
+--
+-- >>> collectProgramMetrics "{⟦ α0 ↦ ξ, α1 ↦ ⟦ Δ ⤍ 00- ⟧ ⟧}"
+-- ProgramMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 0, dispatches = 0}},BindingMetrics {name = "\945\&1", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 1, dispatches = 0}}], program = ObjectMetrics {dataless = 0, applications = 0, formations = 2, dispatches = 0}}
+--
+--
+-- >>> collectProgramMetrics "{⟦ α0 ↦ ξ, α1 ↦ ⟦ α2 ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧}"
+-- ProgramMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 0, dispatches = 0}},BindingMetrics {name = "\945\&1", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 2, dispatches = 0}}], program = ObjectMetrics {dataless = 1, applications = 0, formations = 3, dispatches = 0}}
+--
+-- >>> collectProgramMetrics "{⟦ Δ ⤍ 00- ⟧}"
+-- ProgramMetrics {attributes = [], program = ObjectMetrics {dataless = 0, applications = 0, formations = 1, dispatches = 0}}
+--
+-- >>> collectProgramMetrics "{⟦ α0 ↦ ⟦ α0 ↦ ∅ ⟧ ⟧}"
+-- ProgramMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 1, applications = 0, formations = 1, dispatches = 0}}], program = ObjectMetrics {dataless = 1, applications = 0, formations = 2, dispatches = 0}}
+--
+-- >>> collectProgramMetrics "{⟦ α0 ↦ ⟦ α0 ↦ ⟦ α0 ↦ ∅ ⟧ ⟧ ⟧}"
+-- ProgramMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 1, applications = 0, formations = 2, dispatches = 0}}], program = ObjectMetrics {dataless = 1, applications = 0, formations = 3, dispatches = 0}}
+--
+-- >>> collectProgramMetrics "{⟦ α0 ↦ ⟦ α0 ↦ ⟦ α0 ↦ ⟦ α0 ↦ ∅ ⟧ ⟧ ⟧ ⟧}"
+-- ProgramMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 1, applications = 0, formations = 3, dispatches = 0}}], program = ObjectMetrics {dataless = 2, applications = 0, formations = 4, dispatches = 0}}
+--
+-- >>> collectProgramMetrics "{ ⟦ org ↦ ⟦ ⟧ ⟧ }"
+-- ProgramMetrics {attributes = [BindingMetrics {name = "org", metrics = ObjectMetrics {dataless = 1, applications = 0, formations = 1, dispatches = 0}}], program = ObjectMetrics {dataless = 1, applications = 0, formations = 2, dispatches = 0}}
+collectProgramMetrics :: Program -> ProgramMetrics
+collectProgramMetrics (Program bindings) = collectBindingsMetrics bindings

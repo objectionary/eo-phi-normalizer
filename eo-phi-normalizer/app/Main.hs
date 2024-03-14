@@ -22,12 +22,14 @@ import Data.Foldable (forM_)
 import Control.Lens ((^.))
 import Data.Aeson (ToJSON)
 import Data.Aeson.Encode.Pretty (Config (..), Indent (..), defConfig, encodePrettyToTextBuilder')
+import Data.Maybe (fromMaybe)
 import Data.String.Interpolate (i)
+import Data.Text qualified as T
 import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy.Lens
 import GHC.Generics (Generic)
 import Language.EO.Phi (Attribute (Sigma), Object (Formation), Program (Program), parseProgram, printTree)
-import Language.EO.Phi.Metrics (collectMetrics)
+import Language.EO.Phi.Metrics (collectBindingsMetrics, programBindingsByPath)
 import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), Context (..), applyRulesChainWith, applyRulesWith, objectSize)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRule, parseRuleSetFromFile)
 import Options.Applicative
@@ -49,6 +51,7 @@ data CLI'TransformPhi = CLI'TransformPhi
 data CLI'MetricsPhi = CLI'MetricsPhi
   { inputFile :: Maybe FilePath
   , outputFile :: Maybe FilePath
+  , programPath :: Maybe String
   }
   deriving (Show)
 
@@ -84,10 +87,21 @@ cliTransformPhiParser = do
   inputFile <- inputFileArg
   pure CLI'TransformPhi{..}
 
+programPathOption :: Parser (Maybe String)
+programPathOption =
+  optional $
+    strOption
+      ( long "program-path"
+          <> short 'p'
+          <> metavar "PATH"
+          <> help [i|Report metrics for attributes accessible in a program via PATH. Defaults to an empty path. Example: "org.eolang"|]
+      )
+
 cliMetricsPhiParser :: Parser CLI'MetricsPhi
 cliMetricsPhiParser = do
   inputFile <- inputFileArg
   outputFile <- outputFileOption
+  programPath <- programPathOption
   pure CLI'MetricsPhi{..}
 
 metricsParserInfo :: ParserInfo CLI
@@ -136,7 +150,7 @@ getProgram :: Optparse.Context -> Maybe FilePath -> IO Program
 getProgram parserContext inputFile = do
   src <- maybe getContents' readFile inputFile
   case parseProgram src of
-    Left err -> die parserContext [i|"An error occurred when parsing the input program: #{err}|]
+    Left err -> die parserContext [i|An error occurred when parsing the input program: #{err}|]
     Right program -> pure program
 
 getLoggers :: Maybe FilePath -> IO (String -> IO (), String -> IO ())
@@ -147,15 +161,24 @@ getLoggers outputFile = do
     , \x -> hPutStr handle x >> hFlush handle
     )
 
+-- >>> splitStringOn "." "abra.cada.bra"
+-- ["abra","cada","bra"]
+--
+-- >>> splitStringOn "." ""
+-- []
+splitStringOn :: String -> String -> [String]
+splitStringOn sep s = filter (not . null) $ T.unpack <$> T.splitOn (T.pack sep) (T.pack s)
+
 main :: IO ()
 main = do
   opts <- customExecParser pprefs cliOpts
   case opts of
     CLI'MetricsPhi' CLI'MetricsPhi{..} -> do
       let parserContext = Optparse.Context metricsCommandName metricsParserInfo
-      program' <- getProgram parserContext inputFile
+      program <- getProgram parserContext inputFile
       (logStrLn, _) <- getLoggers outputFile
-      let metrics = collectMetrics program'
+      let path = splitStringOn "." (fromMaybe "" programPath)
+          metrics = collectBindingsMetrics (programBindingsByPath path program)
       logStrLn $ encodeToJSONString metrics
     CLI'TransformPhi' CLI'TransformPhi{..} -> do
       let parserContext = Optparse.Context transformCommandName transformParserInfo
