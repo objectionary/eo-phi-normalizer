@@ -13,7 +13,7 @@ module Language.EO.Phi.Metrics where
 
 import Control.Lens ((+=))
 import Control.Monad (forM_)
-import Control.Monad.State (State, runState)
+import Control.Monad.State (State, execState, runState)
 import Data.Aeson (FromJSON)
 import Data.Aeson.Types (ToJSON)
 import Data.Foldable (fold)
@@ -110,88 +110,104 @@ instance Inspectable Object where
       pure 0
     _ -> pure 0
 
-data ProgramMetrics = ProgramMetrics
+data CompleteMetrics = CompleteMetrics
   { attributes :: [BindingMetrics]
-  , program :: ObjectMetrics
+  , this :: ObjectMetrics
   }
   deriving (Show, Generic, FromJSON, ToJSON, Eq)
 
-defaultMetrics :: ProgramMetrics
+defaultMetrics :: CompleteMetrics
 defaultMetrics =
-  ProgramMetrics
+  CompleteMetrics
     { attributes = []
-    , program = defaultObjectMetrics
+    , this = defaultObjectMetrics
     }
 
-collectBindingsMetrics :: [Binding] -> ProgramMetrics
-collectBindingsMetrics bindings =
-  let attributes' = flip runState mempty . inspect <$> bindings
-      (heights, objectMetrics) = unzip attributes'
-      attributes = do
-        x <- zip bindings objectMetrics
-        case x of
-          (AlphaBinding (Alpha (AlphaIndex name)) _, metrics) -> [BindingMetrics{..}]
-          (AlphaBinding (Label (LabelId name)) _, metrics) -> [BindingMetrics{..}]
-          _ -> []
-      height = getHeight bindings heights
-      program =
-        fold objectMetrics
-          & \x ->
-            x
-              { dataless = x.dataless + countDataless height
-              , formations = x.formations + 1
-              }
-   in ProgramMetrics{..}
+-- | Collect metrics for an object
+--
+-- When an object is a formation, provide metrics for its attributes and metrics for the object.
+--
+-- >>> collectCompleteMetrics "⟦ α0 ↦ ξ, α0 ↦ Φ.org.eolang.bytes( Δ ⤍ 00- ) ⟧"
+-- CompleteMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 0, dispatches = 0}},BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 0, applications = 1, formations = 0, dispatches = 3}}], this = ObjectMetrics {dataless = 0, applications = 1, formations = 1, dispatches = 3}}
+--
+-- >>> collectCompleteMetrics "⟦ α0 ↦ ξ, Δ ⤍ 00- ⟧"
+-- CompleteMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 0, dispatches = 0}}], this = ObjectMetrics {dataless = 0, applications = 0, formations = 1, dispatches = 0}}
+--
+-- >>> collectCompleteMetrics "⟦ α0 ↦ ξ, α1 ↦ ⟦ Δ ⤍ 00- ⟧ ⟧"
+-- CompleteMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 0, dispatches = 0}},BindingMetrics {name = "\945\&1", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 1, dispatches = 0}}], this = ObjectMetrics {dataless = 0, applications = 0, formations = 2, dispatches = 0}}
+--
+-- >>> collectCompleteMetrics "⟦ α0 ↦ ξ, α1 ↦ ⟦ α2 ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧"
+-- CompleteMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 0, dispatches = 0}},BindingMetrics {name = "\945\&1", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 2, dispatches = 0}}], this = ObjectMetrics {dataless = 0, applications = 0, formations = 3, dispatches = 0}}
+--
+-- >>> collectCompleteMetrics "⟦ Δ ⤍ 00- ⟧"
+-- CompleteMetrics {attributes = [], this = ObjectMetrics {dataless = 0, applications = 0, formations = 1, dispatches = 0}}
+--
+-- >>> collectCompleteMetrics "⟦ α0 ↦ ⟦ α0 ↦ ∅ ⟧ ⟧"
+-- CompleteMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 1, dispatches = 0}}], this = ObjectMetrics {dataless = 0, applications = 0, formations = 2, dispatches = 0}}
+--
+-- >>> collectCompleteMetrics "⟦ α0 ↦ ⟦ α0 ↦ ⟦ α0 ↦ ∅ ⟧ ⟧ ⟧"
+-- CompleteMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 2, dispatches = 0}}], this = ObjectMetrics {dataless = 1, applications = 0, formations = 3, dispatches = 0}}
+--
+-- >>> collectCompleteMetrics "⟦ α0 ↦ ⟦ α0 ↦ ⟦ α0 ↦ ⟦ α0 ↦ ∅ ⟧ ⟧ ⟧ ⟧"
+-- CompleteMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 1, applications = 0, formations = 3, dispatches = 0}}], this = ObjectMetrics {dataless = 2, applications = 0, formations = 4, dispatches = 0}}
+--
+-- >>> collectCompleteMetrics "⟦ org ↦ ⟦ ⟧ ⟧"
+-- CompleteMetrics {attributes = [BindingMetrics {name = "org", metrics = ObjectMetrics {dataless = 1, applications = 0, formations = 1, dispatches = 0}}], this = ObjectMetrics {dataless = 1, applications = 0, formations = 2, dispatches = 0}}
+--
+-- >>> collectCompleteMetrics "⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧.e ⟧"
+-- CompleteMetrics {attributes = [BindingMetrics {name = "a", metrics = ObjectMetrics {dataless = 1, applications = 1, formations = 4, dispatches = 5}}], this = ObjectMetrics {dataless = 1, applications = 1, formations = 5, dispatches = 5}}
+collectCompleteMetrics :: Object -> CompleteMetrics
+collectCompleteMetrics = \case
+  Formation bindings ->
+    let attributes' = flip runState mempty . inspect <$> bindings
+        (heights, objectMetrics) = unzip attributes'
+        attributes = do
+          x <- zip bindings objectMetrics
+          case x of
+            (AlphaBinding (Alpha (AlphaIndex name)) _, metrics) -> [BindingMetrics{..}]
+            (AlphaBinding (Label (LabelId name)) _, metrics) -> [BindingMetrics{..}]
+            _ -> []
+        height = getHeight bindings heights
+        this =
+          fold objectMetrics
+            & \x ->
+              x
+                { dataless = x.dataless + countDataless height
+                , formations = x.formations + 1
+                }
+     in CompleteMetrics{..}
+  obj ->
+    CompleteMetrics
+      { attributes = []
+      , this = execState (inspect obj) mempty
+      }
 
-bindingsByPath :: [String] -> [Binding] -> [Binding]
-bindingsByPath path bindings =
+objectByPath :: [String] -> Object -> Either [String] Object
+objectByPath path object =
   case path of
-    [] -> bindings
+    [] -> Right object
     (p : ps) ->
-      case bindings of
-        [] -> []
-        _ -> do
-          x <- bindings
-          bindingsByPath ps $
-            case x of
-              AlphaBinding (Alpha (AlphaIndex name)) (Formation bindings') | name == p -> bindings'
-              AlphaBinding (Label (LabelId name)) (Formation bindings') | name == p -> bindings'
-              _ -> []
+      case object of
+        Formation bindings ->
+          case objectByPath' of
+            [] -> Left path
+            (x : _) -> Right x
+         where
+          objectByPath' =
+            do
+              x <- bindings
+              Right obj <-
+                case x of
+                  AlphaBinding (Alpha (AlphaIndex name)) obj | name == p -> [objectByPath ps obj]
+                  AlphaBinding (Label (LabelId name)) obj | name == p -> [objectByPath ps obj]
+                  _ -> [Left path]
+              pure obj
+        _ -> Left path
 
--- >>> programBindingsByPath ["org", "eolang"] "{⟦ org ↦ ⟦ eolang ↦ ⟦ x ↦ ⟦ φ ↦ Φ.org.eolang.bool ( α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-) ) ⟧, z ↦ ⟦ y ↦ ⟦ x ↦ ∅, φ ↦ ξ.x ⟧, φ ↦ Φ.org.eolang.bool ( α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-) ) ⟧, λ ⤍ Package ⟧, λ ⤍ Package ⟧⟧ }" & \x -> [y | AlphaBinding (Label (LabelId y)) _ <- x] <> [y | AlphaBinding (Alpha (AlphaIndex y)) _ <- x]
--- ["x","z"]
-programBindingsByPath :: [String] -> Program -> [Binding]
-programBindingsByPath path (Program bindings) = bindingsByPath path bindings
-
--- | Count dataless formations in a list of bindings
+-- >>> programObjectByPath ["org", "eolang"] "{⟦ org ↦ ⟦ eolang ↦ ⟦ x ↦ ⟦ φ ↦ Φ.org.eolang.bool ( α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-) ) ⟧, z ↦ ⟦ y ↦ ⟦ x ↦ ∅, φ ↦ ξ.x ⟧, φ ↦ Φ.org.eolang.bool ( α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-) ) ⟧, λ ⤍ Package ⟧, λ ⤍ Package ⟧⟧ }"
+-- Right (Formation [AlphaBinding (Label (LabelId "x")) (Formation [AlphaBinding Phi (Application (ObjectDispatch (ObjectDispatch (ObjectDispatch GlobalObject (Label (LabelId "org"))) (Label (LabelId "eolang"))) (Label (LabelId "bool"))) [AlphaBinding (Alpha (AlphaIndex "\945\&0")) (Application (ObjectDispatch (ObjectDispatch (ObjectDispatch GlobalObject (Label (LabelId "org"))) (Label (LabelId "eolang"))) (Label (LabelId "bytes"))) [DeltaBinding (Bytes "01-")])])]),AlphaBinding (Label (LabelId "z")) (Formation [AlphaBinding (Label (LabelId "y")) (Formation [EmptyBinding (Label (LabelId "x")),AlphaBinding Phi (ObjectDispatch ThisObject (Label (LabelId "x")))]),AlphaBinding Phi (Application (ObjectDispatch (ObjectDispatch (ObjectDispatch GlobalObject (Label (LabelId "org"))) (Label (LabelId "eolang"))) (Label (LabelId "bool"))) [AlphaBinding (Alpha (AlphaIndex "\945\&0")) (Application (ObjectDispatch (ObjectDispatch (ObjectDispatch GlobalObject (Label (LabelId "org"))) (Label (LabelId "eolang"))) (Label (LabelId "bytes"))) [DeltaBinding (Bytes "01-")])])]),LambdaBinding (Function "Package")])
 --
--- >>> collectProgramMetrics "{⟦ α0 ↦ ξ, α0 ↦ Φ.org.eolang.bytes( Δ ⤍ 00- ) ⟧}"
--- ProgramMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 0, dispatches = 0}},BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 0, applications = 1, formations = 0, dispatches = 3}}], program = ObjectMetrics {dataless = 1, applications = 1, formations = 1, dispatches = 3}}
---
--- >>> collectProgramMetrics "{⟦ α0 ↦ ξ, Δ ⤍ 00- ⟧}"
--- ProgramMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 0, dispatches = 0}}], program = ObjectMetrics {dataless = 0, applications = 0, formations = 1, dispatches = 0}}
---
---
--- >>> collectProgramMetrics "{⟦ α0 ↦ ξ, α1 ↦ ⟦ Δ ⤍ 00- ⟧ ⟧}"
--- ProgramMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 0, dispatches = 0}},BindingMetrics {name = "\945\&1", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 1, dispatches = 0}}], program = ObjectMetrics {dataless = 0, applications = 0, formations = 2, dispatches = 0}}
---
---
--- >>> collectProgramMetrics "{⟦ α0 ↦ ξ, α1 ↦ ⟦ α2 ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧}"
--- ProgramMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 0, dispatches = 0}},BindingMetrics {name = "\945\&1", metrics = ObjectMetrics {dataless = 0, applications = 0, formations = 2, dispatches = 0}}], program = ObjectMetrics {dataless = 1, applications = 0, formations = 3, dispatches = 0}}
---
--- >>> collectProgramMetrics "{⟦ Δ ⤍ 00- ⟧}"
--- ProgramMetrics {attributes = [], program = ObjectMetrics {dataless = 0, applications = 0, formations = 1, dispatches = 0}}
---
--- >>> collectProgramMetrics "{⟦ α0 ↦ ⟦ α0 ↦ ∅ ⟧ ⟧}"
--- ProgramMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 1, applications = 0, formations = 1, dispatches = 0}}], program = ObjectMetrics {dataless = 1, applications = 0, formations = 2, dispatches = 0}}
---
--- >>> collectProgramMetrics "{⟦ α0 ↦ ⟦ α0 ↦ ⟦ α0 ↦ ∅ ⟧ ⟧ ⟧}"
--- ProgramMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 1, applications = 0, formations = 2, dispatches = 0}}], program = ObjectMetrics {dataless = 1, applications = 0, formations = 3, dispatches = 0}}
---
--- >>> collectProgramMetrics "{⟦ α0 ↦ ⟦ α0 ↦ ⟦ α0 ↦ ⟦ α0 ↦ ∅ ⟧ ⟧ ⟧ ⟧}"
--- ProgramMetrics {attributes = [BindingMetrics {name = "\945\&0", metrics = ObjectMetrics {dataless = 1, applications = 0, formations = 3, dispatches = 0}}], program = ObjectMetrics {dataless = 2, applications = 0, formations = 4, dispatches = 0}}
---
--- >>> collectProgramMetrics "{ ⟦ org ↦ ⟦ ⟧ ⟧ }"
--- ProgramMetrics {attributes = [BindingMetrics {name = "org", metrics = ObjectMetrics {dataless = 1, applications = 0, formations = 1, dispatches = 0}}], program = ObjectMetrics {dataless = 1, applications = 0, formations = 2, dispatches = 0}}
-collectProgramMetrics :: Program -> ProgramMetrics
-collectProgramMetrics (Program bindings) = collectBindingsMetrics bindings
+-- >>> programObjectByPath ["a"] "{⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧.e ⟧}"
+-- Right (ObjectDispatch (Formation [AlphaBinding (Label (LabelId "b")) (Formation [EmptyBinding (Label (LabelId "c")),AlphaBinding (Label (LabelId "d")) (Formation [AlphaBinding Phi (ObjectDispatch (ObjectDispatch ThisObject Rho) (Label (LabelId "c")))])]),AlphaBinding (Label (LabelId "e")) (ObjectDispatch (Application (ObjectDispatch ThisObject (Label (LabelId "b"))) [AlphaBinding (Label (LabelId "c")) (Formation [])]) (Label (LabelId "d")))]) (Label (LabelId "e")))
+programObjectByPath :: [String] -> Program -> Either [String] Object
+programObjectByPath path (Program bindings) = objectByPath path (Formation bindings)

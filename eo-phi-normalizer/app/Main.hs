@@ -29,7 +29,7 @@ import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy.Lens
 import GHC.Generics (Generic)
 import Language.EO.Phi (Attribute (Sigma), Object (Formation), Program (Program), parseProgram, printTree)
-import Language.EO.Phi.Metrics (collectBindingsMetrics, programBindingsByPath)
+import Language.EO.Phi.Metrics (collectCompleteMetrics, programObjectByPath)
 import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), Context (..), applyRulesChainWith, applyRulesWith, objectSize)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRule, parseRuleSetFromFile)
 import Options.Applicative
@@ -178,8 +178,12 @@ main = do
       program <- getProgram parserContext inputFile
       (logStrLn, _) <- getLoggers outputFile
       let path = splitStringOn "." (fromMaybe "" programPath)
-          metrics = collectBindingsMetrics (programBindingsByPath path program)
-      logStrLn $ encodeToJSONString metrics
+          obj = programObjectByPath path program
+      case obj of
+        Left path' -> die parserContext [i|Could not access an object at path #{path'}.|]
+        Right obj' -> do
+          let metrics = collectCompleteMetrics obj'
+          logStrLn $ encodeToJSONString metrics
     CLI'TransformPhi' CLI'TransformPhi{..} -> do
       let parserContext = Optparse.Context transformCommandName transformParserInfo
       program' <- getProgram parserContext inputFile
