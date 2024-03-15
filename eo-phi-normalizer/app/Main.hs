@@ -11,6 +11,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TupleSections #-}
 {-# OPTIONS_GHC -Wno-partial-fields #-}
 {-# OPTIONS_GHC -Wno-type-defaults #-}
 
@@ -29,7 +30,7 @@ import GHC.Generics (Generic)
 import Language.EO.Phi (Bytes (Bytes), Object (Formation), Program (Program), parseProgram, printTree)
 import Language.EO.Phi.Dataize (dataizeRecursively, dataizeStep)
 import Language.EO.Phi.Metrics.Collect (collectMetrics)
-import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), applyRulesChainWith, applyRulesWith, defaultContext, objectSize)
+import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), applyRulesChainWith, applyRulesWith, defaultContext, objectSize, propagateName1)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRuleNamed, parseRuleSetFromFile)
 import Options.Applicative
 import Options.Applicative.Types qualified as Optparse (Context (..))
@@ -142,7 +143,7 @@ cliOpts =
 
 data StructuredJSON = StructuredJSON
   { input :: String
-  , output :: [[String]]
+  , output :: [[(String, String)]]
   }
   deriving (Generic, ToJSON)
 
@@ -194,7 +195,7 @@ main = do
       let Program bindings = program'
           uniqueResults
             | chain = applyRulesChainWith limits ctx (Formation bindings)
-            | otherwise = pure <$> applyRulesWith limits ctx (Formation bindings)
+            | otherwise = pure . ("",) <$> applyRulesWith limits ctx (Formation bindings)
            where
             limits = ApplicationLimits maxDepth (maxGrowthFactor * objectSize (Formation bindings))
             ctx = defaultContext (convertRuleNamed <$> ruleSet.rules) (Formation bindings)
@@ -205,16 +206,16 @@ main = do
             logStrLn
               . encodeToJSONString
               . printAsProgramOrAsObject
-              $ head (head uniqueResults)
+              $ snd (head (head uniqueResults))
         | single ->
             logStrLn
               . printAsProgramOrAsObject
-              $ head (head uniqueResults)
+              $ snd (head (head uniqueResults))
         | json ->
             logStrLn . encodeToJSONString $
               StructuredJSON
                 { input = printTree program'
-                , output = (printAsProgramOrAsObject <$>) <$> uniqueResults
+                , output = (propagateName1 printAsProgramOrAsObject <$>) <$> uniqueResults
                 }
         | otherwise -> do
             logStrLn "Input:"
@@ -224,9 +225,9 @@ main = do
               logStrLn $
                 "Result " <> show index <> " out of " <> show totalResults <> ":"
               let n = length steps
-              forM_ (zip [1 ..] steps) $ \(k, step) -> do
+              forM_ (zip [1 ..] steps) $ \(k, (appliedRuleName, step)) -> do
                 when chain $
-                  logStr ("[ " <> show k <> " / " <> show n <> " ]")
+                  logStr ("[ " <> show k <> " / " <> show n <> " ] " <> appliedRuleName <> ": ")
                 logStrLn . printAsProgramOrAsObject $ step
               logStrLn "----------------------------------------------------"
     CLI'DataizePhi' CLI'DataizePhi{..} -> do
