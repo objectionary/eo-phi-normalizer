@@ -28,7 +28,7 @@ import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy.Lens
 import GHC.Generics (Generic)
 import Language.EO.Phi (Bytes (Bytes), Object (Formation), Program (Program), parseProgram, printTree)
-import Language.EO.Phi.Dataize (dataizeRecursively, dataizeStep)
+import Language.EO.Phi.Dataize (dataizeRecursively, dataizeRecursivelyChain, dataizeStep, dataizeStepChain)
 import Language.EO.Phi.Metrics.Collect (collectMetrics)
 import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), applyRulesChainWith, applyRulesWith, defaultContext, objectSize, propagateName1)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRuleNamed, parseRuleSetFromFile)
@@ -53,6 +53,7 @@ data CLI'DataizePhi = CLI'DataizePhi
   , inputFile :: Maybe FilePath
   , outputFile :: Maybe String
   , recursive :: Bool
+  , chain :: Bool
   }
   deriving (Show)
 
@@ -101,6 +102,7 @@ cliDataizePhiParser = do
   inputFile <- inputFileArg
   outputFile <- outputFileOption
   recursive <- switch (long "recursive" <> help "Apply dataization + normalization recursively.")
+  chain <- switch (long "chain" <> help "Display all the intermediate steps.")
   pure CLI'DataizePhi{..}
 
 cliMetricsPhiParser :: Parser CLI'MetricsPhi
@@ -238,10 +240,20 @@ main = do
       let (Program bindings) = program'
       let inputObject = Formation bindings
       let ctx = defaultContext (convertRuleNamed <$> ruleSet.rules) inputObject
-      let dataize
-            -- This should be moved to a separate subcommand
-            | recursive = dataizeRecursively
-            | otherwise = dataizeStep
-      case dataize ctx inputObject of
-        Left obj -> logStrLn (printAsProgramOrAsObject obj)
-        Right (Bytes bytes) -> logStrLn bytes
+      ( if chain
+          then do
+            let dataizeChain
+                  | recursive = dataizeRecursivelyChain
+                  | otherwise = dataizeStepChain
+            forM_ (dataizeChain ctx inputObject) $ \case
+              (msg, Left obj) -> logStrLn (msg ++ ": " ++ printTree obj)
+              (_msg, Right (Bytes bytes)) -> logStrLn bytes
+          else do
+            let dataize
+                  -- This should be moved to a separate subcommand
+                  | recursive = dataizeRecursively
+                  | otherwise = dataizeStep
+            case dataize ctx inputObject of
+              Left obj -> logStrLn (printAsProgramOrAsObject obj)
+              Right (Bytes bytes) -> logStrLn bytes
+        )

@@ -1,12 +1,14 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE TupleSections #-}
 
-module Language.EO.Phi.Dataize (dataizeStep, dataizeRecursively) where
+module Language.EO.Phi.Dataize (dataizeStep, dataizeRecursively, dataizeStepChain, dataizeRecursivelyChain) where
 
 import Data.List (find)
+import Data.Maybe (listToMaybe)
 import Data.String.Interpolate (i)
 import Language.EO.Phi (printTree)
-import Language.EO.Phi.Rules.Common (Context, applyRules, bytesToInt, extendContextWith, intToBytes)
+import Language.EO.Phi.Rules.Common (Context, applyRules, applyRulesChain, bytesToInt, extendContextWith, intToBytes)
 import Language.EO.Phi.Syntax.Abs (
   AlphaIndex (AlphaIndex),
   Attribute (Alpha, Phi, Rho),
@@ -58,6 +60,67 @@ dataizeRecursively ctx obj = case applyRules ctx obj of
         <> unlines (map (("  - " ++) . printTree) objs)
         <> "\nFor the input:\n  "
         <> printTree obj
+
+-- | Perform one step of dataization to the object (if possible), reporting back individiual steps.
+dataizeStepChain :: Context -> Object -> [(String, Either Object Bytes)]
+dataizeStepChain ctx obj@(Formation bs)
+  | Just (DeltaBinding bytes) <- listToMaybe [b | b@(DeltaBinding _) <- bs] = [("Found bytes", Right bytes)]
+  | Just (LambdaBinding (Function funcName)) <- listToMaybe [b | b@(LambdaBinding _) <- bs] =
+      let evaluationChain = evaluateBuiltinFunChain ctx funcName obj ()
+       in ("Evaluating lambda '" <> funcName <> "'", Left obj) : map (fmap Left . fst) evaluationChain
+  | Just (AlphaBinding Phi decoratee) <- listToMaybe [b | b@(AlphaBinding Phi _) <- bs] =
+      ("Dataizing inside phi", Left decoratee) : dataizeStepChain (extendContextWith obj ctx) decoratee
+  | otherwise = [("No change to formation", Left obj)]
+dataizeStepChain ctx (Application obj _bindings) = ("Dataizing inside application", Left obj) : dataizeStepChain ctx obj
+dataizeStepChain ctx (ObjectDispatch obj _attr) = ("Dataizing inside dispatch", Left obj) : dataizeStepChain ctx obj
+dataizeStepChain _ obj = [("Nothing to dataize", Left obj)]
+
+-- | Recursively perform normalization and dataization until we get bytes in the end,
+-- reporting intermediate steps
+dataizeRecursivelyChain :: Context -> Object -> [(String, Either Object Bytes)]
+dataizeRecursivelyChain ctx obj = case applyRulesChain ctx obj of
+  [[]] -> [("No rules applied", Left obj)]
+  [chain] ->
+    let (_lastRule, normObj) = last chain
+     in map (fmap Left) chain
+          ++ case head (dataizeStepChain ctx normObj) of
+            res@(_, Left stillObj)
+              | stillObj == normObj -> [res] -- dataization changed nothing
+              | otherwise -> res : dataizeRecursivelyChain ctx stillObj -- partially dataized
+            bytes -> [bytes]
+  chains -> [(errMsg, Left Termination)]
+   where
+    errMsg =
+      "Expected 1 chain from normalization but got "
+        <> show (length chains)
+        <> ":\n"
+        <> unlines (map (unlines . map (\(name, object) -> "  - " ++ name ++ ": " ++ printTree object)) chains)
+        <> "\nFor the input:\n  "
+        <> printTree obj
+
+-- | Given normalization context, a function on data (bytes interpreted as integers), an object,
+-- and the current state of evaluation, returns the new object and a possibly modified state along with intermediate steps.
+evaluateDataizationFunChain :: Context -> (Int -> Int -> Int) -> Object -> EvaluationState -> [((String, Object), EvaluationState)]
+evaluateDataizationFunChain ctx func obj _state = map (,()) result
+ where
+  lhs = dataizeRecursivelyChain ctx (ObjectDispatch obj Rho)
+  rhs = dataizeRecursivelyChain ctx (ObjectDispatch obj (Alpha (AlphaIndex "α0")))
+  lhsBytes = [(msg, bytes) | (msg, Right bytes) <- lhs]
+  rhsBytes = [(msg, bytes) | (msg, Right bytes) <- rhs]
+  lhsObjects = [(msg, object) | (msg, Left object) <- lhs]
+  rhsObjects = [(msg, object) | (msg, Left object) <- rhs]
+  result = case (lhsBytes, rhsBytes) of
+    ([(_, l)], [(_, r)]) ->
+      let (Bytes bytes) = intToBytes (bytesToInt r `func` bytesToInt l)
+       in ("Evaluated function", [i|Φ.org.eolang.float(Δ ⤍ #{bytes})|]) : lhsObjects ++ rhsObjects
+    _ -> ("Couldn't find bytes in one or both of LHS and RHS", Termination) : lhsObjects ++ rhsObjects
+
+-- | Like `evaluateDataizationFunChain` but specifically for the built-in functions.
+-- This function is not safe. It returns undefined for unknown functions
+evaluateBuiltinFunChain :: Context -> String -> Object -> EvaluationState -> [((String, Object), EvaluationState)]
+evaluateBuiltinFunChain ctx "Plus" = evaluateDataizationFunChain ctx (+)
+evaluateBuiltinFunChain ctx "Times" = evaluateDataizationFunChain ctx (*)
+evaluateBuiltinFunChain _ _ = const $ const [(undefined, ())]
 
 -- | Given normalization context, a function on data (bytes interpreted as integers), an object,
 -- and the current state of evaluation, returns the new object and a possibly modified state.
