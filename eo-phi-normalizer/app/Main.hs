@@ -30,7 +30,7 @@ import Language.EO.Phi (Bytes (Bytes), Object (Formation), Program (Program), pa
 import Language.EO.Phi.Dataize (dataizeRecursively, dataizeStep)
 import Language.EO.Phi.Metrics.Collect (collectMetrics)
 import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), applyRulesChainWith, applyRulesWith, defaultContext, objectSize)
-import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRule, parseRuleSetFromFile)
+import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRuleNamed, parseRuleSetFromFile)
 import Options.Applicative
 import Options.Applicative.Types qualified as Optparse (Context (..))
 import System.IO (IOMode (WriteMode), getContents', hFlush, hPutStr, hPutStrLn, openFile, stdout)
@@ -197,7 +197,7 @@ main = do
             | otherwise = pure <$> applyRulesWith limits ctx (Formation bindings)
            where
             limits = ApplicationLimits maxDepth (maxGrowthFactor * objectSize (Formation bindings))
-            ctx = defaultContext (convertRule <$> ruleSet.rules) (Formation bindings)
+            ctx = defaultContext (convertRuleNamed <$> ruleSet.rules) (Formation bindings)
           totalResults = length uniqueResults
       when (null uniqueResults || null (head uniqueResults)) $ die parserContext [i|Could not normalize the program.|]
       if
@@ -236,7 +236,7 @@ main = do
       ruleSet <- parseRuleSetFromFile rulesPath
       let (Program bindings) = program'
       let inputObject = Formation bindings
-      let ctx = defaultContext (convertRule <$> ruleSet.rules) inputObject
+      let ctx = defaultContext (convertRuleNamed <$> ruleSet.rules) inputObject
       let dataize
             -- This should be moved to a separate subcommand
             | recursive = dataizeRecursively

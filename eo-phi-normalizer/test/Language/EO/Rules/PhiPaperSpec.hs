@@ -18,8 +18,8 @@ import Data.List (intercalate)
 import Data.List qualified as List
 import Data.Yaml qualified as Yaml
 import GHC.Generics (Generic)
-import Language.EO.Phi.Rules.Common (ApplicationLimits (..), Rule, applyOneRule, defaultApplicationLimits, defaultContext, equalObject, intToBytes, objectSize)
-import Language.EO.Phi.Rules.Yaml (convertRule, parseRuleSetFromFile, rules)
+import Language.EO.Phi.Rules.Common (ApplicationLimits (..), NamedRule, applyOneRule, defaultApplicationLimits, defaultContext, equalObject, intToBytes, objectSize)
+import Language.EO.Phi.Rules.Yaml (convertRuleNamed, parseRuleSetFromFile, rules)
 import Language.EO.Phi.Syntax (printTree)
 import Language.EO.Phi.Syntax.Abs as Phi
 import Test.Hspec
@@ -108,7 +108,7 @@ data CriticalPair = CriticalPair
   -- add rules that were used to get the pair
   }
 
-genCriticalPair :: [Rule] -> Gen CriticalPair
+genCriticalPair :: [NamedRule] -> Gen CriticalPair
 genCriticalPair rules = do
   (sourceTerm, results) <- fan `suchThat` \(_, rs) -> length rs > 1
   case results of
@@ -128,7 +128,7 @@ genCriticalPair rules = do
   sameAttr (EmptyBinding attr1) (EmptyBinding attr2) = attr1 == attr2
   sameAttr b1 b2 = toConstr b1 == toConstr b2
 
-findCriticalPairs :: [Rule] -> Object -> [CriticalPair]
+findCriticalPairs :: [NamedRule] -> Object -> [CriticalPair]
 findCriticalPairs rules obj = do
   let ctx = defaultContext rules obj
   let results = applyOneRule ctx obj
@@ -142,7 +142,7 @@ findCriticalPairs rules obj = do
           }
     _ -> error "IMPOSSIBLE HAPPENED"
 
-shrinkCriticalPair :: [Rule] -> CriticalPair -> [CriticalPair]
+shrinkCriticalPair :: [NamedRule] -> CriticalPair -> [CriticalPair]
 shrinkCriticalPair rules CriticalPair{..} =
   [ CriticalPair
     { sourceTerm = sourceTerm'
@@ -154,7 +154,7 @@ shrinkCriticalPair rules CriticalPair{..} =
 
 type SearchLimits = ApplicationLimits
 
-descendantsN :: SearchLimits -> [Rule] -> [Object] -> [[Object]]
+descendantsN :: SearchLimits -> [NamedRule] -> [Object] -> [[Object]]
 descendantsN ApplicationLimits{..} rules objs
   | maxDepth <= 0 = [objs]
   | otherwise =
@@ -202,7 +202,7 @@ intersectByLevelBy eq xs ys =
     | (l, r) <- pairByLevel xs ys
     ]
 
-confluentCriticalPairN :: SearchLimits -> [Rule] -> CriticalPair -> Bool
+confluentCriticalPairN :: SearchLimits -> [NamedRule] -> CriticalPair -> Bool
 confluentCriticalPairN limits rules CriticalPair{..} =
   -- should normalize the VTXs before checking
   -- NOTE: we are using intersectByLevelBy to ensure that we first check
@@ -230,14 +230,14 @@ instance Show CriticalPair where
 defaultSearchLimits :: Int -> SearchLimits
 defaultSearchLimits = defaultApplicationLimits
 
-confluent :: [Rule] -> Property
+confluent :: [NamedRule] -> Property
 confluent rulesFromYaml = withMaxSuccess 1000 $
   forAllShrink (resize 40 $ genCriticalPair rulesFromYaml) (shrinkCriticalPair rulesFromYaml) $
     \pair@CriticalPair{..} ->
       within 100_000 $ -- 0.1 second timeout per test
         confluentCriticalPairN (defaultSearchLimits (objectSize sourceTerm)) rulesFromYaml pair
 
-confluentOnObject :: [Rule] -> Object -> Bool
+confluentOnObject :: [NamedRule] -> Object -> Bool
 confluentOnObject rules obj = all (confluentCriticalPairN (defaultSearchLimits (objectSize obj)) rules) (findCriticalPairs rules obj)
 
 data ConfluenceTests = ConfluenceTests
@@ -252,7 +252,7 @@ parseTests = Yaml.decodeFileThrow
 spec :: Spec
 spec = do
   ruleset <- runIO $ parseRuleSetFromFile "./test/eo/phi/rules/yegor.yaml"
-  let rulesFromYaml = map convertRule (rules ruleset)
+  let rulesFromYaml = map convertRuleNamed (rules ruleset)
   inputs <- runIO $ parseTests "./test/eo/phi/confluence.yaml"
   describe "Yegor's rules" $ do
     it "Are confluent (via QuickCheck)" (confluent rulesFromYaml)

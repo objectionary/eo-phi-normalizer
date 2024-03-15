@@ -44,15 +44,17 @@ unsafeParseWith parser input =
     Left parseError -> error parseError
     Right object -> object
 
+type NamedRule = (String, Rule)
+
 data Context = Context
-  { allRules :: [Rule]
+  { allRules :: [NamedRule]
   , outerFormations :: NonEmpty Object
   , currentAttr :: Attribute
   , insideFormation :: Bool
   -- ^ Temporary hack for applying Ksi and Phi rules when dataizing
   }
 
-defaultContext :: [Rule] -> Object -> Context
+defaultContext :: [NamedRule] -> Object -> Context
 defaultContext rules obj =
   Context
     { allRules = rules
@@ -69,7 +71,7 @@ applyOneRuleAtRoot ctx@Context{..} obj =
   nubBy
     equalObject
     [ obj'
-    | rule <- allRules
+    | (_, rule) <- allRules
     , obj' <- rule ctx obj
     ]
 

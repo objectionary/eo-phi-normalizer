@@ -6,7 +6,7 @@ module Language.EO.YamlSpec where
 
 import Control.Monad (forM_)
 import Language.EO.Phi.Rules.Common (applyOneRule, defaultContext, equalObject)
-import Language.EO.Phi.Rules.Yaml (Rule (..), RuleSet (..), RuleTest (..), convertRule)
+import Language.EO.Phi.Rules.Yaml (Rule (..), RuleSet (..), RuleTest (..), convertRuleNamed)
 import Test.EO.Yaml
 import Test.Hspec
 
@@ -18,7 +18,7 @@ spec = describe "User-defined rules unit tests" do
       describe rule.name do
         forM_ rule.tests $ \ruleTest -> do
           it ruleTest.name $
-            let rule' = convertRule rule
+            let rule' = convertRuleNamed rule
                 resultOneStep = applyOneRule (defaultContext [rule'] ruleTest.input) ruleTest.input
                 expected = ruleTest.output
                 sameObjs objs1 objs2 = and ((length objs1 == length objs2) : zipWith equalObject objs2 objs1)
