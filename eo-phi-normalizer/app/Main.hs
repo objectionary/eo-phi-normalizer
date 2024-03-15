@@ -22,14 +22,15 @@ import Data.Foldable (forM_)
 import Control.Lens ((^.))
 import Data.Aeson (ToJSON)
 import Data.Aeson.Encode.Pretty (Config (..), Indent (..), defConfig, encodePrettyToTextBuilder')
+import Data.List (intercalate)
 import Data.Maybe (fromMaybe)
-import Data.String.Interpolate (i)
+import Data.String.Interpolate (i, iii)
 import Data.Text qualified as T
 import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy.Lens
 import GHC.Generics (Generic)
 import Language.EO.Phi (Attribute (Sigma), Object (Formation), Program (Program), parseProgram, printTree)
-import Language.EO.Phi.Metrics (collectCompleteMetrics, programObjectByPath)
+import Language.EO.Phi.Metrics (getProgramMetrics)
 import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), Context (..), applyRulesChainWith, applyRulesWith, objectSize)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRule, parseRuleSetFromFile)
 import Options.Applicative
@@ -91,10 +92,15 @@ programPathOption :: Parser (Maybe String)
 programPathOption =
   optional $
     strOption
-      ( long "program-path"
-          <> short 'p'
+      ( long "bindings-by-path"
+          <> short 'b'
           <> metavar "PATH"
-          <> help [i|Report metrics for attributes accessible in a program via PATH. Defaults to an empty path. Example: "org.eolang"|]
+          <> help
+            [iii|
+              Report metrics for bindings of a formation accessible in a program by a PATH.
+              The default PATH is empty.
+              Example of a PATH: 'org.eolang'.
+            |]
       )
 
 cliMetricsPhiParser :: Parser CLI'MetricsPhi
@@ -178,12 +184,17 @@ main = do
       program <- getProgram parserContext inputFile
       (logStrLn, _) <- getLoggers outputFile
       let path = splitStringOn "." (fromMaybe "" programPath)
-          obj = programObjectByPath path program
-      case obj of
-        Left path' -> die parserContext [i|Could not access an object at path #{path'}.|]
-        Right obj' -> do
-          let metrics = collectCompleteMetrics obj'
-          logStrLn $ encodeToJSONString metrics
+          metrics = getProgramMetrics path program
+      case metrics of
+        Left path' ->
+          die
+            parserContext
+            [iii|
+              Could not find bindings at path '#{intercalate "." path}'
+              because an object at '#{intercalate "." path'}' is not a formation.
+            |]
+        Right metrics' -> do
+          logStrLn $ encodeToJSONString metrics'
     CLI'TransformPhi' CLI'TransformPhi{..} -> do
       let parserContext = Optparse.Context transformCommandName transformParserInfo
       program' <- getProgram parserContext inputFile
