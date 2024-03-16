@@ -22,10 +22,9 @@ import Data.Foldable (forM_)
 import Control.Lens ((^.))
 import Data.Aeson (ToJSON)
 import Data.Aeson.Encode.Pretty (Config (..), Indent (..), defConfig, encodePrettyToTextBuilder')
-import Data.List (intercalate)
+import Data.List (groupBy, intercalate)
 import Data.Maybe (fromMaybe)
 import Data.String.Interpolate (i, iii)
-import Data.Text qualified as T
 import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy.Lens
 import GHC.Generics (Generic)
@@ -192,13 +191,13 @@ getLoggers outputFile = do
     , \x -> hPutStr handle x >> hFlush handle
     )
 
--- >>> splitStringOn "." "abra.cada.bra"
+-- >>> splitStringOn '.' "abra.cada.bra"
 -- ["abra","cada","bra"]
 --
--- >>> splitStringOn "." ""
+-- >>> splitStringOn '.' ""
 -- []
-splitStringOn :: String -> String -> [String]
-splitStringOn sep s = filter (not . null) $ T.unpack <$> T.splitOn (T.pack sep) (T.pack s)
+splitStringOn :: Char -> String -> [String]
+splitStringOn sep = filter (/= [sep]) . groupBy (\a b -> a /= sep && b /= sep)
 
 main :: IO ()
 main = do
@@ -211,7 +210,7 @@ main = do
       let parserContext = Optparse.Context metricsCommandName metricsParserInfo
       program <- getProgram parserContext inputFile
       (logStrLn, _) <- getLoggers outputFile
-      let path = splitStringOn "." (fromMaybe "" programPath)
+      let path = splitStringOn '.' (fromMaybe "" programPath)
           metrics = getProgramMetrics path program
       case metrics of
         Left path' ->
