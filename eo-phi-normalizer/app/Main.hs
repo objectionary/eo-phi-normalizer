@@ -284,10 +284,11 @@ getParserContext = Optparse.Context
 splitStringOn :: Char -> String -> [String]
 splitStringOn sep = filter (/= [sep]) . groupBy (\a b -> a /= sep && b /= sep)
 
-getMetrics :: Maybe FilePath -> Maybe String -> IO ProgramMetrics
-getMetrics phi bindingsPath = do
-  program <- getProgram phi
-  let metrics = getProgramMetrics (splitStringOn '.' <$> bindingsPath) program
+-- >>> flip getMetrics' (Just "a.b") "{⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧ ⟧}"
+-- Right (ProgramMetrics {bindingsByPathMetrics = Just (BindingsByPathMetrics {path = ["a","b"], bindingsMetrics = [BindingMetrics {name = "d", metrics = Metrics {dataless = 0, applications = 0, formations = 1, dispatches = 2}}]}), programMetrics = Metrics {dataless = 1, applications = 1, formations = 5, dispatches = 4}})
+getMetrics' :: Program -> Maybe String -> Either String ProgramMetrics
+getMetrics' program bindingsPath = do
+  let metrics = getProgramMetrics program (splitStringOn '.' <$> bindingsPath)
   case metrics of
     Left path' ->
       ( case bindingsPath of
@@ -296,19 +297,24 @@ getMetrics phi bindingsPath = do
               bindingsPath' = optionName.bindingsPath
               path'' = metavarName.path
              in
-              throw'
+              Left
                 [iii|
                   Impossible happened!
                   The option #{bindingsPath'} was not specified yet there were errors finding attributes by #{path''}.
                 |]
           Just bindingsPath' ->
-            throw'
+            Left
               [iii|
                 Could not find bindings at path '#{bindingsPath'}'
                 because an object at '#{intercalate "." path'}' is not a formation.
               |]
       )
     Right metrics' -> pure metrics'
+
+getMetrics :: Maybe String -> Maybe FilePath -> IO ProgramMetrics
+getMetrics bindingsPath inputFile = do
+  program <- getProgram inputFile
+  either throw' pure (getMetrics' program bindingsPath)
 
 main :: IO ()
 main = do
@@ -320,7 +326,7 @@ main = do
     CLI'MetricsPhi' CLI'MetricsPhi{..} ->
       handle' (getParserContext commandNames.metrics commandParserInfo.metrics) do
         (logStrLn, _) <- getLoggers outputFile
-        metrics <- getMetrics inputFile bindingsPath
+        metrics <- getMetrics bindingsPath inputFile
         logStrLn $ encodeToJSONString metrics
     CLI'TransformPhi' CLI'TransformPhi{..} ->
       handle' (getParserContext commandNames.transform commandParserInfo.transform) do
