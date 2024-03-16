@@ -23,9 +23,11 @@ module Main (main) where
 import Control.Monad (unless, when)
 import Data.Foldable (forM_)
 
+import Control.Exception (Exception, SomeException, catch, throw)
 import Control.Lens ((^.))
 import Data.Aeson (ToJSON)
 import Data.Aeson.Encode.Pretty (Config (..), Indent (..), defConfig, encodePrettyToTextBuilder')
+import Data.Function ((&))
 import Data.List (groupBy, intercalate)
 import Data.String.Interpolate (i, iii)
 import Data.Text.Internal.Builder (toLazyText)
@@ -234,23 +236,30 @@ encodeToJSONString = (^. unpacked) . toLazyText . encodePrettyToTextBuilder' def
 pprefs :: ParserPrefs
 pprefs = prefs (showHelpOnEmpty <> showHelpOnError)
 
-die :: Optparse.Context -> String -> IO a
-die parserContext message = do
+die :: (Exception e) => Optparse.Context -> e -> IO a
+die parserContext exception = do
   handleParseResult . Failure $
-    parserFailure pprefs cliOpts (ErrorMsg message) [parserContext]
+    parserFailure pprefs cliOpts (ErrorMsg (show exception)) [parserContext]
 
-checkFileExists :: Optparse.Context -> Maybe FilePath -> IO ()
-checkFileExists parserContext inputFile = do
-  forM_ inputFile $ \file -> do
-    exists <- doesFileExist file
-    unless exists $ die parserContext [i|File '#{file}' does not exist.|]
+newtype CLIException = CLIException String deriving (Show, Exception)
 
-getProgram :: Optparse.Context -> Maybe FilePath -> IO Program
-getProgram parserContext inputFile = do
-  checkFileExists parserContext inputFile
-  src <- maybe getContents' readFile inputFile
+throwCLIException :: String -> IO a
+throwCLIException = throw . CLIException
+
+getFile :: Maybe FilePath -> IO (Maybe String)
+getFile = \case
+  Nothing -> pure Nothing
+  Just file' ->
+    doesFileExist file' >>= \case
+      True -> pure (Just file')
+      False -> throwCLIException [i|File '#{file'}' does not exist.|]
+
+getProgram :: Maybe FilePath -> IO Program
+getProgram inputFile = do
+  inputFile' <- getFile inputFile
+  src <- maybe getContents' readFile inputFile'
   case parseProgram src of
-    Left err -> die parserContext [i|An error occurred when parsing the input program: #{err}|]
+    Left err -> throwCLIException [i|An error occurred when parsing the input program: #{err}|]
     Right program -> pure program
 
 getLoggers :: Maybe FilePath -> IO (String -> IO (), String -> IO ())
@@ -272,9 +281,9 @@ getParserContext = Optparse.Context
 splitStringOn :: Char -> String -> [String]
 splitStringOn sep = filter (/= [sep]) . groupBy (\a b -> a /= sep && b /= sep)
 
-getMetrics :: Optparse.Context -> Maybe FilePath -> Maybe String -> IO (Either String ProgramMetrics)
-getMetrics parserContext phi bindingsPath = do
-  program <- getProgram parserContext phi
+getMetrics :: Maybe FilePath -> Maybe String -> IO ProgramMetrics
+getMetrics phi bindingsPath = do
+  program <- getProgram phi
   let metrics = getProgramMetrics (splitStringOn '.' <$> bindingsPath) program
   case metrics of
     Left path' ->
@@ -284,21 +293,22 @@ getMetrics parserContext phi bindingsPath = do
               bindingsPath' = optionName.bindingsPath
               path'' = metavarName.path
              in
-              pure $
-                Left
-                  [iii|
-                    Impossible happened!
-                    The option #{bindingsPath'} was not specified yet there were errors finding attributes by #{path''}.
-                  |]
-          Just bindingsPath' ->
-            pure $
-              Left
+              throwCLIException
                 [iii|
-                  Could not find bindings at path '#{bindingsPath'}'
-                  because an object at '#{intercalate "." path'}' is not a formation.
+                  Impossible happened!
+                  The option #{bindingsPath'} was not specified yet there were errors finding attributes by #{path''}.
                 |]
+          Just bindingsPath' ->
+            throwCLIException
+              [iii|
+                Could not find bindings at path '#{bindingsPath'}'
+                because an object at '#{intercalate "." path'}' is not a formation.
+              |]
       )
-    Right metrics' -> pure (Right metrics')
+    Right metrics' -> pure metrics'
+
+mkOrDie :: Optparse.Context -> IO a -> IO a
+mkOrDie parserContext f = f `catch` (\(e :: SomeException) -> die parserContext e)
 
 main :: IO ()
 main = do
@@ -308,17 +318,15 @@ main = do
         x -> printTree x
   case opts of
     CLI'MetricsPhi' CLI'MetricsPhi{..} -> do
-      let parserContext = getParserContext commandNames.metrics commandParserInfo.metrics
-      (logStrLn, _) <- getLoggers outputFile
-      metrics <- getMetrics parserContext inputFile bindingsPath
-      case metrics of
-        Left err -> die parserContext err
-        Right metrics' -> logStrLn $ encodeToJSONString metrics'
+      let orDie = mkOrDie $ getParserContext commandNames.metrics commandParserInfo.metrics
+      (logStrLn, _) <- getLoggers outputFile & orDie
+      metrics <- getMetrics inputFile bindingsPath & orDie
+      logStrLn $ encodeToJSONString metrics
     CLI'TransformPhi' CLI'TransformPhi{..} -> do
-      let parserContext = getParserContext commandNames.transform commandParserInfo.transform
-      program' <- getProgram parserContext inputFile
+      let orDie = mkOrDie $ getParserContext commandNames.transform commandParserInfo.transform
+      program' <- getProgram inputFile & orDie
       (logStrLn, logStr) <- getLoggers outputFile
-      ruleSet <- parseRuleSetFromFile rulesPath
+      ruleSet <- parseRuleSetFromFile rulesPath & orDie
       unless (single || json) $ logStrLn ruleSet.title
       let Program bindings = program'
           uniqueResults
@@ -328,7 +336,10 @@ main = do
             limits = ApplicationLimits maxDepth (maxGrowthFactor * objectSize (Formation bindings))
             ctx = defaultContext (convertRule <$> ruleSet.rules) (Formation bindings)
           totalResults = length uniqueResults
-      when (null uniqueResults || null (head uniqueResults)) $ die parserContext [i|Could not normalize the program.|]
+      when (null uniqueResults || null (head uniqueResults)) (throw (CLIException [i|Could not normalize the program.|]) & orDie)
+      let printAsProgramOrAsObject = \case
+            Formation bindings' -> printTree $ Program bindings'
+            x -> printTree x
       if
         | single && json ->
             logStrLn
@@ -360,8 +371,7 @@ main = do
               logStrLn "----------------------------------------------------"
     CLI'DataizePhi' CLI'DataizePhi{..} -> do
       (logStrLn, _logStr) <- getLoggers outputFile
-      let parserContext = Optparse.Context commandNames.dataize commandParserInfo.dataize
-      program' <- getProgram parserContext inputFile
+      program' <- getProgram inputFile
       ruleSet <- parseRuleSetFromFile rulesPath
       let (Program bindings) = program'
       let inputObject = Formation bindings
