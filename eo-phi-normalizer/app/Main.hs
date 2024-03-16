@@ -212,6 +212,9 @@ getLoggers outputFile = do
     , \x -> hPutStr handle x >> hFlush handle
     )
 
+getParserContext :: String -> ParserInfo a -> Optparse.Context
+getParserContext = Optparse.Context
+
 -- >>> splitStringOn '.' "abra.cada.bra"
 -- ["abra","cada","bra"]
 --
@@ -228,7 +231,7 @@ main = do
         x -> printTree x
   case opts of
     CLI'MetricsPhi' CLI'MetricsPhi{..} -> do
-      let parserContext = Optparse.Context commandNames.metrics commandParserInfo.metrics
+      let parserContext = getParserContext commandNames.metrics commandParserInfo.metrics
       program <- getProgram parserContext inputFile
       (logStrLn, _) <- getLoggers outputFile
       let path = splitStringOn '.' (fromMaybe "" programPath)
@@ -244,7 +247,7 @@ main = do
         Right metrics' -> do
           logStrLn $ encodeToJSONString metrics'
     CLI'TransformPhi' CLI'TransformPhi{..} -> do
-      let parserContext = Optparse.Context commandNames.transform commandParserInfo.transform
+      let parserContext = getParserContext commandNames.transform commandParserInfo.transform
       program' <- getProgram parserContext inputFile
       (logStrLn, logStr) <- getLoggers outputFile
       ruleSet <- parseRuleSetFromFile rulesPath
