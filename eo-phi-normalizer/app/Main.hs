@@ -129,30 +129,42 @@ cliMetricsPhiParser = do
   programPath <- programPathOption
   pure CLI'MetricsPhi{..}
 
-metricsParserInfo :: ParserInfo CLI
-metricsParserInfo = info (CLI'MetricsPhi' <$> cliMetricsPhiParser) (progDesc "Collect metrics for a PHI program.")
+data CommandParserInfo = CommandParserInfo
+  { metrics :: ParserInfo CLI
+  , transform :: ParserInfo CLI
+  , dataize :: ParserInfo CLI
+  }
 
-transformParserInfo :: ParserInfo CLI
-transformParserInfo = info (CLI'TransformPhi' <$> cliTransformPhiParser) (progDesc "Transform a PHI program.")
+commandParserInfo :: CommandParserInfo
+commandParserInfo =
+  CommandParserInfo
+    { metrics = mkParserInfo "Collect metrics for a PHI program."
+    , transform = mkParserInfo "Transform a PHI program."
+    , dataize = mkParserInfo "Dataize a PHI program."
+    }
+ where
+  mkParserInfo desc = info (CLI'MetricsPhi' <$> cliMetricsPhiParser) (progDesc desc)
 
-dataizeParserInfo :: ParserInfo CLI
-dataizeParserInfo = info (CLI'DataizePhi' <$> cliDataizePhiParser) (progDesc "Dataize a PHI program.")
+data CommandNames = CommandNames
+  { transform :: String
+  , metrics :: String
+  , dataize :: String
+  }
 
-transformCommandName :: String
-transformCommandName = "transform"
-
-metricsCommandName :: String
-metricsCommandName = "metrics"
-
-dataizeCommandName :: String
-dataizeCommandName = "dataize"
+commandNames :: CommandNames
+commandNames =
+  CommandNames
+    { transform = "transform"
+    , metrics = "metrics"
+    , dataize = "dataize"
+    }
 
 cli :: Parser CLI
 cli =
   hsubparser
-    ( command transformCommandName transformParserInfo
-        <> command metricsCommandName metricsParserInfo
-        <> command dataizeCommandName dataizeParserInfo
+    ( command commandNames.transform commandParserInfo.transform
+        <> command commandNames.metrics commandParserInfo.metrics
+        <> command commandNames.dataize commandParserInfo.dataize
     )
 
 cliOpts :: ParserInfo CLI
@@ -216,7 +228,7 @@ main = do
         x -> printTree x
   case opts of
     CLI'MetricsPhi' CLI'MetricsPhi{..} -> do
-      let parserContext = Optparse.Context metricsCommandName metricsParserInfo
+      let parserContext = Optparse.Context commandNames.metrics commandParserInfo.metrics
       program <- getProgram parserContext inputFile
       (logStrLn, _) <- getLoggers outputFile
       let path = splitStringOn '.' (fromMaybe "" programPath)
@@ -232,7 +244,7 @@ main = do
         Right metrics' -> do
           logStrLn $ encodeToJSONString metrics'
     CLI'TransformPhi' CLI'TransformPhi{..} -> do
-      let parserContext = Optparse.Context transformCommandName transformParserInfo
+      let parserContext = Optparse.Context commandNames.transform commandParserInfo.transform
       program' <- getProgram parserContext inputFile
       (logStrLn, logStr) <- getLoggers outputFile
       ruleSet <- parseRuleSetFromFile rulesPath
@@ -277,7 +289,7 @@ main = do
               logStrLn "----------------------------------------------------"
     CLI'DataizePhi' CLI'DataizePhi{..} -> do
       (logStrLn, _logStr) <- getLoggers outputFile
-      let parserContext = Optparse.Context dataizeCommandName dataizeParserInfo
+      let parserContext = Optparse.Context commandNames.dataize commandParserInfo.dataize
       program' <- getProgram parserContext inputFile
       ruleSet <- parseRuleSetFromFile rulesPath
       let (Program bindings) = program'
