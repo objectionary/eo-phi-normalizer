@@ -122,7 +122,7 @@ data BindingsByPathMetrics = BindingsByPathMetrics
   deriving (Show, Generic, FromJSON, ToJSON, Eq)
 
 data ObjectMetrics = ObjectMetrics
-  { bindingsByPathMetrics :: BindingsByPathMetrics
+  { bindingsByPathMetrics :: Maybe BindingsByPathMetrics
   , thisObjectMetrics :: Metrics
   }
   deriving (Show, Generic, FromJSON, ToJSON, Eq)
@@ -220,19 +220,19 @@ getBindingsByPathMetrics path obj =
 -- Combine metrics produced by 'getThisObjectMetrics' and 'getBindingsByPathMetrics'.
 --
 -- If no formation is accessible by the path, return a prefix of the path that led to a non-formation when the remaining path wasn't empty.
--- >>> getObjectMetrics ["a"] "⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧.e ⟧"
+-- >>> getObjectMetrics (Just ["a"]) "⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧.e ⟧"
 -- Left ["a"]
 --
--- >>> getObjectMetrics ["a"] "⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧ ⟧"
--- Right (ObjectMetrics {bindingsByPathMetrics = BindingsByPathMetrics {path = ["a"], bindingsMetrics = [BindingMetrics {name = "b", metrics = Metrics {dataless = 0, applications = 0, formations = 2, dispatches = 2}},BindingMetrics {name = "e", metrics = Metrics {dataless = 1, applications = 1, formations = 1, dispatches = 2}}]}, thisObjectMetrics = Metrics {dataless = 1, applications = 1, formations = 5, dispatches = 4}})
-getObjectMetrics :: Path -> Object -> Either Path ObjectMetrics
+-- >>> getObjectMetrics (Just ["a"]) "⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧ ⟧"
+-- Right (ObjectMetrics {bindingsByPathMetrics = Just (BindingsByPathMetrics {path = ["a"], bindingsMetrics = [BindingMetrics {name = "b", metrics = Metrics {dataless = 0, applications = 0, formations = 2, dispatches = 2}},BindingMetrics {name = "e", metrics = Metrics {dataless = 1, applications = 1, formations = 1, dispatches = 2}}]}), thisObjectMetrics = Metrics {dataless = 1, applications = 1, formations = 5, dispatches = 4}})
+getObjectMetrics :: Maybe Path -> Object -> Either Path ObjectMetrics
 getObjectMetrics path obj = do
   let thisObjectMetrics = getThisObjectMetrics obj
-  bindingsByPathMetrics <- getBindingsByPathMetrics path obj
+  bindingsByPathMetrics <- forM path $ \path' -> getBindingsByPathMetrics path' obj
   pure ObjectMetrics{..}
 
 data ProgramMetrics = ProgramMetrics
-  { bindingsByPathMetrics :: BindingsByPathMetrics
+  { bindingsByPathMetrics :: Maybe BindingsByPathMetrics
   , programMetrics :: Metrics
   }
   deriving (Show, Generic, FromJSON, ToJSON, Eq)
@@ -241,14 +241,16 @@ data ProgramMetrics = ProgramMetrics
 --
 -- Combine metrics produced by 'getThisObjectMetrics' and 'getBindingsByPathMetrics'.
 --
--- >>> getProgramMetrics ["org", "eolang"] "{⟦ org ↦ ⟦ eolang ↦ ⟦ x ↦ ⟦ φ ↦ Φ.org.eolang.bool ( α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-) ) ⟧, z ↦ ⟦ y ↦ ⟦ x ↦ ∅, φ ↦ ξ.x ⟧, φ ↦ Φ.org.eolang.bool ( α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-) ) ⟧, λ ⤍ Package ⟧, λ ⤍ Package ⟧⟧ }"
--- Right (ProgramMetrics {bindingsByPathMetrics = BindingsByPathMetrics {path = ["org","eolang"], bindingsMetrics = [BindingMetrics {name = "x", metrics = Metrics {dataless = 0, applications = 2, formations = 1, dispatches = 6}},BindingMetrics {name = "z", metrics = Metrics {dataless = 0, applications = 2, formations = 2, dispatches = 7}}]}, programMetrics = Metrics {dataless = 0, applications = 4, formations = 6, dispatches = 13}})
---
 -- If no formation is accessible by the path, return a prefix of the path that led to a non-formation when the remaining path wasn't empty.
+-- >>> getProgramMetrics (Just ["org", "eolang"]) "{⟦ org ↦ ⟦ eolang ↦ ⟦ x ↦ ⟦ φ ↦ Φ.org.eolang.bool ( α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-) ) ⟧, z ↦ ⟦ y ↦ ⟦ x ↦ ∅, φ ↦ ξ.x ⟧, φ ↦ Φ.org.eolang.bool ( α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-) ) ⟧, λ ⤍ Package ⟧, λ ⤍ Package ⟧⟧ }"
+-- Right (ProgramMetrics {bindingsByPathMetrics = Just (BindingsByPathMetrics {path = ["org","eolang"], bindingsMetrics = [BindingMetrics {name = "x", metrics = Metrics {dataless = 0, applications = 2, formations = 1, dispatches = 6}},BindingMetrics {name = "z", metrics = Metrics {dataless = 0, applications = 2, formations = 2, dispatches = 7}}]}), programMetrics = Metrics {dataless = 0, applications = 4, formations = 6, dispatches = 13}})
 --
--- >>> getProgramMetrics ["a"] "{⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧.e ⟧}"
+-- >>> getProgramMetrics (Just ["a"]) "{⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧.e ⟧}"
 -- Left ["a"]
-getProgramMetrics :: Path -> Program -> Either Path ProgramMetrics
+--
+-- >>> getProgramMetrics (Just ["a"]) "{⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧ ⟧}"
+-- Right (ProgramMetrics {bindingsByPathMetrics = Just (BindingsByPathMetrics {path = ["a"], bindingsMetrics = [BindingMetrics {name = "b", metrics = Metrics {dataless = 0, applications = 0, formations = 2, dispatches = 2}},BindingMetrics {name = "e", metrics = Metrics {dataless = 1, applications = 1, formations = 1, dispatches = 2}}]}), programMetrics = Metrics {dataless = 1, applications = 1, formations = 5, dispatches = 4}})
+getProgramMetrics :: Maybe Path -> Program -> Either Path ProgramMetrics
 getProgramMetrics path (Program bindings) = do
   ObjectMetrics{..} <- getObjectMetrics path (Formation bindings)
   pure ProgramMetrics{programMetrics = thisObjectMetrics, ..}
