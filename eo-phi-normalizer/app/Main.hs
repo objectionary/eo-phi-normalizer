@@ -26,7 +26,7 @@ module Main (main) where
 import Control.Monad (unless, when)
 import Data.Foldable (forM_)
 
-import Control.Exception (Exception (..), SomeException, throw)
+import Control.Exception (Exception (..), catch, throw, SomeException)
 import Control.Exception qualified as Exception (handle)
 import Control.Lens ((^.))
 import Data.Aeson (ToJSON)
@@ -247,7 +247,8 @@ die parserContext exception = do
 data CLI'Exception
   = NotAFormation {path :: String, bindingsPath :: String}
   | FileDoesNotExist {file :: FilePath}
-  | ParsingProgram {message :: String}
+  | CouldNotRead {message :: String}
+  | CouldNotParse {message :: String}
   | CouldNotNormalize
   | Impossible {message :: String}
   deriving anyclass (Exception)
@@ -257,7 +258,8 @@ instance Show CLI'Exception where
   show = \case
     NotAFormation{..} -> [i|Could not find bindings at path '#{bindingsPath}' because an object at '#{path}' is not a formation.|]
     FileDoesNotExist{..} -> [i|File '#{file}' does not exist.|]
-    ParsingProgram{..} -> [i|An error occurred when parsing the input program:\n#{message}|]
+    CouldNotRead{..} -> [i|Could not read the program:\n#{message}|]
+    CouldNotParse{..} -> [i|An error occurred when parsing the input program:\n#{message}|]
     CouldNotNormalize -> [i|Could not normalize the program.|]
     Impossible{..} -> message
 
@@ -275,9 +277,9 @@ getFile = \case
 getProgram :: Maybe FilePath -> IO Program
 getProgram inputFile = do
   inputFile' <- getFile inputFile
-  src <- maybe getContents' readFile inputFile'
+  src <- maybe getContents' readFile inputFile' `catch` (throw . CouldNotRead . show @SomeException)
   case parseProgram src of
-    Left err -> throw $ ParsingProgram err
+    Left err -> throw $ CouldNotParse err
     Right program -> pure program
 
 getLoggers :: Maybe FilePath -> IO (String -> IO (), String -> IO ())
