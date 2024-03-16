@@ -27,7 +27,6 @@ import Control.Lens ((^.))
 import Data.Aeson (ToJSON)
 import Data.Aeson.Encode.Pretty (Config (..), Indent (..), defConfig, encodePrettyToTextBuilder')
 import Data.List (groupBy, intercalate)
-import Data.Maybe (fromMaybe)
 import Data.String.Interpolate (i, iii)
 import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy.Lens
@@ -66,7 +65,9 @@ data CLI'DataizePhi = CLI'DataizePhi
 data CLI'MetricsPhi = CLI'MetricsPhi
   { inputFile :: Maybe FilePath
   , outputFile :: Maybe FilePath
-  , programPath :: Maybe String
+  , bindingsPath :: Maybe String
+  }
+  deriving (Show)
   }
   deriving (Show)
 
@@ -116,18 +117,18 @@ inputFileArg = optional $ strArgument (metavar.file <> help [i|#{fileMetavarName
 jsonSwitch :: Parser Bool
 jsonSwitch = switch (long "json" <> short 'j' <> help "Output JSON.")
 
-programPathOption :: Parser (Maybe String)
-programPathOption =
+bindingsPathOption :: Parser (Maybe String)
+bindingsPathOption =
   optional $
     strOption
-      ( long "bindings-by-path"
+      ( long "bindings-path"
           <> short 'b'
           <> metavar.path
           <> help
             let path' = metavarName.path
              in [iii|
                   Report metrics for bindings of a formation accessible in a program by the #{path'}.
-                  The default #{path'} is empty.
+                  When this option is not specified, metrics for bindings are not reported.
                   Example of a #{path'}: 'org.eolang'.
                 |]
       )
@@ -145,8 +146,9 @@ commandParser =
   metrics = do
     inputFile <- inputFileArg
     outputFile <- outputFileOption
-    programPath <- programPathOption
+    bindingsPath <- bindingsPathOption
     pure CLI'MetricsPhi{..}
+
   transform = do
     rulesPath <-
       let file' = metavarName.file
@@ -273,16 +275,19 @@ main = do
       let parserContext = getParserContext commandNames.metrics commandParserInfo.metrics
       program <- getProgram parserContext inputFile
       (logStrLn, _) <- getLoggers outputFile
-      let path = splitStringOn '.' (fromMaybe "" programPath)
-          metrics = getProgramMetrics path program
+      let metrics = getProgramMetrics (splitStringOn '.' <$> bindingsPath) program
       case metrics of
         Left path' ->
           die
             parserContext
-            [iii|
-              Could not find bindings at path '#{intercalate "." path}'
-              because an object at '#{intercalate "." path'}' is not a formation.
-            |]
+            ( case bindingsPath of
+                Nothing -> [i|Impossible happened. #{bindingsPath} is #{Nothing :: Maybe [String]}|]
+                Just bindingsPath' ->
+                  [iii|
+                    Could not find bindings at path '#{bindingsPath'}'
+                    because an object at '#{intercalate "." path'}' is not a formation.
+                  |]
+            )
         Right metrics' -> do
           logStrLn $ encodeToJSONString metrics'
     CLI'TransformPhi' CLI'TransformPhi{..} -> do
