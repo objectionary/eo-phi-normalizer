@@ -26,8 +26,7 @@ module Main (main) where
 import Control.Monad (unless, when)
 import Data.Foldable (forM_)
 
-import Control.Exception (Exception (..), catch, throw, SomeException)
-import Control.Exception qualified as Exception (handle)
+import Control.Exception (Exception (..), SomeException, catch, throw)
 import Control.Lens ((^.))
 import Data.Aeson (ToJSON)
 import Data.Aeson.Encode.Pretty (Config (..), Indent (..), defConfig, encodePrettyToTextBuilder')
@@ -43,7 +42,6 @@ import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), appl
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRule, parseRuleSetFromFile)
 import Options.Applicative hiding (metavar)
 import Options.Applicative qualified as Optparse (metavar)
-import Options.Applicative.Types qualified as Optparse (Context (..))
 import System.Directory (doesFileExist)
 import System.IO (IOMode (WriteMode), getContents', hFlush, hPutStr, hPutStrLn, openFile, stdout)
 
@@ -239,11 +237,6 @@ encodeToJSONString = (^. unpacked) . toLazyText . encodePrettyToTextBuilder' def
 pprefs :: ParserPrefs
 pprefs = prefs (showHelpOnEmpty <> showHelpOnError)
 
-die :: (Exception e) => Optparse.Context -> e -> IO a
-die parserContext exception = do
-  handleParseResult . Failure $
-    parserFailure pprefs cliOpts (ErrorMsg (show exception)) [parserContext]
-
 data CLI'Exception
   = NotAFormation {path :: String, bindingsPath :: String}
   | FileDoesNotExist {file :: FilePath}
@@ -262,9 +255,6 @@ instance Show CLI'Exception where
     CouldNotParse{..} -> [i|An error occurred when parsing the input program:\n#{message}|]
     CouldNotNormalize -> [i|Could not normalize the program.|]
     Impossible{..} -> message
-
-handle' :: Optparse.Context -> IO a -> IO a
-handle' parserContext = Exception.handle (\(e :: SomeException) -> die parserContext e)
 
 getFile :: Maybe FilePath -> IO (Maybe String)
 getFile = \case
@@ -289,9 +279,6 @@ getLoggers outputFile = do
     ( \x -> hPutStrLn handle x >> hFlush handle
     , \x -> hPutStr handle x >> hFlush handle
     )
-
-getParserContext :: String -> ParserInfo a -> Optparse.Context
-getParserContext = Optparse.Context
 
 -- >>> splitStringOn '.' "abra.cada.bra"
 -- ["abra","cada","bra"]
@@ -336,58 +323,56 @@ main = do
         Formation bindings' -> printTree $ Program bindings'
         x -> printTree x
   case opts of
-    CLI'MetricsPhi' CLI'MetricsPhi{..} ->
-      handle' (getParserContext commandNames.metrics commandParserInfo.metrics) do
-        (logStrLn, _) <- getLoggers outputFile
-        metrics <- getMetrics bindingsPath inputFile
-        logStrLn $ encodeToJSONString metrics
-    CLI'TransformPhi' CLI'TransformPhi{..} ->
-      handle' (getParserContext commandNames.transform commandParserInfo.transform) do
-        program' <- getProgram inputFile
-        (logStrLn, logStr) <- getLoggers outputFile
-        ruleSet <- parseRuleSetFromFile rulesPath
-        unless (single || json) $ logStrLn ruleSet.title
-        let Program bindings = program'
-            uniqueResults
-              | chain = applyRulesChainWith limits ctx (Formation bindings)
-              | otherwise = pure <$> applyRulesWith limits ctx (Formation bindings)
-             where
-              limits = ApplicationLimits maxDepth (maxGrowthFactor * objectSize (Formation bindings))
-              ctx = defaultContext (convertRule <$> ruleSet.rules) (Formation bindings)
-            totalResults = length uniqueResults
-        when (null uniqueResults || null (head uniqueResults)) (throw CouldNotNormalize)
-        let printAsProgramOrAsObject = \case
-              Formation bindings' -> printTree $ Program bindings'
-              x -> printTree x
-        if
-          | single && json ->
-              logStrLn
-                . encodeToJSONString
-                . printAsProgramOrAsObject
-                $ head (head uniqueResults)
-          | single ->
-              logStrLn
-                . printAsProgramOrAsObject
-                $ head (head uniqueResults)
-          | json ->
-              logStrLn . encodeToJSONString $
-                StructuredJSON
-                  { input = printTree program'
-                  , output = (printAsProgramOrAsObject <$>) <$> uniqueResults
-                  }
-          | otherwise -> do
-              logStrLn "Input:"
-              logStrLn (printTree program')
-              logStrLn "===================================================="
-              forM_ (zip [1 ..] uniqueResults) $ \(index, steps) -> do
-                logStrLn $
-                  "Result " <> show index <> " out of " <> show totalResults <> ":"
-                let n = length steps
-                forM_ (zip [1 ..] steps) $ \(k, step) -> do
-                  when chain $
-                    logStr ("[ " <> show k <> " / " <> show n <> " ]")
-                  logStrLn . printAsProgramOrAsObject $ step
-                logStrLn "----------------------------------------------------"
+    CLI'MetricsPhi' CLI'MetricsPhi{..} -> do
+      (logStrLn, _) <- getLoggers outputFile
+      metrics <- getMetrics bindingsPath inputFile
+      logStrLn $ encodeToJSONString metrics
+    CLI'TransformPhi' CLI'TransformPhi{..} -> do
+      program' <- getProgram inputFile
+      (logStrLn, logStr) <- getLoggers outputFile
+      ruleSet <- parseRuleSetFromFile rulesPath
+      unless (single || json) $ logStrLn ruleSet.title
+      let Program bindings = program'
+          uniqueResults
+            | chain = applyRulesChainWith limits ctx (Formation bindings)
+            | otherwise = pure <$> applyRulesWith limits ctx (Formation bindings)
+           where
+            limits = ApplicationLimits maxDepth (maxGrowthFactor * objectSize (Formation bindings))
+            ctx = defaultContext (convertRule <$> ruleSet.rules) (Formation bindings)
+          totalResults = length uniqueResults
+      when (null uniqueResults || null (head uniqueResults)) (throw CouldNotNormalize)
+      let printAsProgramOrAsObject = \case
+            Formation bindings' -> printTree $ Program bindings'
+            x -> printTree x
+      if
+        | single && json ->
+            logStrLn
+              . encodeToJSONString
+              . printAsProgramOrAsObject
+              $ head (head uniqueResults)
+        | single ->
+            logStrLn
+              . printAsProgramOrAsObject
+              $ head (head uniqueResults)
+        | json ->
+            logStrLn . encodeToJSONString $
+              StructuredJSON
+                { input = printTree program'
+                , output = (printAsProgramOrAsObject <$>) <$> uniqueResults
+                }
+        | otherwise -> do
+            logStrLn "Input:"
+            logStrLn (printTree program')
+            logStrLn "===================================================="
+            forM_ (zip [1 ..] uniqueResults) $ \(index, steps) -> do
+              logStrLn $
+                "Result " <> show index <> " out of " <> show totalResults <> ":"
+              let n = length steps
+              forM_ (zip [1 ..] steps) $ \(k, step) -> do
+                when chain $
+                  logStr ("[ " <> show k <> " / " <> show n <> " ]")
+                logStrLn . printAsProgramOrAsObject $ step
+              logStrLn "----------------------------------------------------"
     CLI'DataizePhi' CLI'DataizePhi{..} -> do
       (logStrLn, _logStr) <- getLoggers outputFile
       program' <- getProgram inputFile
