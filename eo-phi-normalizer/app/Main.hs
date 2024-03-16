@@ -1,4 +1,5 @@
 {-# LANGUAGE ApplicativeDo #-}
+{-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveAnyClass #-}
@@ -35,6 +36,7 @@ import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), appl
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRule, parseRuleSetFromFile)
 import Options.Applicative
 import Options.Applicative.Types qualified as Optparse (Context (..))
+import System.Directory (doesFileExist)
 import System.IO (IOMode (WriteMode), getContents', hFlush, hPutStr, hPutStrLn, openFile, stdout)
 
 data CLI'TransformPhi = CLI'TransformPhi
@@ -176,8 +178,15 @@ die parserContext message = do
   handleParseResult . Failure $
     parserFailure pprefs cliOpts (ErrorMsg message) [parserContext]
 
+checkFileExists :: Optparse.Context -> Maybe FilePath -> IO ()
+checkFileExists parserContext inputFile = do
+  forM_ inputFile $ \file -> do
+    exists <- doesFileExist file
+    unless exists $ die parserContext [i|File '#{file}' does not exist.|]
+
 getProgram :: Optparse.Context -> Maybe FilePath -> IO Program
 getProgram parserContext inputFile = do
+  checkFileExists parserContext inputFile
   src <- maybe getContents' readFile inputFile
   case parseProgram src of
     Left err -> die parserContext [i|An error occurred when parsing the input program: #{err}|]
