@@ -4,7 +4,9 @@
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiWayIf #-}
 {-# LANGUAGE OverloadedLabels #-}
@@ -16,6 +18,7 @@
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TypeApplications #-}
+{-# OPTIONS_GHC -Wno-partial-fields #-}
 {-# OPTIONS_GHC -Wno-type-defaults #-}
 
 module Main (main) where
@@ -23,7 +26,7 @@ module Main (main) where
 import Control.Monad (unless, when)
 import Data.Foldable (forM_)
 
-import Control.Exception (Exception, SomeException, throw)
+import Control.Exception (Exception (..), SomeException, throw)
 import Control.Exception qualified as Exception (handle)
 import Control.Lens ((^.))
 import Data.Aeson (ToJSON)
@@ -241,10 +244,22 @@ die parserContext exception = do
   handleParseResult . Failure $
     parserFailure pprefs cliOpts (ErrorMsg (show exception)) [parserContext]
 
-newtype CLIException = CLIException String deriving (Show, Exception)
+data CLI'Exception
+  = NotAFormation {path :: String, bindingsPath :: String}
+  | FileDoesNotExist {file :: FilePath}
+  | ParsingProgram {message :: String}
+  | CouldNotNormalize
+  | Impossible {message :: String}
+  deriving anyclass (Exception)
 
-throw' :: String -> IO a
-throw' = throw . CLIException
+instance Show CLI'Exception where
+  show :: CLI'Exception -> String
+  show = \case
+    NotAFormation{..} -> [i|Could not find bindings at path '#{bindingsPath}' because an object at '#{path}' is not a formation.|]
+    FileDoesNotExist{..} -> [i|File '#{file}' does not exist.|]
+    ParsingProgram{..} -> [i|An error occurred when parsing the input program:\n#{message}|]
+    CouldNotNormalize -> [i|Could not normalize the program.|]
+    Impossible{..} -> message
 
 handle' :: Optparse.Context -> IO a -> IO a
 handle' parserContext = Exception.handle (\(e :: SomeException) -> die parserContext e)
@@ -255,14 +270,14 @@ getFile = \case
   Just file' ->
     doesFileExist file' >>= \case
       True -> pure (Just file')
-      False -> throw' [i|File '#{file'}' does not exist.|]
+      False -> throw $ FileDoesNotExist file'
 
 getProgram :: Maybe FilePath -> IO Program
 getProgram inputFile = do
   inputFile' <- getFile inputFile
   src <- maybe getContents' readFile inputFile'
   case parseProgram src of
-    Left err -> throw' [i|An error occurred when parsing the input program: #{err}|]
+    Left err -> throw $ ParsingProgram err
     Right program -> pure program
 
 getLoggers :: Maybe FilePath -> IO (String -> IO (), String -> IO ())
@@ -286,35 +301,31 @@ splitStringOn sep = filter (/= [sep]) . groupBy (\a b -> a /= sep && b /= sep)
 
 -- >>> flip getMetrics' (Just "a.b") "{⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧ ⟧}"
 -- Right (ProgramMetrics {bindingsByPathMetrics = Just (BindingsByPathMetrics {path = ["a","b"], bindingsMetrics = [BindingMetrics {name = "d", metrics = Metrics {dataless = 0, applications = 0, formations = 1, dispatches = 2}}]}), programMetrics = Metrics {dataless = 1, applications = 1, formations = 5, dispatches = 4}})
-getMetrics' :: Program -> Maybe String -> Either String ProgramMetrics
+getMetrics' :: Program -> Maybe String -> Either CLI'Exception ProgramMetrics
 getMetrics' program bindingsPath = do
   let metrics = getProgramMetrics program (splitStringOn '.' <$> bindingsPath)
   case metrics of
-    Left path' ->
+    Left path ->
       ( case bindingsPath of
           Nothing ->
             let
               bindingsPath' = optionName.bindingsPath
-              path'' = metavarName.path
+              path' = metavarName.path
              in
-              Left
-                [iii|
-                  Impossible happened!
-                  The option #{bindingsPath'} was not specified yet there were errors finding attributes by #{path''}.
-                |]
-          Just bindingsPath' ->
-            Left
-              [iii|
-                Could not find bindings at path '#{bindingsPath'}'
-                because an object at '#{intercalate "." path'}' is not a formation.
-              |]
+              Left $
+                Impossible
+                  [iii|
+                    Impossible happened!
+                    The option #{bindingsPath'} was not specified yet there were errors finding attributes by #{path'}.
+                  |]
+          Just bindingsPath' -> Left $ NotAFormation (intercalate "." path) bindingsPath'
       )
     Right metrics' -> pure metrics'
 
 getMetrics :: Maybe String -> Maybe FilePath -> IO ProgramMetrics
 getMetrics bindingsPath inputFile = do
   program <- getProgram inputFile
-  either throw' pure (getMetrics' program bindingsPath)
+  either throw pure (getMetrics' program bindingsPath)
 
 main :: IO ()
 main = do
@@ -342,7 +353,7 @@ main = do
               limits = ApplicationLimits maxDepth (maxGrowthFactor * objectSize (Formation bindings))
               ctx = defaultContext (convertRule <$> ruleSet.rules) (Formation bindings)
             totalResults = length uniqueResults
-        when (null uniqueResults || null (head uniqueResults)) (throw' [i|Could not normalize the program.|])
+        when (null uniqueResults || null (head uniqueResults)) (throw CouldNotNormalize)
         let printAsProgramOrAsObject = \case
               Formation bindings' -> printTree $ Program bindings'
               x -> printTree x
