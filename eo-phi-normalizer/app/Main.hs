@@ -33,7 +33,7 @@ import Data.Text.Lazy.Lens
 import GHC.Generics (Generic)
 import Language.EO.Phi (Bytes (Bytes), Object (Formation), Program (Program), parseProgram, printTree)
 import Language.EO.Phi.Dataize (dataizeRecursively, dataizeStep)
-import Language.EO.Phi.Metrics (getProgramMetrics)
+import Language.EO.Phi.Metrics (ProgramMetrics, getProgramMetrics)
 import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), applyRulesChainWith, applyRulesWith, defaultContext, objectSize)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRule, parseRuleSetFromFile)
 import Options.Applicative hiding (metavar)
@@ -66,8 +66,6 @@ data CLI'MetricsPhi = CLI'MetricsPhi
   { inputFile :: Maybe FilePath
   , outputFile :: Maybe FilePath
   , bindingsPath :: Maybe String
-  }
-  deriving (Show)
   }
   deriving (Show)
 
@@ -108,6 +106,16 @@ metavar =
     , path = Optparse.metavar metavarName.path
     }
 
+newtype OptionName = OptionName
+  { bindingsPath :: String
+  }
+
+optionName :: OptionName
+optionName =
+  OptionName
+    { bindingsPath = "bindings-path"
+    }
+
 outputFileOption :: Parser (Maybe String)
 outputFileOption = optional $ strOption (long "output-file" <> short 'o' <> metavar.file <> help [i|Output to #{fileMetavarName}. When this option is not specified, output to stdout.|])
 
@@ -121,7 +129,7 @@ bindingsPathOption :: Parser (Maybe String)
 bindingsPathOption =
   optional $
     strOption
-      ( long "bindings-path"
+      ( long optionName.bindingsPath
           <> short 'b'
           <> metavar.path
           <> help
@@ -264,6 +272,34 @@ getParserContext = Optparse.Context
 splitStringOn :: Char -> String -> [String]
 splitStringOn sep = filter (/= [sep]) . groupBy (\a b -> a /= sep && b /= sep)
 
+getMetrics :: Optparse.Context -> Maybe FilePath -> Maybe String -> IO (Either String ProgramMetrics)
+getMetrics parserContext phi bindingsPath = do
+  program <- getProgram parserContext phi
+  let metrics = getProgramMetrics (splitStringOn '.' <$> bindingsPath) program
+  case metrics of
+    Left path' ->
+      ( case bindingsPath of
+          Nothing ->
+            let
+              bindingsPath' = optionName.bindingsPath
+              path'' = metavarName.path
+             in
+              pure $
+                Left
+                  [iii|
+                    Impossible happened!
+                    The option #{bindingsPath'} was not specified yet there were errors finding attributes by #{path''}.
+                  |]
+          Just bindingsPath' ->
+            pure $
+              Left
+                [iii|
+                  Could not find bindings at path '#{bindingsPath'}'
+                  because an object at '#{intercalate "." path'}' is not a formation.
+                |]
+      )
+    Right metrics' -> pure (Right metrics')
+
 main :: IO ()
 main = do
   opts <- customExecParser pprefs cliOpts
@@ -273,23 +309,11 @@ main = do
   case opts of
     CLI'MetricsPhi' CLI'MetricsPhi{..} -> do
       let parserContext = getParserContext commandNames.metrics commandParserInfo.metrics
-      program <- getProgram parserContext inputFile
       (logStrLn, _) <- getLoggers outputFile
-      let metrics = getProgramMetrics (splitStringOn '.' <$> bindingsPath) program
+      metrics <- getMetrics parserContext inputFile bindingsPath
       case metrics of
-        Left path' ->
-          die
-            parserContext
-            ( case bindingsPath of
-                Nothing -> [i|Impossible happened. #{bindingsPath} is #{Nothing :: Maybe [String]}|]
-                Just bindingsPath' ->
-                  [iii|
-                    Could not find bindings at path '#{bindingsPath'}'
-                    because an object at '#{intercalate "." path'}' is not a formation.
-                  |]
-            )
-        Right metrics' -> do
-          logStrLn $ encodeToJSONString metrics'
+        Left err -> die parserContext err
+        Right metrics' -> logStrLn $ encodeToJSONString metrics'
     CLI'TransformPhi' CLI'TransformPhi{..} -> do
       let parserContext = getParserContext commandNames.transform commandParserInfo.transform
       program' <- getProgram parserContext inputFile
