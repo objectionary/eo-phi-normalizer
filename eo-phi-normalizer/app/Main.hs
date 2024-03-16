@@ -7,12 +7,15 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE OverloadedLabels #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
-{-# OPTIONS_GHC -Wno-partial-fields #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wno-type-defaults #-}
 
 module Main (main) where
@@ -34,7 +37,8 @@ import Language.EO.Phi.Dataize (dataizeRecursively, dataizeStep)
 import Language.EO.Phi.Metrics (getProgramMetrics)
 import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), applyRulesChainWith, applyRulesWith, defaultContext, objectSize)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRule, parseRuleSetFromFile)
-import Options.Applicative
+import Options.Applicative hiding (metavar)
+import Options.Applicative qualified as Optparse (metavar)
 import Options.Applicative.Types qualified as Optparse (Context (..))
 import System.Directory (doesFileExist)
 import System.IO (IOMode (WriteMode), getContents', hFlush, hPutStr, hPutStrLn, openFile, stdout)
@@ -75,29 +79,42 @@ data CLI
 fileMetavarName :: String
 fileMetavarName = "FILE"
 
-fileMetavar :: Mod OptionFields a
-fileMetavar = metavar fileMetavarName
+data MetavarName = MetavarName
+  { file :: String
+  , int :: String
+  , path :: String
+  }
+
+metavarName :: MetavarName
+metavarName =
+  MetavarName
+    { file = "FILE"
+    , int = "INT"
+    , path = "PATH"
+    }
+
+data Metavar a b = Metavar
+  { file :: Mod a b
+  , int :: Mod a b
+  , path :: Mod a b
+  }
+
+metavar :: (HasMetavar a) => Metavar a b
+metavar =
+  Metavar
+    { file = Optparse.metavar metavarName.file
+    , int = Optparse.metavar metavarName.int
+    , path = Optparse.metavar metavarName.path
+    }
 
 outputFileOption :: Parser (Maybe String)
-outputFileOption = optional $ strOption (long "output-file" <> short 'o' <> help [i|Output to #{fileMetavarName}. When this option is not specified, output to stdout.|] <> fileMetavar)
+outputFileOption = optional $ strOption (long "output-file" <> short 'o' <> metavar.file <> help [i|Output to #{fileMetavarName}. When this option is not specified, output to stdout.|])
 
 inputFileArg :: Parser (Maybe String)
-inputFileArg = optional $ strArgument (metavar fileMetavarName <> help [i|#{fileMetavarName} to read input from. When no #{fileMetavarName} is specified, read from stdin.|])
+inputFileArg = optional $ strArgument (metavar.file <> help [i|#{fileMetavarName} to read input from. When no #{fileMetavarName} is specified, read from stdin.|])
 
 jsonSwitch :: Parser Bool
 jsonSwitch = switch (long "json" <> short 'j' <> help "Output JSON.")
-
-cliTransformPhiParser :: Parser CLI'TransformPhi
-cliTransformPhiParser = do
-  rulesPath <- strOption (long "rules" <> short 'r' <> help [i|#{fileMetavarName} with user-defined rules. Must be specified.|] <> fileMetavar)
-  chain <- switch (long "chain" <> short 'c' <> help "Output transformation steps.")
-  json <- jsonSwitch
-  outputFile <- outputFileOption
-  single <- switch (long "single" <> short 's' <> help "Output a single expression.")
-  maxDepth <- option auto (long "max-depth" <> metavar "INT" <> value 10 <> help "Maximum depth of rules application. Defaults to 10.")
-  maxGrowthFactor <- option auto (long "max-growth-factor" <> metavar "INT" <> value 10 <> help "The factor by which to allow the input term to grow before stopping. Defaults to 10.")
-  inputFile <- inputFileArg
-  pure CLI'TransformPhi{..}
 
 programPathOption :: Parser (Maybe String)
 programPathOption =
@@ -105,29 +122,53 @@ programPathOption =
     strOption
       ( long "bindings-by-path"
           <> short 'b'
-          <> metavar "PATH"
+          <> metavar.path
           <> help
-            [iii|
-              Report metrics for bindings of a formation accessible in a program by a PATH.
-              The default PATH is empty.
-              Example of a PATH: 'org.eolang'.
-            |]
+            let path' = metavarName.path
+             in [iii|
+                  Report metrics for bindings of a formation accessible in a program by the #{path'}.
+                  The default #{path'} is empty.
+                  Example of a #{path'}: 'org.eolang'.
+                |]
       )
 
-cliDataizePhiParser :: Parser CLI'DataizePhi
-cliDataizePhiParser = do
-  rulesPath <- strOption (long "rules" <> short 'r' <> help [i|#{fileMetavarName} with user-defined rules. Must be specified.|] <> fileMetavar)
-  inputFile <- inputFileArg
-  outputFile <- outputFileOption
-  recursive <- switch (long "recursive" <> help "Apply dataization + normalization recursively.")
-  pure CLI'DataizePhi{..}
+data CommandParser = CommandParser
+  { metrics :: Parser CLI'MetricsPhi
+  , transform :: Parser CLI'TransformPhi
+  , dataize :: Parser CLI'DataizePhi
+  }
 
-cliMetricsPhiParser :: Parser CLI'MetricsPhi
-cliMetricsPhiParser = do
-  inputFile <- inputFileArg
-  outputFile <- outputFileOption
-  programPath <- programPathOption
-  pure CLI'MetricsPhi{..}
+commandParser :: CommandParser
+commandParser =
+  CommandParser{..}
+ where
+  metrics = do
+    inputFile <- inputFileArg
+    outputFile <- outputFileOption
+    programPath <- programPathOption
+    pure CLI'MetricsPhi{..}
+  transform = do
+    rulesPath <-
+      let file' = metavarName.file
+       in strOption (long "rules" <> short 'r' <> metavar.file <> help [i|#{file'} with user-defined rules. Must be specified.|])
+    chain <- switch (long "chain" <> short 'c' <> help "Output transformation steps.")
+    json <- jsonSwitch
+    outputFile <- outputFileOption
+    single <- switch (long "single" <> short 's' <> help "Output a single expression.")
+    maxDepth <-
+      let maxValue = 10
+       in option auto (long "max-depth" <> metavar.int <> value maxValue <> help [i|Maximum depth of rules application. Defaults to #{maxValue}.|])
+    maxGrowthFactor <-
+      let maxValue = 10
+       in option auto (long "max-growth-factor" <> metavar.int <> value maxValue <> help [i|The factor by which to allow the input term to grow before stopping. Defaults to #{maxValue}.|])
+    inputFile <- inputFileArg
+    pure CLI'TransformPhi{..}
+  dataize = do
+    rulesPath <- strOption (long "rules" <> short 'r' <> metavar.file <> help [i|#{fileMetavarName} with user-defined rules. Must be specified.|])
+    inputFile <- inputFileArg
+    outputFile <- outputFileOption
+    recursive <- switch (long "recursive" <> help "Apply dataization + normalization recursively.")
+    pure CLI'DataizePhi{..}
 
 data CommandParserInfo = CommandParserInfo
   { metrics :: ParserInfo CLI
@@ -138,12 +179,10 @@ data CommandParserInfo = CommandParserInfo
 commandParserInfo :: CommandParserInfo
 commandParserInfo =
   CommandParserInfo
-    { metrics = mkParserInfo "Collect metrics for a PHI program."
-    , transform = mkParserInfo "Transform a PHI program."
-    , dataize = mkParserInfo "Dataize a PHI program."
+    { metrics = info (CLI'MetricsPhi' <$> commandParser.metrics) (progDesc "Collect metrics for a PHI program.")
+    , transform = info (CLI'TransformPhi' <$> commandParser.transform) (progDesc "Transform a PHI program.")
+    , dataize = info (CLI'DataizePhi' <$> commandParser.dataize) (progDesc "Dataize a PHI program.")
     }
- where
-  mkParserInfo desc = info (CLI'MetricsPhi' <$> cliMetricsPhiParser) (progDesc desc)
 
 data CommandNames = CommandNames
   { transform :: String
