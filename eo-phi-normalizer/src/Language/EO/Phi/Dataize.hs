@@ -1,6 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE ViewPatterns #-}
 
 module Language.EO.Phi.Dataize (dataizeStep, dataizeRecursively, dataizeStepChain, dataizeRecursivelyChain) where
 
@@ -80,14 +81,16 @@ dataizeStepChain _ obj = [("Nothing to dataize", Left obj)]
 dataizeRecursivelyChain :: Context -> Object -> [(String, Either Object Bytes)]
 dataizeRecursivelyChain ctx obj = case applyRulesChain ctx obj of
   [[]] -> [("No rules applied", Left obj)]
-  [chain] ->
-    let (_lastRule, normObj) = last chain
-     in map (fmap Left) chain
-          ++ case head (dataizeStepChain ctx normObj) of
-            res@(_, Left stillObj)
-              | stillObj == normObj -> [res] -- dataization changed nothing
-              | otherwise -> res : dataizeRecursivelyChain ctx stillObj -- partially dataized
-            bytes -> [bytes]
+  [rulesChain] ->
+    let (_lastRule, normObj) = last rulesChain
+        stepChain = dataizeStepChain ctx normObj
+     in map (fmap Left) rulesChain
+          ++ case stepChain of
+            [] -> []
+            (last -> (_, Left stillObj))
+              | stillObj == normObj -> stepChain -- dataization changed nothing
+              | otherwise -> stepChain ++ dataizeRecursivelyChain ctx stillObj -- partially dataized
+            bytesAndRest -> bytesAndRest
   chains -> [(errMsg, Left Termination)]
    where
     errMsg =
