@@ -103,8 +103,8 @@ dataizeRecursivelyChain ctx obj = case applyRulesChain ctx obj of
 evaluateDataizationFunChain :: Context -> (Int -> Int -> Int) -> Object -> EvaluationState -> [((String, Object), EvaluationState)]
 evaluateDataizationFunChain ctx func obj _state = map (,()) result
  where
-  lhs = dataizeRecursivelyChain ctx (ObjectDispatch obj Rho)
-  rhs = dataizeRecursivelyChain ctx (ObjectDispatch obj (Alpha (AlphaIndex "α0")))
+  lhs = let o_rho = ObjectDispatch obj Rho in ("Evaluating LHS", Left o_rho) : dataizeRecursivelyChain ctx o_rho
+  rhs = let o_a0 = ObjectDispatch obj (Alpha (AlphaIndex "α0")) in ("Evaluating RHS", Left o_a0) : dataizeRecursivelyChain ctx o_a0
   lhsBytes = [(msg, bytes) | (msg, Right bytes) <- lhs]
   rhsBytes = [(msg, bytes) | (msg, Right bytes) <- rhs]
   lhsObjects = [(msg, object) | (msg, Left object) <- lhs]
