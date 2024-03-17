@@ -112,8 +112,10 @@ evaluateDataizationFunChain ctx func obj _state = map (,()) result
   result = case (lhsBytes, rhsBytes) of
     ([(_, l)], [(_, r)]) ->
       let (Bytes bytes) = intToBytes (bytesToInt r `func` bytesToInt l)
-       in ("Evaluated function", [i|Φ.org.eolang.float(Δ ⤍ #{bytes})|]) : lhsObjects ++ rhsObjects
-    _ -> ("Couldn't find bytes in one or both of LHS and RHS", Termination) : lhsObjects ++ rhsObjects
+       in lhsObjects
+            ++ rhsObjects
+            ++ [("Evaluated function", [i|Φ.org.eolang.float(Δ ⤍ #{bytes})|])]
+    _ -> lhsObjects ++ rhsObjects ++ [("Couldn't find bytes in one or both of LHS and RHS", Termination)]
 
 -- | Like `evaluateDataizationFunChain` but specifically for the built-in functions.
 -- This function is not safe. It returns undefined for unknown functions
