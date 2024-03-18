@@ -11,6 +11,7 @@
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
 
@@ -19,13 +20,13 @@ module Language.EO.Phi.Metrics where
 import Control.Lens ((+=))
 import Control.Monad (forM_)
 import Control.Monad.State (State, execState, runState)
-import Data.Aeson (FromJSON)
-import Data.Aeson.Types (ToJSON)
 import Data.Generics.Labels ()
+import Data.List (intercalate)
 import Data.Traversable (forM)
 import GHC.Generics (Generic)
 import Language.EO.Phi.Rules.Common ()
 import Language.EO.Phi.Syntax.Abs
+import Language.EO.Phi.TH
 
 data Metrics = Metrics
   { dataless :: Int
@@ -33,7 +34,9 @@ data Metrics = Metrics
   , formations :: Int
   , dispatches :: Int
   }
-  deriving (Generic, Show, FromJSON, ToJSON, Eq)
+  deriving (Generic, Show, Eq)
+
+$(deriveJSON ''Metrics)
 
 defaultMetrics :: Metrics
 defaultMetrics =
@@ -62,7 +65,9 @@ data BindingMetrics = BindingMetrics
   { name :: String
   , metrics :: Metrics
   }
-  deriving (Show, Generic, FromJSON, ToJSON, Eq)
+  deriving (Show, Generic, Eq)
+
+$(deriveJSON ''BindingMetrics)
 
 count :: (a -> Bool) -> [a] -> Int
 count x = length . filter x
@@ -119,13 +124,17 @@ data BindingsByPathMetrics = BindingsByPathMetrics
   { path :: Path
   , bindingsMetrics :: [BindingMetrics]
   }
-  deriving (Show, Generic, FromJSON, ToJSON, Eq)
+  deriving (Show, Generic, Eq)
+
+$(deriveJSON ''BindingsByPathMetrics)
 
 data ObjectMetrics = ObjectMetrics
   { bindingsByPathMetrics :: Maybe BindingsByPathMetrics
   , thisObjectMetrics :: Metrics
   }
-  deriving (Show, Generic, FromJSON, ToJSON, Eq)
+  deriving (Show, Generic, Eq)
+
+$(deriveJSON ''ObjectMetrics)
 
 -- | Get metrics for an object
 --
@@ -235,7 +244,9 @@ data ProgramMetrics = ProgramMetrics
   { bindingsByPathMetrics :: Maybe BindingsByPathMetrics
   , programMetrics :: Metrics
   }
-  deriving (Show, Generic, FromJSON, ToJSON, Eq)
+  deriving (Show, Generic, Eq)
+
+$(deriveJSON ''ProgramMetrics)
 
 -- | Get metrics for a program and for bindings of a formation accessible by a given path.
 --
