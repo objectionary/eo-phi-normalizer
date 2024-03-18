@@ -30,14 +30,14 @@ import Control.Exception (Exception (..), SomeException, catch, throw)
 import Control.Lens ((^.))
 import Data.Aeson (ToJSON)
 import Data.Aeson.Encode.Pretty (Config (..), Indent (..), defConfig, encodePrettyToTextBuilder')
-import Data.List (groupBy, intercalate)
+import Data.List (intercalate)
 import Data.String.Interpolate (i, iii)
 import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy.Lens
 import GHC.Generics (Generic)
 import Language.EO.Phi (Bytes (Bytes), Object (Formation), Program (Program), parseProgram, printTree)
 import Language.EO.Phi.Dataize (dataizeRecursively, dataizeStep)
-import Language.EO.Phi.Metrics (ProgramMetrics, getProgramMetrics)
+import Language.EO.Phi.Metrics (ProgramMetrics, getProgramMetrics, splitPath)
 import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), applyRulesChainWith, applyRulesWith, defaultContext, objectSize)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRule, parseRuleSetFromFile)
 import Options.Applicative hiding (metavar)
@@ -280,19 +280,11 @@ getLoggers outputFile = do
     , \x -> hPutStr handle x >> hFlush handle
     )
 
--- >>> splitStringOn '.' "abra.cada.bra"
--- ["abra","cada","bra"]
---
--- >>> splitStringOn '.' ""
--- []
-splitStringOn :: Char -> String -> [String]
-splitStringOn sep = filter (/= [sep]) . groupBy (\a b -> a /= sep && b /= sep)
-
 -- >>> flip getMetrics' (Just "a.b") "{⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧ ⟧}"
 -- Right (ProgramMetrics {bindingsByPathMetrics = Just (BindingsByPathMetrics {path = ["a","b"], bindingsMetrics = [BindingMetrics {name = "d", metrics = Metrics {dataless = 0, applications = 0, formations = 1, dispatches = 2}}]}), programMetrics = Metrics {dataless = 1, applications = 1, formations = 5, dispatches = 4}})
 getMetrics' :: Program -> Maybe String -> Either CLI'Exception ProgramMetrics
 getMetrics' program bindingsPath = do
-  let metrics = getProgramMetrics program (splitStringOn '.' <$> bindingsPath)
+  let metrics = getProgramMetrics program (splitPath <$> bindingsPath)
   case metrics of
     Left path ->
       ( case bindingsPath of

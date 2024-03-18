@@ -21,7 +21,7 @@ import Control.Lens ((+=))
 import Control.Monad (forM_)
 import Control.Monad.State (State, execState, runState)
 import Data.Generics.Labels ()
-import Data.List (intercalate)
+import Data.List (groupBy, intercalate)
 import Data.Traversable (forM)
 import GHC.Generics (Generic)
 import Language.EO.Phi.Rules.Common ()
@@ -135,6 +135,17 @@ data ObjectMetrics = ObjectMetrics
   deriving (Show, Generic, Eq)
 
 $(deriveJSON ''ObjectMetrics)
+
+-- >>> splitStringOn '.' "abra.cada.bra"
+-- ["abra","cada","bra"]
+--
+-- >>> splitStringOn '.' ""
+-- []
+splitStringOn :: Char -> String -> [String]
+splitStringOn sep = filter (/= [sep]) . groupBy (\a b -> a /= sep && b /= sep)
+
+splitPath :: String -> [String]
+splitPath = splitStringOn '.'
 
 -- | Get metrics for an object
 --
