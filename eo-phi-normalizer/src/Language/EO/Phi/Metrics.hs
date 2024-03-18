@@ -20,6 +20,9 @@ module Language.EO.Phi.Metrics where
 import Control.Lens ((+=))
 import Control.Monad (forM_)
 import Control.Monad.State (State, execState, runState)
+import Data.Aeson (KeyValue ((.=)), ToJSON (..), Value, withObject, (.:))
+import Data.Aeson qualified as Aeson
+import Data.Aeson.Types (FromJSON (..), Parser)
 import Data.Generics.Labels ()
 import Data.List (groupBy, intercalate)
 import Data.Traversable (forM)
@@ -120,13 +123,37 @@ instance Inspectable Object where
 
 type Path = [String]
 
+-- >>> splitStringOn '.' "abra.cada.bra"
+-- ["abra","cada","bra"]
+--
+-- >>> splitStringOn '.' ""
+-- []
+splitStringOn :: Char -> String -> Path
+splitStringOn sep = filter (/= [sep]) . groupBy (\a b -> a /= sep && b /= sep)
+
+splitPath :: String -> Path
+splitPath = splitStringOn '.'
+
 data BindingsByPathMetrics = BindingsByPathMetrics
   { path :: Path
   , bindingsMetrics :: [BindingMetrics]
   }
   deriving (Show, Generic, Eq)
 
-$(deriveJSON ''BindingsByPathMetrics)
+instance FromJSON BindingsByPathMetrics where
+  parseJSON :: Value -> Parser BindingsByPathMetrics
+  parseJSON = withObject "BindingsByPathMetrics" $ \obj -> do
+    path <- splitPath <$> (obj .: "path")
+    bindingsMetrics <- obj .: "bindings-metrics"
+    pure BindingsByPathMetrics{..}
+
+instance ToJSON BindingsByPathMetrics where
+  toJSON :: BindingsByPathMetrics -> Value
+  toJSON BindingsByPathMetrics{..} =
+    Aeson.object
+      [ "path" .= intercalate "." path
+      , "bindings-metrics" .= bindingsMetrics
+      ]
 
 data ObjectMetrics = ObjectMetrics
   { bindingsByPathMetrics :: Maybe BindingsByPathMetrics
@@ -135,17 +162,6 @@ data ObjectMetrics = ObjectMetrics
   deriving (Show, Generic, Eq)
 
 $(deriveJSON ''ObjectMetrics)
-
--- >>> splitStringOn '.' "abra.cada.bra"
--- ["abra","cada","bra"]
---
--- >>> splitStringOn '.' ""
--- []
-splitStringOn :: Char -> String -> [String]
-splitStringOn sep = filter (/= [sep]) . groupBy (\a b -> a /= sep && b /= sep)
-
-splitPath :: String -> [String]
-splitPath = splitStringOn '.'
 
 -- | Get metrics for an object
 --
