@@ -247,7 +247,7 @@ main = do
                   | otherwise = dataizeStepChain
             forM_ (dataizeChain ctx inputObject) $ \case
               (msg, Left obj) -> logStrLn (msg ++ ": " ++ printTree obj)
-              (_msg, Right (Bytes bytes)) -> logStrLn bytes
+              (msg, Right (Bytes bytes)) -> logStrLn (msg ++ ": " ++ bytes)
           else do
             let dataize
                   -- This should be moved to a separate subcommand
