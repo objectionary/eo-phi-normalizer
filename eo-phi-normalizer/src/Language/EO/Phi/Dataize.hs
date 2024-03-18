@@ -5,6 +5,7 @@
 
 module Language.EO.Phi.Dataize (dataizeStep, dataizeRecursively, dataizeStepChain, dataizeRecursivelyChain) where
 
+import Control.Arrow (ArrowChoice (left))
 import Data.List (find)
 import Data.Maybe (listToMaybe)
 import Data.String.Interpolate (i)
@@ -72,8 +73,8 @@ dataizeStepChain ctx obj@(Formation bs)
   | Just (AlphaBinding Phi decoratee) <- listToMaybe [b | b@(AlphaBinding Phi _) <- bs] =
       ("Dataizing inside phi", Left decoratee) : dataizeStepChain (extendContextWith obj ctx) decoratee
   | otherwise = [("No change to formation", Left obj)]
-dataizeStepChain ctx (Application obj _bindings) = ("Dataizing inside application", Left obj) : dataizeStepChain ctx obj
-dataizeStepChain ctx (ObjectDispatch obj _attr) = ("Dataizing inside dispatch", Left obj) : dataizeStepChain ctx obj
+dataizeStepChain ctx (Application obj bindings) = ("Dataizing inside application", Left obj) : map (fmap (left (`Application` bindings))) (dataizeStepChain ctx obj)
+dataizeStepChain ctx (ObjectDispatch obj attr) = ("Dataizing inside dispatch", Left obj) : map (fmap (left (`ObjectDispatch` attr))) (dataizeStepChain ctx obj)
 dataizeStepChain _ obj = [("Nothing to dataize", Left obj)]
 
 -- | Recursively perform normalization and dataization until we get bytes in the end,
