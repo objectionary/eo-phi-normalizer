@@ -18,7 +18,7 @@ import Data.List (intercalate)
 import Data.List qualified as List
 import Data.Yaml qualified as Yaml
 import GHC.Generics (Generic)
-import Language.EO.Phi.Rules.Common (ApplicationLimits (..), Context (Context), Rule, applyOneRule, defaultApplicationLimits, equalObject, intToBytes, objectSize)
+import Language.EO.Phi.Rules.Common (ApplicationLimits (..), Rule, applyOneRule, defaultApplicationLimits, defaultContext, equalObject, intToBytes, objectSize)
 import Language.EO.Phi.Rules.Yaml (convertRule, parseRuleSetFromFile, rules)
 import Language.EO.Phi.Syntax (printTree)
 import Language.EO.Phi.Syntax.Abs as Phi
@@ -122,7 +122,7 @@ genCriticalPair rules = do
  where
   fan = do
     obj <- Formation . List.nubBy sameAttr <$> listOf arbitrary
-    return (obj, applyOneRule (Context rules [obj] Phi.Sigma) obj)
+    return (obj, applyOneRule (defaultContext rules obj) obj)
 
   sameAttr (AlphaBinding attr1 _) (AlphaBinding attr2 _) = attr1 == attr2
   sameAttr (EmptyBinding attr1) (EmptyBinding attr2) = attr1 == attr2
@@ -130,7 +130,7 @@ genCriticalPair rules = do
 
 findCriticalPairs :: [Rule] -> Object -> [CriticalPair]
 findCriticalPairs rules obj = do
-  let ctx = Context rules [obj] Phi.Sigma
+  let ctx = defaultContext rules obj
   let results = applyOneRule ctx obj
   guard (length results > 1)
   case results of
@@ -149,7 +149,7 @@ shrinkCriticalPair rules CriticalPair{..} =
     , criticalPair = (x, y)
     }
   | sourceTerm'@Formation{} <- shrink sourceTerm
-  , x : y : _ <- [applyOneRule (Context rules [sourceTerm'] Phi.Sigma) sourceTerm']
+  , x : y : _ <- [applyOneRule (defaultContext rules sourceTerm') sourceTerm']
   ]
 
 type SearchLimits = ApplicationLimits
@@ -165,7 +165,7 @@ descendantsN ApplicationLimits{..} rules objs
           [ obj'
           | obj <- objs
           , objectSize obj < maxTermSize
-          , obj' <- applyOneRule (Context rules [obj] Phi.Sigma) obj
+          , obj' <- applyOneRule (defaultContext rules obj) obj
           ]
 
 -- | Pair items from two lists with all combinations,

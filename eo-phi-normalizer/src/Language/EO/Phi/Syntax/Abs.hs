@@ -36,6 +36,7 @@ data Binding
     | DeltaEmptyBinding
     | LambdaBinding Function
     | MetaBindings MetaId
+    | MetaDeltaBinding MetaId
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data Attribute

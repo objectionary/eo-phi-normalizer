@@ -29,9 +29,10 @@ import Data.Text qualified as T
 import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy.Lens
 import GHC.Generics (Generic)
-import Language.EO.Phi (Attribute (Sigma), Object (Formation), Program (Program), parseProgram, printTree)
+import Language.EO.Phi (Bytes (Bytes), Object (Formation), Program (Program), parseProgram, printTree)
+import Language.EO.Phi.Dataize (dataizeRecursively, dataizeStep)
 import Language.EO.Phi.Metrics (getProgramMetrics)
-import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), Context (..), applyRulesChainWith, applyRulesWith, objectSize)
+import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), applyRulesChainWith, applyRulesWith, defaultContext, objectSize)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRule, parseRuleSetFromFile)
 import Options.Applicative
 import Options.Applicative.Types qualified as Optparse (Context (..))
@@ -49,6 +50,14 @@ data CLI'TransformPhi = CLI'TransformPhi
   }
   deriving (Show)
 
+data CLI'DataizePhi = CLI'DataizePhi
+  { rulesPath :: String
+  , inputFile :: Maybe FilePath
+  , outputFile :: Maybe String
+  , recursive :: Bool
+  }
+  deriving (Show)
+
 data CLI'MetricsPhi = CLI'MetricsPhi
   { inputFile :: Maybe FilePath
   , outputFile :: Maybe FilePath
@@ -58,6 +67,7 @@ data CLI'MetricsPhi = CLI'MetricsPhi
 
 data CLI
   = CLI'TransformPhi' CLI'TransformPhi
+  | CLI'DataizePhi' CLI'DataizePhi
   | CLI'MetricsPhi' CLI'MetricsPhi
   deriving (Show)
 
@@ -103,6 +113,14 @@ programPathOption =
             |]
       )
 
+cliDataizePhiParser :: Parser CLI'DataizePhi
+cliDataizePhiParser = do
+  rulesPath <- strOption (long "rules" <> short 'r' <> help [i|#{fileMetavarName} with user-defined rules. Must be specified.|] <> fileMetavar)
+  inputFile <- inputFileArg
+  outputFile <- outputFileOption
+  recursive <- switch (long "recursive" <> help "Apply dataization + normalization recursively.")
+  pure CLI'DataizePhi{..}
+
 cliMetricsPhiParser :: Parser CLI'MetricsPhi
 cliMetricsPhiParser = do
   inputFile <- inputFileArg
@@ -116,17 +134,24 @@ metricsParserInfo = info (CLI'MetricsPhi' <$> cliMetricsPhiParser) (progDesc "Co
 transformParserInfo :: ParserInfo CLI
 transformParserInfo = info (CLI'TransformPhi' <$> cliTransformPhiParser) (progDesc "Transform a PHI program.")
 
+dataizeParserInfo :: ParserInfo CLI
+dataizeParserInfo = info (CLI'DataizePhi' <$> cliDataizePhiParser) (progDesc "Dataize a PHI program.")
+
 transformCommandName :: String
 transformCommandName = "transform"
 
 metricsCommandName :: String
 metricsCommandName = "metrics"
 
+dataizeCommandName :: String
+dataizeCommandName = "dataize"
+
 cli :: Parser CLI
 cli =
   hsubparser
     ( command transformCommandName transformParserInfo
         <> command metricsCommandName metricsParserInfo
+        <> command dataizeCommandName dataizeParserInfo
     )
 
 cliOpts :: ParserInfo CLI
@@ -178,6 +203,9 @@ splitStringOn sep s = filter (not . null) $ T.unpack <$> T.splitOn (T.pack sep) 
 main :: IO ()
 main = do
   opts <- customExecParser pprefs cliOpts
+  let printAsProgramOrAsObject = \case
+        Formation bindings' -> printTree $ Program bindings'
+        x -> printTree x
   case opts of
     CLI'MetricsPhi' CLI'MetricsPhi{..} -> do
       let parserContext = Optparse.Context metricsCommandName metricsParserInfo
@@ -203,15 +231,13 @@ main = do
       unless (single || json) $ logStrLn ruleSet.title
       let Program bindings = program'
           uniqueResults
-            | chain = applyRulesChainWith limits (Context (convertRule <$> ruleSet.rules) [Formation bindings] Sigma) (Formation bindings)
-            | otherwise = pure <$> applyRulesWith limits (Context (convertRule <$> ruleSet.rules) [Formation bindings] Sigma) (Formation bindings)
+            | chain = applyRulesChainWith limits ctx (Formation bindings)
+            | otherwise = pure <$> applyRulesWith limits ctx (Formation bindings)
            where
             limits = ApplicationLimits maxDepth (maxGrowthFactor * objectSize (Formation bindings))
+            ctx = defaultContext (convertRule <$> ruleSet.rules) (Formation bindings)
           totalResults = length uniqueResults
       when (null uniqueResults || null (head uniqueResults)) $ die parserContext [i|Could not normalize the program.|]
-      let printAsProgramOrAsObject = \case
-            Formation bindings' -> printTree $ Program bindings'
-            x -> printTree x
       if
         | single && json ->
             logStrLn
@@ -241,3 +267,18 @@ main = do
                   logStr ("[ " <> show k <> " / " <> show n <> " ]")
                 logStrLn . printAsProgramOrAsObject $ step
               logStrLn "----------------------------------------------------"
+    CLI'DataizePhi' CLI'DataizePhi{..} -> do
+      (logStrLn, _logStr) <- getLoggers outputFile
+      let parserContext = Optparse.Context dataizeCommandName dataizeParserInfo
+      program' <- getProgram parserContext inputFile
+      ruleSet <- parseRuleSetFromFile rulesPath
+      let (Program bindings) = program'
+      let inputObject = Formation bindings
+      let ctx = defaultContext (convertRule <$> ruleSet.rules) inputObject
+      let dataize
+            -- This should be moved to a separate subcommand
+            | recursive = dataizeRecursively
+            | otherwise = dataizeStep
+      case dataize ctx inputObject of
+        Left obj -> logStrLn (printAsProgramOrAsObject obj)
+        Right (Bytes bytes) -> logStrLn bytes

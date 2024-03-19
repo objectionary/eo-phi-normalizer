@@ -31,6 +31,7 @@ DeltaBinding.       Binding ::= "Δ" "⤍" Bytes ;
 DeltaEmptyBinding.  Binding ::= "Δ" "⤍" "∅" ;
 LambdaBinding.      Binding ::= "λ" "⤍" Function ;
 MetaBindings.       Binding ::= MetaId ;
+MetaDeltaBinding.   Binding ::= "Δ" "⤍" MetaId ;
 separator Binding "," ;
 
 Phi.    Attribute ::= "φ" ;   -- decoratee object
