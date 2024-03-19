@@ -37,15 +37,23 @@ tests:
       ⟧
     }
   metrics:
-    program:
-      dataless: 3
+    programMetrics:
+      dataless: 0
       applications: 8
       formations: 5
       dispatches: 24
-    attributes:
-      - name: org
-        metrics:
-          dataless: 2
-          applications: 8
-          formations: 4
-          dispatches: 24
+    bindingsByPathMetrics:
+      path: ['org', 'eolang']
+      bindingsMetrics:
+        - name: prints-itself
+          metrics:
+            dataless: 0
+            applications: 4
+            formations: 1
+            dispatches: 11
+        - name: prints-itself-to-console
+          metrics:
+            dataless: 0
+            applications: 4
+            formations: 1
+            dispatches: 13
