@@ -88,3 +88,9 @@ cat program.phi | normalizer metrics
   "formations": 5
 }
 ```
+
+### `--bindings-by-path`
+
+```$ as console
+normalizer metrics --bindings-by-path "a" program.phi
+```
