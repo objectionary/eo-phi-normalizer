@@ -333,9 +333,6 @@ main = do
             ctx = defaultContext (convertRule <$> ruleSet.rules) (Formation bindings)
           totalResults = length uniqueResults
       when (null uniqueResults || null (head uniqueResults)) (throw CouldNotNormalize)
-      let printAsProgramOrAsObject = \case
-            Formation bindings' -> printTree $ Program bindings'
-            x -> printTree x
       if
         | single && json ->
             logStrLn
