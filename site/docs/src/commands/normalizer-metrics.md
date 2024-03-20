@@ -48,6 +48,7 @@ normalizer metrics --help
 
 ```console
 Usage: normalizer metrics [FILE] [-o|--output-file FILE]
+                          [-b|--bindings-by-path PATH]
 
   Collect metrics for a PHI program.
 
@@ -56,6 +57,10 @@ Available options:
                            read from stdin.
   -o,--output-file FILE    Output to FILE. When this option is not specified,
                            output to stdout.
+  -b,--bindings-by-path PATH
+                           Report metrics for bindings of a formation accessible
+                           in a program by a PATH. The default PATH is empty.
+                           Example of a PATH: 'org.eolang'.
   -h,--help                Show this help text
 ```
 
@@ -67,10 +72,26 @@ normalizer metrics program.phi
 
 ```json
 {
-  "applications": 1,
-  "dataless": 5,
-  "dispatches": 5,
-  "formations": 5
+  "bindingsByPathMetrics": {
+    "bindingsMetrics": [
+      {
+        "metrics": {
+          "applications": 1,
+          "dataless": 1,
+          "dispatches": 4,
+          "formations": 4
+        },
+        "name": "a"
+      }
+    ],
+    "path": []
+  },
+  "programMetrics": {
+    "applications": 1,
+    "dataless": 1,
+    "dispatches": 4,
+    "formations": 5
+  }
 }
 ```
 
@@ -82,9 +103,67 @@ cat program.phi | normalizer metrics
 
 ```json
 {
-  "applications": 1,
-  "dataless": 5,
-  "dispatches": 5,
-  "formations": 5
+  "bindingsByPathMetrics": {
+    "bindingsMetrics": [
+      {
+        "metrics": {
+          "applications": 1,
+          "dataless": 1,
+          "dispatches": 4,
+          "formations": 4
+        },
+        "name": "a"
+      }
+    ],
+    "path": []
+  },
+  "programMetrics": {
+    "applications": 1,
+    "dataless": 1,
+    "dispatches": 4,
+    "formations": 5
+  }
+}
+```
+
+### `--bindings-by-path`
+
+```$ as console
+normalizer metrics --bindings-by-path "a" program.phi
+```
+
+```console
+{
+  "bindingsByPathMetrics": {
+    "bindingsMetrics": [
+      {
+        "metrics": {
+          "applications": 0,
+          "dataless": 0,
+          "dispatches": 2,
+          "formations": 2
+        },
+        "name": "b"
+      },
+      {
+        "metrics": {
+          "applications": 1,
+          "dataless": 1,
+          "dispatches": 2,
+          "formations": 1
+        },
+        "name": "e"
+      }
+    ],
+    "path": [
+      "a"
+    ]
+  },
+  "programMetrics": {
+    "applications": 1,
+    "dataless": 1,
+    "dispatches": 4,
+    "formations": 5
+  }
 }
 ```

@@ -17,4 +17,5 @@ Available options:
 Available commands:
   transform                Transform a PHI program.
   metrics                  Collect metrics for a PHI program.
+  dataize                  Dataize a PHI program.
 ```

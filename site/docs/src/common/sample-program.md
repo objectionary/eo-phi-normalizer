@@ -13,7 +13,7 @@ cat > program.phi <<EOM
               d ↦ ⟦ φ ↦ ξ.ρ.c ⟧
             ⟧,
         e ↦ ξ.b(c ↦ ⟦⟧).d
-      ⟧.e
+      ⟧
   ⟧
 }
 EOM

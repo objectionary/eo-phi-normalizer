@@ -22,13 +22,16 @@ import Data.Foldable (forM_)
 import Control.Lens ((^.))
 import Data.Aeson (ToJSON)
 import Data.Aeson.Encode.Pretty (Config (..), Indent (..), defConfig, encodePrettyToTextBuilder')
-import Data.String.Interpolate (i)
+import Data.List (intercalate)
+import Data.Maybe (fromMaybe)
+import Data.String.Interpolate (i, iii)
+import Data.Text qualified as T
 import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy.Lens
 import GHC.Generics (Generic)
 import Language.EO.Phi (Bytes (Bytes), Object (Formation), Program (Program), parseProgram, printTree)
 import Language.EO.Phi.Dataize (dataizeRecursively, dataizeStep)
-import Language.EO.Phi.Metrics.Collect (collectMetrics)
+import Language.EO.Phi.Metrics (getProgramMetrics)
 import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), applyRulesChainWith, applyRulesWith, defaultContext, objectSize)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRule, parseRuleSetFromFile)
 import Options.Applicative
@@ -58,6 +61,7 @@ data CLI'DataizePhi = CLI'DataizePhi
 data CLI'MetricsPhi = CLI'MetricsPhi
   { inputFile :: Maybe FilePath
   , outputFile :: Maybe FilePath
+  , programPath :: Maybe String
   }
   deriving (Show)
 
@@ -94,6 +98,21 @@ cliTransformPhiParser = do
   inputFile <- inputFileArg
   pure CLI'TransformPhi{..}
 
+programPathOption :: Parser (Maybe String)
+programPathOption =
+  optional $
+    strOption
+      ( long "bindings-by-path"
+          <> short 'b'
+          <> metavar "PATH"
+          <> help
+            [iii|
+              Report metrics for bindings of a formation accessible in a program by a PATH.
+              The default PATH is empty.
+              Example of a PATH: 'org.eolang'.
+            |]
+      )
+
 cliDataizePhiParser :: Parser CLI'DataizePhi
 cliDataizePhiParser = do
   rulesPath <- strOption (long "rules" <> short 'r' <> help [i|#{fileMetavarName} with user-defined rules. Must be specified.|] <> fileMetavar)
@@ -106,6 +125,7 @@ cliMetricsPhiParser :: Parser CLI'MetricsPhi
 cliMetricsPhiParser = do
   inputFile <- inputFileArg
   outputFile <- outputFileOption
+  programPath <- programPathOption
   pure CLI'MetricsPhi{..}
 
 metricsParserInfo :: ParserInfo CLI
@@ -161,7 +181,7 @@ getProgram :: Optparse.Context -> Maybe FilePath -> IO Program
 getProgram parserContext inputFile = do
   src <- maybe getContents' readFile inputFile
   case parseProgram src of
-    Left err -> die parserContext [i|"An error occurred when parsing the input program: #{err}|]
+    Left err -> die parserContext [i|An error occurred when parsing the input program: #{err}|]
     Right program -> pure program
 
 getLoggers :: Maybe FilePath -> IO (String -> IO (), String -> IO ())
@@ -172,6 +192,14 @@ getLoggers outputFile = do
     , \x -> hPutStr handle x >> hFlush handle
     )
 
+-- >>> splitStringOn "." "abra.cada.bra"
+-- ["abra","cada","bra"]
+--
+-- >>> splitStringOn "." ""
+-- []
+splitStringOn :: String -> String -> [String]
+splitStringOn sep s = filter (not . null) $ T.unpack <$> T.splitOn (T.pack sep) (T.pack s)
+
 main :: IO ()
 main = do
   opts <- customExecParser pprefs cliOpts
@@ -181,10 +209,20 @@ main = do
   case opts of
     CLI'MetricsPhi' CLI'MetricsPhi{..} -> do
       let parserContext = Optparse.Context metricsCommandName metricsParserInfo
-      program' <- getProgram parserContext inputFile
+      program <- getProgram parserContext inputFile
       (logStrLn, _) <- getLoggers outputFile
-      let metrics = collectMetrics program'
-      logStrLn $ encodeToJSONString metrics
+      let path = splitStringOn "." (fromMaybe "" programPath)
+          metrics = getProgramMetrics path program
+      case metrics of
+        Left path' ->
+          die
+            parserContext
+            [iii|
+              Could not find bindings at path '#{intercalate "." path}'
+              because an object at '#{intercalate "." path'}' is not a formation.
+            |]
+        Right metrics' -> do
+          logStrLn $ encodeToJSONString metrics'
     CLI'TransformPhi' CLI'TransformPhi{..} -> do
       let parserContext = Optparse.Context transformCommandName transformParserInfo
       program' <- getProgram parserContext inputFile
