@@ -37,14 +37,14 @@ tests:
       ⟧
     }
   metrics:
-    programMetrics:
+    program-metrics:
       dataless: 0
       applications: 8
       formations: 5
       dispatches: 24
-    bindingsByPathMetrics:
-      path: ['org', 'eolang']
-      bindingsMetrics:
+    bindings-by-path-metrics:
+      path: org.eolang
+      bindings-metrics:
         - name: prints-itself
           metrics:
             dataless: 0

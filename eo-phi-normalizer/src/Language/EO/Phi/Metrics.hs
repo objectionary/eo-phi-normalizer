@@ -11,6 +11,7 @@
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
 
@@ -19,13 +20,16 @@ module Language.EO.Phi.Metrics where
 import Control.Lens ((+=))
 import Control.Monad (forM_)
 import Control.Monad.State (State, execState, runState)
-import Data.Aeson (FromJSON)
-import Data.Aeson.Types (ToJSON)
+import Data.Aeson (KeyValue ((.=)), ToJSON (..), Value, withObject, (.:))
+import Data.Aeson qualified as Aeson
+import Data.Aeson.Types (FromJSON (..), Parser)
 import Data.Generics.Labels ()
+import Data.List (groupBy, intercalate)
 import Data.Traversable (forM)
 import GHC.Generics (Generic)
 import Language.EO.Phi.Rules.Common ()
 import Language.EO.Phi.Syntax.Abs
+import Language.EO.Phi.TH
 
 data Metrics = Metrics
   { dataless :: Int
@@ -33,7 +37,9 @@ data Metrics = Metrics
   , formations :: Int
   , dispatches :: Int
   }
-  deriving (Generic, Show, FromJSON, ToJSON, Eq)
+  deriving (Generic, Show, Eq)
+
+$(deriveJSON ''Metrics)
 
 defaultMetrics :: Metrics
 defaultMetrics =
@@ -62,7 +68,9 @@ data BindingMetrics = BindingMetrics
   { name :: String
   , metrics :: Metrics
   }
-  deriving (Show, Generic, FromJSON, ToJSON, Eq)
+  deriving (Show, Generic, Eq)
+
+$(deriveJSON ''BindingMetrics)
 
 count :: (a -> Bool) -> [a] -> Int
 count x = length . filter x
@@ -115,17 +123,45 @@ instance Inspectable Object where
 
 type Path = [String]
 
+-- >>> splitStringOn '.' "abra.cada.bra"
+-- ["abra","cada","bra"]
+--
+-- >>> splitStringOn '.' ""
+-- []
+splitStringOn :: Char -> String -> Path
+splitStringOn sep = filter (/= [sep]) . groupBy (\a b -> a /= sep && b /= sep)
+
+splitPath :: String -> Path
+splitPath = splitStringOn '.'
+
 data BindingsByPathMetrics = BindingsByPathMetrics
   { path :: Path
   , bindingsMetrics :: [BindingMetrics]
   }
-  deriving (Show, Generic, FromJSON, ToJSON, Eq)
+  deriving (Show, Generic, Eq)
+
+instance FromJSON BindingsByPathMetrics where
+  parseJSON :: Value -> Parser BindingsByPathMetrics
+  parseJSON = withObject "BindingsByPathMetrics" $ \obj -> do
+    path <- splitPath <$> (obj .: "path")
+    bindingsMetrics <- obj .: "bindings-metrics"
+    pure BindingsByPathMetrics{..}
+
+instance ToJSON BindingsByPathMetrics where
+  toJSON :: BindingsByPathMetrics -> Value
+  toJSON BindingsByPathMetrics{..} =
+    Aeson.object
+      [ "path" .= intercalate "." path
+      , "bindings-metrics" .= bindingsMetrics
+      ]
 
 data ObjectMetrics = ObjectMetrics
-  { bindingsByPathMetrics :: BindingsByPathMetrics
+  { bindingsByPathMetrics :: Maybe BindingsByPathMetrics
   , thisObjectMetrics :: Metrics
   }
-  deriving (Show, Generic, FromJSON, ToJSON, Eq)
+  deriving (Show, Generic, Eq)
+
+$(deriveJSON ''ObjectMetrics)
 
 -- | Get metrics for an object
 --
@@ -164,13 +200,13 @@ getThisObjectMetrics obj = execState (inspect obj) mempty
 -- | Get an object by a path within a given object.
 --
 -- If no object is accessible by the path, return a prefix of the path that led to a non-formation when the remaining path wasn't empty.
--- >>> getObjectByPath ["org", "eolang"] "⟦ org ↦ ⟦ eolang ↦ ⟦ x ↦ ⟦ φ ↦ Φ.org.eolang.bool ( α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-) ) ⟧, z ↦ ⟦ y ↦ ⟦ x ↦ ∅, φ ↦ ξ.x ⟧, φ ↦ Φ.org.eolang.bool ( α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-) ) ⟧, λ ⤍ Package ⟧, λ ⤍ Package ⟧⟧"
+-- >>> flip getObjectByPath ["org", "eolang"] "⟦ org ↦ ⟦ eolang ↦ ⟦ x ↦ ⟦ φ ↦ Φ.org.eolang.bool ( α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-) ) ⟧, z ↦ ⟦ y ↦ ⟦ x ↦ ∅, φ ↦ ξ.x ⟧, φ ↦ Φ.org.eolang.bool ( α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-) ) ⟧, λ ⤍ Package ⟧, λ ⤍ Package ⟧⟧"
 -- Right (Formation [AlphaBinding (Label (LabelId "x")) (Formation [AlphaBinding Phi (Application (ObjectDispatch (ObjectDispatch (ObjectDispatch GlobalObject (Label (LabelId "org"))) (Label (LabelId "eolang"))) (Label (LabelId "bool"))) [AlphaBinding (Alpha (AlphaIndex "\945\&0")) (Application (ObjectDispatch (ObjectDispatch (ObjectDispatch GlobalObject (Label (LabelId "org"))) (Label (LabelId "eolang"))) (Label (LabelId "bytes"))) [DeltaBinding (Bytes "01-")])])]),AlphaBinding (Label (LabelId "z")) (Formation [AlphaBinding (Label (LabelId "y")) (Formation [EmptyBinding (Label (LabelId "x")),AlphaBinding Phi (ObjectDispatch ThisObject (Label (LabelId "x")))]),AlphaBinding Phi (Application (ObjectDispatch (ObjectDispatch (ObjectDispatch GlobalObject (Label (LabelId "org"))) (Label (LabelId "eolang"))) (Label (LabelId "bool"))) [AlphaBinding (Alpha (AlphaIndex "\945\&0")) (Application (ObjectDispatch (ObjectDispatch (ObjectDispatch GlobalObject (Label (LabelId "org"))) (Label (LabelId "eolang"))) (Label (LabelId "bytes"))) [DeltaBinding (Bytes "01-")])])]),LambdaBinding (Function "Package")])
 --
--- >>> getObjectByPath ["a"] "⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧.e ⟧"
+-- >>> flip getObjectByPath ["a"] "⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧.e ⟧"
 -- Right (ObjectDispatch (Formation [AlphaBinding (Label (LabelId "b")) (Formation [EmptyBinding (Label (LabelId "c")),AlphaBinding (Label (LabelId "d")) (Formation [AlphaBinding Phi (ObjectDispatch (ObjectDispatch ThisObject Rho) (Label (LabelId "c")))])]),AlphaBinding (Label (LabelId "e")) (ObjectDispatch (Application (ObjectDispatch ThisObject (Label (LabelId "b"))) [AlphaBinding (Label (LabelId "c")) (Formation [])]) (Label (LabelId "d")))]) (Label (LabelId "e")))
-getObjectByPath :: Path -> Object -> Either Path Object
-getObjectByPath path object =
+getObjectByPath :: Object -> Path -> Either Path Object
+getObjectByPath object path =
   case path of
     [] -> Right object
     (p : ps) ->
@@ -185,8 +221,8 @@ getObjectByPath path object =
               x <- bindings
               Right obj <-
                 case x of
-                  AlphaBinding (Alpha (AlphaIndex name)) obj | name == p -> [getObjectByPath ps obj]
-                  AlphaBinding (Label (LabelId name)) obj | name == p -> [getObjectByPath ps obj]
+                  AlphaBinding (Alpha (AlphaIndex name)) obj | name == p -> [getObjectByPath obj ps]
+                  AlphaBinding (Label (LabelId name)) obj | name == p -> [getObjectByPath obj ps]
                   _ -> [Left path]
               pure obj
         _ -> Left path
@@ -194,14 +230,14 @@ getObjectByPath path object =
 -- | Get metrics for bindings of a formation that is accessible by a path within a given object.
 --
 -- If no formation is accessible by the path, return a prefix of the path that led to a non-formation when the remaining path wasn't empty.
--- >>> getBindingsByPathMetrics ["a"] "⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧.e ⟧"
+-- >>> flip getBindingsByPathMetrics ["a"] "⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧.e ⟧"
 -- Left ["a"]
 --
--- >>> getBindingsByPathMetrics ["a"] "⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧ ⟧"
+-- >>> flip getBindingsByPathMetrics ["a"] "⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧ ⟧"
 -- Right (BindingsByPathMetrics {path = ["a"], bindingsMetrics = [BindingMetrics {name = "b", metrics = Metrics {dataless = 0, applications = 0, formations = 2, dispatches = 2}},BindingMetrics {name = "e", metrics = Metrics {dataless = 1, applications = 1, formations = 1, dispatches = 2}}]})
-getBindingsByPathMetrics :: Path -> Object -> Either Path BindingsByPathMetrics
-getBindingsByPathMetrics path obj =
-  case getObjectByPath path obj of
+getBindingsByPathMetrics :: Object -> Path -> Either Path BindingsByPathMetrics
+getBindingsByPathMetrics object path =
+  case getObjectByPath object path of
     Right (Formation bindings) ->
       let attributes' = flip runState mempty . inspect <$> bindings
           (_, objectMetrics) = unzip attributes'
@@ -220,35 +256,39 @@ getBindingsByPathMetrics path obj =
 -- Combine metrics produced by 'getThisObjectMetrics' and 'getBindingsByPathMetrics'.
 --
 -- If no formation is accessible by the path, return a prefix of the path that led to a non-formation when the remaining path wasn't empty.
--- >>> getObjectMetrics ["a"] "⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧.e ⟧"
+-- >>> flip getObjectMetrics (Just ["a"]) "⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧.e ⟧"
 -- Left ["a"]
 --
--- >>> getObjectMetrics ["a"] "⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧ ⟧"
--- Right (ObjectMetrics {bindingsByPathMetrics = BindingsByPathMetrics {path = ["a"], bindingsMetrics = [BindingMetrics {name = "b", metrics = Metrics {dataless = 0, applications = 0, formations = 2, dispatches = 2}},BindingMetrics {name = "e", metrics = Metrics {dataless = 1, applications = 1, formations = 1, dispatches = 2}}]}, thisObjectMetrics = Metrics {dataless = 1, applications = 1, formations = 5, dispatches = 4}})
-getObjectMetrics :: Path -> Object -> Either Path ObjectMetrics
-getObjectMetrics path obj = do
-  let thisObjectMetrics = getThisObjectMetrics obj
-  bindingsByPathMetrics <- getBindingsByPathMetrics path obj
+-- >>> flip getObjectMetrics (Just ["a"]) "⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧ ⟧"
+-- Right (ObjectMetrics {bindingsByPathMetrics = Just (BindingsByPathMetrics {path = ["a"], bindingsMetrics = [BindingMetrics {name = "b", metrics = Metrics {dataless = 0, applications = 0, formations = 2, dispatches = 2}},BindingMetrics {name = "e", metrics = Metrics {dataless = 1, applications = 1, formations = 1, dispatches = 2}}]}), thisObjectMetrics = Metrics {dataless = 1, applications = 1, formations = 5, dispatches = 4}})
+getObjectMetrics :: Object -> Maybe Path -> Either Path ObjectMetrics
+getObjectMetrics object path = do
+  let thisObjectMetrics = getThisObjectMetrics object
+  bindingsByPathMetrics <- forM path $ \path' -> getBindingsByPathMetrics object path'
   pure ObjectMetrics{..}
 
 data ProgramMetrics = ProgramMetrics
-  { bindingsByPathMetrics :: BindingsByPathMetrics
+  { bindingsByPathMetrics :: Maybe BindingsByPathMetrics
   , programMetrics :: Metrics
   }
-  deriving (Show, Generic, FromJSON, ToJSON, Eq)
+  deriving (Show, Generic, Eq)
+
+$(deriveJSON ''ProgramMetrics)
 
 -- | Get metrics for a program and for bindings of a formation accessible by a given path.
 --
 -- Combine metrics produced by 'getThisObjectMetrics' and 'getBindingsByPathMetrics'.
 --
--- >>> getProgramMetrics ["org", "eolang"] "{⟦ org ↦ ⟦ eolang ↦ ⟦ x ↦ ⟦ φ ↦ Φ.org.eolang.bool ( α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-) ) ⟧, z ↦ ⟦ y ↦ ⟦ x ↦ ∅, φ ↦ ξ.x ⟧, φ ↦ Φ.org.eolang.bool ( α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-) ) ⟧, λ ⤍ Package ⟧, λ ⤍ Package ⟧⟧ }"
--- Right (ProgramMetrics {bindingsByPathMetrics = BindingsByPathMetrics {path = ["org","eolang"], bindingsMetrics = [BindingMetrics {name = "x", metrics = Metrics {dataless = 0, applications = 2, formations = 1, dispatches = 6}},BindingMetrics {name = "z", metrics = Metrics {dataless = 0, applications = 2, formations = 2, dispatches = 7}}]}, programMetrics = Metrics {dataless = 0, applications = 4, formations = 6, dispatches = 13}})
---
 -- If no formation is accessible by the path, return a prefix of the path that led to a non-formation when the remaining path wasn't empty.
+-- >>> flip getProgramMetrics (Just ["org", "eolang"]) "{⟦ org ↦ ⟦ eolang ↦ ⟦ x ↦ ⟦ φ ↦ Φ.org.eolang.bool ( α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-) ) ⟧, z ↦ ⟦ y ↦ ⟦ x ↦ ∅, φ ↦ ξ.x ⟧, φ ↦ Φ.org.eolang.bool ( α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-) ) ⟧, λ ⤍ Package ⟧, λ ⤍ Package ⟧⟧ }"
+-- Right (ProgramMetrics {bindingsByPathMetrics = Just (BindingsByPathMetrics {path = ["org","eolang"], bindingsMetrics = [BindingMetrics {name = "x", metrics = Metrics {dataless = 0, applications = 2, formations = 1, dispatches = 6}},BindingMetrics {name = "z", metrics = Metrics {dataless = 0, applications = 2, formations = 2, dispatches = 7}}]}), programMetrics = Metrics {dataless = 0, applications = 4, formations = 6, dispatches = 13}})
 --
--- >>> getProgramMetrics ["a"] "{⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧.e ⟧}"
+-- >>> flip getProgramMetrics (Just ["a"]) "{⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧.e ⟧}"
 -- Left ["a"]
-getProgramMetrics :: Path -> Program -> Either Path ProgramMetrics
-getProgramMetrics path (Program bindings) = do
-  ObjectMetrics{..} <- getObjectMetrics path (Formation bindings)
+--
+-- >>> flip getProgramMetrics (Just ["a"]) "{⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧ ⟧}"
+-- Right (ProgramMetrics {bindingsByPathMetrics = Just (BindingsByPathMetrics {path = ["a"], bindingsMetrics = [BindingMetrics {name = "b", metrics = Metrics {dataless = 0, applications = 0, formations = 2, dispatches = 2}},BindingMetrics {name = "e", metrics = Metrics {dataless = 1, applications = 1, formations = 1, dispatches = 2}}]}), programMetrics = Metrics {dataless = 1, applications = 1, formations = 5, dispatches = 4}})
+getProgramMetrics :: Program -> Maybe Path -> Either Path ProgramMetrics
+getProgramMetrics (Program bindings) path = do
+  ObjectMetrics{..} <- getObjectMetrics (Formation bindings) path
   pure ProgramMetrics{programMetrics = thisObjectMetrics, ..}

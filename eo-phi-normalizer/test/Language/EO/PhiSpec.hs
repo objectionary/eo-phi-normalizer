@@ -16,7 +16,7 @@ import Data.String (IsString (..))
 import Data.String.Interpolate (i)
 import Data.Yaml (decodeFileThrow)
 import Language.EO.Phi
-import Language.EO.Phi.Metrics (getProgramMetrics)
+import Language.EO.Phi.Metrics (BindingsByPathMetrics (..), ProgramMetrics (..), getProgramMetrics)
 import Language.EO.Phi.Rules.Common (Rule, defaultContext, equalProgram)
 import Language.EO.Phi.Rules.PhiPaper (rule1, rule6)
 import Test.EO.Phi
@@ -57,7 +57,7 @@ spec = do
     metricsTests <- runIO $ decodeFileThrow @_ @MetricsTestSet "test/eo/phi/metrics.yaml"
     forM_ metricsTests.tests $ \test -> do
       it test.title $
-        getProgramMetrics ["org", "eolang"] (fromString @Program test.phi) `shouldBe` Right test.metrics
+        getProgramMetrics (fromString @Program test.phi) ((.path) <$> test.metrics.bindingsByPathMetrics) `shouldBe` Right test.metrics
 
 trim :: String -> String
 trim = dropWhileEnd isSpace
