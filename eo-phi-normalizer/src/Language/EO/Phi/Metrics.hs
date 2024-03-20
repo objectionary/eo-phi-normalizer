@@ -14,6 +14,7 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 module Language.EO.Phi.Metrics where
 
@@ -30,43 +31,80 @@ import GHC.Generics (Generic)
 import Language.EO.Phi.Rules.Common ()
 import Language.EO.Phi.Syntax.Abs
 import Language.EO.Phi.TH
+import Data.String.Interpolate
 
-data Metrics = Metrics
-  { dataless :: Int
-  , applications :: Int
-  , formations :: Int
-  , dispatches :: Int
+data Metrics a = Metrics
+  { formations :: a
+  , dataless :: a
+  , applications :: a
+  , dispatches :: a
   }
-  deriving (Generic, Show, Eq)
+  deriving stock (Show, Generic, Eq)
 
 $(deriveJSON ''Metrics)
 
-defaultMetrics :: Metrics
-defaultMetrics =
+makeBinaryOperation :: (a -> b -> c) -> Metrics a -> Metrics b -> Metrics c
+makeBinaryOperation op x y =
   Metrics
-    { dataless = 0
-    , applications = 0
-    , formations = 0
-    , dispatches = 0
+    { formations = x.formations `op` y.formations
+    , dataless = x.dataless `op` y.dataless
+    , applications = x.applications `op` y.applications
+    , dispatches = x.dispatches `op` y.dispatches
     }
 
-instance Semigroup Metrics where
-  (<>) :: Metrics -> Metrics -> Metrics
-  x <> y =
-    Metrics
-      { dataless = x.dataless + y.dataless
-      , applications = x.applications + y.applications
-      , formations = x.formations + y.formations
-      , dispatches = x.dispatches + y.dispatches
-      }
+makeUnaryOperation :: (a -> b) -> Metrics a -> Metrics b
+makeUnaryOperation op Metrics{..} =
+  Metrics
+    { formations = op formations
+    , dataless = op dataless
+    , applications = op applications
+    , dispatches = op dispatches
+    }
 
-instance Monoid Metrics where
-  mempty :: Metrics
-  mempty = defaultMetrics
+instance (Num a) => Num (Metrics a) where
+  (+) :: Metrics a -> Metrics a -> Metrics a
+  (+) = makeBinaryOperation (+)
+  (-) :: Metrics a -> Metrics a -> Metrics a
+  (-) = makeBinaryOperation (-)
+  (*) :: Metrics a -> Metrics a -> Metrics a
+  (*) = makeBinaryOperation (*)
+  negate :: Metrics a -> Metrics a
+  negate = makeUnaryOperation negate
+  abs :: Metrics a -> Metrics a
+  abs = makeUnaryOperation abs
+  signum :: Metrics a -> Metrics a
+  signum = makeUnaryOperation signum
+  fromInteger :: Integer -> Metrics a
+  fromInteger x = error [i|Cannot construct metrics from an integer #{x}|]
+
+-- | Used in cases when a change in metrics requires division by zero.
+nan :: (Fractional a) => a
+nan = -1e9
+
+calculateChange :: (Fractional a, Eq a) => a -> a -> a
+calculateChange x y
+  | x == 0 || x == nan || y == nan = nan
+  | otherwise = x / y
+
+instance (Fractional a, Eq a) => Fractional (Metrics a) where
+  fromRational :: Rational -> Metrics a
+  fromRational _ = 0
+  (/) :: Metrics a -> Metrics a -> Metrics a
+  (/) = makeBinaryOperation calculateChange
+
+instance (Num a) => Semigroup (Metrics a) where
+  (<>) :: Metrics a -> Metrics a -> Metrics a
+  (<>) = (+)
+
+instance (Num a) => Monoid (Metrics a) where
+  mempty :: Metrics a
+  mempty = 0
+
+type MetricsCount = Metrics Int
 
 data BindingMetrics = BindingMetrics
   { name :: String
-  , metrics :: Metrics
+  , metrics :: MetricsCount
   }
   deriving (Show, Generic, Eq)
 
@@ -92,17 +130,17 @@ countDataless x
   | otherwise = 0
 
 class Inspectable a where
-  inspect :: a -> State Metrics Int
+  inspect :: a -> State MetricsCount Int
 
 instance Inspectable Binding where
-  inspect :: Binding -> State Metrics Int
+  inspect :: Binding -> State MetricsCount Int
   inspect = \case
     AlphaBinding _ obj -> do
       inspect obj
     _ -> pure 0
 
 instance Inspectable Object where
-  inspect :: Object -> State Metrics Int
+  inspect :: Object -> State MetricsCount Int
   inspect = \case
     Formation bindings -> do
       #formations += 1
@@ -157,7 +195,7 @@ instance ToJSON BindingsByPathMetrics where
 
 data ObjectMetrics = ObjectMetrics
   { bindingsByPathMetrics :: Maybe BindingsByPathMetrics
-  , thisObjectMetrics :: Metrics
+  , thisObjectMetrics :: MetricsCount
   }
   deriving (Show, Generic, Eq)
 
@@ -194,7 +232,7 @@ $(deriveJSON ''ObjectMetrics)
 --
 -- >>> getThisObjectMetrics "⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧.e ⟧"
 -- Metrics {dataless = 1, applications = 1, formations = 5, dispatches = 5}
-getThisObjectMetrics :: Object -> Metrics
+getThisObjectMetrics :: Object -> MetricsCount
 getThisObjectMetrics obj = execState (inspect obj) mempty
 
 -- | Get an object by a path within a given object.
@@ -269,7 +307,7 @@ getObjectMetrics object path = do
 
 data ProgramMetrics = ProgramMetrics
   { bindingsByPathMetrics :: Maybe BindingsByPathMetrics
-  , programMetrics :: Metrics
+  , programMetrics :: MetricsCount
   }
   deriving (Show, Generic, Eq)
 
