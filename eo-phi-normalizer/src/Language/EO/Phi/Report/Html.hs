@@ -48,17 +48,33 @@ toHtmlReportHeader =
                  ]
       ]
 
+-- >>> import Text.Blaze.Html.Renderer.String (renderHtml)
+--
+-- >>> renderHtml $ toHtmlChange 0.5 0.2
+-- "<td class=\"number bad\">0.2</td>"
+--
+-- >>> renderHtml $ toHtmlChange 0.2 0.5
+-- "<td class=\"number good\">0.5</td>"
+-- >>> renderHtml $ toHtmlChange nan 0.1
+-- "<td class=\"number nan\">NaN</td>"
+--
+-- >>> renderHtml $ toHtmlChange 0.1 nan
+-- "<td class=\"number nan\">NaN</td>"
+--
+-- >>> renderHtml $ toHtmlChange nan nan
+-- "<td class=\"number nan\">NaN</td>"
+toHtmlChange :: (Fractional a, Ord a, ToMarkup a) => a -> a -> Html
+toHtmlChange expected actual
+  | expected == nan || actual == nan = td ! class_ "number nan" $ "NaN"
+  | expected > actual = td ! class_ "number bad" $ toHtml actual
+  | otherwise = td ! class_ "number good" $ toHtml actual
+
 toHtmlMetricsChange :: MetricsChange -> MetricsChange -> [Html]
 toHtmlMetricsChange expectedChange actualChange =
-  [ makeTd x y
-  | x <- [expectedChange.formations, expectedChange.dataless, expectedChange.applications, expectedChange.dispatches]
-  | y <- [actualChange.formations, actualChange.dataless, actualChange.applications, actualChange.dispatches]
+  [ toHtmlChange expected actual
+  | expected <- [expectedChange.formations, expectedChange.dataless, expectedChange.applications, expectedChange.dispatches]
+  | actual <- [actualChange.formations, actualChange.dataless, actualChange.applications, actualChange.dispatches]
   ]
- where
-  makeTd expected actual
-    | expected == nan || actual == nan = td ! class_ "number nan" $ "NaN"
-    | expected > actual = td ! class_ "number bad" $ toHtml actual
-    | otherwise = td ! class_ "number good" $ toHtml actual
 
 toHtmlMetrics :: MetricsCount -> [Html]
 toHtmlMetrics metrics =
