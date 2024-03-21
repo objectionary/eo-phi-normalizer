@@ -1,5 +1,13 @@
 /*
+* Prefixed by https://autoprefixer.github.io
+* PostCSS: v8.4.14,
+* Autoprefixer: v10.4.7
+* Browsers: last 4 version
+*/
+
+/*
 source: https://cdn.jsdelivr.net/gh/tofsjonas/sortable@latest/sortable.min.css
+repo: https://github.com/tofsjonas/sortable
 */
 
 .sortable thead th:not(.no-sort) {
@@ -7,6 +15,8 @@ source: https://cdn.jsdelivr.net/gh/tofsjonas/sortable@latest/sortable.min.css
 }
 .sortable thead th:not(.no-sort)::after,
 .sortable thead th:not(.no-sort)::before {
+    -webkit-transition: color 0.1s ease-in-out;
+    -o-transition: color 0.1s ease-in-out;
     transition: color 0.1s ease-in-out;
     font-size: 1.2em;
     color: rgba(0, 0, 0, 0);
