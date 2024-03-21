@@ -1,7 +1,9 @@
-report-directory: metrics
-report-html: index.html
-report-js: main.js
-report-css: styles.css
+report-page:
+  directory: metrics
+  html: index.html
+  js: main.js
+  css: styles.css
+report-json: metrics/report.json
 expected-metrics-change:
   dataless: 0.2
   applications: 0.2
