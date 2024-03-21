@@ -48,6 +48,8 @@ dependencies:
   - generic-lens
   - text
   - template-haskell
+  - blaze-html
+  - blaze-markup
 
 default-extensions:
   - ImportQualifiedPost
