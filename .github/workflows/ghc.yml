@@ -103,12 +103,17 @@ jobs:
 
       - name: Build site
         run: |
+          ROOT=$PWD
+
           cd site/docs
           mdbook build
-          mv docs ../../dist
+          mv docs $ROOT/dist
+          cd $ROOT
 
-          cd ..
-          mv index.html ../dist
+          mv site/index.html $ROOT/dist
+
+          mkdir -p dist/report
+          mv report/index.html dist/report
 
       - name: 🚀 Publish Site
         uses: JamesIves/github-pages-deploy-action@v4
