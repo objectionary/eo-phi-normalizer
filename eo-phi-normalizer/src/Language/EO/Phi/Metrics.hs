@@ -85,8 +85,8 @@ instance (Num a) => Num (Metrics a) where
 nan :: (Fractional a) => a
 nan = -1e9
 
-calculateChange :: (Fractional a, Eq a) => a -> a -> a
-calculateChange x y
+divideOrNan :: (Fractional a, Eq a) => a -> a -> a
+divideOrNan x y
   | y == 0 || x == nan || y == nan = nan
   | otherwise = x / y
 
@@ -94,7 +94,7 @@ instance (Fractional a, Eq a) => Fractional (Metrics a) where
   fromRational :: Rational -> Metrics a
   fromRational _ = 0
   (/) :: Metrics a -> Metrics a -> Metrics a
-  (/) = makeBinaryOperation calculateChange
+  (/) = makeBinaryOperation divideOrNan
 
 instance (Num a) => Semigroup (Metrics a) where
   (<>) :: Metrics a -> Metrics a -> Metrics a
