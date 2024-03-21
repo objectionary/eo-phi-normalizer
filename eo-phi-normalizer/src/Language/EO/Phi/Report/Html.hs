@@ -13,6 +13,7 @@ import Data.List (intercalate)
 import Data.Maybe (fromMaybe)
 import Language.EO.Phi.Metrics (Metrics (..), MetricsCount, nan)
 import Language.EO.Phi.Report.Data
+import Text.Blaze.Html.Renderer.String (renderHtml)
 import Text.Blaze.Html5
 import Text.Blaze.Html5.Attributes
 import Prelude hiding (div, id, span)
@@ -125,3 +126,6 @@ toHtmlReport reportConfig report =
     , link ! href (toValue reportConfig.reportPage.css) ! rel "stylesheet"
     , script ! src (toValue reportConfig.reportPage.js) $ ""
     ]
+
+toStringReport :: ReportConfig -> Report -> String
+toStringReport reportConfig report = renderHtml $ toHtmlReport reportConfig report

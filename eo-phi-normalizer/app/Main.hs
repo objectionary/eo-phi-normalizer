@@ -41,7 +41,7 @@ import Language.EO.Phi (Bytes (Bytes), Object (Formation), Program (Program), pa
 import Language.EO.Phi.Dataize (dataizeRecursively, dataizeStep)
 import Language.EO.Phi.Metrics as Metrics (ProgramMetrics (..), getProgramMetrics, splitPath)
 import Language.EO.Phi.Report.Data as Report (ReportConfig (..), ReportItem (..), ReportPage (..), makeProgramReport, makeReport)
-import Language.EO.Phi.Report.Html as Report (toHtmlReport)
+import Language.EO.Phi.Report.Html as Report (toStringReport)
 import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), applyRulesChainWith, applyRulesWith, defaultContext, objectSize)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRule, parseRuleSetFromFile)
 import Options.Applicative hiding (metavar)
@@ -49,7 +49,6 @@ import Options.Applicative qualified as Optparse (metavar)
 import System.Directory (createDirectoryIfMissing, doesFileExist)
 import System.FilePath (takeDirectory, (</>))
 import System.IO (IOMode (WriteMode), getContents', hFlush, hPutStr, hPutStrLn, openFile, stdout)
-import Text.Blaze.Renderer.Text (renderMarkup)
 
 data CLI'TransformPhi = CLI'TransformPhi
   { chain :: Bool
@@ -411,11 +410,11 @@ main = do
         metricsPhiNormalized <- getMetrics item.bindingsPathPhiNormalized (Just item.phiNormalized)
         pure $ makeProgramReport item metricsPhi metricsPhiNormalized
       let report = makeReport programReports
-          reportHtml = toHtmlReport reportConfig report
+          reportString = toStringReport reportConfig report
           pageHtmlPath = reportConfig.reportPage.directory </> reportConfig.reportPage.html
 
       createDirectoryIfMissing True (takeDirectory pageHtmlPath)
-      writeFile (reportConfig.reportPage.directory </> reportConfig.reportPage.html) (unpack $ renderMarkup reportHtml)
+      writeFile (reportConfig.reportPage.directory </> reportConfig.reportPage.html) reportString
 
       forM_ reportConfig.reportJson $ \path -> do
         createDirectoryIfMissing True (takeDirectory path)
