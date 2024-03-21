@@ -1,5 +1,6 @@
 {
   "haskell.formattingProvider": "fourmolu",
+  "haskell.plugin.fourmolu.config.external": true,
   "[haskell]": {
     "editor.defaultFormatter": "haskell.haskell"
   },
