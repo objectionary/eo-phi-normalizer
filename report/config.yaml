@@ -1,9 +1,9 @@
 report-page:
-  directory: metrics
+  directory: report
   html: index.html
   js: main.js
   css: styles.css
-report-json: metrics/report.json
+report-json: report/data.json
 expected-metrics-change:
   dataless: 0.2
   applications: 0.2
