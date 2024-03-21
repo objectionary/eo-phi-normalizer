@@ -83,7 +83,7 @@ nan = -1e9
 
 calculateChange :: (Fractional a, Eq a) => a -> a -> a
 calculateChange x y
-  | x == 0 || x == nan || y == nan = nan
+  | y == 0 || x == nan || y == nan = nan
   | otherwise = x / y
 
 instance (Fractional a, Eq a) => Fractional (Metrics a) where
