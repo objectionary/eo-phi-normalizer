@@ -14,7 +14,6 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE QuasiQuotes #-}
 
 module Language.EO.Phi.Metrics where
 
@@ -31,7 +30,6 @@ import GHC.Generics (Generic)
 import Language.EO.Phi.Rules.Common ()
 import Language.EO.Phi.Syntax.Abs
 import Language.EO.Phi.TH
-import Data.String.Interpolate
 
 data Metrics a = Metrics
   { formations :: a
@@ -75,7 +73,13 @@ instance (Num a) => Num (Metrics a) where
   signum :: Metrics a -> Metrics a
   signum = makeUnaryOperation signum
   fromInteger :: Integer -> Metrics a
-  fromInteger x = error [i|Cannot construct metrics from an integer #{x}|]
+  fromInteger x =
+    Metrics
+      { formations = fromInteger x
+      , dataless = fromInteger x
+      , applications = fromInteger x
+      , dispatches = fromInteger x
+      }
 
 -- | Used in cases when a change in metrics requires division by zero.
 nan :: (Fractional a) => a
