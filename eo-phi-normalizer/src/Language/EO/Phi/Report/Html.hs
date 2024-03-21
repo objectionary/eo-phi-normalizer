@@ -12,10 +12,10 @@ module Language.EO.Phi.Report.Html where
 import Data.List (intercalate)
 import Data.Maybe (fromMaybe)
 import Language.EO.Phi.Metrics (Metrics (..), MetricsCount, nan)
-import Language.EO.Phi.Report.Data
+import Language.EO.Phi.Report.Data (MetricsChange, ProgramReport (..), Report (..), ReportRow (..))
 import Text.Blaze.Html.Renderer.String (renderHtml)
 import Text.Blaze.Html5
-import Text.Blaze.Html5.Attributes
+import Text.Blaze.Html5.Attributes (class_, colspan, type_)
 import Prelude hiding (div, id, span)
 
 toHtmlReportHeader :: Html
@@ -87,6 +87,12 @@ toHtmlMetrics metrics =
         , metrics.dispatches
         ]
 
+data ReportConfig = ReportConfig
+  { expectedMetricsChange :: MetricsChange
+  , css :: String
+  , js :: String
+  }
+
 toHtmlReportRow :: ReportConfig -> ReportRow -> Html
 toHtmlReportRow reportConfig reportRow =
   tr . toHtml $
@@ -123,8 +129,8 @@ toHtmlReport reportConfig report =
                           ]
                     )
           ]
-    , link ! href (toValue reportConfig.reportPage.css) ! rel "stylesheet"
-    , script ! src (toValue reportConfig.reportPage.js) $ ""
+    , style ! type_ "text/css" $ toHtml reportConfig.css
+    , script $ toHtml reportConfig.js
     ]
 
 toStringReport :: ReportConfig -> Report -> String
