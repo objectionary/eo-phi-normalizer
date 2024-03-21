@@ -34,18 +34,18 @@ toHtmlReportHeader =
             <$> [ "attribute before"
                 , "attribute after"
                 ]
-            <> ( concat . replicate 3 $
-                  [ "dataless"
-                  , "applications"
-                  , "formations"
-                  , "dispatches"
-                  ]
-               )
-            <> [ "file before"
-               , "bindings path before"
-               , "file after"
-               , "bindings path after"
-               ]
+              <> ( concat . replicate 3 $
+                    [ "dataless"
+                    , "applications"
+                    , "formations"
+                    , "dispatches"
+                    ]
+                 )
+              <> [ "file before"
+                 , "bindings path before"
+                 , "file after"
+                 , "bindings path after"
+                 ]
       ]
 
 toHtmlMetricsChange :: MetricsChange -> MetricsChange -> [Html]
