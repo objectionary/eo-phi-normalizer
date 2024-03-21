@@ -80,7 +80,7 @@ source: https://cdn.jsdelivr.net/gh/tofsjonas/sortable@latest/sortable.min.css
     text-align: right;
 }
 
-.sortable th {
+.sortable thead th {
     text-align: center;
 }
 
