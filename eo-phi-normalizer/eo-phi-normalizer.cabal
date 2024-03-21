@@ -63,6 +63,8 @@ library
       aeson
     , array >=0.5.5.0
     , base >=4.7 && <5
+    , blaze-html
+    , blaze-markup
     , directory
     , filepath
     , generic-lens
@@ -93,6 +95,8 @@ executable normalizer
     , aeson-pretty
     , array >=0.5.5.0
     , base >=4.7 && <5
+    , blaze-html
+    , blaze-markup
     , directory
     , eo-phi-normalizer
     , filepath
@@ -132,6 +136,8 @@ test-suite spec
     , aeson
     , array >=0.5.5.0
     , base >=4.7 && <5
+    , blaze-html
+    , blaze-markup
     , directory
     , eo-phi-normalizer
     , filepath
