@@ -101,7 +101,14 @@ function tests_with_normalization {
     cd ..
 }
 
+function generate_report () {
+    print_message "Generate a report"
+
+    stack run --cwd .. -- report --config report/config.yaml
+}
+
 prepare_directory
 enter_directory
 tests_without_normalization
 tests_with_normalization
+generate_report
