@@ -106,6 +106,6 @@ toHtmlReport reportConfig report =
                           ]
                     )
           ]
-    , link ! href (toValue reportConfig.reportCss) ! rel "stylesheet"
-    , script ! src (toValue reportConfig.reportJs) $ ""
+    , link ! href (toValue reportConfig.reportPage.css) ! rel "stylesheet"
+    , script ! src (toValue reportConfig.reportPage.js) $ ""
     ]
