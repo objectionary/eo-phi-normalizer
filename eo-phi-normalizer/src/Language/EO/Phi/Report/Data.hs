@@ -32,11 +32,18 @@ $(deriveJSON ''ReportItem)
 
 type MetricsChange = Metrics Double
 
+data ReportPage = ReportPage
+  { directory :: FilePath
+  , html :: FilePath
+  , js :: FilePath
+  , css :: FilePath
+  }
+  deriving stock (Show, Generic)
+
+$(deriveJSON ''ReportPage)
+
 data ReportConfig = ReportConfig
-  { reportDirectory :: FilePath
-  , reportHtml :: FilePath
-  , reportJs :: FilePath
-  , reportCss :: FilePath
+  { reportPage :: ReportPage
   , expectedMetricsChange :: MetricsChange
   , items :: [ReportItem]
   }
