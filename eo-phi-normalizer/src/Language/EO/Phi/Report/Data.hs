@@ -44,6 +44,7 @@ $(deriveJSON ''ReportPage)
 
 data ReportConfig = ReportConfig
   { reportPage :: ReportPage
+  , reportJson :: Maybe FilePath
   , expectedMetricsChange :: MetricsChange
   , items :: [ReportItem]
   }
