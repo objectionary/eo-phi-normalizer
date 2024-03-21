@@ -416,3 +416,7 @@ main = do
 
       createDirectoryIfMissing True (takeDirectory pageHtmlPath)
       writeFile (reportConfig.reportPage.directory </> reportConfig.reportPage.html) (unpack $ renderMarkup reportHtml)
+
+      forM_ reportConfig.reportJson $ \path -> do
+        createDirectoryIfMissing True (takeDirectory path)
+        writeFile path (encodeToJSONString report)
