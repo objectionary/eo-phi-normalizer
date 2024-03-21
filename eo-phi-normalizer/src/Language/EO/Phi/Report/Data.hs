@@ -64,15 +64,21 @@ data ReportRow = ReportRow
   , metricsAfter :: Metrics Int
   }
 
+$(deriveJSON ''ReportRow)
+
 data ProgramReport = ProgramReport
   { programRow :: ReportRow
   , bindingsRows :: [ReportRow]
   }
 
+$(deriveJSON ''ProgramReport)
+
 data Report = Report
   { totalRow :: ReportRow
   , programReports :: [ProgramReport]
   }
+
+$(deriveJSON ''Report)
 
 calculateMetricsChange :: MetricsCount -> MetricsCount -> MetricsChange
 calculateMetricsChange before after =
