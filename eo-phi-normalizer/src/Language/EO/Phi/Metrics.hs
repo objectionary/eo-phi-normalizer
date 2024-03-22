@@ -15,9 +15,9 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
-{-# LANGUAGE TypeApplications #-}
 
 module Language.EO.Phi.Metrics where
 
@@ -127,6 +127,12 @@ instance (Eq a) => Eq (SafeNumber a) where
   (==) (SafeNumber'Number x) (SafeNumber'Number y) = x == y
   (==) _ _ = False
 
+instance (Ord a) => Ord (SafeNumber a) where
+  (<=) :: SafeNumber a -> SafeNumber a -> Bool
+  (SafeNumber'Number x) <= (SafeNumber'Number y) = x <= y
+  _ <= SafeNumber'Number _ = True
+  _ <= _ = False
+
 instance Applicative SafeNumber where
   pure :: a -> SafeNumber a
   pure = SafeNumber'Number
@@ -156,10 +162,10 @@ instance (Fractional a, Eq a) => Fractional (MetricsSafe a) where
   (/) :: MetricsSafe a -> MetricsSafe a -> MetricsSafe a
   (/) x y = divideSafeNumber <$> x <*> y
    where
-    divideSafeNumber :: (Fractional a) => SafeNumber a -> SafeNumber a -> SafeNumber a
-    divideSafeNumber x' y' =
-      case (x', y') of
-        (SafeNumber'Number x'', SafeNumber'Number y'') -> SafeNumber'Number (x'' / y'')
+    divideSafeNumber :: (Fractional a, Eq a) => SafeNumber a -> SafeNumber a -> SafeNumber a
+    divideSafeNumber lhs rhs =
+      case (lhs, rhs) of
+        (SafeNumber'Number lhs', SafeNumber'Number rhs') | rhs' /= 0 -> SafeNumber'Number (lhs' / rhs')
         _ -> SafeNumber'NaN
 
 instance (Num a) => Semigroup (Metrics a) where
