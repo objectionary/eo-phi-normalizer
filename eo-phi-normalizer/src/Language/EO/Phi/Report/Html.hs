@@ -2,17 +2,20 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ParallelListComp #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# OPTIONS_GHC -Wno-orphans #-}
 
 module Language.EO.Phi.Report.Html where
 
 import Data.List (intercalate)
 import Data.Maybe (fromMaybe)
-import Language.EO.Phi.Metrics (Metrics (..), MetricsCount, nan)
-import Language.EO.Phi.Report.Data (MetricsChange, ProgramReport (..), Report (..), ReportRow (..))
+import Language.EO.Phi.Metrics (Metrics (..), MetricsCount, toListMetrics)
+import Language.EO.Phi.Report.Data (MetricsChange, MetricsChangeCategorized, MetricsChangeCategory (..), Percent (..), ProgramReport (..), Report (..), ReportRow (..))
 import Text.Blaze.Html.Renderer.String (renderHtml)
 import Text.Blaze.Html5
 import Text.Blaze.Html5.Attributes (class_, colspan, type_)
@@ -49,33 +52,27 @@ toHtmlReportHeader =
                  ]
       ]
 
+instance ToMarkup Percent where
+  toMarkup :: Percent -> Markup
+  toMarkup Percent{..} = toMarkup $ percent * 100
+
 -- >>> import Text.Blaze.Html.Renderer.String (renderHtml)
 --
--- >>> renderHtml $ toHtmlChange 0.5 0.2
+-- >>> renderHtml $ toHtmlChange (MetricsChange'Bad 0.2)
 -- "<td class=\"number bad\">0.2</td>"
 --
--- >>> renderHtml $ toHtmlChange 0.2 0.5
+-- >>> renderHtml $ toHtmlChange (MetricsChange'Good 0.5)
 -- "<td class=\"number good\">0.5</td>"
--- >>> renderHtml $ toHtmlChange nan 0.1
+-- >>> renderHtml $ toHtmlChange (MetricsChange'NaN :: MetricsChangeCategory Double)
 -- "<td class=\"number nan\">NaN</td>"
---
--- >>> renderHtml $ toHtmlChange 0.1 nan
--- "<td class=\"number nan\">NaN</td>"
---
--- >>> renderHtml $ toHtmlChange nan nan
--- "<td class=\"number nan\">NaN</td>"
-toHtmlChange :: (Fractional a, Ord a, ToMarkup a) => a -> a -> Html
-toHtmlChange expected actual
-  | expected == nan || actual == nan = td ! class_ "number nan" $ "NaN"
-  | expected > actual = td ! class_ "number bad" $ toHtml actual
-  | otherwise = td ! class_ "number good" $ toHtml actual
+toHtmlChange :: (ToMarkup a) => MetricsChangeCategory a -> Html
+toHtmlChange = \case
+  MetricsChange'NaN -> td ! class_ "number nan" $ "NaN"
+  MetricsChange'Bad{..} -> td ! class_ "number bad" $ toHtml change
+  MetricsChange'Good{..} -> td ! class_ "number good" $ toHtml change
 
-toHtmlMetricsChange :: MetricsChange -> MetricsChange -> [Html]
-toHtmlMetricsChange expectedChange actualChange =
-  [ toHtmlChange expected actual
-  | expected <- [expectedChange.formations, expectedChange.dataless, expectedChange.applications, expectedChange.dispatches]
-  | actual <- [actualChange.formations, actualChange.dataless, actualChange.applications, actualChange.dispatches]
-  ]
+toHtmlMetricsChange :: MetricsChangeCategorized -> [Html]
+toHtmlMetricsChange change = toHtmlChange <$> toListMetrics change
 
 toHtmlMetrics :: MetricsCount -> [Html]
 toHtmlMetrics metrics =
@@ -93,8 +90,8 @@ data ReportConfig = ReportConfig
   , js :: String
   }
 
-toHtmlReportRow :: ReportConfig -> ReportRow -> Html
-toHtmlReportRow reportConfig reportRow =
+toHtmlReportRow :: ReportRow -> Html
+toHtmlReportRow reportRow =
   tr . toHtml $
     ( td
         . toHtml
@@ -102,7 +99,7 @@ toHtmlReportRow reportConfig reportRow =
             , fromMaybe "[N/A]" reportRow.attributeAfter
             ]
     )
-      <> toHtmlMetricsChange reportConfig.expectedMetricsChange reportRow.metricsChange
+      <> toHtmlMetricsChange reportRow.metricsChange
       <> toHtmlMetrics reportRow.metricsBefore
       <> toHtmlMetrics reportRow.metricsAfter
       <> ( td
@@ -121,7 +118,7 @@ toHtmlReport reportConfig report =
         toHtml
           [ toHtmlReportHeader
           , tbody . toHtml $
-              toHtmlReportRow reportConfig
+              toHtmlReportRow
                 <$> ( report.totalRow
                         : concat
                           [ programReport.programRow : programReport.bindingsRows
