@@ -17,17 +17,19 @@
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE TypeApplications #-}
 
 module Language.EO.Phi.Metrics where
 
 import Control.Lens ((+=))
 import Control.Monad.State (State, execState, runState)
-import Data.Aeson (KeyValue ((.=)), ToJSON (..), Value, withObject, (.:))
+import Data.Aeson (KeyValue ((.=)), ToJSON (..), Value (..), withObject, withScientific, withText, (.:))
 import Data.Aeson qualified as Aeson
-import Data.Aeson.Types (FromJSON (..), Parser)
+import Data.Aeson.Types (FromJSON (..), Parser, parseFail)
 import Data.Foldable (forM_)
 import Data.Generics.Labels ()
 import Data.List (groupBy, intercalate)
+import Data.Scientific (toRealFloat)
 import Data.Traversable (forM)
 import GHC.Generics (Generic)
 import Language.EO.Phi.Rules.Common ()
@@ -44,8 +46,8 @@ data Metrics a = Metrics
 
 $(deriveJSON ''Metrics)
 
-foldMetrics :: Metrics a -> [a]
-foldMetrics = foldMap (: [])
+toListMetrics :: Metrics a -> [a]
+toListMetrics = foldMap (: [])
 
 instance Applicative Metrics where
   pure :: a -> Metrics a
@@ -83,9 +85,37 @@ instance (Num a) => Num (Metrics a) where
   fromInteger x = pure $ fromInteger x
 
 data SafeNumber a = SafeNumber'NaN | SafeNumber'Number a
-  deriving stock (Functor, Generic)
+  deriving stock (Functor)
 
-$(deriveJSON ''SafeNumber)
+-- >>> import Data.Aeson (decode')
+--
+-- >>> decode' @(SafeNumber Double) "\"NaN\""
+-- Just NaN
+--
+-- >>> decode' @(SafeNumber Double) "3"
+-- Just 3.0
+
+instance (FromJSON a, RealFloat a) => FromJSON (SafeNumber a) where
+  parseJSON :: Value -> Parser (SafeNumber a)
+  parseJSON (String s) =
+    withText
+      "NaN"
+      ( \case
+          "NaN" -> pure SafeNumber'NaN
+          _ -> parseFail "String is not a NaN"
+      )
+      (String s)
+  parseJSON (Number n) =
+    withScientific
+      "Number"
+      (pure . pure . toRealFloat)
+      (Number n)
+  parseJSON _ = parseFail "Value is not a NaN or a Number"
+
+instance (ToJSON a) => ToJSON (SafeNumber a) where
+  toJSON :: SafeNumber a -> Value
+  toJSON (SafeNumber'Number a) = toJSON a
+  toJSON SafeNumber'NaN = toJSON ("NaN" :: String)
 
 instance (Show a) => Show (SafeNumber a) where
   show :: SafeNumber a -> String
