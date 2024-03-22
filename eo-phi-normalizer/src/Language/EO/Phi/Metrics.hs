@@ -1,9 +1,12 @@
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
@@ -18,11 +21,11 @@
 module Language.EO.Phi.Metrics where
 
 import Control.Lens ((+=))
-import Control.Monad (forM_)
 import Control.Monad.State (State, execState, runState)
 import Data.Aeson (KeyValue ((.=)), ToJSON (..), Value, withObject, (.:))
 import Data.Aeson qualified as Aeson
 import Data.Aeson.Types (FromJSON (..), Parser)
+import Data.Foldable (forM_)
 import Data.Generics.Labels ()
 import Data.List (groupBy, intercalate)
 import Data.Traversable (forM)
@@ -37,64 +40,97 @@ data Metrics a = Metrics
   , applications :: a
   , dispatches :: a
   }
-  deriving stock (Show, Generic, Eq)
+  deriving stock (Show, Generic, Eq, Functor, Foldable, Traversable)
 
 $(deriveJSON ''Metrics)
 
-makeBinaryOperation :: (a -> b -> c) -> Metrics a -> Metrics b -> Metrics c
-makeBinaryOperation op x y =
-  Metrics
-    { formations = x.formations `op` y.formations
-    , dataless = x.dataless `op` y.dataless
-    , applications = x.applications `op` y.applications
-    , dispatches = x.dispatches `op` y.dispatches
-    }
+foldMetrics :: Metrics a -> [a]
+foldMetrics = foldMap (: [])
 
-makeUnaryOperation :: (a -> b) -> Metrics a -> Metrics b
-makeUnaryOperation op Metrics{..} =
-  Metrics
-    { formations = op formations
-    , dataless = op dataless
-    , applications = op applications
-    , dispatches = op dispatches
-    }
+instance Applicative Metrics where
+  pure :: a -> Metrics a
+  pure a =
+    Metrics
+      { formations = a
+      , dataless = a
+      , applications = a
+      , dispatches = a
+      }
+
+  (<*>) :: Metrics (a -> b) -> Metrics a -> Metrics b
+  x <*> y =
+    Metrics
+      { formations = x.formations y.formations
+      , dataless = x.dataless y.dataless
+      , applications = x.applications y.applications
+      , dispatches = x.dispatches y.dispatches
+      }
 
 instance (Num a) => Num (Metrics a) where
   (+) :: Metrics a -> Metrics a -> Metrics a
-  (+) = makeBinaryOperation (+)
+  (+) x y = (+) <$> x <*> y
   (-) :: Metrics a -> Metrics a -> Metrics a
-  (-) = makeBinaryOperation (-)
+  (-) x y = (-) <$> x <*> y
   (*) :: Metrics a -> Metrics a -> Metrics a
-  (*) = makeBinaryOperation (*)
+  (*) x y = (*) <$> x <*> y
   negate :: Metrics a -> Metrics a
-  negate = makeUnaryOperation negate
+  negate = (negate <$>)
   abs :: Metrics a -> Metrics a
-  abs = makeUnaryOperation abs
+  abs = (abs <$>)
   signum :: Metrics a -> Metrics a
-  signum = makeUnaryOperation signum
+  signum = (signum <$>)
   fromInteger :: Integer -> Metrics a
-  fromInteger x =
-    Metrics
-      { formations = fromInteger x
-      , dataless = fromInteger x
-      , applications = fromInteger x
-      , dispatches = fromInteger x
-      }
+  fromInteger x = pure $ fromInteger x
 
--- | Used in cases when a change in metrics requires division by zero.
-nan :: (Fractional a) => a
-nan = -1e9
+data SafeNumber a = SafeNumber'NaN | SafeNumber'Number a
+  deriving stock (Functor, Generic)
 
-divideOrNan :: (Fractional a, Eq a) => a -> a -> a
-divideOrNan x y
-  | y == 0 || x == nan || y == nan = nan
-  | otherwise = x / y
+$(deriveJSON ''SafeNumber)
 
-instance (Fractional a, Eq a) => Fractional (Metrics a) where
-  fromRational :: Rational -> Metrics a
+instance (Show a) => Show (SafeNumber a) where
+  show :: SafeNumber a -> String
+  show (SafeNumber'Number a) = show a
+  show SafeNumber'NaN = "NaN"
+
+instance (Eq a) => Eq (SafeNumber a) where
+  (==) :: SafeNumber a -> SafeNumber a -> Bool
+  (==) (SafeNumber'Number x) (SafeNumber'Number y) = x == y
+  (==) _ _ = False
+
+instance Applicative SafeNumber where
+  pure :: a -> SafeNumber a
+  pure = SafeNumber'Number
+  (<*>) :: SafeNumber (a -> b) -> SafeNumber a -> SafeNumber b
+  (<*>) (SafeNumber'Number x') (SafeNumber'Number y') = SafeNumber'Number (x' y')
+  (<*>) _ _ = SafeNumber'NaN
+
+instance (Num a) => Num (SafeNumber a) where
+  (+) :: SafeNumber a -> SafeNumber a -> SafeNumber a
+  (+) x y = (+) <$> x <*> y
+  (*) :: SafeNumber a -> SafeNumber a -> SafeNumber a
+  (*) x y = (*) <$> x <*> y
+  abs :: SafeNumber a -> SafeNumber a
+  abs = (abs <$>)
+  signum :: SafeNumber a -> SafeNumber a
+  signum = (signum <$>)
+  fromInteger :: Integer -> SafeNumber a
+  fromInteger x = pure $ fromInteger x
+  negate :: SafeNumber a -> SafeNumber a
+  negate = (negate <$>)
+
+type MetricsSafe a = Metrics (SafeNumber a)
+
+instance (Fractional a, Eq a) => Fractional (MetricsSafe a) where
+  fromRational :: Rational -> MetricsSafe a
   fromRational _ = 0
-  (/) :: Metrics a -> Metrics a -> Metrics a
-  (/) = makeBinaryOperation divideOrNan
+  (/) :: MetricsSafe a -> MetricsSafe a -> MetricsSafe a
+  (/) x y = divideSafeNumber <$> x <*> y
+   where
+    divideSafeNumber :: (Fractional a) => SafeNumber a -> SafeNumber a -> SafeNumber a
+    divideSafeNumber x' y' =
+      case (x', y') of
+        (SafeNumber'Number x'', SafeNumber'Number y'') -> SafeNumber'Number (x'' / y'')
+        _ -> SafeNumber'NaN
 
 instance (Num a) => Semigroup (Metrics a) where
   (<>) :: Metrics a -> Metrics a -> Metrics a
