@@ -1,0 +1,40 @@
+title: Dataization tests
+tests:
+  - name: Celsius example
+    input: |
+      {⟦
+        σ ↦ Φ,
+        c ↦ Φ.org.eolang.float(Δ ⤍ 19-),
+        φ ↦ ξ.c.times(α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus(α0 ↦ ⟦ Δ ⤍ 20- ⟧),
+        org ↦ ⟦
+          eolang ↦ ⟦
+            float ↦ ⟦
+              Δ ⤍ ∅,
+              times ↦ ⟦ α0 ↦ ∅, λ ⤍ Times ⟧,
+              plus ↦ ⟦ α0 ↦ ∅, λ ⤍ Plus ⟧
+            ⟧
+          ⟧
+        ⟧
+      ⟧}
+    output: '52-'
+
+  - name: Ignores 'Package' lambdas
+    input: |
+      {⟦
+        σ ↦ Φ,
+        c ↦ Φ.org.eolang.float(Δ ⤍ 19-),
+        φ ↦ ξ.c.times(α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus(α0 ↦ ⟦ Δ ⤍ 20- ⟧),
+        org ↦ ⟦
+          λ ⤍ Package,
+          eolang ↦ ⟦
+            λ ⤍ Package,
+            float ↦ ⟦
+              Δ ⤍ ∅,
+              times ↦ ⟦ α0 ↦ ∅, λ ⤍ Times ⟧,
+              plus ↦ ⟦ α0 ↦ ∅, λ ⤍ Plus ⟧,
+              λ ⤍ Package
+            ⟧
+          ⟧
+        ⟧
+      ⟧}
+    output: '52-'
