@@ -1,17 +1,24 @@
 {-# LANGUAGE ApplicativeDo #-}
+{-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiWayIf #-}
+{-# LANGUAGE OverloadedLabels #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections #-}
+{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wno-partial-fields #-}
 {-# OPTIONS_GHC -Wno-type-defaults #-}
 
@@ -20,20 +27,23 @@ module Main (main) where
 import Control.Monad (unless, when)
 import Data.Foldable (forM_)
 
+import Control.Exception (Exception (..), SomeException, catch, throw)
 import Control.Lens ((^.))
 import Data.Aeson (ToJSON)
 import Data.Aeson.Encode.Pretty (Config (..), Indent (..), defConfig, encodePrettyToTextBuilder')
-import Data.String.Interpolate (i)
+import Data.List (intercalate)
+import Data.String.Interpolate (i, iii)
 import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy.Lens
 import GHC.Generics (Generic)
 import Language.EO.Phi (Bytes (Bytes), Object (Formation), Program (Program), parseProgram, printTree)
 import Language.EO.Phi.Dataize (dataizeRecursively, dataizeRecursivelyChain, dataizeStep, dataizeStepChain)
-import Language.EO.Phi.Metrics.Collect (collectMetrics)
+import Language.EO.Phi.Metrics (ProgramMetrics, getProgramMetrics, splitPath)
 import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), applyRulesChainWith, applyRulesWith, defaultContext, objectSize, propagateName1)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRuleNamed, parseRuleSetFromFile)
-import Options.Applicative
-import Options.Applicative.Types qualified as Optparse (Context (..))
+import Options.Applicative hiding (metavar)
+import Options.Applicative qualified as Optparse (metavar)
+import System.Directory (doesFileExist)
 import System.IO (IOMode (WriteMode), getContents', hFlush, hPutStr, hPutStrLn, openFile, stdout)
 
 data CLI'TransformPhi = CLI'TransformPhi
@@ -60,6 +70,7 @@ data CLI'DataizePhi = CLI'DataizePhi
 data CLI'MetricsPhi = CLI'MetricsPhi
   { inputFile :: Maybe FilePath
   , outputFile :: Maybe FilePath
+  , bindingsPath :: Maybe String
   }
   deriving (Show)
 
@@ -72,69 +83,143 @@ data CLI
 fileMetavarName :: String
 fileMetavarName = "FILE"
 
-fileMetavar :: Mod OptionFields a
-fileMetavar = metavar fileMetavarName
+data MetavarName = MetavarName
+  { file :: String
+  , int :: String
+  , path :: String
+  }
+
+metavarName :: MetavarName
+metavarName =
+  MetavarName
+    { file = "FILE"
+    , int = "INT"
+    , path = "PATH"
+    }
+
+data Metavar a b = Metavar
+  { file :: Mod a b
+  , int :: Mod a b
+  , path :: Mod a b
+  }
+
+metavar :: (HasMetavar a) => Metavar a b
+metavar =
+  Metavar
+    { file = Optparse.metavar metavarName.file
+    , int = Optparse.metavar metavarName.int
+    , path = Optparse.metavar metavarName.path
+    }
+
+newtype OptionName = OptionName
+  { bindingsPath :: String
+  }
+
+optionName :: OptionName
+optionName =
+  OptionName
+    { bindingsPath = "bindings-path"
+    }
 
 outputFileOption :: Parser (Maybe String)
-outputFileOption = optional $ strOption (long "output-file" <> short 'o' <> help [i|Output to #{fileMetavarName}. When this option is not specified, output to stdout.|] <> fileMetavar)
+outputFileOption = optional $ strOption (long "output-file" <> short 'o' <> metavar.file <> help [i|Output to #{fileMetavarName}. When this option is not specified, output to stdout.|])
 
 inputFileArg :: Parser (Maybe String)
-inputFileArg = optional $ strArgument (metavar fileMetavarName <> help [i|#{fileMetavarName} to read input from. When no #{fileMetavarName} is specified, read from stdin.|])
+inputFileArg = optional $ strArgument (metavar.file <> help [i|#{fileMetavarName} to read input from. When no #{fileMetavarName} is specified, read from stdin.|])
 
 jsonSwitch :: Parser Bool
 jsonSwitch = switch (long "json" <> short 'j' <> help "Output JSON.")
 
-cliTransformPhiParser :: Parser CLI'TransformPhi
-cliTransformPhiParser = do
-  rulesPath <- strOption (long "rules" <> short 'r' <> help [i|#{fileMetavarName} with user-defined rules. Must be specified.|] <> fileMetavar)
-  chain <- switch (long "chain" <> short 'c' <> help "Output transformation steps.")
-  json <- jsonSwitch
-  outputFile <- outputFileOption
-  single <- switch (long "single" <> short 's' <> help "Output a single expression.")
-  maxDepth <- option auto (long "max-depth" <> metavar "INT" <> value 10 <> help "Maximum depth of rules application. Defaults to 10.")
-  maxGrowthFactor <- option auto (long "max-growth-factor" <> metavar "INT" <> value 10 <> help "The factor by which to allow the input term to grow before stopping. Defaults to 10.")
-  inputFile <- inputFileArg
-  pure CLI'TransformPhi{..}
+bindingsPathOption :: Parser (Maybe String)
+bindingsPathOption =
+  optional $
+    strOption
+      ( long optionName.bindingsPath
+          <> short 'b'
+          <> metavar.path
+          <> help
+            let path' = metavarName.path
+             in [iii|
+                  Report metrics for bindings of a formation accessible in a program by the #{path'}.
+                  When this option is not specified, metrics for bindings are not reported.
+                  Example of a #{path'}: 'org.eolang'.
+                |]
+      )
 
-cliDataizePhiParser :: Parser CLI'DataizePhi
-cliDataizePhiParser = do
-  rulesPath <- strOption (long "rules" <> short 'r' <> help [i|#{fileMetavarName} with user-defined rules. Must be specified.|] <> fileMetavar)
-  inputFile <- inputFileArg
-  outputFile <- outputFileOption
-  recursive <- switch (long "recursive" <> help "Apply dataization + normalization recursively.")
-  chain <- switch (long "chain" <> help "Display all the intermediate steps.")
-  pure CLI'DataizePhi{..}
+data CommandParser = CommandParser
+  { metrics :: Parser CLI'MetricsPhi
+  , transform :: Parser CLI'TransformPhi
+  , dataize :: Parser CLI'DataizePhi
+  }
 
-cliMetricsPhiParser :: Parser CLI'MetricsPhi
-cliMetricsPhiParser = do
-  inputFile <- inputFileArg
-  outputFile <- outputFileOption
-  pure CLI'MetricsPhi{..}
+commandParser :: CommandParser
+commandParser =
+  CommandParser{..}
+ where
+  metrics = do
+    inputFile <- inputFileArg
+    outputFile <- outputFileOption
+    bindingsPath <- bindingsPathOption
+    pure CLI'MetricsPhi{..}
 
-metricsParserInfo :: ParserInfo CLI
-metricsParserInfo = info (CLI'MetricsPhi' <$> cliMetricsPhiParser) (progDesc "Collect metrics for a PHI program.")
+  transform = do
+    rulesPath <-
+      let file' = metavarName.file
+       in strOption (long "rules" <> short 'r' <> metavar.file <> help [i|#{file'} with user-defined rules. Must be specified.|])
+    chain <- switch (long "chain" <> short 'c' <> help "Output transformation steps.")
+    json <- jsonSwitch
+    outputFile <- outputFileOption
+    single <- switch (long "single" <> short 's' <> help "Output a single expression.")
+    maxDepth <-
+      let maxValue = 10
+       in option auto (long "max-depth" <> metavar.int <> value maxValue <> help [i|Maximum depth of rules application. Defaults to #{maxValue}.|])
+    maxGrowthFactor <-
+      let maxValue = 10
+       in option auto (long "max-growth-factor" <> metavar.int <> value maxValue <> help [i|The factor by which to allow the input term to grow before stopping. Defaults to #{maxValue}.|])
+    inputFile <- inputFileArg
+    pure CLI'TransformPhi{..}
+  dataize = do
+    rulesPath <- strOption (long "rules" <> short 'r' <> metavar.file <> help [i|#{fileMetavarName} with user-defined rules. Must be specified.|])
+    inputFile <- inputFileArg
+    outputFile <- outputFileOption
+    recursive <- switch (long "recursive" <> help "Apply dataization + normalization recursively.")
+    chain <- switch (long "chain" <> help "Display all the intermediate steps.")
+    pure CLI'DataizePhi{..}
 
-transformParserInfo :: ParserInfo CLI
-transformParserInfo = info (CLI'TransformPhi' <$> cliTransformPhiParser) (progDesc "Transform a PHI program.")
+data CommandParserInfo = CommandParserInfo
+  { metrics :: ParserInfo CLI
+  , transform :: ParserInfo CLI
+  , dataize :: ParserInfo CLI
+  }
 
-dataizeParserInfo :: ParserInfo CLI
-dataizeParserInfo = info (CLI'DataizePhi' <$> cliDataizePhiParser) (progDesc "Dataize a PHI program.")
+commandParserInfo :: CommandParserInfo
+commandParserInfo =
+  CommandParserInfo
+    { metrics = info (CLI'MetricsPhi' <$> commandParser.metrics) (progDesc "Collect metrics for a PHI program.")
+    , transform = info (CLI'TransformPhi' <$> commandParser.transform) (progDesc "Transform a PHI program.")
+    , dataize = info (CLI'DataizePhi' <$> commandParser.dataize) (progDesc "Dataize a PHI program.")
+    }
 
-transformCommandName :: String
-transformCommandName = "transform"
+data CommandNames = CommandNames
+  { transform :: String
+  , metrics :: String
+  , dataize :: String
+  }
 
-metricsCommandName :: String
-metricsCommandName = "metrics"
-
-dataizeCommandName :: String
-dataizeCommandName = "dataize"
+commandNames :: CommandNames
+commandNames =
+  CommandNames
+    { transform = "transform"
+    , metrics = "metrics"
+    , dataize = "dataize"
+    }
 
 cli :: Parser CLI
 cli =
   hsubparser
-    ( command transformCommandName transformParserInfo
-        <> command metricsCommandName metricsParserInfo
-        <> command dataizeCommandName dataizeParserInfo
+    ( command commandNames.transform commandParserInfo.transform
+        <> command commandNames.metrics commandParserInfo.metrics
+        <> command commandNames.dataize commandParserInfo.dataize
     )
 
 cliOpts :: ParserInfo CLI
@@ -155,16 +240,39 @@ encodeToJSONString = (^. unpacked) . toLazyText . encodePrettyToTextBuilder' def
 pprefs :: ParserPrefs
 pprefs = prefs (showHelpOnEmpty <> showHelpOnError)
 
-die :: Optparse.Context -> String -> IO a
-die parserContext message = do
-  handleParseResult . Failure $
-    parserFailure pprefs cliOpts (ErrorMsg message) [parserContext]
+data CLI'Exception
+  = NotAFormation {path :: String, bindingsPath :: String}
+  | FileDoesNotExist {file :: FilePath}
+  | CouldNotRead {message :: String}
+  | CouldNotParse {message :: String}
+  | CouldNotNormalize
+  | Impossible {message :: String}
+  deriving anyclass (Exception)
 
-getProgram :: Optparse.Context -> Maybe FilePath -> IO Program
-getProgram parserContext inputFile = do
-  src <- maybe getContents' readFile inputFile
+instance Show CLI'Exception where
+  show :: CLI'Exception -> String
+  show = \case
+    NotAFormation{..} -> [i|Could not find bindings at path '#{bindingsPath}' because an object at '#{path}' is not a formation.|]
+    FileDoesNotExist{..} -> [i|File '#{file}' does not exist.|]
+    CouldNotRead{..} -> [i|Could not read the program:\n#{message}|]
+    CouldNotParse{..} -> [i|An error occurred when parsing the input program:\n#{message}|]
+    CouldNotNormalize -> [i|Could not normalize the program.|]
+    Impossible{..} -> message
+
+getFile :: Maybe FilePath -> IO (Maybe String)
+getFile = \case
+  Nothing -> pure Nothing
+  Just file' ->
+    doesFileExist file' >>= \case
+      True -> pure (Just file')
+      False -> throw $ FileDoesNotExist file'
+
+getProgram :: Maybe FilePath -> IO Program
+getProgram inputFile = do
+  inputFile' <- getFile inputFile
+  src <- maybe getContents' readFile inputFile' `catch` (throw . CouldNotRead . show @SomeException)
   case parseProgram src of
-    Left err -> die parserContext [i|"An error occurred when parsing the input program: #{err}|]
+    Left err -> throw $ CouldNotParse err
     Right program -> pure program
 
 getLoggers :: Maybe FilePath -> IO (String -> IO (), String -> IO ())
@@ -175,6 +283,34 @@ getLoggers outputFile = do
     , \x -> hPutStr handle x >> hFlush handle
     )
 
+-- >>> flip getMetrics' (Just "a.b") "{⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧ ⟧}"
+-- Right (ProgramMetrics {bindingsByPathMetrics = Just (BindingsByPathMetrics {path = ["a","b"], bindingsMetrics = [BindingMetrics {name = "d", metrics = Metrics {dataless = 0, applications = 0, formations = 1, dispatches = 2}}]}), programMetrics = Metrics {dataless = 1, applications = 1, formations = 5, dispatches = 4}})
+getMetrics' :: Program -> Maybe String -> Either CLI'Exception ProgramMetrics
+getMetrics' program bindingsPath = do
+  let metrics = getProgramMetrics program (splitPath <$> bindingsPath)
+  case metrics of
+    Left path ->
+      ( case bindingsPath of
+          Nothing ->
+            let
+              bindingsPath' = optionName.bindingsPath
+              path' = metavarName.path
+             in
+              Left $
+                Impossible
+                  [iii|
+                    Impossible happened!
+                    The option #{bindingsPath'} was not specified yet there were errors finding attributes by #{path'}.
+                  |]
+          Just bindingsPath' -> Left $ NotAFormation (intercalate "." path) bindingsPath'
+      )
+    Right metrics' -> pure metrics'
+
+getMetrics :: Maybe String -> Maybe FilePath -> IO ProgramMetrics
+getMetrics bindingsPath inputFile = do
+  program <- getProgram inputFile
+  either throw pure (getMetrics' program bindingsPath)
+
 main :: IO ()
 main = do
   opts <- customExecParser pprefs cliOpts
@@ -183,14 +319,11 @@ main = do
         x -> printTree x
   case opts of
     CLI'MetricsPhi' CLI'MetricsPhi{..} -> do
-      let parserContext = Optparse.Context metricsCommandName metricsParserInfo
-      program' <- getProgram parserContext inputFile
       (logStrLn, _) <- getLoggers outputFile
-      let metrics = collectMetrics program'
+      metrics <- getMetrics bindingsPath inputFile
       logStrLn $ encodeToJSONString metrics
     CLI'TransformPhi' CLI'TransformPhi{..} -> do
-      let parserContext = Optparse.Context transformCommandName transformParserInfo
-      program' <- getProgram parserContext inputFile
+      program' <- getProgram inputFile
       (logStrLn, logStr) <- getLoggers outputFile
       ruleSet <- parseRuleSetFromFile rulesPath
       unless (single || json) $ logStrLn ruleSet.title
@@ -202,7 +335,7 @@ main = do
             limits = ApplicationLimits maxDepth (maxGrowthFactor * objectSize (Formation bindings))
             ctx = defaultContext (convertRuleNamed <$> ruleSet.rules) (Formation bindings)
           totalResults = length uniqueResults
-      when (null uniqueResults || null (head uniqueResults)) $ die parserContext [i|Could not normalize the program.|]
+      when (null uniqueResults || null (head uniqueResults)) (throw CouldNotNormalize)
       if
         | single && json ->
             logStrLn
@@ -234,8 +367,7 @@ main = do
               logStrLn "----------------------------------------------------"
     CLI'DataizePhi' CLI'DataizePhi{..} -> do
       (logStrLn, _logStr) <- getLoggers outputFile
-      let parserContext = Optparse.Context dataizeCommandName dataizeParserInfo
-      program' <- getProgram parserContext inputFile
+      program' <- getProgram inputFile
       ruleSet <- parseRuleSetFromFile rulesPath
       let (Program bindings) = program'
       let inputObject = Formation bindings

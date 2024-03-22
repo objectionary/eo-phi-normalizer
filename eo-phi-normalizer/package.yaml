@@ -47,6 +47,7 @@ dependencies:
   - lens
   - generic-lens
   - text
+  - template-haskell
 
 default-extensions:
   - ImportQualifiedPost

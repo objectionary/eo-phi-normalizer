@@ -305,9 +305,9 @@ newtype MetaState = MetaState
 
 evaluateMetaFuncs' :: Object -> State MetaState Object
 evaluateMetaFuncs' (MetaFunction (MetaFunctionName "@T") _) = do
-  res <- gets (Common.intToBytesObject . nuCount)
+  nuCount' <- gets (Common.intToBytesObject . nuCount)
   #nuCount += 1
-  pure res
+  pure nuCount'
 evaluateMetaFuncs' (Formation bindings) = Formation <$> mapM evaluateMetaFuncsBinding bindings
 evaluateMetaFuncs' (Application obj bindings) = Application <$> evaluateMetaFuncs' obj <*> mapM evaluateMetaFuncsBinding bindings
 evaluateMetaFuncs' (ObjectDispatch obj a) = ObjectDispatch <$> evaluateMetaFuncs' obj <*> pure a

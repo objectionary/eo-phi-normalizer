@@ -35,7 +35,7 @@ library
   exposed-modules:
       Language.EO.Phi
       Language.EO.Phi.Dataize
-      Language.EO.Phi.Metrics.Collect
+      Language.EO.Phi.Metrics
       Language.EO.Phi.Normalize
       Language.EO.Phi.Rules.Common
       Language.EO.Phi.Rules.PhiPaper
@@ -45,6 +45,7 @@ library
       Language.EO.Phi.Syntax.Lex
       Language.EO.Phi.Syntax.Par
       Language.EO.Phi.Syntax.Print
+      Language.EO.Phi.TH
   other-modules:
       Paths_eo_phi_normalizer
   hs-source-dirs:
@@ -67,6 +68,7 @@ library
     , lens
     , mtl
     , string-interpolate
+    , template-haskell
     , text
     , yaml
   default-language: Haskell2010
@@ -98,6 +100,7 @@ executable normalizer
     , mtl
     , optparse-applicative
     , string-interpolate
+    , template-haskell
     , text
     , yaml
   default-language: Haskell2010
@@ -138,6 +141,7 @@ test-suite spec
     , lens
     , mtl
     , string-interpolate
+    , template-haskell
     , text
     , yaml
   default-language: Haskell2010

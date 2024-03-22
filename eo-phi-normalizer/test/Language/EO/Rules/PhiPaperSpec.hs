@@ -1,7 +1,6 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NumericUnderscores #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -234,7 +233,7 @@ defaultSearchLimits :: Int -> SearchLimits
 defaultSearchLimits = defaultApplicationLimits
 
 confluent :: [NamedRule] -> Property
-confluent rulesFromYaml = withMaxSuccess 1000 $
+confluent rulesFromYaml = withMaxSuccess 1_000 $
   forAllShrink (resize 40 $ genCriticalPair rulesFromYaml) (shrinkCriticalPair rulesFromYaml) $
     \pair@CriticalPair{..} ->
       within 100_000 $ -- 0.1 second timeout per test
