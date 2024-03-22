@@ -19,6 +19,7 @@ import Language.EO.Phi.Report.Data (MetricsChange, MetricsChangeCategorized, Met
 import Text.Blaze.Html.Renderer.String (renderHtml)
 import Text.Blaze.Html5
 import Text.Blaze.Html5.Attributes (class_, colspan, type_)
+import Text.Printf (printf)
 import Prelude hiding (div, id, span)
 
 toHtmlReportHeader :: Html
@@ -52,9 +53,12 @@ toHtmlReportHeader =
                  ]
       ]
 
+roundToStr :: Int -> Double -> String
+roundToStr = printf "%0.*f%%"
+
 instance ToMarkup Percent where
   toMarkup :: Percent -> Markup
-  toMarkup Percent{..} = toMarkup $ percent * 100
+  toMarkup Percent{..} = toMarkup $ roundToStr 2 (percent * 100)
 
 -- >>> import Text.Blaze.Html.Renderer.String (renderHtml)
 --
