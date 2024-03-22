@@ -50,6 +50,7 @@ dependencies:
   - template-haskell
   - blaze-html
   - blaze-markup
+  - scientific
 
 default-extensions:
   - ImportQualifiedPost

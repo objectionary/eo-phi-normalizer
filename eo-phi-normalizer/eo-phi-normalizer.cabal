@@ -71,6 +71,7 @@ library
     , generic-lens
     , lens
     , mtl
+    , scientific
     , string-interpolate
     , template-haskell
     , text
@@ -105,6 +106,7 @@ executable normalizer
     , lens
     , mtl
     , optparse-applicative
+    , scientific
     , string-interpolate
     , template-haskell
     , text
@@ -148,6 +150,7 @@ test-suite spec
     , hspec-discover
     , lens
     , mtl
+    , scientific
     , string-interpolate
     , template-haskell
     , text
