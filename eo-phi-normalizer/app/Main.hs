@@ -416,16 +416,18 @@ main = do
               Right (Bytes bytes) -> logStrLn bytes
         )
     CLI'ReportPhi' CLI'ReportPhi{..} -> do
-      reportConfig :: ReportConfig <- decodeFileThrow configFile
+      reportConfig <- decodeFileThrow configFile
+
       programReports <- forM reportConfig.items $ \item -> do
         metricsPhi <- getMetrics item.bindingsPathPhi (Just item.phi)
         metricsPhiNormalized <- getMetrics item.bindingsPathPhiNormalized (Just item.phiNormalized)
-        pure $ makeProgramReport item metricsPhi metricsPhiNormalized
+        pure $ makeProgramReport reportConfig item metricsPhi metricsPhiNormalized
 
       css <- readFile (reportConfig.reportPage.directory </> reportConfig.reportPage.css)
       js <- readFile (reportConfig.reportPage.directory </> reportConfig.reportPage.js)
-      let reportConfig' = Report.ReportConfig{expectedMetricsChange = reportConfig.expectedMetricsChange, ..}
-          report = makeReport programReports
+
+      let report = makeReport reportConfig programReports
+          reportConfig' = Report.ReportConfig{expectedMetricsChange = reportConfig.expectedMetricsChange, ..}
           reportString = toStringReport reportConfig' report
           pageHtmlPath = reportConfig.reportPage.directory </> reportConfig.reportPage.html
 
