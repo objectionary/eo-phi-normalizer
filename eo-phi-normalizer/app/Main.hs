@@ -80,7 +80,6 @@ data CLI'MetricsPhi = CLI'MetricsPhi
   }
   deriving (Show)
 
-
 data CLI'ReportPhi = CLI'ReportPhi
   { configFile :: FilePath
   , outputFile :: Maybe FilePath
