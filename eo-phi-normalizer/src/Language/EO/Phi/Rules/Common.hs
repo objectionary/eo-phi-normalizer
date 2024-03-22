@@ -12,7 +12,6 @@ import Data.List (nubBy, sortOn)
 import Data.List.NonEmpty (NonEmpty (..), (<|))
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.String (IsString (..))
-import Debug.Trace (trace)
 import Language.EO.Phi.Syntax.Abs
 import Language.EO.Phi.Syntax.Lex (Token)
 import Language.EO.Phi.Syntax.Par
@@ -44,15 +43,17 @@ unsafeParseWith parser input =
     Left parseError -> error parseError
     Right object -> object
 
+type NamedRule = (String, Rule)
+
 data Context = Context
-  { allRules :: [Rule]
+  { allRules :: [NamedRule]
   , outerFormations :: NonEmpty Object
   , currentAttr :: Attribute
   , insideFormation :: Bool
   -- ^ Temporary hack for applying Ksi and Phi rules when dataizing
   }
 
-defaultContext :: [Rule] -> Object -> Context
+defaultContext :: [NamedRule] -> Object -> Context
 defaultContext rules obj =
   Context
     { allRules = rules
@@ -64,12 +65,12 @@ defaultContext rules obj =
 -- | A rule tries to apply a transformation to the root object, if possible.
 type Rule = Context -> Object -> [Object]
 
-applyOneRuleAtRoot :: Context -> Object -> [Object]
+applyOneRuleAtRoot :: Context -> Object -> [(String, Object)]
 applyOneRuleAtRoot ctx@Context{..} obj =
   nubBy
-    equalObject
-    [ obj'
-    | rule <- allRules
+    equalObjectNamed
+    [ (ruleName, obj')
+    | (ruleName, rule) <- allRules
     , obj' <- rule ctx obj
     ]
 
@@ -79,35 +80,45 @@ extendContextWith obj ctx =
     { outerFormations = obj <| outerFormations ctx
     }
 
-withSubObject :: (Context -> Object -> [Object]) -> Context -> Object -> [Object]
+withSubObject :: (Context -> Object -> [(String, Object)]) -> Context -> Object -> [(String, Object)]
 withSubObject f ctx root =
   f ctx root
     <|> case root of
       Formation bindings ->
-        Formation <$> withSubObjectBindings f ((extendContextWith root ctx){insideFormation = True}) bindings
+        propagateName1 Formation <$> withSubObjectBindings f ((extendContextWith root ctx){insideFormation = True}) bindings
       Application obj bindings ->
         asum
-          [ Application <$> withSubObject f ctx obj <*> pure bindings
-          , Application obj <$> withSubObjectBindings f ctx bindings
+          [ propagateName2 Application <$> withSubObject f ctx obj <*> pure bindings
+          , propagateName1 (Application obj) <$> withSubObjectBindings f ctx bindings
           ]
-      ObjectDispatch obj a -> ObjectDispatch <$> withSubObject f ctx obj <*> pure a
+      ObjectDispatch obj a -> propagateName2 ObjectDispatch <$> withSubObject f ctx obj <*> pure a
       GlobalObject{} -> []
       ThisObject{} -> []
       Termination -> []
       MetaObject _ -> []
       MetaFunction _ _ -> []
 
-withSubObjectBindings :: (Context -> Object -> [Object]) -> Context -> [Binding] -> [[Binding]]
+-- | Given a unary function that operates only on plain objects,
+-- converts it to a function that operates on name objects
+propagateName1 :: (a -> b) -> (name, a) -> (name, b)
+propagateName1 f (name, obj) = (name, f obj)
+
+-- | Given a binary function that operates only on plain objects,
+-- converts it to a function that operates on name objects
+propagateName2 :: (a -> b -> c) -> (name, a) -> b -> (name, c)
+propagateName2 f (name, obj) bs = (name, f obj bs)
+
+withSubObjectBindings :: (Context -> Object -> [(String, Object)]) -> Context -> [Binding] -> [(String, [Binding])]
 withSubObjectBindings _ _ [] = []
 withSubObjectBindings f ctx (b : bs) =
   asum
-    [ [b' : bs | b' <- withSubObjectBinding f ctx b]
-    , [b : bs' | bs' <- withSubObjectBindings f ctx bs]
+    [ [(name, b' : bs) | (name, b') <- withSubObjectBinding f ctx b]
+    , [(name, b : bs') | (name, bs') <- withSubObjectBindings f ctx bs]
     ]
 
-withSubObjectBinding :: (Context -> Object -> [Object]) -> Context -> Binding -> [Binding]
+withSubObjectBinding :: (Context -> Object -> [(String, Object)]) -> Context -> Binding -> [(String, Binding)]
 withSubObjectBinding f ctx = \case
-  AlphaBinding a obj -> AlphaBinding a <$> withSubObject f (ctx{currentAttr = a}) obj
+  AlphaBinding a obj -> propagateName1 (AlphaBinding a) <$> withSubObject f (ctx{currentAttr = a}) obj
   EmptyBinding{} -> []
   DeltaBinding{} -> []
   DeltaEmptyBinding{} -> []
@@ -115,7 +126,7 @@ withSubObjectBinding f ctx = \case
   LambdaBinding{} -> []
   MetaBindings _ -> []
 
-applyOneRule :: Context -> Object -> [Object]
+applyOneRule :: Context -> Object -> [(String, Object)]
 applyOneRule = withSubObject applyOneRuleAtRoot
 
 isNF :: Context -> Object -> Bool
@@ -163,13 +174,13 @@ bindingSize = \case
 -- | A variant of `applyRules` with a maximum application depth.
 applyRulesWith :: ApplicationLimits -> Context -> Object -> [Object]
 applyRulesWith limits@ApplicationLimits{..} ctx obj
-  | maxDepth <= 0 = "Hit max depth" `trace` [obj]
+  | maxDepth <= 0 = [obj]
   | isNF ctx obj = [obj]
   | otherwise =
       nubBy
         equalObject
         [ obj''
-        | obj' <- applyOneRule ctx obj
+        | (_ruleName, obj') <- applyOneRule ctx obj
         , objectSize obj' < maxTermSize
         , obj'' <- applyRulesWith limits{maxDepth = maxDepth - 1} ctx obj'
         ]
@@ -185,6 +196,9 @@ equalObject (Application obj1 bindings1) (Application obj2 bindings2) =
 equalObject (ObjectDispatch obj1 attr1) (ObjectDispatch obj2 attr2) =
   equalObject obj1 obj2 && attr1 == attr2
 equalObject obj1 obj2 = obj1 == obj2
+
+equalObjectNamed :: (String, Object) -> (String, Object) -> Bool
+equalObjectNamed x y = snd x `equalObject` snd y
 
 equalBindings :: [Binding] -> [Binding] -> Bool
 equalBindings bindings1 bindings2 = and (zipWith equalBinding (sortOn attr bindings1) (sortOn attr bindings2))
@@ -206,17 +220,17 @@ equalBinding (DeltaBinding _) (DeltaBinding _) = True
 equalBinding b1 b2 = b1 == b2
 
 -- | Apply the rules until the object is normalized, preserving the history (chain) of applications.
-applyRulesChain :: Context -> Object -> [[Object]]
+applyRulesChain :: Context -> Object -> [[(String, Object)]]
 applyRulesChain ctx obj = applyRulesChainWith (defaultApplicationLimits (objectSize obj)) ctx obj
 
 -- | A variant of `applyRulesChain` with a maximum application depth.
-applyRulesChainWith :: ApplicationLimits -> Context -> Object -> [[Object]]
+applyRulesChainWith :: ApplicationLimits -> Context -> Object -> [[(String, Object)]]
 applyRulesChainWith limits@ApplicationLimits{..} ctx obj
-  | maxDepth <= 0 = [[obj]]
-  | isNF ctx obj = [[obj]]
+  | maxDepth <= 0 = [[("Max depth hit", obj)]]
+  | isNF ctx obj = [[("Normal form", obj)]]
   | otherwise =
-      [ obj : chain
-      | obj' <- applyOneRule ctx obj
+      [ (ruleName, obj) : chain
+      | (ruleName, obj') <- applyOneRule ctx obj
       , objectSize obj' < maxTermSize
       , chain <- applyRulesChainWith limits{maxDepth = maxDepth - 1} ctx obj'
       ]

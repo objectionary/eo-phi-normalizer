@@ -4,6 +4,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedLabels #-}
+{-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeApplications #-}
@@ -26,7 +27,7 @@ import Data.String.Interpolate (i)
 import Data.Yaml qualified as Yaml
 import GHC.Generics (Generic)
 import Language.EO.Phi (printTree)
-import Language.EO.Phi.Rules.Common (Context (insideFormation, outerFormations))
+import Language.EO.Phi.Rules.Common (Context (insideFormation, outerFormations), NamedRule)
 import Language.EO.Phi.Rules.Common qualified as Common
 import Language.EO.Phi.Syntax.Abs
 
@@ -101,6 +102,9 @@ convertRule Rule{..} ctx obj = do
       obj' = evaluateMetaFuncs obj result''
   guard $ not (objectHasMetavars obj')
   pure obj'
+
+convertRuleNamed :: Rule -> NamedRule
+convertRuleNamed rule = (rule.name, convertRule rule)
 
 -- >>> matchContext (Context [] ["⟦ a ↦ ⟦ ⟧, x ↦ ξ.a ⟧"] (Label (LabelId "x"))) (Just (RuleContext Nothing (Just "⟦ !a ↦ !obj, !B ⟧") (Just "!a")))
 -- [Subst {

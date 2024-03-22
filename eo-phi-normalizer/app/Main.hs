@@ -17,6 +17,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wno-partial-fields #-}
 {-# OPTIONS_GHC -Wno-type-defaults #-}
@@ -36,10 +37,10 @@ import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy.Lens
 import GHC.Generics (Generic)
 import Language.EO.Phi (Bytes (Bytes), Object (Formation), Program (Program), parseProgram, printTree)
-import Language.EO.Phi.Dataize (dataizeRecursively, dataizeStep)
+import Language.EO.Phi.Dataize (dataizeRecursively, dataizeRecursivelyChain, dataizeStep, dataizeStepChain)
 import Language.EO.Phi.Metrics (ProgramMetrics, getProgramMetrics, splitPath)
-import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), applyRulesChainWith, applyRulesWith, defaultContext, objectSize)
-import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRule, parseRuleSetFromFile)
+import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), applyRulesChainWith, applyRulesWith, defaultContext, objectSize, propagateName1)
+import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRuleNamed, parseRuleSetFromFile)
 import Options.Applicative hiding (metavar)
 import Options.Applicative qualified as Optparse (metavar)
 import System.Directory (doesFileExist)
@@ -62,6 +63,7 @@ data CLI'DataizePhi = CLI'DataizePhi
   , inputFile :: Maybe FilePath
   , outputFile :: Maybe String
   , recursive :: Bool
+  , chain :: Bool
   }
   deriving (Show)
 
@@ -181,6 +183,7 @@ commandParser =
     inputFile <- inputFileArg
     outputFile <- outputFileOption
     recursive <- switch (long "recursive" <> help "Apply dataization + normalization recursively.")
+    chain <- switch (long "chain" <> help "Display all the intermediate steps.")
     pure CLI'DataizePhi{..}
 
 data CommandParserInfo = CommandParserInfo
@@ -227,7 +230,7 @@ cliOpts =
 
 data StructuredJSON = StructuredJSON
   { input :: String
-  , output :: [[String]]
+  , output :: [[(String, String)]]
   }
   deriving (Generic, ToJSON)
 
@@ -327,10 +330,10 @@ main = do
       let Program bindings = program'
           uniqueResults
             | chain = applyRulesChainWith limits ctx (Formation bindings)
-            | otherwise = pure <$> applyRulesWith limits ctx (Formation bindings)
+            | otherwise = pure . ("",) <$> applyRulesWith limits ctx (Formation bindings)
            where
             limits = ApplicationLimits maxDepth (maxGrowthFactor * objectSize (Formation bindings))
-            ctx = defaultContext (convertRule <$> ruleSet.rules) (Formation bindings)
+            ctx = defaultContext (convertRuleNamed <$> ruleSet.rules) (Formation bindings)
           totalResults = length uniqueResults
       when (null uniqueResults || null (head uniqueResults)) (throw CouldNotNormalize)
       if
@@ -338,16 +341,16 @@ main = do
             logStrLn
               . encodeToJSONString
               . printAsProgramOrAsObject
-              $ head (head uniqueResults)
+              $ snd (head (head uniqueResults))
         | single ->
             logStrLn
               . printAsProgramOrAsObject
-              $ head (head uniqueResults)
+              $ snd (head (head uniqueResults))
         | json ->
             logStrLn . encodeToJSONString $
               StructuredJSON
                 { input = printTree program'
-                , output = (printAsProgramOrAsObject <$>) <$> uniqueResults
+                , output = (propagateName1 printAsProgramOrAsObject <$>) <$> uniqueResults
                 }
         | otherwise -> do
             logStrLn "Input:"
@@ -357,9 +360,9 @@ main = do
               logStrLn $
                 "Result " <> show index <> " out of " <> show totalResults <> ":"
               let n = length steps
-              forM_ (zip [1 ..] steps) $ \(k, step) -> do
+              forM_ (zip [1 ..] steps) $ \(k, (appliedRuleName, step)) -> do
                 when chain $
-                  logStr ("[ " <> show k <> " / " <> show n <> " ]")
+                  logStr ("[ " <> show k <> " / " <> show n <> " ] " <> appliedRuleName <> ": ")
                 logStrLn . printAsProgramOrAsObject $ step
               logStrLn "----------------------------------------------------"
     CLI'DataizePhi' CLI'DataizePhi{..} -> do
@@ -368,11 +371,21 @@ main = do
       ruleSet <- parseRuleSetFromFile rulesPath
       let (Program bindings) = program'
       let inputObject = Formation bindings
-      let ctx = defaultContext (convertRule <$> ruleSet.rules) inputObject
-      let dataize
-            -- This should be moved to a separate subcommand
-            | recursive = dataizeRecursively
-            | otherwise = dataizeStep
-      case dataize ctx inputObject of
-        Left obj -> logStrLn (printAsProgramOrAsObject obj)
-        Right (Bytes bytes) -> logStrLn bytes
+      let ctx = defaultContext (convertRuleNamed <$> ruleSet.rules) inputObject
+      ( if chain
+          then do
+            let dataizeChain
+                  | recursive = dataizeRecursivelyChain
+                  | otherwise = dataizeStepChain
+            forM_ (dataizeChain ctx inputObject) $ \case
+              (msg, Left obj) -> logStrLn (msg ++ ": " ++ printTree obj)
+              (msg, Right (Bytes bytes)) -> logStrLn (msg ++ ": " ++ bytes)
+          else do
+            let dataize
+                  -- This should be moved to a separate subcommand
+                  | recursive = dataizeRecursively
+                  | otherwise = dataizeStep
+            case dataize ctx inputObject of
+              Left obj -> logStrLn (printAsProgramOrAsObject obj)
+              Right (Bytes bytes) -> logStrLn bytes
+        )

@@ -1,6 +1,10 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Test.EO.Phi where
@@ -30,8 +34,24 @@ data PhiTest = PhiTest
   }
   deriving (Generic, FromJSON)
 
+data DataizeTestGroup = DataizeTestGroup
+  { title :: String
+  , tests :: [DataizeTest]
+  }
+  deriving (Generic, FromJSON)
+
+data DataizeTest = DataizeTest
+  { name :: String
+  , input :: Phi.Program
+  , output :: Phi.Bytes
+  }
+  deriving (Generic, FromJSON)
+
 fileTests :: FilePath -> IO PhiTestGroup
 fileTests = Yaml.decodeFileThrow
+
+dataizationTests :: FilePath -> IO DataizeTestGroup
+dataizationTests = Yaml.decodeFileThrow
 
 allPhiTests :: FilePath -> IO [PhiTestGroup]
 allPhiTests dir = do
@@ -44,3 +64,5 @@ allPhiTests dir = do
 -- | Parsing a $\varphi$-program from a JSON string.
 instance FromJSON Phi.Program where
   parseJSON = fmap unsafeParseProgram . parseJSON
+
+deriving newtype instance FromJSON Phi.Bytes
