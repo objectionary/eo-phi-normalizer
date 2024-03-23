@@ -14,7 +14,7 @@ module Language.EO.Phi.Report.Html where
 
 import Data.List (intercalate)
 import Data.Maybe (fromMaybe)
-import Language.EO.Phi.Metrics (Metrics (..), MetricsCount, toListMetrics)
+import Language.EO.Phi.Metrics.Data (Metrics (..), MetricsCount, toListMetrics)
 import Language.EO.Phi.Report.Data (MetricsChange, MetricsChangeCategorized, MetricsChangeCategory (..), Percent (..), ProgramReport (..), Report (..), ReportRow (..))
 import Text.Blaze.Html.Renderer.String (renderHtml)
 import Text.Blaze.Html5
