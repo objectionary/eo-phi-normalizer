@@ -40,16 +40,17 @@ import Data.Yaml (decodeFileThrow)
 import GHC.Generics (Generic)
 import Language.EO.Phi (Bytes (Bytes), Object (Formation), Program (Program), parseProgram, printTree)
 import Language.EO.Phi.Dataize (dataizeRecursively, dataizeRecursivelyChain, dataizeStep, dataizeStepChain)
-import Language.EO.Phi.Metrics as Metrics (ProgramMetrics (..), getProgramMetrics, splitPath)
-import Language.EO.Phi.Report.Data (ReportConfig (..), ReportItem (..), ReportPage (..), makeProgramReport, makeReport)
-import Language.EO.Phi.Report.Html (toStringReport)
-import Language.EO.Phi.Report.Html qualified as Report (ReportConfig (..))
+import Language.EO.Phi.Metrics.Data as Metrics (ProgramMetrics (..), splitPath)
+import Language.EO.Phi.Metrics.Collect as Metrics (getProgramMetrics)
+import Language.EO.Phi.Report.Data (Report'InputConfig (..), Report'OutputConfig (..), ReportConfig (..), ReportItem (..), makeProgramReport, makeReport)
+import Language.EO.Phi.Report.Html (ReportFormat (..), toStringReport)
+import Language.EO.Phi.Report.Html qualified as ReportHtml (ReportConfig (..))
 import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), applyRulesChainWith, applyRulesWith, defaultContext, objectSize, propagateName1)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRuleNamed, parseRuleSetFromFile)
 import Options.Applicative hiding (metavar)
 import Options.Applicative qualified as Optparse (metavar)
 import System.Directory (createDirectoryIfMissing, doesFileExist)
-import System.FilePath (takeDirectory, (</>))
+import System.FilePath (takeDirectory)
 import System.IO (IOMode (WriteMode), getContents', hFlush, hPutStr, hPutStrLn, openFile, stdout)
 
 data CLI'TransformPhi = CLI'TransformPhi
@@ -420,17 +421,35 @@ main = do
         metricsPhiNormalized <- getMetrics item.bindingsPathPhiNormalized (Just item.phiNormalized)
         pure $ makeProgramReport reportConfig item metricsPhi metricsPhiNormalized
 
-      css <- readFile (reportConfig.reportPage.directory </> reportConfig.reportPage.css)
-      js <- readFile (reportConfig.reportPage.directory </> reportConfig.reportPage.js)
+      css <- readFile reportConfig.input.css
+      js <- readFile reportConfig.input.js
 
       let report = makeReport reportConfig programReports
-          reportConfig' = Report.ReportConfig{expectedMetricsChange = reportConfig.expectedMetricsChange, ..}
-          reportString = toStringReport reportConfig' report
-          pageHtmlPath = reportConfig.reportPage.directory </> reportConfig.reportPage.html
 
-      createDirectoryIfMissing True (takeDirectory pageHtmlPath)
-      writeFile (reportConfig.reportPage.directory </> reportConfig.reportPage.html) reportString
+          reportConfigHtml =
+            ReportHtml.ReportConfig
+              { expectedMetricsChange = reportConfig.expectedMetricsChange
+              , format =
+                  ReportFormat'Html
+                    { ..
+                    }
+              }
+          reportHtml = toStringReport reportConfigHtml report
 
-      forM_ reportConfig.reportJson $ \path -> do
-        createDirectoryIfMissing True (takeDirectory path)
-        writeFile path (encodeToJSONString report)
+          reportJson = encodeToJSONString report
+
+          reportConfigMarkdown =
+            ReportHtml.ReportConfig
+              { expectedMetricsChange = reportConfig.expectedMetricsChange
+              , format = ReportFormat'Markdown
+              }
+          reportMarkdown = toStringReport reportConfigMarkdown report
+
+      forM_ @[]
+        [ (reportConfig.output.html, reportHtml)
+        , (reportConfig.output.json, reportJson)
+        , (reportConfig.output.markdown, reportMarkdown)
+        ]
+        $ \(path, reportString) -> do
+          createDirectoryIfMissing True (takeDirectory path)
+          writeFile path reportString
