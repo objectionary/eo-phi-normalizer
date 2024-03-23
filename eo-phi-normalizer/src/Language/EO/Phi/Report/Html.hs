@@ -6,6 +6,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE NoImplicitPrelude #-}
@@ -16,13 +17,23 @@ module Language.EO.Phi.Report.Html where
 
 import Data.List (intercalate)
 import Data.Maybe (fromMaybe)
-import Language.EO.Phi.Metrics.Data (Metrics (..), MetricsCount, toListMetrics)
+import Data.String.Interpolate
+import Language.EO.Phi.Metrics.Data (Metrics (..), MetricsCount, SafeNumber (..), toListMetrics)
 import Language.EO.Phi.Report.Data (MetricsChange, MetricsChangeCategorized, MetricsChangeCategory (..), Percent (..), ProgramReport (..), Report (..), ReportRow (..))
 import Text.Blaze.Html.Renderer.String (renderHtml)
-import Text.Blaze.Html5
+import Text.Blaze.Html5 hiding (i)
 import Text.Blaze.Html5.Attributes (class_, colspan, type_)
 import Text.Printf (printf)
-import Prelude hiding (div, id, span)
+import Prelude hiding (div, span)
+
+metricsNames :: Metrics String
+metricsNames =
+  Metrics
+    { dataless = "Dataless"
+    , applications = "Applications"
+    , formations = "Formations"
+    , dispatches = "Dispatches"
+    }
 
 toHtmlReportHeader :: Html
 toHtmlReportHeader =
@@ -41,12 +52,10 @@ toHtmlReportHeader =
             <$> [ "Attribute Before"
                 , "Attribute After"
                 ]
-              <> ( concat . replicate 3 $
-                    [ "Dataless"
-                    , "Applications"
-                    , "Formations"
-                    , "Dispatches"
-                    ]
+              <> ( concat
+                    . replicate 3
+                    . (toHtml <$>)
+                    $ toListMetrics metricsNames
                  )
               <> [ "File Before"
                  , "Bindings Path Before"
@@ -54,13 +63,6 @@ toHtmlReportHeader =
                  , "Bindings Path After"
                  ]
       ]
-
-roundToStr :: Int -> Double -> String
-roundToStr = printf "%0.*f%%"
-
-instance ToMarkup Percent where
-  toMarkup :: Percent -> Markup
-  toMarkup Percent{..} = toMarkup $ roundToStr 2 (percent * 100)
 
 data ReportFormat
   = ReportFormat'Html
@@ -76,6 +78,18 @@ data ReportConfig = ReportConfig
   , format :: ReportFormat
   }
 
+instance (ToMarkup a) => ToMarkup (SafeNumber a) where
+  toMarkup :: SafeNumber a -> Markup
+  toMarkup (SafeNumber'Number n) = toMarkup n
+  toMarkup SafeNumber'NaN = toMarkup ("NaN" :: String)
+
+roundToStr :: Int -> Double -> String
+roundToStr = printf "%0.*f%%"
+
+instance ToMarkup Percent where
+  toMarkup :: Percent -> Markup
+  toMarkup Percent{..} = toMarkup $ roundToStr 2 (percent * 100)
+
 -- >>> import Text.Blaze.Html.Renderer.String (renderHtml)
 --
 -- >>> renderHtml $ toHtmlChange (MetricsChange'Bad 0.2)
@@ -87,7 +101,7 @@ data ReportConfig = ReportConfig
 -- "<td class=\"number nan\">NaN</td>"
 toHtmlChange :: (ToMarkup a) => ReportConfig -> MetricsChangeCategory a -> Html
 toHtmlChange reportConfig = \case
-  MetricsChange'NaN -> td ! class_ "number nan" $ toHtml @String "NaN" <> toHtml ['🟣' | isMarkdown]
+  MetricsChange'NaN -> td ! class_ "number nan" $ toHtml (SafeNumber'NaN @String) <> toHtml ['🟣' | isMarkdown]
   MetricsChange'Bad{..} -> td ! class_ "number bad" $ toHtml change <> toHtml ['🔴' | isMarkdown]
   MetricsChange'Good{..} -> td ! class_ "number good" $ toHtml change <> toHtml ['🟢' | isMarkdown]
  where
@@ -100,11 +114,7 @@ toHtmlMetrics :: MetricsCount -> [Html]
 toHtmlMetrics metrics =
   (td ! class_ "number")
     . toHtml
-    <$> [ metrics.formations
-        , metrics.dataless
-        , metrics.applications
-        , metrics.dispatches
-        ]
+    <$> toListMetrics metrics
 
 toHtmlReportRow :: ReportConfig -> ReportRow -> Html
 toHtmlReportRow reportConfig reportRow =
@@ -127,22 +137,74 @@ toHtmlReportRow reportConfig reportRow =
                 ]
          )
 
+-- | Number of tests where metrics changes were better than expected
+countGoodMetricsChanges :: Report -> MetricsCount
+countGoodMetricsChanges report = metricsCount
+ where
+  metricsChanges = (.metricsChange) <$> concatMap (.bindingsRows) report.programReports
+  metricsCount = foldMap ((\case MetricsChange'Good _ -> 1; _ -> 0) <$>) metricsChanges
+
+-- | Number of tests in all programs
+countTests :: Report -> Int
+countTests report = length $ concatMap (.bindingsRows) report.programReports
+
 toHtmlReport :: ReportConfig -> Report -> Html
 toHtmlReport reportConfig report =
-  toHtml $
-    [ table ! class_ "sortable" $
-        toHtml
-          [ toHtmlReportHeader
-          , tbody . toHtml $
-              toHtmlReportRow reportConfig
-                <$> ( report.totalRow
-                        : concat
-                          [ programReport.programRow : programReport.bindingsRows
-                          | programReport <- report.programReports
-                          ]
-                    )
-          ]
+  (if isMarkdown then details else id) . toHtml $
+    [ summary "Report"
+    | reportConfig.format == ReportFormat'Markdown
     ]
+      <> [ h2 "Overview"
+            <> p
+              [i|
+          We translate EO files into PHI programs.
+          Next, we normalize these programs.
+          Then, we collect metrics for initial and normalized PHI programs.
+        |]
+            <> [i|
+          An EO file contains multiple test objects.
+          After conversion, these test objects become attributes in PHI programs.
+          We call these attributes "tests".
+          In the report below, we present total metrics for all programs,
+          metrics for programs,
+          and metrics for tests.
+        |]
+            <> h2 "Metrics"
+            <> [i|
+          We collect metrics on the number of dataless formations, applications, formations, and dispatches.
+          We want normalized PHI programs to have a smaller number of such elements than initial PHI programs.
+          These numbers are expected to reduce as follows:
+        |]
+            <> ul
+              ( toHtml . toListMetrics $
+                  makeMetricsItem
+                    <$> metricsNames
+                    <*> ((Percent <$>) <$> reportConfig.expectedMetricsChange)
+              )
+            <> h2 "Statistics"
+            <> p [i|Total number of tests: #{countTests report}.|]
+            <> p "For each metric, number of tests where the metric was reduced as expected:"
+            <> ul
+              ( toHtml . toListMetrics $
+                  makeMetricsItem
+                    <$> metricsNames
+                    <*> countGoodMetricsChanges report
+              )
+            <> h2 "Detailed results"
+         ]
+      <> [ table ! class_ "sortable" $
+            toHtml
+              [ toHtmlReportHeader
+              , tbody . toHtml $
+                  toHtmlReportRow reportConfig
+                    <$> ( report.totalRow
+                            : concat
+                              [ programReport.programRow : programReport.bindingsRows
+                              | programReport <- report.programReports
+                              ]
+                        )
+              ]
+         ]
       <> ( case reportConfig.format of
             ReportFormat'Html{..} ->
               [ style ! type_ "text/css" $ toHtml css
@@ -150,6 +212,10 @@ toHtmlReport reportConfig report =
               ]
             ReportFormat'Markdown -> []
          )
+ where
+  isMarkdown = reportConfig.format == ReportFormat'Markdown
+  makeMetricsItem :: (ToMarkup a) => String -> a -> Html
+  makeMetricsItem name x = li $ b (toHtml ([i|#{name}: |] :: String)) <> toHtml x
 
 toStringReport :: ReportConfig -> Report -> String
 toStringReport reportConfig report = renderHtml $ toHtmlReport reportConfig report
