@@ -75,6 +75,11 @@ jobs:
         shell: bash
         run: ./scripts/pipeline.sh
 
+      - name: Report results
+        shell: bash
+        run: |
+          cat report/report.md >> $GITHUB_STEP_SUMMARY
+
   docs:
     needs: pipeline
     if: ${{ github.ref_name == 'master' }}
