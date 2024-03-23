@@ -16,8 +16,8 @@
 module Language.EO.Phi.Report.Data where
 
 import GHC.Generics (Generic)
-import Language.EO.Phi.Metrics (BindingMetrics (..), Metrics (..), MetricsCount, ProgramMetrics, SafeNumber (..))
-import Language.EO.Phi.Metrics qualified as Metrics
+import Language.EO.Phi.Metrics.Data (BindingMetrics (..), Metrics (..), MetricsCount, ProgramMetrics, SafeNumber (..))
+import Language.EO.Phi.Metrics.Data qualified as Metrics
 import Language.EO.Phi.TH (deriveJSON)
 import Prelude hiding (div, id, span)
 
