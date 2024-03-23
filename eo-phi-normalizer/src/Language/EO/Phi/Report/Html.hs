@@ -158,24 +158,29 @@ toHtmlReport reportConfig report =
       <> [ h2 "Overview"
             <> p
               [i|
-          We translate EO files into PHI programs.
-          Next, we normalize these programs.
-          Then, we collect metrics for initial and normalized PHI programs.
-        |]
-            <> [i|
-          An EO file contains multiple test objects.
-          After conversion, these test objects become attributes in PHI programs.
-          We call these attributes "tests".
-          In the report below, we present total metrics for all programs,
-          metrics for programs,
-          and metrics for tests.
-        |]
+                We translate EO files into PHI programs.
+                Next, we normalize these programs.
+                Then, we collect metrics for initial and normalized PHI programs.
+              |]
+            <> p
+              [i|
+                An EO file contains multiple test objects.
+                After conversion, these test objects become attributes in PHI programs.
+                We call these attributes "tests".
+              |]
+            <> p
+              [i|
+                In the report below, we present total metrics for all programs,
+                for programs,
+                and for tests.
+              |]
             <> h2 "Metrics"
-            <> [i|
-          We collect metrics on the number of dataless formations, applications, formations, and dispatches.
-          We want normalized PHI programs to have a smaller number of such elements than initial PHI programs.
-          These numbers are expected to reduce as follows:
-        |]
+            <> p
+              [i|
+                We collect metrics on the number of dataless formations, applications, formations, and dispatches.
+                We want normalized PHI programs to have a smaller number of such elements than initial PHI programs.
+              |]
+            <> p [i|These numbers are expected to reduce as follows:|]
             <> ul
               ( toHtml . toListMetrics $
                   makeMetricsItem
@@ -184,7 +189,11 @@ toHtmlReport reportConfig report =
               )
             <> h2 "Statistics"
             <> p [i|Total number of tests: #{countTests report}.|]
-            <> p "For each metric, number of tests where the metric was reduced as expected:"
+            <> p
+              [i|
+                For each metric, number of tests where the metric was reduced as expected
+                (not counting the tests where the metric was initially 0):
+              |]
             <> ul
               ( toHtml . toListMetrics $
                   makeMetricsItem
