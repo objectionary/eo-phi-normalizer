@@ -29,7 +29,7 @@ import Prelude hiding (div, span)
 metricsNames :: Metrics String
 metricsNames =
   Metrics
-    { dataless = "Dataless"
+    { dataless = "Dataless formations"
     , applications = "Applications"
     , formations = "Formations"
     , dispatches = "Dispatches"
