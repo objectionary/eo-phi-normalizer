@@ -80,9 +80,8 @@ data CLI'MetricsPhi = CLI'MetricsPhi
   }
   deriving (Show)
 
-data CLI'ReportPhi = CLI'ReportPhi
+newtype CLI'ReportPhi = CLI'ReportPhi
   { configFile :: FilePath
-  , outputFile :: Maybe FilePath
   }
   deriving (Show)
 
@@ -203,7 +202,6 @@ commandParser =
     configFile <-
       let file' = metavarName.file
        in strOption (long "config" <> short 'c' <> metavar.file <> help [i|The #{file'} with a report configuration.|])
-    outputFile <- outputFileOption
     pure CLI'ReportPhi{..}
 
 data CommandParserInfo = CommandParserInfo
