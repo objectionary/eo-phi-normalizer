@@ -28,28 +28,28 @@ toHtmlReportHeader =
     toHtml
       [ tr $
           toHtml
-            [ th ! colspan "2" ! class_ "no-sort" $ "attribute"
-            , th ! colspan "4" ! class_ "no-sort" $ "(before - after) / before"
-            , th ! colspan "4" ! class_ "no-sort" $ "before"
-            , th ! colspan "4" ! class_ "no-sort" $ "after"
-            , th ! colspan "4" ! class_ "no-sort" $ "location"
+            [ th ! colspan "2" ! class_ "no-sort" $ "Attribute"
+            , th ! colspan "4" ! class_ "no-sort" $ "Improvement = (Before - After) / Before"
+            , th ! colspan "4" ! class_ "no-sort" $ "Before"
+            , th ! colspan "4" ! class_ "no-sort" $ "After"
+            , th ! colspan "4" ! class_ "no-sort" $ "Location"
             ]
       , tr . toHtml $
           th
-            <$> [ "attribute before"
-                , "attribute after"
+            <$> [ "Attribute Before"
+                , "Attribute After"
                 ]
               <> ( concat . replicate 3 $
-                    [ "dataless"
-                    , "applications"
-                    , "formations"
-                    , "dispatches"
+                    [ "Dataless"
+                    , "Applications"
+                    , "Formations"
+                    , "Dispatches"
                     ]
                  )
-              <> [ "file before"
-                 , "bindings path before"
-                 , "file after"
-                 , "bindings path after"
+              <> [ "File Before"
+                 , "Bindings Path Before"
+                 , "File After"
+                 , "Bindings Path After"
                  ]
       ]
 
