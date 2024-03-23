@@ -91,17 +91,18 @@ instance ToMarkup Percent where
   toMarkup Percent{..} = toMarkup $ roundToStr 2 (percent * 100)
 
 -- >>> import Text.Blaze.Html.Renderer.String (renderHtml)
+-- >>> reportConfig = ReportConfig { expectedMetricsChange = 0, format = ReportFormat'Markdown }
 --
--- >>> renderHtml $ toHtmlChange (MetricsChange'Bad 0.2)
--- "<td class=\"number bad\">0.2</td>"
+-- >>> renderHtml $ toHtmlChange reportConfig (MetricsChange'Bad 0.2)
+-- "<td class=\"number bad\">0.2\128308</td>"
 --
--- >>> renderHtml $ toHtmlChange (MetricsChange'Good 0.5)
--- "<td class=\"number good\">0.5</td>"
--- >>> renderHtml $ toHtmlChange (MetricsChange'NaN :: MetricsChangeCategory Double)
--- "<td class=\"number nan\">NaN</td>"
+-- >>> renderHtml $ toHtmlChange reportConfig (MetricsChange'Good 0.5)
+-- "<td class=\"number good\">0.5\128994</td>"
+-- >>> renderHtml $ toHtmlChange reportConfig (MetricsChange'NA :: MetricsChangeCategory Double)
+-- "<td class=\"number not-applicable\">N/A\128995</td>"
 toHtmlChange :: (ToMarkup a) => ReportConfig -> MetricsChangeCategory a -> Html
 toHtmlChange reportConfig = \case
-  MetricsChange'NaN -> td ! class_ "number nan" $ toHtml (SafeNumber'NaN @String) <> toHtml ['🟣' | isMarkdown]
+  MetricsChange'NA -> td ! class_ "number not-applicable" $ toHtml ("N/A" :: String) <> toHtml ['🟣' | isMarkdown]
   MetricsChange'Bad{..} -> td ! class_ "number bad" $ toHtml change <> toHtml ['🔴' | isMarkdown]
   MetricsChange'Good{..} -> td ! class_ "number good" $ toHtml change <> toHtml ['🟢' | isMarkdown]
  where

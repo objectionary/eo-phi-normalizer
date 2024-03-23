@@ -34,7 +34,7 @@ $(deriveJSON ''ReportItem)
 data MetricsChangeCategory a
   = MetricsChange'Good {change :: a}
   | MetricsChange'Bad {change :: a}
-  | MetricsChange'NaN
+  | MetricsChange'NA
   deriving stock (Show, Generic, Eq)
 
 $(deriveJSON ''MetricsChangeCategory)
@@ -109,7 +109,7 @@ calculateMetricsChange expectedMetricsChange before after =
   getMetricsChangeClassified (SafeNumber'Number expected) (SafeNumber'Number actual)
     | actual >= expected = MetricsChange'Good (Percent actual)
     | otherwise = MetricsChange'Bad (Percent actual)
-  getMetricsChangeClassified _ _ = MetricsChange'NaN
+  getMetricsChangeClassified _ _ = MetricsChange'NA
   actualMetricsChange :: MetricsChange
   actualMetricsChange = (before' - after') / before'
   before' = fromIntegral <$> before
