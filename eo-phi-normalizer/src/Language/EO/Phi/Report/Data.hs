@@ -47,19 +47,26 @@ $(deriveJSON ''Percent)
 
 type MetricsChangeCategorized = Metrics (MetricsChangeCategory Percent)
 
-data ReportPage = ReportPage
-  { directory :: FilePath
-  , html :: FilePath
-  , js :: FilePath
+data Report'InputConfig = Report'InputConfig
+  { js :: FilePath
   , css :: FilePath
   }
   deriving stock (Show, Generic)
 
-$(deriveJSON ''ReportPage)
+$(deriveJSON ''Report'InputConfig)
+
+data Report'OutputConfig = Report'OutputConfig
+  { html :: FilePath
+  , json :: FilePath
+  , markdown :: FilePath
+  }
+  deriving stock (Show, Generic)
+
+$(deriveJSON ''Report'OutputConfig)
 
 data ReportConfig = ReportConfig
-  { reportPage :: ReportPage
-  , reportJson :: Maybe FilePath
+  { input :: Report'InputConfig
+  , output :: Report'OutputConfig
   , expectedMetricsChange :: MetricsChange
   , items :: [ReportItem]
   }
