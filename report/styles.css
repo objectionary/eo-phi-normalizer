@@ -100,6 +100,6 @@ repo: https://github.com/tofsjonas/sortable
 .sortable td.good {
     background-color: greenyellow;
 }
-.sortable td.nan {
+.sortable td.not-applicable {
     background-color: blueviolet;
 }
