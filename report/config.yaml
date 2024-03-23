@@ -1,9 +1,10 @@
-report-page:
-  directory: report
-  html: index.html
-  js: main.js
-  css: styles.css
-report-json: report/data.json
+input:
+  js: report/main.js
+  css: report/styles.css
+output:
+  html: report/report.html
+  json: report/report.json
+  markdown: report/report.md
 expected-metrics-change:
   dataless: 0.2
   applications: 0.2
