@@ -154,19 +154,20 @@ instance (Num a) => Num (SafeNumber a) where
   negate :: SafeNumber a -> SafeNumber a
   negate = (negate <$>)
 
+instance (Fractional a, Eq a) => Fractional (SafeNumber a) where
+  fromRational :: Rational -> SafeNumber a
+  fromRational = SafeNumber'Number . fromRational
+  (/) :: SafeNumber a -> SafeNumber a -> SafeNumber a
+  (/) (SafeNumber'Number x) (SafeNumber'Number y) | y /= 0 = SafeNumber'Number (x / y)
+  (/) _ _ = SafeNumber'NaN
+
 type MetricsSafe a = Metrics (SafeNumber a)
 
 instance (Fractional a, Eq a) => Fractional (MetricsSafe a) where
   fromRational :: Rational -> MetricsSafe a
   fromRational _ = 0
   (/) :: MetricsSafe a -> MetricsSafe a -> MetricsSafe a
-  (/) x y = divideSafeNumber <$> x <*> y
-   where
-    divideSafeNumber :: (Fractional a, Eq a) => SafeNumber a -> SafeNumber a -> SafeNumber a
-    divideSafeNumber lhs rhs =
-      case (lhs, rhs) of
-        (SafeNumber'Number lhs', SafeNumber'Number rhs') | rhs' /= 0 -> SafeNumber'Number (lhs' / rhs')
-        _ -> SafeNumber'NaN
+  (/) x y = (/) <$> x <*> y
 
 instance (Num a) => Semigroup (Metrics a) where
   (<>) :: Metrics a -> Metrics a -> Metrics a
