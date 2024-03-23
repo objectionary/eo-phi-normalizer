@@ -7,8 +7,10 @@
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
+{-# OPTIONS_GHC -Wno-partial-fields #-}
 
 module Language.EO.Phi.Report.Html where
 
@@ -60,6 +62,20 @@ instance ToMarkup Percent where
   toMarkup :: Percent -> Markup
   toMarkup Percent{..} = toMarkup $ roundToStr 2 (percent * 100)
 
+data ReportFormat
+  = ReportFormat'Html
+      { css :: String
+      , js :: String
+      }
+  | -- | GitHub Flavored Markdown
+    ReportFormat'Markdown
+  deriving stock (Eq)
+
+data ReportConfig = ReportConfig
+  { expectedMetricsChange :: MetricsChange
+  , format :: ReportFormat
+  }
+
 -- >>> import Text.Blaze.Html.Renderer.String (renderHtml)
 --
 -- >>> renderHtml $ toHtmlChange (MetricsChange'Bad 0.2)
@@ -69,14 +85,16 @@ instance ToMarkup Percent where
 -- "<td class=\"number good\">0.5</td>"
 -- >>> renderHtml $ toHtmlChange (MetricsChange'NaN :: MetricsChangeCategory Double)
 -- "<td class=\"number nan\">NaN</td>"
-toHtmlChange :: (ToMarkup a) => MetricsChangeCategory a -> Html
-toHtmlChange = \case
-  MetricsChange'NaN -> td ! class_ "number nan" $ "NaN"
-  MetricsChange'Bad{..} -> td ! class_ "number bad" $ toHtml change
-  MetricsChange'Good{..} -> td ! class_ "number good" $ toHtml change
+toHtmlChange :: (ToMarkup a) => ReportConfig -> MetricsChangeCategory a -> Html
+toHtmlChange reportConfig = \case
+  MetricsChange'NaN -> td ! class_ "number nan" $ toHtml @String "NaN" <> toHtml ['🟣' | isMarkdown]
+  MetricsChange'Bad{..} -> td ! class_ "number bad" $ toHtml change <> toHtml ['🔴' | isMarkdown]
+  MetricsChange'Good{..} -> td ! class_ "number good" $ toHtml change <> toHtml ['🟢' | isMarkdown]
+ where
+  isMarkdown = reportConfig.format == ReportFormat'Markdown
 
-toHtmlMetricsChange :: MetricsChangeCategorized -> [Html]
-toHtmlMetricsChange change = toHtmlChange <$> toListMetrics change
+toHtmlMetricsChange :: ReportConfig -> MetricsChangeCategorized -> [Html]
+toHtmlMetricsChange reportConfig change = toHtmlChange reportConfig <$> toListMetrics change
 
 toHtmlMetrics :: MetricsCount -> [Html]
 toHtmlMetrics metrics =
@@ -88,14 +106,8 @@ toHtmlMetrics metrics =
         , metrics.dispatches
         ]
 
-data ReportConfig = ReportConfig
-  { expectedMetricsChange :: MetricsChange
-  , css :: String
-  , js :: String
-  }
-
-toHtmlReportRow :: ReportRow -> Html
-toHtmlReportRow reportRow =
+toHtmlReportRow :: ReportConfig -> ReportRow -> Html
+toHtmlReportRow reportConfig reportRow =
   tr . toHtml $
     ( td
         . toHtml
@@ -103,7 +115,7 @@ toHtmlReportRow reportRow =
             , fromMaybe "[N/A]" reportRow.attributeAfter
             ]
     )
-      <> toHtmlMetricsChange reportRow.metricsChange
+      <> toHtmlMetricsChange reportConfig reportRow.metricsChange
       <> toHtmlMetrics reportRow.metricsBefore
       <> toHtmlMetrics reportRow.metricsAfter
       <> ( td
@@ -117,12 +129,12 @@ toHtmlReportRow reportRow =
 
 toHtmlReport :: ReportConfig -> Report -> Html
 toHtmlReport reportConfig report =
-  toHtml
+  toHtml $
     [ table ! class_ "sortable" $
         toHtml
           [ toHtmlReportHeader
           , tbody . toHtml $
-              toHtmlReportRow
+              toHtmlReportRow reportConfig
                 <$> ( report.totalRow
                         : concat
                           [ programReport.programRow : programReport.bindingsRows
@@ -130,9 +142,14 @@ toHtmlReport reportConfig report =
                           ]
                     )
           ]
-    , style ! type_ "text/css" $ toHtml reportConfig.css
-    , script $ toHtml reportConfig.js
     ]
+      <> ( case reportConfig.format of
+            ReportFormat'Html{..} ->
+              [ style ! type_ "text/css" $ toHtml css
+              , script $ toHtml js
+              ]
+            ReportFormat'Markdown -> []
+         )
 
 toStringReport :: ReportConfig -> Report -> String
 toStringReport reportConfig report = renderHtml $ toHtmlReport reportConfig report
