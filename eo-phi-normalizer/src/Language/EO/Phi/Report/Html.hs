@@ -8,6 +8,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE NoImplicitPrelude #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
@@ -15,9 +16,12 @@
 
 module Language.EO.Phi.Report.Html where
 
+import Data.FileEmbed (embedFileRelative)
 import Data.List (intercalate)
 import Data.Maybe (fromMaybe)
 import Data.String.Interpolate
+import Data.Text qualified as T
+import Data.Text.Encoding qualified as T
 import Language.EO.Phi.Metrics.Data (Metrics (..), MetricsCount, SafeNumber (..), toListMetrics)
 import Language.EO.Phi.Report.Data (MetricsChange, MetricsChangeCategorized, MetricsChangeCategory (..), Percent (..), ProgramReport (..), Report (..), ReportRow (..))
 import Text.Blaze.Html.Renderer.String (renderHtml)
@@ -25,6 +29,14 @@ import Text.Blaze.Html5 hiding (i)
 import Text.Blaze.Html5.Attributes (class_, colspan, type_)
 import Text.Printf (printf)
 import Prelude hiding (div, span)
+
+-- | JavaScript file to embed into HTML reports
+reportJS :: String
+reportJS = T.unpack $ T.decodeUtf8 $(embedFileRelative "report/main.js")
+
+-- | CSS file to embed into HTML reports
+reportCSS :: String
+reportCSS = T.unpack $ T.decodeUtf8 $(embedFileRelative "report/styles.css")
 
 metricsNames :: Metrics String
 metricsNames =
