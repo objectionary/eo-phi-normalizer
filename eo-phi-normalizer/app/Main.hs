@@ -43,7 +43,7 @@ import Language.EO.Phi.Dataize (dataizeRecursively, dataizeRecursivelyChain, dat
 import Language.EO.Phi.Metrics.Collect as Metrics (getProgramMetrics)
 import Language.EO.Phi.Metrics.Data as Metrics (ProgramMetrics (..), splitPath)
 import Language.EO.Phi.Report.Data (Report'InputConfig (..), Report'OutputConfig (..), ReportConfig (..), ReportItem (..), makeProgramReport, makeReport)
-import Language.EO.Phi.Report.Html (ReportFormat (..), toStringReport)
+import Language.EO.Phi.Report.Html (ReportFormat (..), reportCSS, reportJS, toStringReport)
 import Language.EO.Phi.Report.Html qualified as ReportHtml (ReportConfig (..))
 import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), applyRulesChainWith, applyRulesWith, defaultContext, objectSize, propagateName1)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRuleNamed, parseRuleSetFromFile)
@@ -421,8 +421,8 @@ main = do
         metricsPhiNormalized <- getMetrics item.bindingsPathPhiNormalized (Just item.phiNormalized)
         pure $ makeProgramReport reportConfig item metricsPhi metricsPhiNormalized
 
-      css <- readFile reportConfig.input.css
-      js <- readFile reportConfig.input.js
+      css <- maybe (pure reportCSS) readFile (reportConfig.input >>= (.css))
+      js <- maybe (pure reportJS) readFile (reportConfig.input >>= (.js))
 
       let report = makeReport reportConfig programReports
 
@@ -446,9 +446,12 @@ main = do
           reportMarkdown = toStringReport reportConfigMarkdown report
 
       forM_ @[]
-        [ (reportConfig.output.html, reportHtml)
-        , (reportConfig.output.json, reportJson)
-        , (reportConfig.output.markdown, reportMarkdown)
+        [ (x, y)
+        | (Just x, y) <-
+            [ (reportConfig.output.html, reportHtml)
+            , (reportConfig.output.json, reportJson)
+            , (reportConfig.output.markdown, reportMarkdown)
+            ]
         ]
         $ \(path, reportString) -> do
           createDirectoryIfMissing True (takeDirectory path)
