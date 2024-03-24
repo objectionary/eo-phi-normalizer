@@ -51,6 +51,7 @@ dependencies:
   - blaze-html
   - blaze-markup
   - scientific
+  - file-embed
 
 default-extensions:
   - ImportQualifiedPost

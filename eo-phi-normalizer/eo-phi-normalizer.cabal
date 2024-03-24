@@ -68,6 +68,7 @@ library
     , blaze-html
     , blaze-markup
     , directory
+    , file-embed
     , filepath
     , generic-lens
     , lens
@@ -102,6 +103,7 @@ executable normalizer
     , blaze-markup
     , directory
     , eo-phi-normalizer
+    , file-embed
     , filepath
     , generic-lens
     , lens
@@ -145,6 +147,7 @@ test-suite spec
     , blaze-markup
     , directory
     , eo-phi-normalizer
+    , file-embed
     , filepath
     , generic-lens
     , hspec
