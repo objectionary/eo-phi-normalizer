@@ -75,15 +75,15 @@ data ReportConfig = ReportConfig
 $(deriveJSON ''ReportConfig)
 
 data ReportRow = ReportRow
-  { fileBefore :: Maybe FilePath
-  , fileAfter :: Maybe FilePath
-  , bindingsPathBefore :: Maybe Metrics.Path
-  , bindingsPathAfter :: Maybe Metrics.Path
-  , attributeBefore :: Maybe String
-  , attributeAfter :: Maybe String
+  { fileInitial :: Maybe FilePath
+  , fileNormalized :: Maybe FilePath
+  , bindingsPathInitial :: Maybe Metrics.Path
+  , bindingsPathNormalized :: Maybe Metrics.Path
+  , attributeInitial :: Maybe String
+  , attributeNormalized :: Maybe String
   , metricsChange :: MetricsChangeCategorized
-  , metricsBefore :: Metrics Int
-  , metricsAfter :: Metrics Int
+  , metricsInitial :: Metrics Int
+  , metricsNormalized :: Metrics Int
   }
 
 $(deriveJSON ''ReportRow)
@@ -103,7 +103,7 @@ data Report = Report
 $(deriveJSON ''Report)
 
 calculateMetricsChange :: MetricsChange -> MetricsCount -> MetricsCount -> MetricsChangeCategorized
-calculateMetricsChange expectedMetricsChange before after =
+calculateMetricsChange expectedMetricsChange countInitial countNormalized =
   getMetricsChangeClassified <$> expectedMetricsChange <*> actualMetricsChange
  where
   getMetricsChangeClassified (SafeNumber'Number expected) (SafeNumber'Number actual)
@@ -111,9 +111,9 @@ calculateMetricsChange expectedMetricsChange before after =
     | otherwise = MetricsChange'Bad (Percent actual)
   getMetricsChangeClassified _ _ = MetricsChange'NA
   actualMetricsChange :: MetricsChange
-  actualMetricsChange = (before' - after') / before'
-  before' = fromIntegral <$> before
-  after' = fromIntegral <$> after
+  actualMetricsChange = (initial - normalized) / initial
+  initial = fromIntegral <$> countInitial
+  normalized = fromIntegral <$> countNormalized
 
 makeProgramReport :: ReportConfig -> ReportItem -> ProgramMetrics -> ProgramMetrics -> ProgramReport
 makeProgramReport reportConfig reportItem metricsPhi metricsPhiNormalized =
@@ -121,33 +121,33 @@ makeProgramReport reportConfig reportItem metricsPhi metricsPhiNormalized =
  where
   bindingsRows =
     case (metricsPhi.bindingsByPathMetrics, metricsPhiNormalized.bindingsByPathMetrics) of
-      (Just bindingsMetricsAfter, Just bindingsMetricsBefore) ->
+      (Just bindingsMetricsNormalized, Just bindingsMetricsInitial) ->
         [ ReportRow
-          { fileBefore = Just reportItem.phi
-          , fileAfter = Just reportItem.phiNormalized
-          , bindingsPathBefore = Just bindingsMetricsAfter.path
-          , bindingsPathAfter = Just bindingsMetricsAfter.path
-          , attributeBefore = Just attributeBefore
-          , attributeAfter = Just attributeAfter
-          , metricsChange = calculateMetricsChange reportConfig.expectedMetricsChange metricsBefore metricsAfter
-          , metricsBefore = metricsBefore
-          , metricsAfter = metricsAfter
+          { fileInitial = Just reportItem.phi
+          , fileNormalized = Just reportItem.phiNormalized
+          , bindingsPathInitial = Just bindingsMetricsNormalized.path
+          , bindingsPathNormalized = Just bindingsMetricsNormalized.path
+          , attributeInitial = Just attributeInitial
+          , attributeNormalized = Just attributeNormalized
+          , metricsChange = calculateMetricsChange reportConfig.expectedMetricsChange metricsInitial metricsNormalized
+          , metricsInitial = metricsInitial
+          , metricsNormalized = metricsNormalized
           }
-        | BindingMetrics{name = attributeBefore, metrics = metricsBefore} <- bindingsMetricsBefore.bindingsMetrics
-        | BindingMetrics{name = attributeAfter, metrics = metricsAfter} <- bindingsMetricsAfter.bindingsMetrics
+        | BindingMetrics{name = attributeInitial, metrics = metricsInitial} <- bindingsMetricsInitial.bindingsMetrics
+        | BindingMetrics{name = attributeNormalized, metrics = metricsNormalized} <- bindingsMetricsNormalized.bindingsMetrics
         ]
       _ -> []
   programRow =
     ReportRow
-      { fileBefore = Just reportItem.phi
-      , fileAfter = Just reportItem.phiNormalized
-      , bindingsPathBefore = Nothing
-      , bindingsPathAfter = Nothing
-      , attributeBefore = Nothing
-      , attributeAfter = Nothing
+      { fileInitial = Just reportItem.phi
+      , fileNormalized = Just reportItem.phiNormalized
+      , bindingsPathInitial = Nothing
+      , bindingsPathNormalized = Nothing
+      , attributeInitial = Nothing
+      , attributeNormalized = Nothing
       , metricsChange = calculateMetricsChange reportConfig.expectedMetricsChange metricsPhi.programMetrics metricsPhiNormalized.programMetrics
-      , metricsBefore = metricsPhi.programMetrics
-      , metricsAfter = metricsPhiNormalized.programMetrics
+      , metricsInitial = metricsPhi.programMetrics
+      , metricsNormalized = metricsPhiNormalized.programMetrics
       }
 
 makeReport :: ReportConfig -> [ProgramReport] -> Report
@@ -155,16 +155,16 @@ makeReport reportConfig programReports =
   Report{..}
  where
   programRows = (.programRow) <$> programReports
-  metricsBefore = foldMap (.metricsBefore) programRows
-  metricsAfter = foldMap (.metricsAfter) programRows
-  metricsChange = calculateMetricsChange reportConfig.expectedMetricsChange metricsBefore metricsAfter
+  metricsInitial = foldMap (.metricsInitial) programRows
+  metricsNormalized = foldMap (.metricsNormalized) programRows
+  metricsChange = calculateMetricsChange reportConfig.expectedMetricsChange metricsInitial metricsNormalized
   totalRow =
     ReportRow
-      { fileBefore = Nothing
-      , fileAfter = Nothing
-      , bindingsPathBefore = Nothing
-      , bindingsPathAfter = Nothing
-      , attributeBefore = Nothing
-      , attributeAfter = Nothing
+      { fileInitial = Nothing
+      , fileNormalized = Nothing
+      , bindingsPathInitial = Nothing
+      , bindingsPathNormalized = Nothing
+      , attributeInitial = Nothing
+      , attributeNormalized = Nothing
       , ..
       }

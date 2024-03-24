@@ -42,25 +42,25 @@ toHtmlReportHeader =
       [ tr $
           toHtml
             [ th ! colspan "2" ! class_ "no-sort" $ "Attribute"
-            , th ! colspan "4" ! class_ "no-sort" $ "Improvement = (Before - After) / Before"
-            , th ! colspan "4" ! class_ "no-sort" $ "Before"
-            , th ! colspan "4" ! class_ "no-sort" $ "After"
+            , th ! colspan "4" ! class_ "no-sort" $ "Improvement = (Initial - Normalized) / Initial"
+            , th ! colspan "4" ! class_ "no-sort" $ "Initial"
+            , th ! colspan "4" ! class_ "no-sort" $ "Normalized"
             , th ! colspan "4" ! class_ "no-sort" $ "Location"
             ]
       , tr . toHtml $
           th
-            <$> [ "Attribute Before"
-                , "Attribute After"
+            <$> [ "Attribute Initial"
+                , "Attribute Normalized"
                 ]
               <> ( concat
                     . replicate 3
                     . (toHtml <$>)
                     $ toListMetrics metricsNames
                  )
-              <> [ "File Before"
-                 , "Bindings Path Before"
-                 , "File After"
-                 , "Bindings Path After"
+              <> [ "File Initial"
+                 , "Bindings Path Initial"
+                 , "File Normalized"
+                 , "Bindings Path Normalized"
                  ]
       ]
 
@@ -122,19 +122,19 @@ toHtmlReportRow reportConfig reportRow =
   tr . toHtml $
     ( td
         . toHtml
-        <$> [ fromMaybe "[N/A]" reportRow.attributeBefore
-            , fromMaybe "[N/A]" reportRow.attributeAfter
+        <$> [ fromMaybe "[N/A]" reportRow.attributeInitial
+            , fromMaybe "[N/A]" reportRow.attributeNormalized
             ]
     )
       <> toHtmlMetricsChange reportConfig reportRow.metricsChange
-      <> toHtmlMetrics reportRow.metricsBefore
-      <> toHtmlMetrics reportRow.metricsAfter
+      <> toHtmlMetrics reportRow.metricsInitial
+      <> toHtmlMetrics reportRow.metricsNormalized
       <> ( td
             . toHtml
-            <$> [ fromMaybe "[all files]" reportRow.fileBefore
-                , intercalate "." $ fromMaybe ["[whole program]"] reportRow.bindingsPathBefore
-                , fromMaybe "[all files]" reportRow.fileAfter
-                , intercalate "." $ fromMaybe ["[whole program]"] reportRow.bindingsPathAfter
+            <$> [ fromMaybe "[all files]" reportRow.fileInitial
+                , intercalate "." $ fromMaybe ["[whole program]"] reportRow.bindingsPathInitial
+                , fromMaybe "[all files]" reportRow.fileNormalized
+                , intercalate "." $ fromMaybe ["[whole program]"] reportRow.bindingsPathNormalized
                 ]
          )
 

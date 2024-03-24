@@ -218,7 +218,7 @@ commandParserInfo =
     { metrics = info (CLI'MetricsPhi' <$> commandParser.metrics) (progDesc "Collect metrics for a PHI program.")
     , transform = info (CLI'TransformPhi' <$> commandParser.transform) (progDesc "Transform a PHI program.")
     , dataize = info (CLI'DataizePhi' <$> commandParser.dataize) (progDesc "Dataize a PHI program.")
-    , report = info (CLI'ReportPhi' <$> commandParser.report) (progDesc "Generate a report about PHI programs.")
+    , report = info (CLI'ReportPhi' <$> commandParser.report) (progDesc "Generate reports about initial and normalized PHI programs.")
     }
 
 data CommandNames = CommandNames
