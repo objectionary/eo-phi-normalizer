@@ -80,6 +80,18 @@ jobs:
         run: |
           cat report/report.md >> $GITHUB_STEP_SUMMARY
 
+      - name: Upload pipeline artifact
+        if: matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-${{ hashFiles('pipeline/eo/*.eo') }}
+          overwrite: true
+          path: |
+            pipeline
+            !pipeline/**/.eoc
+            !pipeline/yaml
+            report
+
   docs:
     needs: pipeline
     if: ${{ github.ref_name == 'master' }}
