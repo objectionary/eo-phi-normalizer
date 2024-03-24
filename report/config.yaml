@@ -1,6 +1,3 @@
-input:
-  js: report/main.js
-  css: report/styles.css
 output:
   html: report/report.html
   json: report/report.json
