@@ -26,9 +26,10 @@ import Language.EO.Phi.Metrics.Data (Metrics (..), MetricsCount, SafeNumber (..)
 import Language.EO.Phi.Report.Data (MetricsChange, MetricsChangeCategorized, MetricsChangeCategory (..), Percent (..), ProgramReport (..), Report (..), ReportRow (..))
 import Text.Blaze.Html.Renderer.String (renderHtml)
 import Text.Blaze.Html5 hiding (i)
-import Text.Blaze.Html5.Attributes (class_, colspan, type_)
+import Text.Blaze.Html5.Attributes (class_, colspan, id, onclick, type_, value)
 import Text.Printf (printf)
-import Prelude hiding (div, span)
+import Prelude hiding (div, id, span)
+import Prelude qualified
 
 -- | JavaScript file to embed into HTML reports
 reportJS :: String
@@ -143,9 +144,9 @@ toHtmlReportRow reportConfig reportRow =
       <> toHtmlMetrics reportRow.metricsNormalized
       <> ( td
             . toHtml
-            <$> [ fromMaybe "[all files]" reportRow.fileInitial
+            <$> [ fromMaybe "[all programs]" reportRow.fileInitial
                 , intercalate "." $ fromMaybe ["[whole program]"] reportRow.bindingsPathInitial
-                , fromMaybe "[all files]" reportRow.fileNormalized
+                , fromMaybe "[all programs]" reportRow.fileNormalized
                 , intercalate "." $ fromMaybe ["[whole program]"] reportRow.bindingsPathNormalized
                 ]
          )
@@ -163,7 +164,7 @@ countTests report = length $ concatMap (.bindingsRows) report.programReports
 
 toHtmlReport :: ReportConfig -> Report -> Html
 toHtmlReport reportConfig report =
-  (if isMarkdown then details else id) . toHtml $
+  (if isMarkdown then details else Prelude.id) . toHtml $
     [ summary "Report"
     | reportConfig.format == ReportFormat'Markdown
     ]
@@ -182,9 +183,9 @@ toHtmlReport reportConfig report =
               |]
             <> p
               [i|
-                In the report below, we present total metrics for all programs,
-                for programs,
-                and for tests.
+                In the report below, we present combined metrics for all programs,
+                metrics for programs,
+                and metrics for tests.
               |]
             <> h2 "Metrics"
             <> p
@@ -214,7 +215,46 @@ toHtmlReport reportConfig report =
               )
             <> h2 "Detailed results"
          ]
-      <> [ table ! class_ "sortable" $
+      <> [ h3 "Copy table"
+          <> p
+            [i|
+              You may want to analyze the data in a specialized program.
+            |]
+          <>
+          -- https://stackoverflow.com/a/55743302
+          -- https://stackoverflow.com/a/3169849
+          ( script ! type_ "text/javascript" $
+              [i|
+                function copytable(el) {
+                  var urlField = document.getElementById(el)
+                  var range = document.createRange()
+                  range.selectNode(urlField)
+                  window.getSelection().addRange(range)
+                  document.execCommand('copy')
+
+                  if (window.getSelection().empty) {  // Chrome
+                    window.getSelection().empty();
+                  } else if (window.getSelection().removeAllRanges) {  // Firefox
+                    window.getSelection().removeAllRanges();
+                  }
+                }
+              |]
+          )
+          <> (input ! type_ "button" ! value "Copy to Clipboard" ! onclick "copytable('table')")
+          <> h3 "Columns"
+          <> p "Columns in this table are sortable."
+          <> p "Hover over a header cell from the second row of header cells (Attribute Initial, etc.) to see a triangle demonstrating the sorting order."
+          <> ul
+            ( toHtml
+                [ li "▾: descending"
+                , li "▴: ascending"
+                , li "▸: unordered"
+                ]
+            )
+          <> p "Click on the triangle to change the sorting order in the corresponding column."
+         | not isMarkdown
+         ]
+      <> [ table ! class_ "sortable" ! id "table" $
             toHtml
               [ toHtmlReportHeader
               , tbody . toHtml $
