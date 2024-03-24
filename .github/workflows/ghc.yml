@@ -115,6 +115,12 @@ jobs:
           mkdir -p dist/haddock
           mv $(stack path --local-doc-root)/* dist/haddock
 
+      - name: Download pipeline artifact
+        uses: actions/download-artifact@v4
+        with:
+          pattern: pipeline-*
+          merge-multiple: true
+
       - name: Setup mdBook
         uses: peaceiris/actions-mdbook@v1
         with:
@@ -122,12 +128,19 @@ jobs:
 
       - name: Build site
         run: |
+          ROOT=$PWD
+
           cd site/docs
           mdbook build
           mv docs ../../dist
+          cd ../..
 
-          cd ..
+          cd site
           mv index.html ../dist
+          cd ..
+
+          mkdir -p dist/report
+          cp report/report.html dist/report/index.html
 
       - name: 🚀 Publish Site
         uses: JamesIves/github-pages-deploy-action@v4
