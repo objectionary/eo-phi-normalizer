@@ -57,7 +57,8 @@ jobs:
           submodules: true
 
       - name: 🧰 Setup Stack
-        uses: freckle/stack-action@v5
+        # TODO #208:10m replace with freckle/stack-action after https://github.com/freckle/stack-action/pull/69 is merged
+        uses: deemp/stack-action@main
         with:
           stack-build-arguments: ${{ github.ref_name != 'master' && '--fast' || '' }} --pedantic
           test: ${{ matrix.os != 'windows-latest' }}
@@ -103,7 +104,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 🧰 Setup Stack
-        uses: freckle/stack-action@v5
+        # TODO #208:10m replace with freckle/stack-action after https://github.com/freckle/stack-action/pull/69 is merged
+        uses: deemp/stack-action@main
         with:
           test: false
           stack-build-arguments: --fast --haddock
