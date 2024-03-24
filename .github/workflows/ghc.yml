@@ -61,7 +61,9 @@ jobs:
         uses: deemp/stack-action@main
         with:
           stack-build-arguments: ${{ github.ref_name != 'master' && '--fast' || '' }} --pedantic
-          test: ${{ matrix.os != 'windows-latest' }}
+          # TODO #213:10m enable macos test after https://github.com/objectionary/normalizer/issues/180 is resolved
+          # TODO #98:10m enable windows tests after https://github.com/objectionary/normalizer/issues/185 is resolved
+          test: ${{ matrix.os != 'windows-latest' && matrix.os != 'macos-latest'}}
 
       - uses: actions/setup-node@v4
         with:
