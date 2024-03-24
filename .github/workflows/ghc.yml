@@ -106,10 +106,10 @@ jobs:
         uses: freckle/stack-action@v5
         with:
           test: false
+          stack-build-arguments: --fast --haddock
 
       - name: 🔨 Build Haddock Documentation (with Stack)
         run: |
-          stack haddock
           mkdir -p dist/haddock
           mv $(stack path --local-doc-root)/* dist/haddock
 
