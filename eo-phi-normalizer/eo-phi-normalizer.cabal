@@ -20,6 +20,8 @@ extra-source-files:
     README.md
     CHANGELOG.md
     grammar/EO/Phi/Syntax.cf
+    report/main.js
+    report/styles.css
 
 source-repository head
   type: git
