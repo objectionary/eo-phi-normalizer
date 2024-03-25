@@ -204,8 +204,8 @@ toHtmlReport reportConfig report =
             <> p [i|Total number of tests: #{countTests report}.|]
             <> p
               [i|
-                For each metric, number of tests where the metric was reduced as expected
-                (not counting the tests where the metric was initially 0):
+                For each metric, the number of tests where the metric was reduced as expected
+                (not counting tests where the metric was initially 0):
               |]
             <> ul
               ( toHtml . toListMetrics $
@@ -215,16 +215,11 @@ toHtmlReport reportConfig report =
               )
             <> h2 "Detailed results"
          ]
-      <> [ h3 "Copy table"
-          <> p
+      <> [
+         -- https://stackoverflow.com/a/55743302
+         -- https://stackoverflow.com/a/3169849
+         ( script ! type_ "text/javascript" $
             [i|
-              You may want to analyze the data in a specialized program.
-            |]
-          <>
-          -- https://stackoverflow.com/a/55743302
-          -- https://stackoverflow.com/a/3169849
-          ( script ! type_ "text/javascript" $
-              [i|
                 function copytable(el) {
                   var urlField = document.getElementById(el)
                   var range = document.createRange()
@@ -239,7 +234,7 @@ toHtmlReport reportConfig report =
                   }
                 }
               |]
-          )
+         )
           <> (input ! type_ "button" ! value "Copy to Clipboard" ! onclick "copytable('table')")
           <> h3 "Columns"
           <> p "Columns in this table are sortable."
