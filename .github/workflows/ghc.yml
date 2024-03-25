@@ -78,12 +78,8 @@ jobs:
         shell: bash
         run: ./scripts/pipeline.sh
 
-      - name: Report results
-        shell: bash
-        run: |
-          cat report/report.md >> $GITHUB_STEP_SUMMARY
-
       - name: Upload pipeline artifact
+        id: pipeline-artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -94,6 +90,27 @@ jobs:
             !pipeline/**/.eoc
             !pipeline/yaml
             report
+
+      - name: Write about the artifact in the job summary
+        if: always()
+        shell: bash
+        run: |
+          cat << EOF >> $GITHUB_STEP_SUMMARY
+          <h2>Artifact</h2>
+          <p>
+            EO and PHI files that participated in the pipeline
+            are in the artifact
+            <a href="${{ steps.pipeline-artifact.outputs.artifact-url }}">
+              pipeline-${{ hashFiles('pipeline/eo/*.eo') }}
+            </a>.
+          </p>
+          EOF
+
+      - name: Write the report in the job summary
+        if: success()
+        shell: bash
+        run: |
+          cat report/report.md >> $GITHUB_STEP_SUMMARY
 
   docs:
     needs: pipeline
