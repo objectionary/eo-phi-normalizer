@@ -83,7 +83,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: pipeline-${{ hashFiles('pipeline/eo/*.eo') }}
+          name: pipeline-${{ runner.os }}-${{ hashFiles('pipeline/eo/*.eo') }}
           overwrite: true
           path: |
             pipeline
@@ -101,7 +101,7 @@ jobs:
             EO and PHI files that participated in the pipeline
             are in the artifact
             <a href="${{ steps.pipeline-artifact.outputs.artifact-url }}">
-              pipeline-${{ hashFiles('pipeline/eo/*.eo') }}
+              pipeline-${{ runner.os }}-${{ hashFiles('pipeline/eo/*.eo') }}
             </a>.
           </p>
           EOF
@@ -132,7 +132,7 @@ jobs:
       - name: Download pipeline artifact
         uses: actions/download-artifact@v4
         with:
-          pattern: pipeline-*
+          pattern: pipeline-${{ runner.os }}-*
           merge-multiple: true
 
       - name: Setup mdBook
