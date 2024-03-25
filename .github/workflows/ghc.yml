@@ -84,7 +84,7 @@ jobs:
           cat report/report.md >> $GITHUB_STEP_SUMMARY
 
       - name: Upload pipeline artifact
-        if: matrix.os == 'ubuntu-latest'
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: pipeline-${{ hashFiles('pipeline/eo/*.eo') }}
