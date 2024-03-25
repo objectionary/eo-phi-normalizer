@@ -8,6 +8,7 @@ title = "phi-normalizer"
 [output.html]
 additional-css = ["theme/pagetoc.css"]
 additional-js = ["theme/pagetoc.js"]
+mathjax-support = true
 
 [build]
 build-dir = "./docs"
