@@ -29,7 +29,6 @@ import Text.Blaze.Html5 hiding (i)
 import Text.Blaze.Html5.Attributes (class_, colspan, id, onclick, type_, value)
 import Text.Printf (printf)
 import Prelude hiding (div, id, span)
-import Prelude qualified
 
 -- | JavaScript file to embed into HTML reports
 reportJS :: String
@@ -164,57 +163,54 @@ countTests report = length $ concatMap (.bindingsRows) report.programReports
 
 toHtmlReport :: ReportConfig -> Report -> Html
 toHtmlReport reportConfig report =
-  (if isMarkdown then details else Prelude.id) . toHtml $
-    [ summary "Report"
-    | reportConfig.format == ReportFormat'Markdown
+  toHtml $
+    [ h2 "Overview"
+        <> p
+          [i|
+            We translate EO files into PHI programs.
+            Next, we normalize these programs.
+            Then, we collect metrics for initial and normalized PHI programs.
+          |]
+        <> p
+          [i|
+            An EO file contains multiple test objects.
+            After conversion, these test objects become attributes in PHI programs.
+            We call these attributes "tests".
+          |]
+        <> p
+          [i|
+            In the report below, we present combined metrics for all programs,
+            metrics for programs,
+            and metrics for tests.
+          |]
+        <> h2 "Metrics"
+        <> p
+          [i|
+            We collect metrics on the number of dataless formations, applications, formations, and dispatches.
+            We want normalized PHI programs to have a smaller number of such elements than initial PHI programs.
+          |]
+        <> p [i|These numbers are expected to reduce as follows:|]
+        <> ul
+          ( toHtml . toListMetrics $
+              makeMetricsItem
+                <$> metricsNames
+                <*> ((Percent <$>) <$> reportConfig.expectedMetricsChange)
+          )
+        <> h2 "Statistics"
+        <> p [i|Total number of tests: #{countTests report}.|]
+        <> p
+          [i|
+            For each metric, the number of tests where the metric was reduced as expected
+            (not counting tests where the metric was initially 0):
+          |]
+        <> ul
+          ( toHtml . toListMetrics $
+              makeMetricsItem
+                <$> metricsNames
+                <*> countGoodMetricsChanges report
+          )
+        <> h2 "Detailed results"
     ]
-      <> [ h2 "Overview"
-            <> p
-              [i|
-                We translate EO files into PHI programs.
-                Next, we normalize these programs.
-                Then, we collect metrics for initial and normalized PHI programs.
-              |]
-            <> p
-              [i|
-                An EO file contains multiple test objects.
-                After conversion, these test objects become attributes in PHI programs.
-                We call these attributes "tests".
-              |]
-            <> p
-              [i|
-                In the report below, we present combined metrics for all programs,
-                metrics for programs,
-                and metrics for tests.
-              |]
-            <> h2 "Metrics"
-            <> p
-              [i|
-                We collect metrics on the number of dataless formations, applications, formations, and dispatches.
-                We want normalized PHI programs to have a smaller number of such elements than initial PHI programs.
-              |]
-            <> p [i|These numbers are expected to reduce as follows:|]
-            <> ul
-              ( toHtml . toListMetrics $
-                  makeMetricsItem
-                    <$> metricsNames
-                    <*> ((Percent <$>) <$> reportConfig.expectedMetricsChange)
-              )
-            <> h2 "Statistics"
-            <> p [i|Total number of tests: #{countTests report}.|]
-            <> p
-              [i|
-                For each metric, the number of tests where the metric was reduced as expected
-                (not counting tests where the metric was initially 0):
-              |]
-            <> ul
-              ( toHtml . toListMetrics $
-                  makeMetricsItem
-                    <$> metricsNames
-                    <*> countGoodMetricsChanges report
-              )
-            <> h2 "Detailed results"
-         ]
       <> [
          -- https://stackoverflow.com/a/55743302
          -- https://stackoverflow.com/a/3169849
