@@ -60,6 +60,10 @@ stack test
 
 ## Contribute
 
+## Math expressions
+
+Use the syntax supported by `mdBook` - see [docs](https://rust-lang.github.io/mdBook/format/mathjax.html).
+
 ## pre-commit
 
 We use [pre-commit](https://pre-commit.com/) to ensure code quality.
