@@ -20,6 +20,8 @@ extra-source-files:
     README.md
     CHANGELOG.md
     grammar/EO/Phi/Syntax.cf
+    report/main.js
+    report/styles.css
 
 source-repository head
   type: git
@@ -35,8 +37,11 @@ library
   exposed-modules:
       Language.EO.Phi
       Language.EO.Phi.Dataize
-      Language.EO.Phi.Metrics
+      Language.EO.Phi.Metrics.Collect
+      Language.EO.Phi.Metrics.Data
       Language.EO.Phi.Normalize
+      Language.EO.Phi.Report.Data
+      Language.EO.Phi.Report.Html
       Language.EO.Phi.Rules.Common
       Language.EO.Phi.Rules.PhiPaper
       Language.EO.Phi.Rules.Yaml
@@ -62,11 +67,15 @@ library
       aeson
     , array >=0.5.5.0
     , base >=4.7 && <5
+    , blaze-html
+    , blaze-markup
     , directory
+    , file-embed
     , filepath
     , generic-lens
     , lens
     , mtl
+    , scientific
     , string-interpolate
     , template-haskell
     , text
@@ -92,13 +101,17 @@ executable normalizer
     , aeson-pretty
     , array >=0.5.5.0
     , base >=4.7 && <5
+    , blaze-html
+    , blaze-markup
     , directory
     , eo-phi-normalizer
+    , file-embed
     , filepath
     , generic-lens
     , lens
     , mtl
     , optparse-applicative
+    , scientific
     , string-interpolate
     , template-haskell
     , text
@@ -132,14 +145,18 @@ test-suite spec
     , aeson
     , array >=0.5.5.0
     , base >=4.7 && <5
+    , blaze-html
+    , blaze-markup
     , directory
     , eo-phi-normalizer
+    , file-embed
     , filepath
     , generic-lens
     , hspec
     , hspec-discover
     , lens
     , mtl
+    , scientific
     , string-interpolate
     , template-haskell
     , text

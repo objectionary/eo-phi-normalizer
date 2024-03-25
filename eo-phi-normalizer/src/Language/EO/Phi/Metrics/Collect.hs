@@ -1,76 +1,25 @@
 {-# LANGUAGE BlockArguments #-}
-{-# LANGUAGE DeriveAnyClass #-}
-{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedLabels #-}
-{-# LANGUAGE OverloadedRecordDot #-}
-{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Language.EO.Phi.Metrics where
+module Language.EO.Phi.Metrics.Collect where
 
 import Control.Lens ((+=))
-import Control.Monad (forM_)
 import Control.Monad.State (State, execState, runState)
-import Data.Aeson (KeyValue ((.=)), ToJSON (..), Value, withObject, (.:))
-import Data.Aeson qualified as Aeson
-import Data.Aeson.Types (FromJSON (..), Parser)
+import Data.Foldable (forM_)
 import Data.Generics.Labels ()
-import Data.List (groupBy, intercalate)
 import Data.Traversable (forM)
-import GHC.Generics (Generic)
+import Language.EO.Phi.Metrics.Data (BindingMetrics (..), BindingsByPathMetrics (..), MetricsCount, ObjectMetrics (..), Path, ProgramMetrics (..))
 import Language.EO.Phi.Rules.Common ()
 import Language.EO.Phi.Syntax.Abs
-import Language.EO.Phi.TH
-
-data Metrics = Metrics
-  { dataless :: Int
-  , applications :: Int
-  , formations :: Int
-  , dispatches :: Int
-  }
-  deriving (Generic, Show, Eq)
-
-$(deriveJSON ''Metrics)
-
-defaultMetrics :: Metrics
-defaultMetrics =
-  Metrics
-    { dataless = 0
-    , applications = 0
-    , formations = 0
-    , dispatches = 0
-    }
-
-instance Semigroup Metrics where
-  (<>) :: Metrics -> Metrics -> Metrics
-  x <> y =
-    Metrics
-      { dataless = x.dataless + y.dataless
-      , applications = x.applications + y.applications
-      , formations = x.formations + y.formations
-      , dispatches = x.dispatches + y.dispatches
-      }
-
-instance Monoid Metrics where
-  mempty :: Metrics
-  mempty = defaultMetrics
-
-data BindingMetrics = BindingMetrics
-  { name :: String
-  , metrics :: Metrics
-  }
-  deriving (Show, Generic, Eq)
-
-$(deriveJSON ''BindingMetrics)
 
 count :: (a -> Bool) -> [a] -> Int
 count x = length . filter x
@@ -92,17 +41,17 @@ countDataless x
   | otherwise = 0
 
 class Inspectable a where
-  inspect :: a -> State Metrics Int
+  inspect :: a -> State MetricsCount Int
 
 instance Inspectable Binding where
-  inspect :: Binding -> State Metrics Int
+  inspect :: Binding -> State MetricsCount Int
   inspect = \case
     AlphaBinding _ obj -> do
       inspect obj
     _ -> pure 0
 
 instance Inspectable Object where
-  inspect :: Object -> State Metrics Int
+  inspect :: Object -> State MetricsCount Int
   inspect = \case
     Formation bindings -> do
       #formations += 1
@@ -120,48 +69,6 @@ instance Inspectable Object where
       _ <- inspect obj
       pure 0
     _ -> pure 0
-
-type Path = [String]
-
--- >>> splitStringOn '.' "abra.cada.bra"
--- ["abra","cada","bra"]
---
--- >>> splitStringOn '.' ""
--- []
-splitStringOn :: Char -> String -> Path
-splitStringOn sep = filter (/= [sep]) . groupBy (\a b -> a /= sep && b /= sep)
-
-splitPath :: String -> Path
-splitPath = splitStringOn '.'
-
-data BindingsByPathMetrics = BindingsByPathMetrics
-  { path :: Path
-  , bindingsMetrics :: [BindingMetrics]
-  }
-  deriving (Show, Generic, Eq)
-
-instance FromJSON BindingsByPathMetrics where
-  parseJSON :: Value -> Parser BindingsByPathMetrics
-  parseJSON = withObject "BindingsByPathMetrics" $ \obj -> do
-    path <- splitPath <$> (obj .: "path")
-    bindingsMetrics <- obj .: "bindings-metrics"
-    pure BindingsByPathMetrics{..}
-
-instance ToJSON BindingsByPathMetrics where
-  toJSON :: BindingsByPathMetrics -> Value
-  toJSON BindingsByPathMetrics{..} =
-    Aeson.object
-      [ "path" .= intercalate "." path
-      , "bindings-metrics" .= bindingsMetrics
-      ]
-
-data ObjectMetrics = ObjectMetrics
-  { bindingsByPathMetrics :: Maybe BindingsByPathMetrics
-  , thisObjectMetrics :: Metrics
-  }
-  deriving (Show, Generic, Eq)
-
-$(deriveJSON ''ObjectMetrics)
 
 -- | Get metrics for an object
 --
@@ -194,7 +101,7 @@ $(deriveJSON ''ObjectMetrics)
 --
 -- >>> getThisObjectMetrics "⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧.e ⟧"
 -- Metrics {dataless = 1, applications = 1, formations = 5, dispatches = 5}
-getThisObjectMetrics :: Object -> Metrics
+getThisObjectMetrics :: Object -> MetricsCount
 getThisObjectMetrics obj = execState (inspect obj) mempty
 
 -- | Get an object by a path within a given object.
@@ -266,14 +173,6 @@ getObjectMetrics object path = do
   let thisObjectMetrics = getThisObjectMetrics object
   bindingsByPathMetrics <- forM path $ \path' -> getBindingsByPathMetrics object path'
   pure ObjectMetrics{..}
-
-data ProgramMetrics = ProgramMetrics
-  { bindingsByPathMetrics :: Maybe BindingsByPathMetrics
-  , programMetrics :: Metrics
-  }
-  deriving (Show, Generic, Eq)
-
-$(deriveJSON ''ProgramMetrics)
 
 -- | Get metrics for a program and for bindings of a formation accessible by a given path.
 --

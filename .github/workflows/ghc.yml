@@ -57,10 +57,13 @@ jobs:
           submodules: true
 
       - name: 🧰 Setup Stack
-        uses: freckle/stack-action@v5
+        # TODO #208:10m replace with freckle/stack-action after https://github.com/freckle/stack-action/pull/69 is merged
+        uses: deemp/stack-action@main
         with:
           stack-build-arguments: ${{ github.ref_name != 'master' && '--fast' || '' }} --pedantic
-          test: ${{ matrix.os != 'windows-latest' }}
+          # TODO #213:10m enable macos test after https://github.com/objectionary/normalizer/issues/180 is resolved
+          # TODO #98:10m enable windows tests after https://github.com/objectionary/normalizer/issues/185 is resolved
+          test: ${{ matrix.os != 'windows-latest' && matrix.os != 'macos-latest'}}
 
       - uses: actions/setup-node@v4
         with:
@@ -75,6 +78,49 @@ jobs:
         shell: bash
         run: ./scripts/pipeline.sh
 
+      - name: Upload pipeline artifact
+        id: pipeline-artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pipeline-${{ runner.os }}-${{ hashFiles('pipeline/eo/*.eo') }}
+          overwrite: true
+          path: |
+            pipeline
+            !pipeline/**/.eoc
+            !pipeline/yaml
+            report
+
+      - name: Write about the artifact in the job summary
+        if: always()
+        shell: bash
+        run: |
+          cat << EOF >> $GITHUB_STEP_SUMMARY
+          <h2>Artifact</h2>
+          <p>
+            The artifact
+            <a href="${{ steps.pipeline-artifact.outputs.artifact-url }}">
+              pipeline-${{ runner.os }}-${{ hashFiles('pipeline/eo/*.eo') }}
+            </a> contains files used or produced during the pipeline run:
+          </p>
+          <ul>
+            <li>EO and PHI programs</li>
+            <li>Reports</li>
+          </ul>
+          EOF
+
+      - name: Write the report in the job summary
+        if: success()
+        shell: bash
+        run: |
+          cat << EOF >> $GITHUB_STEP_SUMMARY
+          <h2>Report</h2>
+          <details>
+            <summary>Click to expand</summary>
+            $(cat report/report.md)
+          </details>
+          EOF
+
   docs:
     needs: pipeline
     if: ${{ github.ref_name == 'master' }}
@@ -86,15 +132,17 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 🧰 Setup Stack
-        uses: freckle/stack-action@v5
+        # TODO #208:10m replace with freckle/stack-action after https://github.com/freckle/stack-action/pull/69 is merged
+        uses: deemp/stack-action@main
         with:
           test: false
+          stack-build-arguments: --fast --haddock
 
-      - name: 🔨 Build Haddock Documentation (with Stack)
-        run: |
-          stack haddock
-          mkdir -p dist/haddock
-          mv $(stack path --local-doc-root)/* dist/haddock
+      - name: Download pipeline artifact
+        uses: actions/download-artifact@v4
+        with:
+          pattern: pipeline-${{ runner.os }}-*
+          merge-multiple: true
 
       - name: Setup mdBook
         uses: peaceiris/actions-mdbook@v1
@@ -103,12 +151,22 @@ jobs:
 
       - name: Build site
         run: |
+          ROOT=$PWD
+
+          mkdir -p dist/haddock
+          mv $(stack path --local-doc-root)/* dist/haddock
+
           cd site/docs
           mdbook build
           mv docs ../../dist
+          cd ../..
 
-          cd ..
+          cd site
           mv index.html ../dist
+          cd ..
+
+          mkdir -p dist/report
+          cp report/report.html dist/report/index.html
 
       - name: 🚀 Publish Site
         uses: JamesIves/github-pages-deploy-action@v4

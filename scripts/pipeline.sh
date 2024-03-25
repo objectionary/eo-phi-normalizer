@@ -10,25 +10,29 @@ alias eo="npx eoc --parser=${EO}"
 
 shopt -s extglob
 
+function print_message {
+    printf "\n\n\n[[[%s]]]\n\n\n" "$1"
+}
+
 function prepare_directory {
-    printf "\nClean the pipeline directory\n\n"
+    print_message "Clean the pipeline directory"
 
     rm -rf pipeline/*/
 
-    printf "\nGenerate EO test files\n\n"
+    print_message "Generate EO test files"
 
     mkdir -p pipeline/eo
     stack run transform-eo-tests
 }
 
 function enter_directory {
-    printf "\nEnter the pipeline directory\n\n"
+    print_message "Enter the pipeline directory"
 
     cd pipeline
 }
 
 function tests_without_normalization {
-    printf "\nConvert EO to PHI\n\n"
+    print_message "Convert EO to PHI"
 
     mkdir -p phi
     cd eo
@@ -38,7 +42,7 @@ function tests_without_normalization {
     cd ..
 
 
-    printf "\nConvert PHI to EO without normalization\n\n"
+    print_message "Convert PHI to EO without normalization"
 
     mkdir -p eo-not-normalized
     cd phi
@@ -49,7 +53,7 @@ function tests_without_normalization {
     cp -r .eoc/print/!(org) ../eo-not-normalized
     cd ..
 
-    printf "\nTest EO without normalization\n\n"
+    print_message "Test EO without normalization"
 
     cd eo-not-normalized
     eo test
@@ -58,7 +62,7 @@ function tests_without_normalization {
 
 
 function tests_with_normalization {
-    printf "\nNormalize PHI\n\n"
+    print_message "Normalize PHI"
 
     mkdir -p phi-normalized
     cd phi
@@ -78,7 +82,7 @@ function tests_with_normalization {
     cd ..
 
 
-    printf "\nConvert normalized PHI to EO\n\n"
+    print_message "Convert normalized PHI to EO"
 
     cd phi-normalized
     cp -r ../eo/.eoc .
@@ -88,7 +92,7 @@ function tests_with_normalization {
     cd ..
 
 
-    printf "\nTest EO with normalization\n\n"
+    print_message "Test EO with normalization"
 
     mkdir -p eo-normalized
     cd eo-normalized
@@ -97,7 +101,14 @@ function tests_with_normalization {
     cd ..
 }
 
+function generate_report () {
+    print_message "Generate a report"
+
+    stack run --cwd .. -- report --config report/config.yaml
+}
+
 prepare_directory
 enter_directory
 tests_without_normalization
 tests_with_normalization
+generate_report

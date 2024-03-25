@@ -6,6 +6,7 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE MultiWayIf #-}
@@ -13,6 +14,7 @@
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE ParallelListComp #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -24,26 +26,31 @@
 
 module Main (main) where
 
-import Control.Monad (unless, when)
+import Control.Monad (forM, unless, when)
 import Data.Foldable (forM_)
 
 import Control.Exception (Exception (..), SomeException, catch, throw)
-import Control.Lens ((^.))
 import Data.Aeson (ToJSON)
 import Data.Aeson.Encode.Pretty (Config (..), Indent (..), defConfig, encodePrettyToTextBuilder')
 import Data.List (intercalate)
 import Data.String.Interpolate (i, iii)
 import Data.Text.Internal.Builder (toLazyText)
-import Data.Text.Lazy.Lens
+import Data.Text.Lazy as TL (unpack)
+import Data.Yaml (decodeFileThrow)
 import GHC.Generics (Generic)
 import Language.EO.Phi (Bytes (Bytes), Object (Formation), Program (Program), parseProgram, printTree)
 import Language.EO.Phi.Dataize (dataizeRecursively, dataizeRecursivelyChain, dataizeStep, dataizeStepChain)
-import Language.EO.Phi.Metrics (ProgramMetrics, getProgramMetrics, splitPath)
+import Language.EO.Phi.Metrics.Collect as Metrics (getProgramMetrics)
+import Language.EO.Phi.Metrics.Data as Metrics (ProgramMetrics (..), splitPath)
+import Language.EO.Phi.Report.Data (Report'InputConfig (..), Report'OutputConfig (..), ReportConfig (..), ReportItem (..), makeProgramReport, makeReport)
+import Language.EO.Phi.Report.Html (ReportFormat (..), reportCSS, reportJS, toStringReport)
+import Language.EO.Phi.Report.Html qualified as ReportHtml (ReportConfig (..))
 import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), applyRulesChainWith, applyRulesWith, defaultContext, objectSize, propagateName1)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRuleNamed, parseRuleSetFromFile)
 import Options.Applicative hiding (metavar)
 import Options.Applicative qualified as Optparse (metavar)
-import System.Directory (doesFileExist)
+import System.Directory (createDirectoryIfMissing, doesFileExist)
+import System.FilePath (takeDirectory)
 import System.IO (IOMode (WriteMode), getContents', hFlush, hPutStr, hPutStrLn, openFile, stdout)
 
 data CLI'TransformPhi = CLI'TransformPhi
@@ -74,10 +81,16 @@ data CLI'MetricsPhi = CLI'MetricsPhi
   }
   deriving (Show)
 
+newtype CLI'ReportPhi = CLI'ReportPhi
+  { configFile :: FilePath
+  }
+  deriving (Show)
+
 data CLI
   = CLI'TransformPhi' CLI'TransformPhi
   | CLI'DataizePhi' CLI'DataizePhi
   | CLI'MetricsPhi' CLI'MetricsPhi
+  | CLI'ReportPhi' CLI'ReportPhi
   deriving (Show)
 
 fileMetavarName :: String
@@ -150,6 +163,7 @@ data CommandParser = CommandParser
   { metrics :: Parser CLI'MetricsPhi
   , transform :: Parser CLI'TransformPhi
   , dataize :: Parser CLI'DataizePhi
+  , report :: Parser CLI'ReportPhi
   }
 
 commandParser :: CommandParser
@@ -185,11 +199,17 @@ commandParser =
     recursive <- switch (long "recursive" <> help "Apply dataization + normalization recursively.")
     chain <- switch (long "chain" <> help "Display all the intermediate steps.")
     pure CLI'DataizePhi{..}
+  report = do
+    configFile <-
+      let file' = metavarName.file
+       in strOption (long "config" <> short 'c' <> metavar.file <> help [i|The #{file'} with a report configuration.|])
+    pure CLI'ReportPhi{..}
 
 data CommandParserInfo = CommandParserInfo
   { metrics :: ParserInfo CLI
   , transform :: ParserInfo CLI
   , dataize :: ParserInfo CLI
+  , report :: ParserInfo CLI
   }
 
 commandParserInfo :: CommandParserInfo
@@ -198,12 +218,14 @@ commandParserInfo =
     { metrics = info (CLI'MetricsPhi' <$> commandParser.metrics) (progDesc "Collect metrics for a PHI program.")
     , transform = info (CLI'TransformPhi' <$> commandParser.transform) (progDesc "Transform a PHI program.")
     , dataize = info (CLI'DataizePhi' <$> commandParser.dataize) (progDesc "Dataize a PHI program.")
+    , report = info (CLI'ReportPhi' <$> commandParser.report) (progDesc "Generate reports about initial and normalized PHI programs.")
     }
 
 data CommandNames = CommandNames
   { transform :: String
   , metrics :: String
   , dataize :: String
+  , report :: String
   }
 
 commandNames :: CommandNames
@@ -212,6 +234,7 @@ commandNames =
     { transform = "transform"
     , metrics = "metrics"
     , dataize = "dataize"
+    , report = "report"
     }
 
 cli :: Parser CLI
@@ -220,6 +243,7 @@ cli =
     ( command commandNames.transform commandParserInfo.transform
         <> command commandNames.metrics commandParserInfo.metrics
         <> command commandNames.dataize commandParserInfo.dataize
+        <> command commandNames.report commandParserInfo.report
     )
 
 cliOpts :: ParserInfo CLI
@@ -235,7 +259,7 @@ data StructuredJSON = StructuredJSON
   deriving (Generic, ToJSON)
 
 encodeToJSONString :: (ToJSON a) => a -> String
-encodeToJSONString = (^. unpacked) . toLazyText . encodePrettyToTextBuilder' defConfig{confIndent = Spaces 2}
+encodeToJSONString = TL.unpack . toLazyText . encodePrettyToTextBuilder' defConfig{confIndent = Spaces 2}
 
 pprefs :: ParserPrefs
 pprefs = prefs (showHelpOnEmpty <> showHelpOnError)
@@ -389,3 +413,46 @@ main = do
               Left obj -> logStrLn (printAsProgramOrAsObject obj)
               Right (Bytes bytes) -> logStrLn bytes
         )
+    CLI'ReportPhi' CLI'ReportPhi{..} -> do
+      reportConfig <- decodeFileThrow configFile
+
+      programReports <- forM reportConfig.items $ \item -> do
+        metricsPhi <- getMetrics item.bindingsPathPhi (Just item.phi)
+        metricsPhiNormalized <- getMetrics item.bindingsPathPhiNormalized (Just item.phiNormalized)
+        pure $ makeProgramReport reportConfig item metricsPhi metricsPhiNormalized
+
+      css <- maybe (pure reportCSS) readFile (reportConfig.input >>= (.css))
+      js <- maybe (pure reportJS) readFile (reportConfig.input >>= (.js))
+
+      let report = makeReport reportConfig programReports
+
+          reportConfigHtml =
+            ReportHtml.ReportConfig
+              { expectedMetricsChange = reportConfig.expectedMetricsChange
+              , format =
+                  ReportFormat'Html
+                    { ..
+                    }
+              }
+          reportHtml = toStringReport reportConfigHtml report
+
+          reportJson = encodeToJSONString report
+
+          reportConfigMarkdown =
+            ReportHtml.ReportConfig
+              { expectedMetricsChange = reportConfig.expectedMetricsChange
+              , format = ReportFormat'Markdown
+              }
+          reportMarkdown = toStringReport reportConfigMarkdown report
+
+      forM_ @[]
+        [ (x, y)
+        | (Just x, y) <-
+            [ (reportConfig.output.html, reportHtml)
+            , (reportConfig.output.json, reportJson)
+            , (reportConfig.output.markdown, reportMarkdown)
+            ]
+        ]
+        $ \(path, reportString) -> do
+          createDirectoryIfMissing True (takeDirectory path)
+          writeFile path reportString
