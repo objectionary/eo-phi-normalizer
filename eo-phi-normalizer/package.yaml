@@ -27,9 +27,9 @@ description: Please see the README on GitHub at <https://github.com/objectionary
 
 custom-setup:
   dependencies:
-    base: ">= 4.11.0.0 && < 5.0"
-    Cabal: ">= 2.4.0.1 && < 4.0"
-    process: ">= 1.6.3.0"
+    - base >= 4.11.0.0 && < 5.0
+    - Cabal >= 2.4.0.1 && < 4.0
+    - process >= 1.6.3.0
 
 build-tools:
   alex: ">= 3.2.4"
