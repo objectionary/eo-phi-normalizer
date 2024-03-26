@@ -107,3 +107,15 @@ tests:
       - hspec
       - hspec-discover
       - QuickCheck
+  doctests:
+    main: Main.hs
+    source-dirs:
+      - test/doctests
+      - src
+    dependencies:
+      - eo-phi-normalizer
+      - doctest-parallel
+    when:
+    - condition: false
+      other-modules:
+        - Language.EO.Phi.Syntax.Test
