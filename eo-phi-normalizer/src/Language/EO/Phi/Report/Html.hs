@@ -27,7 +27,6 @@ import Language.EO.Phi.Report.Data (MetricsChange, MetricsChangeCategorized, Met
 import Text.Blaze.Html.Renderer.String (renderHtml)
 import Text.Blaze.Html5 hiding (i)
 import Text.Blaze.Html5.Attributes (class_, colspan, id, onclick, type_, value)
-import Text.Printf (printf)
 import Prelude hiding (div, id, span)
 
 -- | JavaScript file to embed into HTML reports
@@ -95,12 +94,9 @@ instance (ToMarkup a) => ToMarkup (SafeNumber a) where
   toMarkup (SafeNumber'Number n) = toMarkup n
   toMarkup SafeNumber'NaN = toMarkup ("NaN" :: String)
 
-roundToStr :: Int -> Double -> String
-roundToStr = printf "%0.*f%%"
-
 instance ToMarkup Percent where
   toMarkup :: Percent -> Markup
-  toMarkup Percent{..} = toMarkup $ roundToStr 2 (percent * 100)
+  toMarkup = toMarkup . show
 
 -- >>> import Text.Blaze.Html.Renderer.String (renderHtml)
 -- >>> reportConfig = ReportConfig { expectedMetricsChange = 0, format = ReportFormat'Markdown }

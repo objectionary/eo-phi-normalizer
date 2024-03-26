@@ -3,6 +3,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -15,10 +16,12 @@
 
 module Language.EO.Phi.Report.Data where
 
+import Data.Aeson (FromJSON, ToJSON)
 import GHC.Generics (Generic)
 import Language.EO.Phi.Metrics.Data (BindingMetrics (..), Metrics (..), MetricsCount, ProgramMetrics, SafeNumber (..))
 import Language.EO.Phi.Metrics.Data qualified as Metrics
 import Language.EO.Phi.TH (deriveJSON)
+import Text.Printf (printf)
 import Prelude hiding (div, id, span)
 
 data ReportItem = ReportItem
@@ -42,9 +45,14 @@ $(deriveJSON ''MetricsChangeCategory)
 type MetricsChange = Metrics Percent
 type MetricsChangeSafe = Metrics (SafeNumber Double)
 
-newtype Percent = Percent {percent :: Double}
+newtype Percent = Percent {percent :: Double} deriving newtype (FromJSON, ToJSON)
 
-$(deriveJSON ''Percent)
+roundToStr :: Int -> Double -> String
+roundToStr = printf "%0.*f%%"
+
+instance Show Percent where
+  show :: Percent -> String
+  show Percent{..} = roundToStr 2 (percent * 100)
 
 type MetricsChangeCategorized = Metrics (MetricsChangeCategory Percent)
 
