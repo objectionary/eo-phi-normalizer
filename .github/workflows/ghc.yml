@@ -138,6 +138,7 @@ jobs:
         with:
           test: false
           stack-build-arguments: --fast --haddock
+          cache-prefix: docs-
 
       - name: Download pipeline artifact
         uses: actions/download-artifact@v4
