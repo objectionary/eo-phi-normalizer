@@ -4,16 +4,16 @@ Dataization is the process through which data is extracted from a given program/
 
 ## Dataization process
 
-To dataize a given program written in $\varphi$-calculus, the first step is to normalize it according to the process outlined in [`normalize tranform` docs](./normalizer-transform.md).
+To dataize a given program written in \\( \varphi \\)-calculus, the first step is to normalize it according to the process outlined in [`normalize tranform` docs](./normalizer-transform.md).
 Then, a single step of dataization is performed according to the following rules in order of priority:
-1. If the object is a formation that contains a $\Delta$-binding, the bytes attached to it are returned
-2. If the object is a formation that contains a $\lambda$-binding, the attached value is evaluated as a known built-in function and its result is returned. Currently, the following functions are supported:
+1. If the object is a formation that contains a \\( \Delta \\)-binding, the bytes attached to it are returned
+2. If the object is a formation that contains a \\( \lambda \\)-binding, the attached value is evaluated as a known built-in function and its result is returned. Currently, the following functions are supported:
    - `Times`
    - `Plus`
-   - `Package`: this $\lambda$-binding is currently ignored (dataization proceeds as if it was not there) until proper support is added for specifying the path of the object to be dataized.
-3. If the object is a formation that contains a $\phi$-binding, the result becomes the dataization of its attached object
-4. If the object is an application, the object on which the bindings are applied is dataized and then the application is reapplied on its result. In other words, $\mathbb{D}\left(obj(a \mapsto b, ...)\right) = \mathbb{D}\left(obj\right)(a \mapsto b, ...)$
-5. If the object is a dispatch, the object on which the attribute is being dispatched is dataized and then the attribute is dispatched on its result. In other words, $\mathbb{D}\left(obj.\alpha\right) = \mathbb{D}\left(obj\right).\alpha$
+   - `Package`: this \\( \lambda \\)-binding is currently ignored (dataization proceeds as if it was not there) until proper support is added for specifying the path of the object to be dataized.
+3. If the object is a formation that contains a \\( \phi \\)-binding, the result becomes the dataization of its attached object
+4. If the object is an application, the object on which the bindings are applied is dataized and then the application is reapplied on its result. In other words, \\( \mathbb{D}\left(obj(a \mapsto b, ...)\right) = \mathbb{D}\left(obj\right)(a \mapsto b, ...) \\)
+5. If the object is a dispatch, the object on which the attribute is being dispatched is dataized and then the attribute is dispatched on its result. In other words, \\( \mathbb{D}\left(obj.\alpha\right) = \mathbb{D}\left(obj\right).\alpha \\)
 
 The full dataization process is achieved by recursively normalizing and dataizing according to the rules above until bytes are reached or the object does not change (in which case the dataization is considered to have failed).
 
