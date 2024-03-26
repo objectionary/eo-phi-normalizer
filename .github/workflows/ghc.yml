@@ -171,6 +171,21 @@ jobs:
       - name: Run mdsh
         run: ./scripts/run-mdsh.sh
 
+      - name: Configure git for github-actions
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+
+      - name: Commit changes produced by mdsh
+        run: |
+          git pull --rebase --autostash
+
+          git add site
+
+          git commit -m "Run mdsh" \
+            && git push \
+            || true
+
       - name: Add docs
         run: |
           cd site/docs
