@@ -151,24 +151,24 @@ jobs:
         with:
           mdbook-version: "latest"
 
-      - name: Build site
+      - name: Add haddock
         run: |
-          ROOT=$PWD
-
           mkdir -p dist/haddock
           mv $(stack path --local-doc-root)/* dist/haddock
 
+      - name: Add docs
+        run: |
           cd site/docs
           mdbook build
           mv docs ../../dist
-          cd ../..
 
-          cd site
-          mv index.html ../dist
-          cd ..
-
+      - name: Add report
+        run: |
           mkdir -p dist/report
           cp report/report.html dist/report/index.html
+
+      - name: Add index.html
+        run: mv site/index.html dist
 
       - name: 🚀 Publish Site
         uses: JamesIves/github-pages-deploy-action@v4
