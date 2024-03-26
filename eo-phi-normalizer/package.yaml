@@ -120,3 +120,4 @@ tests:
     - condition: false
       other-modules:
         - Language.EO.Phi.Syntax.Test
+        - Language.EO.Phi.Syntax.ErrM

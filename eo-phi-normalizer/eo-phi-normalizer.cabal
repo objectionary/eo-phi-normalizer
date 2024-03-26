@@ -135,7 +135,6 @@ test-suite doctests
       Language.EO.Phi.Rules.Yaml
       Language.EO.Phi.Syntax
       Language.EO.Phi.Syntax.Abs
-      Language.EO.Phi.Syntax.ErrM
       Language.EO.Phi.Syntax.Lex
       Language.EO.Phi.Syntax.Par
       Language.EO.Phi.Syntax.Print
