@@ -6,9 +6,43 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to the
 [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
-## Unreleased
+## v0.3.0 — 2024-03-26
 
-## 0.2.0 — 2024-02-16
+In this version the main executable has been renamed to `normalizer`
+and several commands have been implemented for normalization, dataization,
+and reporting.
+
+New:
+
+- Command Line Interface:
+  - Add commands:
+    - `normalizer transform` to perform normalization without executing any atoms (was default behavior before)
+    - `normalizer metrics` to compute metrics of a given φ-expression (see [#153](https://github.com/objectionary/normalizer/pull/153))
+    - `normalizer dataize` to run partial evaluation of φ-expressions with atoms (see [#187](https://github.com/objectionary/normalizer/pull/187))
+    - `normalizer report` to generate report based on the results of testing against the EO compiler (see [#213](https://github.com/objectionary/normalizer/pull/213))
+  - Add `--single` flag (see [#131](https://github.com/objectionary/normalizer/pull/131))
+  - Add `--json` flag for machine-readable output format (see [#143](https://github.com/objectionary/normalizer/pull/143))
+  - Add `--max-depth=N` and `--max-term-size=N` options to control limits for the normalizer (see [#173](https://github.com/objectionary/normalizer/pull/173))
+  - Improve `--chain` option to provide better elaboration on the applied normalization rules and the dataization process (see [#195](https://github.com/objectionary/normalizer/pull/195))
+- Update rule set for φ-calculus (see [#152](https://github.com/objectionary/normalizer/pull/152) and some changes in [#136](https://github.com/objectionary/normalizer/pull/136) and [#166](https://github.com/objectionary/normalizer/pull/166))
+- Add property-based and regression tests for confluence (see [#136](https://github.com/objectionary/normalizer/pull/136) and [#166](https://github.com/objectionary/normalizer/pull/166))
+- Tests and metrics against the EO compiler and standard EO test suite (see [#98](https://github.com/objectionary/normalizer/pull/98), [#191](https://github.com/objectionary/normalizer/pull/191))
+
+Fixes:
+
+- Count metrics, including dataless objects, correctly (see [#142](https://github.com/objectionary/normalizer/pull/142), [#193](https://github.com/objectionary/normalizer/pull/193), [#211](https://github.com/objectionary/normalizer/pull/211))
+- Fix metavariables in context patterns (see [#174](https://github.com/objectionary/normalizer/pull/174))
+- Support empty Δ-bindings (see [#184](https://github.com/objectionary/normalizer/pull/184))
+
+Documentation has been improved (see [#134](https://github.com/objectionary/normalizer/pull/134), [#221](https://github.com/objectionary/normalizer/pull/221)).
+
+Maintenance:
+
+- Run CI on all pull requests (see [#156](https://github.com/objectionary/normalizer/pull/156))
+- Downgrade Stackage snapshot (see [#146](https://github.com/objectionary/normalizer/pull/146))
+- Add HLint to CI (see [#157](https://github.com/objectionary/normalizer/pull/157))
+
+## v0.2.0 — 2024-02-16
 
 - Complete implementation of Yegor's rules (see [#109](https://github.com/objectionary/normalizer/pull/109), [#112](https://github.com/objectionary/normalizer/pull/112))
   - Support global counter in user-defined rules (see [#105](https://github.com/objectionary/normalizer/pull/105))
@@ -22,6 +56,6 @@ and this project adheres to the
   - Remove logs from default output (see [#106](https://github.com/objectionary/normalizer/pull/106))
 - Allow collection of metrics for $\varphi$-terms (see [#121](https://github.com/objectionary/normalizer/pull/121))
 
-## 0.1.0 - 2024-02-02
+## v0.1.0 - 2024-02-02
 
 First version of the normalizer.
