@@ -77,6 +77,7 @@ data ReportConfig = ReportConfig
   { input :: Maybe Report'InputConfig
   , output :: Report'OutputConfig
   , expectedMetricsChange :: MetricsChange
+  , expectedImprovedProgramsPercentage :: Percent
   , items :: [ReportItem]
   }
   deriving stock (Show, Generic)

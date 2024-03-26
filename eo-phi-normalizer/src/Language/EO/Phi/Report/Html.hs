@@ -86,6 +86,7 @@ data ReportFormat
 
 data ReportConfig = ReportConfig
   { expectedMetricsChange :: MetricsChange
+  , expectedImprovedProgramsPercentage :: Percent
   , format :: ReportFormat
   }
 

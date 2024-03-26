@@ -429,6 +429,7 @@ main = do
           reportConfigHtml =
             ReportHtml.ReportConfig
               { expectedMetricsChange = reportConfig.expectedMetricsChange
+              , expectedImprovedProgramsPercentage = reportConfig.expectedImprovedProgramsPercentage
               , format =
                   ReportFormat'Html
                     { ..
@@ -441,6 +442,7 @@ main = do
           reportConfigMarkdown =
             ReportHtml.ReportConfig
               { expectedMetricsChange = reportConfig.expectedMetricsChange
+              , expectedImprovedProgramsPercentage = reportConfig.expectedImprovedProgramsPercentage
               , format = ReportFormat'Markdown
               }
           reportMarkdown = toStringReport reportConfigMarkdown report
