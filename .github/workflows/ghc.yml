@@ -137,7 +137,7 @@ jobs:
         uses: deemp/stack-action@main
         with:
           test: false
-          stack-build-arguments: --fast --haddock
+          stack-build-arguments: --fast --haddock --copy-bins
           cache-prefix: docs-
 
       - name: Download pipeline artifact
