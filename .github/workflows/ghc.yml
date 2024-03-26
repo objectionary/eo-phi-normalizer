@@ -151,10 +151,25 @@ jobs:
         with:
           mdbook-version: "latest"
 
+      - name: cargo-install
+        uses: baptiste0928/cargo-install@v3.0.1
+        with:
+          crate: mdsh
+          git: https://github.com/zimbatm/mdsh
+          tag: v0.8.0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
       - name: Add haddock
         run: |
           mkdir -p dist/haddock
           mv $(stack path --local-doc-root)/* dist/haddock
+
+      - name: Run mdsh
+        run: ./scripts/run-mdsh.sh
 
       - name: Add docs
         run: |
