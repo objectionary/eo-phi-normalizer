@@ -39,7 +39,8 @@ data MetricsChangeCategory a
 
 $(deriveJSON ''MetricsChangeCategory)
 
-type MetricsChange = Metrics (SafeNumber Double)
+type MetricsChange = Metrics Percent
+type MetricsChangeSafe = Metrics (SafeNumber Double)
 
 newtype Percent = Percent {percent :: Double}
 
@@ -106,11 +107,11 @@ calculateMetricsChange :: MetricsChange -> MetricsCount -> MetricsCount -> Metri
 calculateMetricsChange expectedMetricsChange countInitial countNormalized =
   getMetricsChangeClassified <$> expectedMetricsChange <*> actualMetricsChange
  where
-  getMetricsChangeClassified (SafeNumber'Number expected) (SafeNumber'Number actual)
+  getMetricsChangeClassified (Percent expected) (SafeNumber'Number actual)
     | actual >= expected = MetricsChange'Good (Percent actual)
     | otherwise = MetricsChange'Bad (Percent actual)
   getMetricsChangeClassified _ _ = MetricsChange'NA
-  actualMetricsChange :: MetricsChange
+  actualMetricsChange :: MetricsChangeSafe
   actualMetricsChange = (initial - normalized) / initial
   initial = fromIntegral <$> countInitial
   normalized = fromIntegral <$> countNormalized
