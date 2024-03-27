@@ -6,7 +6,7 @@
 module Language.EO.Phi.Dataize (dataizeStep, dataizeRecursively, dataizeStepChain, dataizeRecursivelyChain) where
 
 import Control.Arrow (ArrowChoice (left))
-import Data.List (find)
+import Data.List (find, singleton)
 import Data.Maybe (listToMaybe)
 import Data.String.Interpolate (i)
 import Language.EO.Phi (printTree)
@@ -142,7 +142,15 @@ evaluateDataizationFun ctx func obj _state = (result, ())
 -- | Like `evaluateDataizationFun` but specifically for the built-in functions.
 -- This function is not safe. It returns undefined for unknown functions
 evaluateBuiltinFun :: Context -> String -> Object -> EvaluationState -> (Object, EvaluationState)
-evaluateBuiltinFun ctx "Plus" = evaluateDataizationFun ctx (+)
-evaluateBuiltinFun ctx "Times" = evaluateDataizationFun ctx (*)
-evaluateBuiltinFun _ "Package" = (,) -- Ignore package for now (See #203)
-evaluateBuiltinFun _ _ = const $ const (undefined, ())
+evaluateBuiltinFun ctx "Plus" obj = evaluateDataizationFun ctx (+) obj
+evaluateBuiltinFun ctx "Times" obj = evaluateDataizationFun ctx (*) obj
+evaluateBuiltinFun ctx "Package" obj = (result,)
+ where
+  (Formation bindings) = obj
+  isPackage (LambdaBinding (Function "Package")) = True
+  isPackage _ = False
+  (_packageBindings, restBindings) = span isPackage bindings
+  dataizeBinding (AlphaBinding attr o) = AlphaBinding attr (either id (Formation . singleton . DeltaBinding) (dataizeRecursively ctx o))
+  dataizeBinding b = b
+  result = Formation (map dataizeBinding restBindings)
+evaluateBuiltinFun _ _ _ = const (undefined, ())

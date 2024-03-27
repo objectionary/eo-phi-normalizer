@@ -40,3 +40,44 @@ tests:
       ⟧}
     output:
       bytes: "52-"
+
+  - name: "Dataize in siblings of Package"
+    input: |
+      {⟦
+        org ↦ ⟦
+          eolang ↦ ⟦
+            bool ↦ ⟦ Δ ⤍ ∅ ⟧,
+            bytes ↦ ⟦ Δ ⤍ ∅ ⟧,
+            x ↦ ⟦
+              φ ↦ Φ.org.eolang.bool(
+                α0 ↦ Φ.org.eolang.bytes(Δ ⤍ 01-)
+              )
+            ⟧,
+            z ↦ ⟦
+              y ↦ ⟦
+                x ↦ ∅,
+                φ ↦ ξ.x
+              ⟧,
+              φ ↦ Φ.org.eolang.bool(
+                α0 ↦ Φ.org.eolang.bytes(Δ ⤍ 01-)
+              )
+            ⟧,
+            λ ⤍ Package
+          ⟧,
+          λ ⤍ Package
+        ⟧
+      ⟧}
+    output:
+      object: |
+        ⟦
+          org ↦ ⟦
+            eolang ↦ ⟦
+              bool ↦ ⟦ Δ ⤍ ∅ ⟧,
+              bytes ↦ ⟦ Δ ⤍ ∅ ⟧,
+              x ↦ ⟦ Δ ⤍ 01- ⟧,
+              z ↦ ⟦ Δ ⤍ 01- ⟧,
+              λ ⤍ Package
+            ⟧,
+            λ ⤍ Package
+          ⟧
+        ⟧
