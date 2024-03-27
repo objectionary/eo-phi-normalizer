@@ -16,7 +16,8 @@ tests:
           ⟧
         ⟧
       ⟧}
-    output: '52-'
+    output:
+      bytes: "52-"
 
   - name: Ignores 'Package' lambdas
     input: |
@@ -37,4 +38,5 @@ tests:
           ⟧
         ⟧
       ⟧}
-    output: '52-'
+    output:
+      bytes: "52-"
