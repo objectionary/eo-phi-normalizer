@@ -112,6 +112,8 @@ data Report = Report
 
 $(deriveJSON ''Report)
 
+-- >>> calculateMetricsChange Metrics { dataless = 0.1, applications = 0.2, formations = 0.2, dispatches = 0.2 } Metrics { dataless = 100, applications = 0, formations = 100, dispatches = 100 } Metrics { dataless = 90, applications = 0, formations = 93, dispatches = 60 }
+-- Metrics {formations = MetricsChange'Bad {change = 7.00%}, dataless = MetricsChange'Good {change = 10.00%}, applications = MetricsChange'NA, dispatches = MetricsChange'Good {change = 40.00%}}
 calculateMetricsChange :: MetricsChange -> MetricsCount -> MetricsCount -> MetricsChangeCategorized
 calculateMetricsChange expectedMetricsChange countInitial countNormalized =
   getMetricsChangeClassified <$> expectedMetricsChange <*> actualMetricsChange
