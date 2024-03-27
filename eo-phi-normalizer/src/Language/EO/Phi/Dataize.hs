@@ -124,9 +124,23 @@ evaluateDataizationFunChain ctx func obj _state = map (,()) result
 -- | Like `evaluateDataizationFunChain` but specifically for the built-in functions.
 -- This function is not safe. It returns undefined for unknown functions
 evaluateBuiltinFunChain :: Context -> String -> Object -> EvaluationState -> [((String, Object), EvaluationState)]
-evaluateBuiltinFunChain ctx "Plus" = evaluateDataizationFunChain ctx (+)
-evaluateBuiltinFunChain ctx "Times" = evaluateDataizationFunChain ctx (*)
-evaluateBuiltinFunChain _ _ = const $ const [(undefined, ())]
+evaluateBuiltinFunChain ctx "Plus" obj = evaluateDataizationFunChain ctx (+) obj
+evaluateBuiltinFunChain ctx "Times" obj = evaluateDataizationFunChain ctx (*) obj
+evaluateBuiltinFunChain ctx "Package" obj = \state -> map (,state) result
+ where
+  (Formation bindings) = obj
+  isPackage (LambdaBinding (Function "Package")) = True
+  isPackage _ = False
+  (packageBindings, restBindings) = span isPackage bindings
+  dataizeBindingChain (AlphaBinding attr o) =
+    let chain = dataizeRecursivelyChain ctx o
+     in (chain, AlphaBinding attr (either id (Formation . singleton . DeltaBinding) (snd $ last chain)))
+  dataizeBindingChain b = ([], b)
+  (chains, bs) = unzip $ map dataizeBindingChain restBindings
+  wrapBytes bytes = Formation [DeltaBinding bytes]
+  objsChain = map (fmap (either id wrapBytes)) (concat chains)
+  result = objsChain ++ [("Dataized Package siblings", Formation (bs ++ packageBindings))]
+evaluateBuiltinFunChain _ _ _ = const [(undefined, ())]
 
 -- | Given normalization context, a function on data (bytes interpreted as integers), an object,
 -- and the current state of evaluation, returns the new object and a possibly modified state.
