@@ -45,7 +45,7 @@ $(deriveJSON ''MetricsChangeCategory)
 type MetricsChange = Metrics Percent
 type MetricsChangeSafe = Metrics (SafeNumber Double)
 
-newtype Percent = Percent {percent :: Double} deriving newtype (FromJSON, ToJSON)
+newtype Percent = Percent {percent :: Double} deriving newtype (FromJSON, ToJSON, Num, Fractional)
 
 roundToStr :: Int -> Double -> String
 roundToStr = printf "%0.*f%%"
