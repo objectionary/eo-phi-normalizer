@@ -1,65 +1,198 @@
 # Approach:
-# - Try to develop something like BNF for user-defined functions
-#   - Because we need to parse them later with BNFC (https://bnfc.digitalgrammars.com/)
-# - Use types as non-terminals
-# - Use <label :: (Type)> expressions to label types
-# - Use (Type1 | Type2) to denote alternative types
+# - Try to express patterns in terms of BNFC (https://bnfc.digitalgrammars.com/) (with slight modifications)
+# - Use <label :: (Type)> expressions to label non-terminals
 
 types:
-  - type: String
-    alias: Name
-  - type: (Name, Expression)
-    alias: Binding
-  - type: [Binding]
-    alias: Bindings
+  - type: Binding
     examples:
-      - [("foo", )]
-  - type: [String]
-    alias: Path
+      - and ↦ Φ.you
+patterns:
+  - pattern: |
+      MetaBinding. Binding ::= ((<topBindingName :: (MetaId)> "=>")? "\\" <binding :: (MetaId)>)? <path :: (MetaId)> ".." <name :: (MetaId)> "↦" <object :: (Object)>
+    description: |
+      A <path> through formations to <name> where a value after "↦" matches <object>.
+      If <topBindingName> is given, it's equal to the first element of <path>.
+      If <binding> is given, it's equal to the full binding.
     examples:
-      - [ "org", "eolang", "main" ]
-  - type: Metavar
+      - pattern: '\?PathHead => \?FullBinding ?Path..?Name ↦ ?Object.world(?Bindings)'
+        context: formation
+        input: "⟦ org ↦ ⟦ eolang ↦ ⟦ main ↦ hello.world(and ↦ Φ.you) ⟧ ⟧ ⟧"
+        matches:
+          - metavar: "?Path"
+            value: ["org", "eolang"]
+          - metavar: "?Name"
+            value: "main"
+          - metavar: "?Object"
+            value: "hello"
+          - metavar: "?Bindings"
+            value: [and ↦ Φ.you]
+          - metavar: "?PathHead"
+            value: ["org"]
+          - metavar: "?FullBinding"
+            value: [org ↦ ⟦ eolang ↦ ⟦ main ↦ hello.world(and ↦ Φ.you) ⟧ ⟧]
+      - pattern: "?Path..?Name ↦ ?DispatchPath..?DispatchName.world"
+        context: application
+        input: "(x ↦ org.eolang.world)"
+        matches:
+          - metavar: "?Path"
+            value: []
+          - metavar: "?Name"
+            value: "x"
+          - metavar: "?DispatchPath"
+            value: ["org"]
+          - metavar: "?DispatchName"
+            value: "eolang"
+  - pattern: |
+      ExpressionObject. Expression ::= Object
     examples:
-      - '?A'
-      - '?Foo'
-      - '?baz'
+      - ξ
+      - ⟦ a ↦ ?B ⟧
+  - pattern: |
+      ExpressionFunction. Expression ::= Function
+    examples:
+      - $name(?a)
 functions:
-  - pattern: '<binding :: (Metavar)>@(<path :: (Metavar)> ↦ <prefix :: (Metavar)>.b)'
+  - pattern: |
+      FunctionMt. Function ::= "$mt" "(" <prefix :: (Expression)> "," <suffix :: (Expression)> ")"
     description: |
-      A <binding> that matches with <path> ↦ <prefix>.b
-  - pattern: '<oldName :: (Metavar | Name)> => \<newName :: (Metavar | Name)> <expression :: Expression>'
+      Return the string "<prefix>.<suffix>".
+    examples:
+      - applications:
+          - application: $mt(ξ, $mt(ρ, $mt($name(?b_a), write(α0 ↦ ?t))))
+            # Note the result isn't a value because the result contains MetaId-s
+            result: ξ.ρ.?b_a.write(α0 ↦ ?t)
+  - pattern: |
+      FunctionName. Function ::= "$name" "(" <binding :: (MetaId)> ")"
     description: |
-      Find binding with name <oldName> and body that contains <expression>.
-      Save the body to variable <newName>,
-  - pattern: '<path :: (Metavar)>..<key :: (String)>'
+      Return the name of <binding>.
+    examples:
+      - pattern: ⟦ \?Name ?a ↦ ⟦ ?A ⟧ ⟧
+        input: ⟦ name ↦ ⟦ a ↦ Φ.a.c, b ↦ Φ.a.c ⟧ ⟧
+        matches:
+          - metavar: "?Name"
+            value: name ↦ ⟦ a ↦ Φ.a.c, b ↦ Φ.a.c ⟧
+          - metavar: "?a"
+            value: name
+        applications:
+          - application: $name(?Name)
+            value: name
+  - pattern: |
+      FunctionNames. Function ::= "$names" "(" <bindings :: (MetaId | Function)> ")"
     description: |
-      Some <path> to <key>
-      - In a formation, the pattern means enclosure, e.g., ⟦ org ↦ ⟦ eolang ↦ ⟦ <key> ↦ ... ⟧ ⟧ ⟧
-      - In an application, the pattern means dot notation, e.g., (x ↦ org.eolang.<key>)
-  - pattern: '$mt(<prefix :: (String)>, <suffix :: (String)>)'
+      Return the names of <bindings>.
+    examples:
+      - pattern: "⟦ ?B ⟧"
+        input: "⟦ a ↦ Φ.b, c ↦ Φ.c ⟧"
+        matches:
+          - metavar: "?B"
+            value: a ↦ Φ.b, c ↦ Φ.c
+        applications:
+          - application: $names(?B)
+            value: a, c
+  - pattern: |
+      FunctionReplace. Function ::= "$replace" "(" <e1 :: (MetaId | Expression)> "," <e2 :: (MetaId | Expression)> "," <e3 :: (MetaId | Expression)> ")"
     description: |
-      Return the string "<prefix>.<suffix>"
-  - pattern: '$name(<metavar :: (Metavar)>)'
+      Return <e1> with all occurencies of <e2> replaced with <e3>.
+    examples:
+      - pattern: ⟦ a ↦ ?B ⟧
+        input: ⟦ a ↦ ⟦ a ↦ Φ.a, b ↦ Φ.b, c ↦ Φ.c ⟧ ⟧
+        matches:
+          - metavar: "?B"
+            value: ⟦ a ↦ Φ.a, b ↦ Φ.b, c ↦ Φ.c ⟧
+        application: $replace(?B, Φ.b, Φ.baz)
+  # FIXME what's the semantics ???
+  - pattern: |
+      FunctionCombine. Function ::= "$combine" "(" <b1 :: (MetaId)> "," <b2 :: (MetaId)> ")"
+    # FIXME order of elements depends on order of bindings in code?
     description: |
-      Return the name of <metavar>
-  - pattern: '$for-all(<bindings :: (Metavar | Bindings)>, <predicate :: (Binding -> Bool)>)'
+      Return new bindings obtained by combining <b1> and <b2>.
+
+      ?B1: [a1 -> x, a2 -> y, a3 -> z]
+      ?B2: [b1 -> c, b2 -> d, b3 -> e]
+      $combine(?B1, ?B2) => [a1 -> c, a2 -> d, a3 -> e]
+    Inspiration 1: array_combine - https://www.php.net/manual/ru/function.array-combine.php
+    Inspiration 2: func foo1(int x, string y)
+      func foo2(bool z, char a)
+
+      foo1(1, “s”)
+      foo2(true, ‘x’)
+
+      func foo_combo(int x, string y, bool z, char a)
+
+      foo_combo(1, “s”, true, ‘x’)
+    examples:
+      - pattern: ⟦ a ↦ ⟦ ?A ⟧, b ↦ ⟦ ?B ⟧ ⟧
+        input: ⟦ a ↦ ⟦ a ↦ Φ.a, b ↦ Φ.b, c ↦ Φ.c ⟧, b ↦ ⟦ d ↦ Φ.d, e ↦ Φ.e ⟧ ⟧
+        matches:
+          - metavar: "?A"
+            value: a ↦ Φ.a, b ↦ Φ.b, c ↦ Φ.c
+          - metavar: "?B"
+            value: a ↦ Φ.a, d ↦ Φ.d, e ↦ Φ.e
+        applications:
+          - application: $combine(?A, ?B)
+            value: a ↦ Φ.d, b ↦ Φ.e
+  # FIXME what's the semantics ???
+  - pattern: |
+      FunctionUnique. Function ::= "$unique" "(" <bindings :: (MetaId)> ")"
     description: |
-      Check that for all <bindings>, the <predicate> is TRUE
-  - pattern: '$bound-to(<key :: (Key)>, <value :: (Metavar | Value)>)'
+      Replace all names in <bindings> with unique names.
+    examples:
+      - $unique(?B)
+  - pattern: |
+      FunctionPrefixed. Function ::= $prefixed "(" <name1 :: (Expression)> "," <name2 :: (Expression)> ")"
+predicates:
+  - pattern: 'PredicateForAll. Predicate ::= "$for-all" "(" <bindings :: (MetaId)> "," <arg :: (MetaId)>, <predicate :: (Predicate)> ")"'
     description: |
-      Check that <key> is bound to <value>
-  - pattern: '$unique(<bindings :: (Metavar | Bindings)>)'
+      Check that the <predicate> is TRUE for all <bindings>.
+      You can use <arg> inside the <predicate>.
+    examples: See below
+  - pattern: 'PredicateBoundTo. Predicate ::= "$bound-to" "(" <name :: (MetaId)> "," <value :: (Expression)> ")"'
     description: |
-      Replace all keys in <bindings> with unique keys
-  - pattern: '$replace(<e1 :: (Metavar | Expression)>, <e2 :: (Metavar | Expression)>, <e3 :: (Metavar | Expression)>)'
+      Check that <name> is bound to <value>.
+    examples:
+      - pattern: "⟦ ?name ↦ Φ.?a.b, ?B ⟧"
+        input: ⟦ name ↦ Φ.a.b, a ↦ Φ.a.c, b ↦ Φ.a.c ⟧
+        matches:
+          - metavar: "?name"
+            value: name
+          - metavar: "?a"
+            value: a
+          - metavar: "?B"
+            value: a ↦ Φ.a.c, b ↦ Φ.a.c
+        where:
+          - condition: $bound-to(?name, ∅)
+            value: "FALSE"
+          - condition: $for-all(?B, ?binding, $bound-to(?binding, Φ.a.c))
+            value: "TRUE"
+  - pattern: 'PredicateStartsWith. Predicate ::= "$starts-with" "(" <name :: (Expression)> "," <prefix :: (String)> ")"'
     description: |
-      In <e1>, replace all occurencies of <e2> to <e3>
-  - pattern: '$combine(<b1 :: (Metavar | Bindings)>, <b2 :: (Metavar | Bindings)>)'
+      Check that <name> starts with <prefix>.
+    examples:
+      - pattern: '⟦ \?Binding Φ.?a.b, ?Bindings ⟧'
+        input: "⟦ name ↦ ⟦ k ↦ Φ.a.b ⟧, a_foo ↦ Φ.a.c, a_bar ↦ Φ.a.c ⟧"
+        matches:
+          - metavar: "?Binding"
+            value: name ↦ ⟦ k ↦ Φ.a.b ⟧
+          - metavar: "?Bindings"
+            value: a_foo ↦ Φ.a.c, a_bar ↦ Φ.a.c
+        where:
+          - condition: $for-all(?Bindings, ?binding, $starts-with($name(?binding), "a_"))
+            value: TRUE
+  - pattern: 'PredicateNot. Predicate ::= "$not" "(" <predicate :: (Predicate)> ")"'
     description: |
-      Create new bindings by combining <b1> and <b2>.
-  - pattern: '$starts-with(<name :: (Metavar | Expression)>, <prefix :: (String | Expression)>)'
-    description: |
-      Check that <name> starts with <prefix>
-  - pattern: '$not(<condition :: (Metavar | Expression)>)'
-    description: |
-      Negate the <condition>
+      Negate the <predicate>.
+    examples:
+      - pattern: "⟦ ?name ↦ Φ.?a.b, ?B ⟧"
+        input: ⟦ name ↦ Φ.foo.b ⟧
+        matches:
+          - metavar: "?name"
+            value: name
+          - metavar: "?a"
+            value: foo
+          - metavar: "?B"
+            value:
+        where:
+          - condition: $not($starts-with(?a), "foo")
+            value: FALSE
+          - condition: $not($bound-to(?name, Φ))
+            value: TRUE
