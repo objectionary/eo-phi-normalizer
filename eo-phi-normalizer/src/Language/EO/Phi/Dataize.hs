@@ -92,8 +92,9 @@ dataizeStepChain _ obj = [("Nothing to dataize", Left obj)]
 -- reporting intermediate steps
 dataizeRecursivelyChain :: Context -> Object -> [(String, Either Object Bytes)]
 dataizeRecursivelyChain ctx obj = case applyRulesChain ctx obj of
-  [[]] -> [("No rules applied", Left obj)]
-  [rulesChain] ->
+  [] -> [("No rules applied", Left obj)]
+  -- We trust that all chains lead to the same result due to confluence
+  (rulesChain : _) ->
     let (_lastRule, normObj) = last rulesChain
         stepChain = dataizeStepChain ctx normObj
      in map (fmap Left) rulesChain
@@ -103,15 +104,6 @@ dataizeRecursivelyChain ctx obj = case applyRulesChain ctx obj of
               | stillObj == normObj -> stepChain -- dataization changed nothing
               | otherwise -> stepChain ++ dataizeRecursivelyChain ctx stillObj -- partially dataized
             bytesAndRest -> bytesAndRest
-  chains -> [(errMsg, Left Termination)]
-   where
-    errMsg =
-      "Expected 1 chain from normalization but got "
-        <> show (length chains)
-        <> ":\n"
-        <> unlines (map (unlines . map (\(name, object) -> "  - " ++ name ++ ": " ++ printTree object)) chains)
-        <> "\nFor the input:\n  "
-        <> printTree obj
 
 -- | Given normalization context, a function on data (bytes interpreted as integers), an object,
 -- and the current state of evaluation, returns the new object and a possibly modified state along with intermediate steps.

@@ -16,6 +16,7 @@ Then, a single step of dataization is performed according to the following rules
 5. If the object is a dispatch, the object on which the attribute is being dispatched is dataized and then the attribute is dispatched on its result. In other words, \\( \mathbb{D}\left(obj.\alpha\right) = \mathbb{D}\left(obj\right).\alpha \\)
 
 The full dataization process is achieved by recursively normalizing and dataizing according to the rules above until bytes are reached or the object does not change (in which case the dataization is considered to have failed).
+Note that dataization assumes that the given set of normalization rules are already proven to be confluent and does not verify claim.
 
 ## CLI
 
