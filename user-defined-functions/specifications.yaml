@@ -186,7 +186,7 @@ functions:
   - pattern: |
       FunctionPrefixed. Function ::= $prefixed "(" <name1 :: (Expression)> "," <name2 :: (Expression)> ")"
 predicates:
-  - pattern: 'PredicateForAll. Predicate ::= "$for-all" "(" <bindings :: (MetaId)> "," <arg :: (MetaId)>, <predicate :: (Predicate)> ")"'
+  - pattern: 'PredicateForAll. Predicate ::= "$for-all" "(" <bindings :: (MetaId)> "," <arg :: (MetaId)> "," <predicate :: (Predicate)> ")"'
     description: |
       Check that the <predicate> is TRUE for all <bindings>.
       You can use <arg> inside the <predicate>.
@@ -235,7 +235,7 @@ predicates:
           - metavar: "?a"
             value: foo
           - metavar: "?B"
-            value:
+            value: []
         where:
           - condition: $not($starts-with(?a), "foo")
             value: FALSE
