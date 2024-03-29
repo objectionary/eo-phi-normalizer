@@ -98,12 +98,12 @@ patterns:
       - $name(?a)
 functions:
   - pattern: |
-      FunctionMt. Function ::= "$mt" "(" <prefix :: (Expression)> "," <suffix :: (Expression)> ")"
+      FunctionDot. Function ::= "$dot" "(" <prefix :: (Expression)> "," <suffix :: (Expression)> ")"
     description: |
-      Return the string "<prefix>.<suffix>".
+      Return the dispatch <prefix>.<suffix>
     examples:
       - applications:
-          - application: $mt(ξ, $mt(ρ, $mt($name(?b_a), write(α0 ↦ ?t))))
+          - application: $dot(ξ, $dot(ρ, $dot($name(?b_a), write(α0 ↦ ?t))))
             # Note the result isn't a value because the result contains MetaId-s
             result: ξ.ρ.?b_a.write(α0 ↦ ?t)
   - pattern: |
