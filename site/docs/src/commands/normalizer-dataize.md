@@ -10,7 +10,7 @@ Then, a single step of dataization is performed according to the following rules
 2. If the object is a formation that contains a \\( \lambda \\)-binding and no empty bindings, the attached value is evaluated as a known built-in function and its result is returned. Currently, the following functions are supported:
    - `Times`
    - `Plus`
-   - `Package`: this \\( \lambda \\)-binding is currently ignored (dataization proceeds as if it was not there) until proper support is added for specifying the path of the object to be dataized.
+   - `Package`: the existence of this \\( \lambda \\)-binding is interpreted to mean that all its sibling attributes should be dataized in-place.
 3. If the object is a formation that contains a \\( \phi \\)-binding and no empty bindings, the result becomes the dataization of its attached object
 4. If the object is an application, the object on which the bindings are applied is dataized and then the application is reapplied on its result. In other words, \\( \mathbb{D}\left(obj(a \mapsto b, ...)\right) = \mathbb{D}\left(obj\right)(a \mapsto b, ...) \\)
 5. If the object is a dispatch, the object on which the attribute is being dispatched is dataized and then the attribute is dispatched on its result. In other words, \\( \mathbb{D}\left(obj.\alpha\right) = \mathbb{D}\left(obj\right).\alpha \\)
