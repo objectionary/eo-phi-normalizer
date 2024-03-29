@@ -9,7 +9,7 @@ import Control.Arrow (ArrowChoice (left))
 import Data.List (find, singleton)
 import Data.Maybe (listToMaybe)
 import Data.String.Interpolate (i)
-import Language.EO.Phi (printTree)
+import Language.EO.Phi (Binding (DeltaEmptyBinding, EmptyBinding), printTree)
 import Language.EO.Phi.Rules.Common (Context, applyRules, applyRulesChain, bytesToInt, extendContextWith, intToBytes)
 import Language.EO.Phi.Syntax.Abs (
   AlphaIndex (AlphaIndex),
@@ -23,9 +23,9 @@ import Language.EO.Phi.Syntax.Abs (
 -- | Perform one step of dataization to the object (if possible).
 dataizeStep :: Context -> Object -> Either Object Bytes
 dataizeStep ctx obj@(Formation bs)
-  | Just (DeltaBinding bytes) <- find isDelta bs = Right bytes
-  | Just (LambdaBinding (Function funcName)) <- find isLambda bs = Left (fst $ evaluateBuiltinFun ctx funcName obj ())
-  | Just (AlphaBinding Phi decoratee) <- find isPhi bs = dataizeStep (extendContextWith obj ctx) decoratee
+  | Just (DeltaBinding bytes) <- find isDelta bs, not hasEmpty = Right bytes
+  | Just (LambdaBinding (Function funcName)) <- find isLambda bs, not hasEmpty = Left (fst $ evaluateBuiltinFun ctx funcName obj ())
+  | Just (AlphaBinding Phi decoratee) <- find isPhi bs, not hasEmpty = dataizeStep (extendContextWith obj ctx) decoratee
   | otherwise = Left obj
  where
   isDelta (DeltaBinding _) = True
@@ -34,6 +34,10 @@ dataizeStep ctx obj@(Formation bs)
   isLambda _ = False
   isPhi (AlphaBinding Phi _) = True
   isPhi _ = False
+  isEmpty (EmptyBinding _) = True
+  isEmpty DeltaEmptyBinding = True
+  isEmpty _ = False
+  hasEmpty = any isEmpty bs
 dataizeStep ctx (Application obj bindings) = case dataizeStep ctx obj of
   Left dataized -> Left $ Application dataized bindings
   Right _ -> error ("Application on bytes upon dataizing:\n  " <> printTree obj)
@@ -66,13 +70,20 @@ dataizeRecursively ctx obj = case applyRules ctx obj of
 -- | Perform one step of dataization to the object (if possible), reporting back individiual steps.
 dataizeStepChain :: Context -> Object -> [(String, Either Object Bytes)]
 dataizeStepChain ctx obj@(Formation bs)
-  | Just (DeltaBinding bytes) <- listToMaybe [b | b@(DeltaBinding _) <- bs] = [("Found bytes", Right bytes)]
-  | Just (LambdaBinding (Function funcName)) <- listToMaybe [b | b@(LambdaBinding _) <- bs] =
+  | Just (DeltaBinding bytes) <- listToMaybe [b | b@(DeltaBinding _) <- bs], not hasEmpty = [("Found bytes", Right bytes)]
+  | Just (LambdaBinding (Function funcName)) <- listToMaybe [b | b@(LambdaBinding _) <- bs]
+  , not hasEmpty =
       let evaluationChain = evaluateBuiltinFunChain ctx funcName obj ()
        in ("Evaluating lambda '" <> funcName <> "'", Left obj) : map (fmap Left . fst) evaluationChain
-  | Just (AlphaBinding Phi decoratee) <- listToMaybe [b | b@(AlphaBinding Phi _) <- bs] =
+  | Just (AlphaBinding Phi decoratee) <- listToMaybe [b | b@(AlphaBinding Phi _) <- bs]
+  , not hasEmpty =
       ("Dataizing inside phi", Left decoratee) : dataizeStepChain (extendContextWith obj ctx) decoratee
   | otherwise = [("No change to formation", Left obj)]
+ where
+  isEmpty (EmptyBinding _) = True
+  isEmpty DeltaEmptyBinding = True
+  isEmpty _ = False
+  hasEmpty = any isEmpty bs
 dataizeStepChain ctx (Application obj bindings) = ("Dataizing inside application", Left obj) : map (fmap (left (`Application` bindings))) (dataizeStepChain ctx obj)
 dataizeStepChain ctx (ObjectDispatch obj attr) = ("Dataizing inside dispatch", Left obj) : map (fmap (left (`ObjectDispatch` attr))) (dataizeStepChain ctx obj)
 dataizeStepChain _ obj = [("Nothing to dataize", Left obj)]
