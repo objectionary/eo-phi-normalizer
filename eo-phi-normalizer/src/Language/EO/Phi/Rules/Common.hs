@@ -5,6 +5,8 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
+{-# HLINT ignore "Use &&" #-}
+
 module Language.EO.Phi.Rules.Common where
 
 import Control.Applicative (Alternative ((<|>)), asum)
@@ -12,6 +14,7 @@ import Data.List (nubBy, sortOn)
 import Data.List.NonEmpty (NonEmpty (..), (<|))
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.String (IsString (..))
+import Data.Type.Equality (outer)
 import Language.EO.Phi.Syntax.Abs
 import Language.EO.Phi.Syntax.Lex (Token)
 import Language.EO.Phi.Syntax.Par
@@ -52,6 +55,13 @@ data Context = Context
   , insideFormation :: Bool
   -- ^ Temporary hack for applying Ksi and Phi rules when dataizing
   }
+
+sameContext :: Context -> Context -> Bool
+sameContext ctx1 ctx2 =
+  and
+    [ outerFormations ctx1 == outerFormations ctx2
+    , currentAttr ctx1 == currentAttr ctx2
+    ]
 
 defaultContext :: [NamedRule] -> Object -> Context
 defaultContext rules obj =
@@ -181,8 +191,10 @@ applyRulesWith limits@ApplicationLimits{..} ctx obj
         equalObject
         [ obj''
         | (_ruleName, obj') <- applyOneRule ctx obj
-        , objectSize obj' < maxTermSize
-        , obj'' <- applyRulesWith limits{maxDepth = maxDepth - 1} ctx obj'
+        , obj'' <-
+            if objectSize obj' < maxTermSize
+              then applyRulesWith limits{maxDepth = maxDepth - 1} ctx obj'
+              else [obj']
         ]
 
 equalProgram :: Program -> Program -> Bool
@@ -227,7 +239,7 @@ applyRulesChain ctx obj = applyRulesChainWith (defaultApplicationLimits (objectS
 applyRulesChainWith :: ApplicationLimits -> Context -> Object -> [[(String, Object)]]
 applyRulesChainWith limits@ApplicationLimits{..} ctx obj
   | maxDepth <= 0 = [[("Max depth hit", obj)]]
-  | isNF ctx obj = [[("Normal form", obj)]]
+  | isNF ctx obj = [[("Normal form (insideFormation = " <> show (insideFormation ctx) <> ", currentAttr = " <> show (currentAttr ctx) <> ", outerFormations = " <> show (fmap show (outerFormations ctx)) <> ")", obj)]]
   | otherwise =
       [ (ruleName, obj) : chain
       | (ruleName, obj') <- applyOneRule ctx obj

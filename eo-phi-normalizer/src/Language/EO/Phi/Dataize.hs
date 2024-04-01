@@ -3,14 +3,15 @@
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE ViewPatterns #-}
 
-module Language.EO.Phi.Dataize (dataizeStep, dataizeRecursively, dataizeStepChain, dataizeRecursivelyChain) where
+module Language.EO.Phi.Dataize where
 
 import Control.Arrow (ArrowChoice (left))
-import Data.List (find, singleton)
+import Data.List (find, intercalate, singleton)
+import Data.List.NonEmpty qualified as NonEmpty
 import Data.Maybe (listToMaybe)
 import Data.String.Interpolate (i)
 import Language.EO.Phi (Binding (DeltaEmptyBinding, EmptyBinding), printTree)
-import Language.EO.Phi.Rules.Common (Context, applyRules, applyRulesChain, bytesToInt, extendContextWith, intToBytes)
+import Language.EO.Phi.Rules.Common
 import Language.EO.Phi.Syntax.Abs (
   AlphaIndex (AlphaIndex),
   Attribute (Alpha, Phi, Rho),
@@ -20,13 +21,17 @@ import Language.EO.Phi.Syntax.Abs (
   Object (Application, Formation, ObjectDispatch, Termination),
  )
 
+import Debug.Trace
+
 -- | Perform one step of dataization to the object (if possible).
-dataizeStep :: Context -> Object -> Either Object Bytes
+dataizeStep :: Context -> Object -> (Context, Either Object Bytes)
 dataizeStep ctx obj@(Formation bs)
-  | Just (DeltaBinding bytes) <- find isDelta bs, not hasEmpty = Right bytes
-  | Just (LambdaBinding (Function funcName)) <- find isLambda bs, not hasEmpty = Left (fst $ evaluateBuiltinFun ctx funcName obj ())
-  | Just (AlphaBinding Phi decoratee) <- find isPhi bs, not hasEmpty = dataizeStep (extendContextWith obj ctx) decoratee
-  | otherwise = Left obj
+  | Just (DeltaBinding bytes) <- find isDelta bs, not hasEmpty = (ctx, Right bytes)
+  | Just (LambdaBinding (Function funcName)) <- find isLambda bs, not hasEmpty = (ctx, Left (fst $ evaluateBuiltinFun ctx funcName obj ()))
+  | Just (AlphaBinding Phi decoratee) <- find isPhi bs
+  , not hasEmpty =
+      dataizeStep (extendContextWith obj ctx){currentAttr = Phi} decoratee
+  | otherwise = (ctx, Left obj)
  where
   isDelta (DeltaBinding _) = True
   isDelta _ = False
@@ -39,12 +44,15 @@ dataizeStep ctx obj@(Formation bs)
   isEmpty _ = False
   hasEmpty = any isEmpty bs
 dataizeStep ctx (Application obj bindings) = case dataizeStep ctx obj of
-  Left dataized -> Left $ Application dataized bindings
-  Right _ -> error ("Application on bytes upon dataizing:\n  " <> printTree obj)
+  (ctx', Left dataized) -> (ctx', Left $ Application dataized bindings)
+  (_ctx', Right _) -> error ("Application on bytes upon dataizing:\n  " <> printTree obj)
 dataizeStep ctx (ObjectDispatch obj attr) = case dataizeStep ctx obj of
-  Left dataized -> Left $ ObjectDispatch dataized attr
-  Right _ -> error ("Dispatch on bytes upon dataizing:\n  " <> printTree obj)
-dataizeStep _ obj = Left obj
+  (ctx', Left dataized) -> (ctx', Left $ ObjectDispatch dataized attr)
+  (_ctx', Right _) -> error ("Dispatch on bytes upon dataizing:\n  " <> printTree obj)
+dataizeStep ctx obj = (ctx, Left obj)
+
+dataizeStep' :: Context -> Object -> Either Object Bytes
+dataizeStep' ctx obj = snd (dataizeStep ctx obj)
 
 -- | State of evaluation is not needed yet, but it might be in the future
 type EvaluationState = ()
@@ -53,10 +61,10 @@ type EvaluationState = ()
 dataizeRecursively :: Context -> Object -> Either Object Bytes
 dataizeRecursively ctx obj = case applyRules ctx obj of
   [normObj] -> case dataizeStep ctx normObj of
-    Left stillObj
-      | stillObj == normObj -> Left stillObj -- dataization changed nothing
-      | otherwise -> dataizeRecursively ctx stillObj -- partially dataized
-    Right bytes -> Right bytes
+    (ctx', Left stillObj)
+      | stillObj == normObj && ctx `sameContext` ctx' -> Left stillObj -- dataization changed nothing
+      | otherwise -> dataizeRecursively ctx' stillObj -- partially dataized
+    (_ctx', Right bytes) -> Right bytes
   objs -> error errMsg -- Left Termination
    where
     errMsg =
@@ -67,32 +75,44 @@ dataizeRecursively ctx obj = case applyRules ctx obj of
         <> "\nFor the input:\n  "
         <> printTree obj
 
+dataizeStepChain' :: Context -> Object -> [(String, Either Object Bytes)]
+dataizeStepChain' ctx obj =
+  fmap (fmap snd) (dataizeStepChain ctx obj)
+
+-- ⟦ φ ↦ Φ.org.eolang.bool (α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-)) ⟧
+-- Dataizing inside phi:            Φ.org.eolang.bool (α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-))
+-- Dataizing inside application:    Φ.org.eolang.bool
+-- Dataizing inside dispatch:       Φ.org.eolang (α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-))
+-- Dataizing inside dispatch:       Φ.org.bool (α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-))
+-- Dataizing inside dispatch:       Φ.eolang.bool (α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-))
+
 -- | Perform one step of dataization to the object (if possible), reporting back individiual steps.
-dataizeStepChain :: Context -> Object -> [(String, Either Object Bytes)]
+dataizeStepChain :: Context -> Object -> [(String, (Context, Either Object Bytes))]
 dataizeStepChain ctx obj@(Formation bs)
-  | Just (DeltaBinding bytes) <- listToMaybe [b | b@(DeltaBinding _) <- bs], not hasEmpty = [("Found bytes", Right bytes)]
+  | Just (DeltaBinding bytes) <- listToMaybe [b | b@(DeltaBinding _) <- bs], not hasEmpty = [("Found bytes", (ctx, Right bytes))]
   | Just (LambdaBinding (Function funcName)) <- listToMaybe [b | b@(LambdaBinding _) <- bs]
   , not hasEmpty =
       let evaluationChain = evaluateBuiltinFunChain ctx funcName obj ()
-       in ("Evaluating lambda '" <> funcName <> "'", Left obj) : map (fmap Left . fst) evaluationChain
+       in ("Evaluating lambda '" <> funcName <> "'", (ctx, Left obj)) : map (fmap ((,) ctx . Left) . fst) evaluationChain
   | Just (AlphaBinding Phi decoratee) <- listToMaybe [b | b@(AlphaBinding Phi _) <- bs]
   , not hasEmpty =
-      ("Dataizing inside phi", Left decoratee) : dataizeStepChain (extendContextWith obj ctx) decoratee
-  | otherwise = [("No change to formation", Left obj)]
+      let extendedContext = (extendContextWith obj ctx){currentAttr = Phi}
+       in ("Dataizing inside phi", (extendedContext, Left decoratee)) : dataizeStepChain extendedContext decoratee
+  | otherwise = [("No change to formation", (ctx, Left obj))]
  where
   isEmpty (EmptyBinding _) = True
   isEmpty DeltaEmptyBinding = True
   isEmpty _ = False
   hasEmpty = any isEmpty bs
-dataizeStepChain ctx (Application obj bindings) = ("Dataizing inside application", Left obj) : map (fmap (left (`Application` bindings))) (dataizeStepChain ctx obj)
-dataizeStepChain ctx (ObjectDispatch obj attr) = ("Dataizing inside dispatch", Left obj) : map (fmap (left (`ObjectDispatch` attr))) (dataizeStepChain ctx obj)
-dataizeStepChain _ obj = [("Nothing to dataize", Left obj)]
+dataizeStepChain ctx (Application obj bindings) = ("Dataizing inside application", (ctx, Left obj)) : map (fmap (fmap (left (`Application` bindings)))) (dataizeStepChain ctx obj)
+dataizeStepChain ctx (ObjectDispatch obj attr) = ("Dataizing inside dispatch", (ctx, Left obj)) : map (fmap (fmap (left (`ObjectDispatch` attr)))) (dataizeStepChain ctx obj)
+dataizeStepChain ctx obj = [("Nothing to dataize", (ctx, Left obj))]
 
 -- | Recursively perform normalization and dataization until we get bytes in the end,
 -- reporting intermediate steps
 dataizeRecursivelyChain :: Context -> Object -> [(String, Either Object Bytes)]
 dataizeRecursivelyChain ctx obj = case applyRulesChain ctx obj of
-  [] -> [("No rules applied", Left obj)]
+  [] -> [("No rules applied (insideFormation = " <> show (insideFormation ctx) <> ", currentAttr = " <> show (currentAttr ctx) <> ", outerFormations = " <> intercalate " : " (NonEmpty.toList (fmap printTree (outerFormations ctx))) <> ")", Left obj)]
   -- We trust that all chains lead to the same result due to confluence
   (rulesChain : _) ->
     let (_lastRule, normObj) = last rulesChain
@@ -100,10 +120,10 @@ dataizeRecursivelyChain ctx obj = case applyRulesChain ctx obj of
      in map (fmap Left) rulesChain
           ++ case stepChain of
             [] -> []
-            (last -> (_, Left stillObj))
-              | stillObj == normObj -> stepChain -- dataization changed nothing
-              | otherwise -> stepChain ++ dataizeRecursivelyChain ctx stillObj -- partially dataized
-            bytesAndRest -> bytesAndRest
+            (last -> (_, (ctx', Left stillObj)))
+              | stillObj == normObj && ctx `sameContext` ctx' -> fmap (fmap snd) stepChain -- dataization changed nothing
+              | otherwise -> fmap (fmap snd) stepChain ++ dataizeRecursivelyChain ctx' stillObj -- partially dataized
+            bytesAndRest -> fmap (fmap snd) bytesAndRest
 
 -- | Given normalization context, a function on data (bytes interpreted as integers), an object,
 -- and the current state of evaluation, returns the new object and a possibly modified state along with intermediate steps.

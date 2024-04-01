@@ -39,7 +39,7 @@ import Data.Text.Lazy as TL (unpack)
 import Data.Yaml (decodeFileThrow)
 import GHC.Generics (Generic)
 import Language.EO.Phi (Bytes (Bytes), Object (Formation), Program (Program), parseProgram, printTree)
-import Language.EO.Phi.Dataize (dataizeRecursively, dataizeRecursivelyChain, dataizeStep, dataizeStepChain)
+import Language.EO.Phi.Dataize
 import Language.EO.Phi.Metrics.Collect as Metrics (getProgramMetrics)
 import Language.EO.Phi.Metrics.Data as Metrics (ProgramMetrics (..), splitPath)
 import Language.EO.Phi.Report.Data (Report'InputConfig (..), Report'OutputConfig (..), ReportConfig (..), ReportItem (..), makeProgramReport, makeReport)
@@ -400,7 +400,7 @@ main = do
           then do
             let dataizeChain
                   | recursive = dataizeRecursivelyChain
-                  | otherwise = dataizeStepChain
+                  | otherwise = dataizeStepChain'
             forM_ (dataizeChain ctx inputObject) $ \case
               (msg, Left obj) -> logStrLn (msg ++ ": " ++ printTree obj)
               (msg, Right (Bytes bytes)) -> logStrLn (msg ++ ": " ++ bytes)
@@ -408,7 +408,7 @@ main = do
             let dataize
                   -- This should be moved to a separate subcommand
                   | recursive = dataizeRecursively
-                  | otherwise = dataizeStep
+                  | otherwise = dataizeStep'
             case dataize ctx inputObject of
               Left obj -> logStrLn (printAsProgramOrAsObject obj)
               Right (Bytes bytes) -> logStrLn bytes
