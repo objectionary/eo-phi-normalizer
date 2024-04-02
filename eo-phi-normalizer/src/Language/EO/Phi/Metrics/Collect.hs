@@ -16,8 +16,9 @@ import Control.Lens ((+=))
 import Control.Monad.State (State, execState, runState)
 import Data.Foldable (forM_)
 import Data.Generics.Labels ()
+import Data.Maybe (catMaybes)
 import Data.Traversable (forM)
-import Language.EO.Phi.Metrics.Data (BindingMetrics (..), BindingsByPathMetrics (..), MetricsCount, ObjectMetrics (..), Path, ProgramMetrics (..), SafeNumber (..))
+import Language.EO.Phi.Metrics.Data (BindingMetrics (..), BindingsByPathMetrics (..), MetricsCount, ObjectMetrics (..), Path, ProgramMetrics (..))
 import Language.EO.Phi.Rules.Common ()
 import Language.EO.Phi.Syntax.Abs
 
@@ -25,20 +26,20 @@ import Language.EO.Phi.Syntax.Abs
 -- >>> :set -XOverloadedStrings
 -- >>> :set -XOverloadedLists
 
-type HeightSafe = SafeNumber Int
+type HeightSafe = Maybe Int
 
 count :: (a -> Bool) -> [a] -> Int
 count x = length . filter x
 
 getHeight :: [Binding] -> [HeightSafe] -> HeightSafe
 getHeight bindings heights
-  | hasDeltaBinding = 1
+  | hasDeltaBinding = Just 1
   | otherwise = heightAttributes
  where
   heightAttributes =
-    case heights of
-      [] -> SafeNumber'NaN
-      _ -> minimum heights + 1
+    case catMaybes heights of
+      [] -> Nothing
+      x -> Just (minimum x + 1)
 
   isBinding = \case
     DeltaBinding _ -> True
@@ -47,9 +48,10 @@ getHeight bindings heights
   hasDeltaBinding = any isBinding bindings
 
 countDataless :: HeightSafe -> Int
-countDataless x
+countDataless (Just x)
   | x > 2 = 1
   | otherwise = 0
+countDataless _ = 1
 
 type InspectM = State MetricsCount HeightSafe
 
@@ -60,7 +62,7 @@ instance Inspectable Binding where
   inspect :: Binding -> InspectM
   inspect = \case
     AlphaBinding _ obj -> inspect obj
-    _ -> pure SafeNumber'NaN
+    _ -> pure Nothing
 
 instance Inspectable Object where
   inspect :: Object -> InspectM
@@ -75,12 +77,12 @@ instance Inspectable Object where
       #applications += 1
       _ <- inspect obj
       forM_ bindings inspect
-      pure SafeNumber'NaN
+      pure Nothing
     ObjectDispatch obj _ -> do
       #dispatches += 1
       _ <- inspect obj
-      pure SafeNumber'NaN
-    _ -> pure SafeNumber'NaN
+      pure Nothing
+    _ -> pure Nothing
 
 -- | Get metrics for an object
 --
@@ -156,7 +158,7 @@ getObjectByPath object path =
 -- Left ["a"]
 --
 -- >>> flip getBindingsByPathMetrics ["a"] "⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧ ⟧"
--- Right (BindingsByPathMetrics {path = ["a"], bindingsMetrics = [BindingMetrics {name = "b", metrics = Metrics {dataless = 0, applications = 0, formations = 2, dispatches = 2}},BindingMetrics {name = "e", metrics = Metrics {dataless = 1, applications = 1, formations = 1, dispatches = 2}}]})
+-- Right (BindingsByPathMetrics {path = ["a"], bindingsMetrics = [BindingMetrics {name = "b", metrics = Metrics {dataless = 2, applications = 0, formations = 2, dispatches = 2}},BindingMetrics {name = "e", metrics = Metrics {dataless = 1, applications = 1, formations = 1, dispatches = 2}}]})
 getBindingsByPathMetrics :: Object -> Path -> Either Path BindingsByPathMetrics
 getBindingsByPathMetrics object path =
   case getObjectByPath object path of
@@ -182,7 +184,7 @@ getBindingsByPathMetrics object path =
 -- Left ["a"]
 --
 -- >>> flip getObjectMetrics (Just ["a"]) "⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧ ⟧"
--- Right (ObjectMetrics {bindingsByPathMetrics = Just (BindingsByPathMetrics {path = ["a"], bindingsMetrics = [BindingMetrics {name = "b", metrics = Metrics {dataless = 0, applications = 0, formations = 2, dispatches = 2}},BindingMetrics {name = "e", metrics = Metrics {dataless = 1, applications = 1, formations = 1, dispatches = 2}}]}), thisObjectMetrics = Metrics {dataless = 1, applications = 1, formations = 5, dispatches = 4}})
+-- Right (ObjectMetrics {bindingsByPathMetrics = Just (BindingsByPathMetrics {path = ["a"], bindingsMetrics = [BindingMetrics {name = "b", metrics = Metrics {dataless = 2, applications = 0, formations = 2, dispatches = 2}},BindingMetrics {name = "e", metrics = Metrics {dataless = 1, applications = 1, formations = 1, dispatches = 2}}]}), thisObjectMetrics = Metrics {dataless = 5, applications = 1, formations = 5, dispatches = 4}})
 getObjectMetrics :: Object -> Maybe Path -> Either Path ObjectMetrics
 getObjectMetrics object path = do
   let thisObjectMetrics = getThisObjectMetrics object
@@ -195,13 +197,13 @@ getObjectMetrics object path = do
 --
 -- If no formation is accessible by the path, return a prefix of the path that led to a non-formation when the remaining path wasn't empty.
 -- >>> flip getProgramMetrics (Just ["org", "eolang"]) "{⟦ org ↦ ⟦ eolang ↦ ⟦ x ↦ ⟦ φ ↦ Φ.org.eolang.bool ( α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-) ) ⟧, z ↦ ⟦ y ↦ ⟦ x ↦ ∅, φ ↦ ξ.x ⟧, φ ↦ Φ.org.eolang.bool ( α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-) ) ⟧, λ ⤍ Package ⟧, λ ⤍ Package ⟧⟧ }"
--- Right (ProgramMetrics {bindingsByPathMetrics = Just (BindingsByPathMetrics {path = ["org","eolang"], bindingsMetrics = [BindingMetrics {name = "x", metrics = Metrics {dataless = 0, applications = 2, formations = 1, dispatches = 6}},BindingMetrics {name = "z", metrics = Metrics {dataless = 0, applications = 2, formations = 2, dispatches = 7}}]}), programMetrics = Metrics {dataless = 0, applications = 4, formations = 6, dispatches = 13}})
+-- Right (ProgramMetrics {bindingsByPathMetrics = Just (BindingsByPathMetrics {path = ["org","eolang"], bindingsMetrics = [BindingMetrics {name = "x", metrics = Metrics {dataless = 1, applications = 2, formations = 1, dispatches = 6}},BindingMetrics {name = "z", metrics = Metrics {dataless = 2, applications = 2, formations = 2, dispatches = 7}}]}), programMetrics = Metrics {dataless = 6, applications = 4, formations = 6, dispatches = 13}})
 --
 -- >>> flip getProgramMetrics (Just ["a"]) "{⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧.e ⟧}"
 -- Left ["a"]
 --
 -- >>> flip getProgramMetrics (Just ["a"]) "{⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧ ⟧}"
--- Right (ProgramMetrics {bindingsByPathMetrics = Just (BindingsByPathMetrics {path = ["a"], bindingsMetrics = [BindingMetrics {name = "b", metrics = Metrics {dataless = 0, applications = 0, formations = 2, dispatches = 2}},BindingMetrics {name = "e", metrics = Metrics {dataless = 1, applications = 1, formations = 1, dispatches = 2}}]}), programMetrics = Metrics {dataless = 1, applications = 1, formations = 5, dispatches = 4}})
+-- Right (ProgramMetrics {bindingsByPathMetrics = Just (BindingsByPathMetrics {path = ["a"], bindingsMetrics = [BindingMetrics {name = "b", metrics = Metrics {dataless = 2, applications = 0, formations = 2, dispatches = 2}},BindingMetrics {name = "e", metrics = Metrics {dataless = 1, applications = 1, formations = 1, dispatches = 2}}]}), programMetrics = Metrics {dataless = 5, applications = 1, formations = 5, dispatches = 4}})
 getProgramMetrics :: Program -> Maybe Path -> Either Path ProgramMetrics
 getProgramMetrics (Program bindings) path = do
   ObjectMetrics{..} <- getObjectMetrics (Formation bindings) path
