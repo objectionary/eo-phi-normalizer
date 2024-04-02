@@ -35,7 +35,12 @@ getHeight bindings heights
     case heights of
       [] -> SafeNumber'NaN
       _ -> minimum heights + 1
-  hasDeltaBinding = not $ null [undefined | DeltaBinding _ <- bindings]
+
+  isBinding = \case
+    DeltaBinding _ -> True
+    _ -> False
+
+  hasDeltaBinding = any isBinding bindings
 
 countDataless :: HeightSafe -> Int
 countDataless x
