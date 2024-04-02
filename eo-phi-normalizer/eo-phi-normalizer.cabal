@@ -40,7 +40,6 @@ library
       Language.EO.Phi.Dataize
       Language.EO.Phi.Metrics.Collect
       Language.EO.Phi.Metrics.Data
-      Language.EO.Phi.Metrics.SpecialDouble
       Language.EO.Phi.Normalize
       Language.EO.Phi.Report.Data
       Language.EO.Phi.Report.Html
@@ -128,7 +127,6 @@ test-suite doctests
       Language.EO.Phi.Dataize
       Language.EO.Phi.Metrics.Collect
       Language.EO.Phi.Metrics.Data
-      Language.EO.Phi.Metrics.SpecialDouble
       Language.EO.Phi.Normalize
       Language.EO.Phi.Report.Data
       Language.EO.Phi.Report.Html

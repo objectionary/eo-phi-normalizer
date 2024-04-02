@@ -18,7 +18,7 @@ module Language.EO.Phi.Report.Data where
 
 import Data.Aeson (FromJSON, ToJSON)
 import GHC.Generics (Generic)
-import Language.EO.Phi.Metrics.Data (BindingMetrics (..), Metrics (..), MetricsCount, ProgramMetrics, SpecialDouble, defaultSpecialDouble)
+import Language.EO.Phi.Metrics.Data (BindingMetrics (..), Metrics (..), MetricsCount, ProgramMetrics)
 import Language.EO.Phi.Metrics.Data qualified as Metrics
 import Language.EO.Phi.TH (deriveJSON)
 import Text.Printf (printf)
@@ -43,11 +43,12 @@ data MetricsChangeCategory a
 $(deriveJSON ''MetricsChangeCategory)
 
 type MetricsChange = Metrics Percent
-type MetricsChangeSafe = Metrics SpecialDouble
 
-newtype Percent = Percent {percent :: SpecialDouble} deriving newtype (FromJSON, ToJSON, Num, Fractional)
+newtype Percent = Percent {percent :: Double}
+  deriving newtype
+    (FromJSON, ToJSON, Num, Fractional, Floating, Eq, Ord, Real, RealFrac, RealFloat)
 
-roundToStr :: Int -> SpecialDouble -> String
+roundToStr :: Int -> Double -> String
 roundToStr = printf "%0.*f%%"
 
 instance Show Percent where
@@ -118,11 +119,18 @@ calculateMetricsChange :: MetricsChange -> MetricsCount -> MetricsCount -> Metri
 calculateMetricsChange expectedMetricsChange countInitial countNormalized =
   getMetricsChangeClassified <$> expectedMetricsChange <*> actualMetricsChange
  where
-  getMetricsChangeClassified (Percent expected) actual
-    | expected == defaultSpecialDouble || actual == defaultSpecialDouble = MetricsChange'NA
-    | actual >= expected = MetricsChange'Good (Percent actual)
-    | otherwise = MetricsChange'Bad (Percent actual)
-  actualMetricsChange :: MetricsChangeSafe
+  isFinite :: (RealFloat a) => a -> Bool
+  isFinite x = not (isNaN x || isInfinite x)
+
+  getMetricsChangeClassified :: Percent -> Percent -> MetricsChangeCategory Percent
+  getMetricsChangeClassified expected actual
+    | isFinite expected && isFinite actual =
+        if actual >= expected
+          then MetricsChange'Good actual
+          else MetricsChange'Bad actual
+    | otherwise = MetricsChange'NA
+
+  actualMetricsChange :: MetricsChange
   actualMetricsChange = (initial - normalized) / initial
   initial = fromIntegral <$> countInitial
   normalized = fromIntegral <$> countNormalized

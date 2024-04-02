@@ -18,20 +18,7 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Language.EO.Phi.Metrics.Data (
-  BindingMetrics (..),
-  BindingsByPathMetrics (..),
-  Metrics (..),
-  MetricsCount,
-  ObjectMetrics (..),
-  Path,
-  ProgramMetrics (..),
-  SpecialDouble,
-  unSpecialDouble,
-  defaultSpecialDouble,
-  toListMetrics,
-  splitPath,
-) where
+module Language.EO.Phi.Metrics.Data where
 
 import Data.Aeson (ToJSON (..), Value (..), withObject, (.:), (.=))
 import Data.Aeson qualified as Aeson
@@ -39,7 +26,6 @@ import Data.Aeson.Types (FromJSON (..), Parser)
 import Data.Generics.Labels ()
 import Data.List (groupBy, intercalate)
 import GHC.Generics (Generic)
-import Language.EO.Phi.Metrics.SpecialDouble (SpecialDouble, defaultSpecialDouble, unSpecialDouble)
 import Language.EO.Phi.Rules.Common ()
 import Language.EO.Phi.TH (deriveJSON)
 
@@ -91,12 +77,10 @@ instance (Num a) => Num (Metrics a) where
   fromInteger :: Integer -> Metrics a
   fromInteger x = pure $ fromInteger x
 
-type MetricsSpecialDouble = Metrics SpecialDouble
-
-instance Fractional MetricsSpecialDouble where
-  fromRational :: Rational -> MetricsSpecialDouble
+instance (Fractional a) => Fractional (Metrics a) where
+  fromRational :: Rational -> Metrics a
   fromRational _ = 0
-  (/) :: MetricsSpecialDouble -> MetricsSpecialDouble -> MetricsSpecialDouble
+  (/) :: Metrics a -> Metrics a -> Metrics a
   (/) x y = (/) <$> x <*> y
 
 instance (Num a) => Semigroup (Metrics a) where
