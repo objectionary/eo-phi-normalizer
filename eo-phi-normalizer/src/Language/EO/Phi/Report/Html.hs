@@ -22,7 +22,7 @@ import Data.Maybe (fromMaybe)
 import Data.String.Interpolate
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as T
-import Language.EO.Phi.Metrics.Data (Metrics (..), MetricsCount, SafeNumber (..), toListMetrics)
+import Language.EO.Phi.Metrics.Data (Metrics (..), MetricsCount, toListMetrics)
 import Language.EO.Phi.Report.Data (MetricsChange, MetricsChangeCategorized, MetricsChangeCategory (..), Percent (..), ProgramReport (..), Report (..), ReportRow (..))
 import Text.Blaze.Html.Renderer.String (renderHtml)
 import Text.Blaze.Html5 hiding (i)
@@ -89,11 +89,6 @@ data ReportConfig = ReportConfig
   , expectedImprovedProgramsPercentage :: Percent
   , format :: ReportFormat
   }
-
-instance (ToMarkup a) => ToMarkup (SafeNumber a) where
-  toMarkup :: SafeNumber a -> Markup
-  toMarkup (SafeNumber'Number n) = toMarkup n
-  toMarkup SafeNumber'NaN = toMarkup ("NaN" :: String)
 
 instance ToMarkup Percent where
   toMarkup :: Percent -> Markup

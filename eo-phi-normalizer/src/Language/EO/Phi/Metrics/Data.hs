@@ -18,15 +18,28 @@
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
 
-module Language.EO.Phi.Metrics.Data where
+module Language.EO.Phi.Metrics.Data (
+  BindingMetrics (..),
+  BindingsByPathMetrics (..),
+  Metrics (..),
+  MetricsCount,
+  ObjectMetrics (..),
+  Path,
+  ProgramMetrics (..),
+  SpecialDouble,
+  unSpecialDouble,
+  defaultSpecialDouble,
+  toListMetrics,
+  splitPath,
+) where
 
-import Data.Aeson (ToJSON (..), Value (..), withObject, withScientific, withText, (.:), (.=))
+import Data.Aeson (ToJSON (..), Value (..), withObject, (.:), (.=))
 import Data.Aeson qualified as Aeson
-import Data.Aeson.Types (FromJSON (..), Parser, parseFail)
+import Data.Aeson.Types (FromJSON (..), Parser)
 import Data.Generics.Labels ()
 import Data.List (groupBy, intercalate)
-import Data.Scientific (toRealFloat)
 import GHC.Generics (Generic)
+import Language.EO.Phi.Metrics.SpecialDouble (SpecialDouble, defaultSpecialDouble, unSpecialDouble)
 import Language.EO.Phi.Rules.Common ()
 import Language.EO.Phi.TH (deriveJSON)
 
@@ -78,93 +91,12 @@ instance (Num a) => Num (Metrics a) where
   fromInteger :: Integer -> Metrics a
   fromInteger x = pure $ fromInteger x
 
-data SafeNumber a
-  = -- | Infinity
-    SafeNumber'NaN
-  | -- | Normal number
-    SafeNumber'Number a
-  deriving stock (Functor)
+type MetricsSpecialDouble = Metrics SpecialDouble
 
--- >>> import Data.Aeson (decode')
---
--- >>> decode' @(SafeNumber Double) "\"NaN\""
--- Just NaN
---
--- >>> decode' @(SafeNumber Double) "3"
--- Just 3.0
-
-instance (FromJSON a, RealFloat a) => FromJSON (SafeNumber a) where
-  parseJSON :: Value -> Parser (SafeNumber a)
-  parseJSON (String s) =
-    withText
-      "NaN"
-      ( \case
-          "NaN" -> pure SafeNumber'NaN
-          _ -> parseFail "String is not a NaN"
-      )
-      (String s)
-  parseJSON (Number n) =
-    withScientific
-      "Number"
-      (pure . pure . toRealFloat)
-      (Number n)
-  parseJSON _ = parseFail "Value is not a NaN or a Number"
-
-instance (ToJSON a) => ToJSON (SafeNumber a) where
-  toJSON :: SafeNumber a -> Value
-  toJSON (SafeNumber'Number a) = toJSON a
-  toJSON SafeNumber'NaN = toJSON ("NaN" :: String)
-
-instance (Show a) => Show (SafeNumber a) where
-  show :: SafeNumber a -> String
-  show (SafeNumber'Number a) = show a
-  show SafeNumber'NaN = "NaN"
-
-instance (Eq a) => Eq (SafeNumber a) where
-  (==) :: SafeNumber a -> SafeNumber a -> Bool
-  (==) (SafeNumber'Number x) (SafeNumber'Number y) = x == y
-  (==) _ _ = False
-
-instance (Ord a) => Ord (SafeNumber a) where
-  (<=) :: SafeNumber a -> SafeNumber a -> Bool
-  (SafeNumber'Number x) <= (SafeNumber'Number y) = x <= y
-  _ <= SafeNumber'Number _ = False
-  _ <= _ = True
-
-instance Applicative SafeNumber where
-  pure :: a -> SafeNumber a
-  pure = SafeNumber'Number
-  (<*>) :: SafeNumber (a -> b) -> SafeNumber a -> SafeNumber b
-  (<*>) (SafeNumber'Number x') (SafeNumber'Number y') = SafeNumber'Number (x' y')
-  (<*>) _ _ = SafeNumber'NaN
-
-instance (Num a) => Num (SafeNumber a) where
-  (+) :: SafeNumber a -> SafeNumber a -> SafeNumber a
-  (+) x y = (+) <$> x <*> y
-  (*) :: SafeNumber a -> SafeNumber a -> SafeNumber a
-  (*) x y = (*) <$> x <*> y
-  abs :: SafeNumber a -> SafeNumber a
-  abs = (abs <$>)
-  signum :: SafeNumber a -> SafeNumber a
-  signum = (signum <$>)
-  fromInteger :: Integer -> SafeNumber a
-  fromInteger x = pure $ fromInteger x
-  negate :: SafeNumber a -> SafeNumber a
-  negate = (negate <$>)
-
-instance (Fractional a, Eq a) => Fractional (SafeNumber a) where
-  fromRational :: Rational -> SafeNumber a
-  fromRational = SafeNumber'Number . fromRational
-  (/) :: SafeNumber a -> SafeNumber a -> SafeNumber a
-  (/) (SafeNumber'Number x) (SafeNumber'Number y) | y /= 0 = SafeNumber'Number (x / y)
-  (/) _ _ = SafeNumber'NaN
-
-type MetricsSafe a = Metrics (SafeNumber a)
-
-instance (Fractional a, Eq a) => Fractional (MetricsSafe a) where
-  fromRational :: Rational -> MetricsSafe a
+instance Fractional MetricsSpecialDouble where
+  fromRational :: Rational -> MetricsSpecialDouble
   fromRational _ = 0
-  (/) :: MetricsSafe a -> MetricsSafe a -> MetricsSafe a
+  (/) :: MetricsSpecialDouble -> MetricsSpecialDouble -> MetricsSpecialDouble
   (/) x y = (/) <$> x <*> y
 
 instance (Num a) => Semigroup (Metrics a) where
