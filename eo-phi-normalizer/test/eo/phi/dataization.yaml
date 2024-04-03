@@ -24,7 +24,7 @@ tests:
       {⟦
         org ↦ ⟦
           eolang ↦ ⟦
-            bool ↦ ⟦ Δ ⤍ ∅ ⟧,
+            bool ↦ ⟦ α0 ↦ ∅, φ ↦ ξ.α0 ⟧,
             bytes ↦ ⟦ Δ ⤍ ∅ ⟧,
             x ↦ ⟦
               φ ↦ Φ.org.eolang.bool(
@@ -43,19 +43,21 @@ tests:
             λ ⤍ Package
           ⟧,
           λ ⤍ Package
-        ⟧
+        ⟧,
+        λ ⤍ Package
       ⟧}
     output:
       object: |
         ⟦
           org ↦ ⟦
             eolang ↦ ⟦
-              bool ↦ ⟦ Δ ⤍ ∅ ⟧,
+              bool ↦ ⟦ α0 ↦ ∅, φ ↦ ξ.α0 ⟧,
               bytes ↦ ⟦ Δ ⤍ ∅ ⟧,
               x ↦ ⟦ Δ ⤍ 01- ⟧,
               z ↦ ⟦ Δ ⤍ 01- ⟧,
               λ ⤍ Package
             ⟧,
             λ ⤍ Package
-          ⟧
+          ⟧,
+          λ ⤍ Package
         ⟧
