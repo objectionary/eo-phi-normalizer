@@ -19,7 +19,7 @@ main = defaultMainWithHooks $ simpleUserHooks
   { hookedPrograms = [ bnfcProgram ]
   , postConf       = \args flags packageDesc localBuildInfo -> do
 #ifndef mingw32_HOST_OS
-      _ <- system $ [i|
+      _ <- system [i|
             bnfc --haskell -d -p Language.EO.Phi --generic -o src/ grammar/EO/Phi/Syntax.cf
             cd src/Language/EO/Phi/Syntax
             alex Lex.x

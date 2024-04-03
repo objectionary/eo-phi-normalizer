@@ -65,7 +65,11 @@
 # - ignore: {name: Use const, within: SpecialModule} # Only within certain modules
 - ignore:
     name: Unused LANGUAGE pragma
-    within: Language.EO.Phi.Metrics
+    within: [Language.EO.Phi.Metrics.Collect, Language.EO.Phi.Normalize]
+
+- ignore:
+    name: Redundant pure
+    within: Language.EO.Phi.Rules.Yaml
 
 # Define some custom infix operators
 # - fixity: infixr 3 ~^#^~
