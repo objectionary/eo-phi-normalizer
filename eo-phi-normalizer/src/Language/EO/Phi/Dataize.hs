@@ -6,10 +6,10 @@
 module Language.EO.Phi.Dataize where
 
 import Control.Arrow (ArrowChoice (left))
-import Data.List (find, singleton)
+import Data.List (singleton)
 import Data.Maybe (listToMaybe)
 import Data.String.Interpolate (i)
-import Language.EO.Phi (Binding (DeltaEmptyBinding, EmptyBinding), printTree)
+import Language.EO.Phi (Binding (DeltaEmptyBinding, EmptyBinding))
 import Language.EO.Phi.Rules.Common
 import Language.EO.Phi.Syntax.Abs (
   AlphaIndex (AlphaIndex),
@@ -22,31 +22,7 @@ import Language.EO.Phi.Syntax.Abs (
 
 -- | Perform one step of dataization to the object (if possible).
 dataizeStep :: Context -> Object -> (Context, Either Object Bytes)
-dataizeStep ctx obj@(Formation bs)
-  | Just (DeltaBinding bytes) <- find isDelta bs, not hasEmpty = (ctx, Right bytes)
-  | Just (LambdaBinding (Function funcName)) <- find isLambda bs, not hasEmpty = (ctx, Left (fst $ evaluateBuiltinFun ctx funcName obj ()))
-  | Just (AlphaBinding Phi decoratee) <- find isPhi bs
-  , not hasEmpty =
-      dataizeStep (extendContextWith obj ctx){currentAttr = Phi} decoratee
-  | otherwise = (ctx, Left obj)
- where
-  isDelta (DeltaBinding _) = True
-  isDelta _ = False
-  isLambda (LambdaBinding _) = True
-  isLambda _ = False
-  isPhi (AlphaBinding Phi _) = True
-  isPhi _ = False
-  isEmpty (EmptyBinding _) = True
-  isEmpty DeltaEmptyBinding = True
-  isEmpty _ = False
-  hasEmpty = any isEmpty bs
-dataizeStep ctx (Application obj bindings) = case dataizeStep ctx obj of
-  (ctx', Left dataized) -> (ctx', Left $ Application dataized bindings)
-  (_ctx', Right _) -> error ("Application on bytes upon dataizing:\n  " <> printTree obj)
-dataizeStep ctx (ObjectDispatch obj attr) = case dataizeStep ctx obj of
-  (ctx', Left dataized) -> (ctx', Left $ ObjectDispatch dataized attr)
-  (_ctx', Right _) -> error ("Dispatch on bytes upon dataizing:\n  " <> printTree obj)
-dataizeStep ctx obj = (ctx, Left obj)
+dataizeStep ctx obj = snd $ runChain (dataizeStepChain obj) ctx
 
 dataizeStep' :: Context -> Object -> Either Object Bytes
 dataizeStep' ctx obj = snd (dataizeStep ctx obj)
@@ -56,21 +32,7 @@ type EvaluationState = ()
 
 -- | Recursively perform normalization and dataization until we get bytes in the end.
 dataizeRecursively :: Context -> Object -> Either Object Bytes
-dataizeRecursively ctx obj = case applyRules ctx obj of
-  [normObj] -> case dataizeStep ctx normObj of
-    (ctx', Left stillObj)
-      | stillObj == normObj && ctx `sameContext` ctx' -> Left stillObj -- dataization changed nothing
-      | otherwise -> dataizeRecursively ctx' stillObj -- partially dataized
-    (_ctx', Right bytes) -> Right bytes
-  objs -> error errMsg -- Left Termination
-   where
-    errMsg =
-      "Expected 1 result from normalization but got "
-        <> show (length objs)
-        <> ":\n"
-        <> unlines (map (("  - " ++) . printTree) objs)
-        <> "\nFor the input:\n  "
-        <> printTree obj
+dataizeRecursively ctx obj = snd $ dataizeRecursivelyChain' ctx obj
 
 dataizeStepChain' :: Context -> Object -> ([(String, Either Object Bytes)], Either Object Bytes)
 dataizeStepChain' ctx obj = snd <$> runChain (dataizeStepChain obj) ctx
@@ -182,29 +144,7 @@ evaluateBuiltinFunChain "Package" (Formation bindings) = do
   dataizeBindingChain b = Chain $ const ([], b)
 evaluateBuiltinFunChain _ obj = const (Chain $ const (undefined, (obj, ())))
 
--- | Given normalization context, a function on data (bytes interpreted as integers), an object,
--- and the current state of evaluation, returns the new object and a possibly modified state.
-evaluateDataizationFun :: Context -> (Int -> Int -> Int) -> Object -> EvaluationState -> (Object, EvaluationState)
-evaluateDataizationFun ctx func obj _state = (result, ())
- where
-  lhs = dataizeRecursively ctx (ObjectDispatch obj Rho)
-  rhs = dataizeRecursively ctx (ObjectDispatch obj (Alpha (AlphaIndex "α0")))
-  result = case (lhs, rhs) of
-    (Right l, Right r) -> let (Bytes bytes) = intToBytes (bytesToInt r `func` bytesToInt l) in [i|Φ.org.eolang.float(Δ ⤍ #{bytes})|]
-    _ -> Termination
-
 -- | Like `evaluateDataizationFun` but specifically for the built-in functions.
 -- This function is not safe. It returns undefined for unknown functions
 evaluateBuiltinFun :: Context -> String -> Object -> EvaluationState -> (Object, EvaluationState)
-evaluateBuiltinFun ctx "Plus" obj = evaluateDataizationFun ctx (+) obj
-evaluateBuiltinFun ctx "Times" obj = evaluateDataizationFun ctx (*) obj
-evaluateBuiltinFun ctx "Package" obj = (result,)
- where
-  (Formation bindings) = obj
-  isPackage (LambdaBinding (Function "Package")) = True
-  isPackage _ = False
-  (packageBindings, restBindings) = span isPackage bindings
-  dataizeBinding (AlphaBinding attr o) = AlphaBinding attr (either id (Formation . singleton . DeltaBinding) (dataizeRecursively ctx o))
-  dataizeBinding b = b
-  result = Formation (map dataizeBinding restBindings ++ packageBindings)
-evaluateBuiltinFun _ _ _ = const (undefined, ())
+evaluateBuiltinFun ctx name obj state = snd $ runChain (evaluateBuiltinFunChain name obj state) ctx
