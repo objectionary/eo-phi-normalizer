@@ -6,8 +6,7 @@
 module Language.EO.Phi.Dataize where
 
 import Control.Arrow (ArrowChoice (left))
-import Data.List (find, intercalate, singleton)
-import Data.List.NonEmpty qualified as NonEmpty
+import Data.List (find, singleton)
 import Data.Maybe (listToMaybe)
 import Data.String.Interpolate (i)
 import Language.EO.Phi (Binding (DeltaEmptyBinding, EmptyBinding), printTree)
@@ -20,8 +19,6 @@ import Language.EO.Phi.Syntax.Abs (
   Function (Function),
   Object (Application, Formation, ObjectDispatch, Termination),
  )
-
-import Debug.Trace
 
 -- | Perform one step of dataization to the object (if possible).
 dataizeStep :: Context -> Object -> (Context, Either Object Bytes)
@@ -78,13 +75,6 @@ dataizeRecursively ctx obj = case applyRules ctx obj of
 dataizeStepChain' :: Context -> Object -> [(String, Either Object Bytes)]
 dataizeStepChain' ctx obj =
   fmap (fmap snd) (dataizeStepChain ctx obj)
-
--- ⟦ φ ↦ Φ.org.eolang.bool (α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-)) ⟧
--- Dataizing inside phi:            Φ.org.eolang.bool (α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-))
--- Dataizing inside application:    Φ.org.eolang.bool
--- Dataizing inside dispatch:       Φ.org.eolang (α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-))
--- Dataizing inside dispatch:       Φ.org.bool (α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-))
--- Dataizing inside dispatch:       Φ.eolang.bool (α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-))
 
 -- | Perform one step of dataization to the object (if possible), reporting back individiual steps.
 dataizeStepChain :: Context -> Object -> [(String, (Context, Either Object Bytes))]
