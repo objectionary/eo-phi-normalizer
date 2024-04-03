@@ -238,7 +238,7 @@ applyRulesChain ctx obj = applyRulesChainWith (defaultApplicationLimits (objectS
 applyRulesChainWith :: ApplicationLimits -> Context -> Object -> [[(String, Object)]]
 applyRulesChainWith limits@ApplicationLimits{..} ctx obj
   | maxDepth <= 0 = [[("Max depth hit", obj)]]
-  | isNF ctx obj = [[("Normal form (insideFormation = " <> show (insideFormation ctx) <> ", currentAttr = " <> show (currentAttr ctx) <> ", outerFormations = " <> show (fmap show (outerFormations ctx)) <> ")", obj)]]
+  | isNF ctx obj = [[("Normal form", obj)]]
   | otherwise =
       [ (ruleName, obj) : chain
       | (ruleName, obj') <- applyOneRule ctx obj

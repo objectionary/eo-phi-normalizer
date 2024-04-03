@@ -102,7 +102,7 @@ dataizeStepChain ctx obj = [("Nothing to dataize", (ctx, Left obj))]
 -- reporting intermediate steps
 dataizeRecursivelyChain :: Context -> Object -> [(String, Either Object Bytes)]
 dataizeRecursivelyChain ctx obj = case applyRulesChain ctx obj of
-  [] -> [("No rules applied (insideFormation = " <> show (insideFormation ctx) <> ", currentAttr = " <> show (currentAttr ctx) <> ", outerFormations = " <> intercalate " : " (NonEmpty.toList (fmap printTree (outerFormations ctx))) <> ")", Left obj)]
+  [] -> [("No rules applied", Left obj)]
   -- We trust that all chains lead to the same result due to confluence
   (rulesChain : _) ->
     let (_lastRule, normObj) = last rulesChain
