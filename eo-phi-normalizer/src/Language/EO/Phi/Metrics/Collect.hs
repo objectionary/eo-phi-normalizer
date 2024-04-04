@@ -118,6 +118,18 @@ instance Inspectable Object where
 --
 -- >>> getThisObjectMetrics "⟦ α0 ↦ Φ.something(α1 ↦ ⟦ α2 ↦ ⟦ α3 ↦ ⟦ Δ ⤍ 01- ⟧ ⟧ ⟧) ⟧"
 -- Metrics {dataless = 2, applications = 1, formations = 4, dispatches = 1}
+--
+-- >>> getThisObjectMetrics "⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c, Δ ⤍ 01- ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦ Δ ⤍ 01- ⟧).d ⟧.e ⟧"
+-- Metrics {dataless = 2, applications = 1, formations = 5, dispatches = 5}
+--
+-- >>> getThisObjectMetrics "⟦ org ↦ ⟦ Δ ⤍ 01-, c ↦ ∅ ⟧(c ↦ ⟦ ⟧) ⟧"
+-- Metrics {dataless = 2, applications = 1, formations = 3, dispatches = 0}
+--
+-- >>> getThisObjectMetrics "⟦ α0 ↦ ⟦ α0 ↦ ⟦ α0 ↦ ⟦ α0 ↦ ⟦ Δ ⤍ 01- ⟧.a ⟧ ⟧ ⟧ ⟧"
+-- Metrics {dataless = 4, applications = 0, formations = 5, dispatches = 1}
+--
+-- >>> getThisObjectMetrics "⟦ α0 ↦ ⟦ α0 ↦ ⟦ ⟧.a ⟧, α0 ↦ ⟦ Δ ⤍ 01- ⟧.b ⟧"
+-- Metrics {dataless = 3, applications = 0, formations = 4, dispatches = 2}
 getThisObjectMetrics :: Object -> MetricsCount
 getThisObjectMetrics obj = execState (inspect obj) mempty
 
