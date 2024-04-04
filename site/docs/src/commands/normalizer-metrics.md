@@ -45,7 +45,9 @@ Dataless formation - a formation with the height `∞` or greater than `2`.
 
 #### Example
 
-`{⟦ α0 ↦ Φ.something(α1 ↦ ⟦ α2 ↦ ⟦ α3 ↦ ⟦ Δ ⤍ 01- ⟧, α4 ↦ ⟦ ⟧ ⟧ ⟧) ⟧}`
+```console
+{⟦ α0 ↦ Φ.something(α1 ↦ ⟦ α2 ↦ ⟦ α3 ↦ ⟦ Δ ⤍ 01- ⟧, α4 ↦ ⟦ ⟧ ⟧ ⟧) ⟧}
+```
 
 | Formation                                                                       | Height | Dataless |
 | ------------------------------------------------------------------------------- | ------ | -------- |
