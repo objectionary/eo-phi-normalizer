@@ -90,6 +90,9 @@ jobs:
             pipeline
             !pipeline/**/.eoc
             !pipeline/yaml
+            pipeline/phi/.eoc/4-pull/org
+            pipeline/phi/.eoc/phi/org
+            pipeline/phi/.eoc/print/org
             report
 
       - name: Write about the artifact in the job summary
