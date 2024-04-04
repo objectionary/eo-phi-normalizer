@@ -86,7 +86,7 @@ instance Arbitrary Object where
         arbitraryBindings = List.nubBy sameAttr <$> listOf arbitraryBinding
         arbitraryAlphaLabelBinding =
           resize (n `div` 2) $
-            AlphaBinding <$> (Label <$> arbitrary) <*> arbitrary
+            (AlphaBinding . Label <$> arbitrary) <*> arbitrary
         arbitraryAlphaLabelBindings = List.nubBy sameAttr <$> listOf arbitraryAlphaLabelBinding
     if n > 0
       then
