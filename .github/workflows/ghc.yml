@@ -57,8 +57,7 @@ jobs:
           submodules: true
 
       - name: 🧰 Setup Stack
-        # TODO #208:10m replace with freckle/stack-action after https://github.com/freckle/stack-action/pull/69 is merged
-        uses: deemp/stack-action@main
+        uses: freckle/stack-action@v5
         with:
           stack-build-arguments: ${{ github.ref_name != 'master' && '--fast' || '' }} --pedantic
           # TODO #213:10m enable macos test after https://github.com/objectionary/normalizer/issues/180 is resolved
@@ -133,8 +132,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: 🧰 Setup Stack
-        # TODO #208:10m replace with freckle/stack-action after https://github.com/freckle/stack-action/pull/69 is merged
-        uses: deemp/stack-action@main
+        uses: freckle/stack-action@v5
         with:
           test: false
           stack-build-arguments: --fast --haddock --copy-bins
