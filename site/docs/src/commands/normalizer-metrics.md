@@ -147,10 +147,10 @@ cat program.phi | normalizer metrics
 }
 ```
 
-### `--bindings-by-path`
+### `--bindings-path`
 
 ```$ as console
-normalizer metrics --bindings-by-path "a" program.phi
+normalizer metrics --bindings-path "a" program.phi
 ```
 
 ```console
