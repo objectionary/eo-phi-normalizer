@@ -67,17 +67,17 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1708988125,
+        "lastModified": 1709027374,
         "narHash": "sha256-nx9+tTLliKBPT/TSKTBSYOYxglewOKiw+gYLBvV+9Bg=",
-        "owner": "deemp",
+        "owner": "zimbatm",
         "repo": "mdsh",
-        "rev": "ab378bfd391e5147e29fb0812e1dea7e079a1559",
+        "rev": "e15469a23e5e2d3d5658b882b110df7bd75b9615",
         "type": "github"
       },
       "original": {
-        "owner": "deemp",
-        "ref": "update-flake",
+        "owner": "zimbatm",
         "repo": "mdsh",
+        "rev": "e15469a23e5e2d3d5658b882b110df7bd75b9615",
         "type": "github"
       }
     },
