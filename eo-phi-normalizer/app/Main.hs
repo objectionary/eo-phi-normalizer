@@ -354,7 +354,7 @@ main = do
       let Program bindings = program'
           uniqueResults
             -- Something here seems incorrect
-            | chain = pure $ fst $ applyRulesChainWith' limits ctx (Formation bindings)
+            | chain = map fst $ applyRulesChainWith' limits ctx (Formation bindings)
             | otherwise = pure . ("",) <$> applyRulesWith limits ctx (Formation bindings)
            where
             limits = ApplicationLimits maxDepth (maxGrowthFactor * objectSize (Formation bindings))

@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TupleSections #-}
@@ -22,7 +23,7 @@ import Language.EO.Phi.Syntax.Abs (
 
 -- | Perform one step of dataization to the object (if possible).
 dataizeStep :: Context -> Object -> (Context, Either Object Bytes)
-dataizeStep ctx obj = snd $ runChain (dataizeStepChain obj) ctx
+dataizeStep ctx obj = snd $ head $ runChain (dataizeStepChain obj) ctx -- FIXME: head is bad
 
 dataizeStep' :: Context -> Object -> Either Object Bytes
 dataizeStep' ctx obj = snd (dataizeStep ctx obj)
@@ -35,7 +36,7 @@ dataizeRecursively :: Context -> Object -> Either Object Bytes
 dataizeRecursively ctx obj = snd $ dataizeRecursivelyChain' ctx obj
 
 dataizeStepChain' :: Context -> Object -> ([(String, Either Object Bytes)], Either Object Bytes)
-dataizeStepChain' ctx obj = snd <$> runChain (dataizeStepChain obj) ctx
+dataizeStepChain' ctx obj = snd <$> head (runChain (dataizeStepChain obj) ctx) -- FIXME: head is bad
 
 -- | Perform one step of dataization to the object (if possible), reporting back individiual steps.
 dataizeStepChain :: Object -> DataizeChain (Context, Either Object Bytes)
@@ -81,21 +82,19 @@ dataizeStepChain obj = do
   return (ctx, Left obj)
 
 dataizeRecursivelyChain' :: Context -> Object -> ([(String, Either Object Bytes)], Either Object Bytes)
-dataizeRecursivelyChain' ctx obj = runChain (dataizeRecursivelyChain obj) ctx
+dataizeRecursivelyChain' ctx obj = head (runChain (dataizeRecursivelyChain obj) ctx)
 
 -- | Recursively perform normalization and dataization until we get bytes in the end,
 -- reporting intermediate steps
 dataizeRecursivelyChain :: Object -> DataizeChain (Either Object Bytes)
 dataizeRecursivelyChain obj = do
   ctx <- getContext
-  chains <- transformNormLogs $ applyRulesChain obj
-  case chains of
-    [] -> do
+  msplit (transformNormLogs (applyRulesChain obj)) >>= \case
+    Nothing -> do
       logStep "No rules applied" (Left obj)
       return (Left obj)
     -- We trust that all chains lead to the same result due to confluence
-    (chain : _) -> do
-      let normObj = last chain
+    Just (normObj, _alternatives) -> do
       (ctx', step) <- dataizeStepChain normObj
       case step of
         (Left stillObj)
@@ -141,10 +140,10 @@ evaluateBuiltinFunChain "Package" (Formation bindings) = do
   dataizeBindingChain (AlphaBinding attr o) = do
     dataizationResult <- dataizeRecursivelyChain o
     return (AlphaBinding attr (either id (Formation . singleton . DeltaBinding) dataizationResult))
-  dataizeBindingChain b = Chain $ const ([], b)
-evaluateBuiltinFunChain _ obj = const (Chain $ const (undefined, (obj, ())))
+  dataizeBindingChain b = return b
+evaluateBuiltinFunChain _ obj = \state -> return (obj, state)
 
 -- | Like `evaluateDataizationFun` but specifically for the built-in functions.
 -- This function is not safe. It returns undefined for unknown functions
 evaluateBuiltinFun :: Context -> String -> Object -> EvaluationState -> (Object, EvaluationState)
-evaluateBuiltinFun ctx name obj state = snd $ runChain (evaluateBuiltinFunChain name obj state) ctx
+evaluateBuiltinFun ctx name obj state = snd $ head $ runChain (evaluateBuiltinFunChain name obj state) ctx -- FIXME: head is bad

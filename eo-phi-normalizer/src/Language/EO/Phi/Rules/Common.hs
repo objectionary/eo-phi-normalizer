@@ -236,71 +236,76 @@ equalBinding b1 b2 = b1 == b2
 -- * Chain variants
 
 newtype Chain log result = Chain
-  {runChain :: Context -> ([(String, log)], result)}
+  {runChain :: Context -> [([(String, log)], result)]}
   deriving (Functor)
 
 type NormalizeChain = Chain Object
 type DataizeChain = Chain (Either Object Bytes)
 
 instance Applicative (Chain a) where
-  pure x = Chain (const ([], x))
+  pure x = Chain (const [([], x)])
   (<*>) = ap
 
 instance Monad (Chain a) where
   return = pure
   Chain dx >>= f = Chain $ \ctx ->
-    let (steps, x) = dx ctx
-        Chain g = f x
-        (steps', y) = g ctx
-     in (steps <> steps', y)
+    [ (steps <> steps', y)
+    | (steps, x) <- dx ctx
+    , (steps', y) <- runChain (f x) ctx
+    ]
 
 logStep :: String -> info -> Chain info ()
-logStep msg info = Chain $ const ([(msg, info)], ())
+logStep msg info = Chain $ const [([(msg, info)], ())]
+
+choose :: [a] -> Chain log a
+choose xs = Chain $ \_ctx -> [(mempty, x) | x <- xs]
+
+msplit :: Chain log a -> Chain log (Maybe (a, Chain log a))
+msplit (Chain m) = Chain $ \ctx ->
+  case m ctx of
+    [] -> runChain (return Nothing) ctx
+    (logs, x) : xs -> [(logs, Just (x, Chain (const xs)))]
 
 transformLogs :: (log1 -> log2) -> Chain log1 a -> Chain log2 a
-transformLogs f (Chain normChain) = Chain $ \ctx -> first (map (fmap f)) (normChain ctx)
+transformLogs f (Chain normChain) = Chain $ map (first (map (fmap f))) . normChain
 
 transformNormLogs :: NormalizeChain a -> DataizeChain a
 transformNormLogs = transformLogs Left
 
 getContext :: Chain a Context
-getContext = Chain ([],)
+getContext = Chain $ \ctx -> [([], ctx)]
 
 withContext :: Context -> Chain log a -> Chain log a
 withContext ctx (Chain f) = Chain (\_ -> f ctx)
 
-applyRulesChain' :: Context -> Object -> ([(String, Object)], [[Object]])
+applyRulesChain' :: Context -> Object -> [([(String, Object)], Object)]
 applyRulesChain' ctx obj = applyRulesChainWith' (defaultApplicationLimits (objectSize obj)) ctx obj
 
 -- | Apply the rules until the object is normalized, preserving the history (chain) of applications.
-applyRulesChain :: Object -> NormalizeChain [[Object]]
+applyRulesChain :: Object -> NormalizeChain Object
 applyRulesChain obj = applyRulesChainWith (defaultApplicationLimits (objectSize obj)) obj
 
-applyRulesChainWith' :: ApplicationLimits -> Context -> Object -> ([(String, Object)], [[Object]])
+applyRulesChainWith' :: ApplicationLimits -> Context -> Object -> [([(String, Object)], Object)]
 applyRulesChainWith' limits ctx obj = runChain (applyRulesChainWith limits obj) ctx
 
 -- | A variant of `applyRulesChain` with a maximum application depth.
-applyRulesChainWith :: ApplicationLimits -> Object -> NormalizeChain [[Object]]
+applyRulesChainWith :: ApplicationLimits -> Object -> NormalizeChain Object
 applyRulesChainWith limits@ApplicationLimits{..} obj
   | maxDepth <= 0 = do
       logStep "Max depth hit" obj
-      return [[obj]]
+      return obj
   | otherwise = do
       ctx <- getContext
       if isNF ctx obj
         then do
           logStep "Normal form" obj
-          return [[obj]]
+          return obj
         else do
-          let appliedRules = applyOneRule ctx obj
-          forM appliedRules $ \(ruleName, obj') -> do
-            logStep ruleName obj'
-            chain <-
-              if objectSize obj' < maxTermSize
-                then applyRulesChainWith limits{maxDepth = maxDepth - 1} obj'
-                else return [[obj']]
-            -- TODO: verify if this is actually correct. I suspect that it will merge logs of multiple paths together into one
-            return (concat chain)
+          (ruleName, obj') <- choose (applyOneRule ctx obj)
+          logStep ruleName obj'
+          if objectSize obj' < maxTermSize
+            then applyRulesChainWith limits{maxDepth = maxDepth - 1} obj'
+            else return obj'
 
 -- * Helpers
 
