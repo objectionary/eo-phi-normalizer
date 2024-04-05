@@ -11,7 +11,7 @@
       flake = false;
       url = "https://repo.maven.apache.org/maven2/org/apache/maven/wrapper/maven-wrapper/3.2.0/maven-wrapper-3.2.0.jar";
     };
-    mdsh.url = "github:deemp/mdsh/update-flake";
+    mdsh.url = "github:zimbatm/mdsh/e15469a23e5e2d3d5658b882b110df7bd75b9615";
   };
   outputs = inputs: inputs.flakes.makeFlake {
     inputs = {
@@ -85,8 +85,7 @@
           # because build of GHC may fail due to errors in B.
           packages = ps: [ ps.${packageName} ];
         })
-          hls cabal fourmolu justStaticExecutable
-          ghcid ghc haskellPackages hpack stack;
+          fourmolu justStaticExecutable ghcid haskellPackages hpack stack;
 
         # --- Tools ---
 
@@ -95,26 +94,17 @@
           ghcid
           hpack
           fourmolu
-          cabal
-          stack
+          pkgs.stack
           pkgs.gh
           mdsh
           pkgs.mdbook
-          # `cabal` already has a `ghc` on its `PATH`,
-          # so you may remove `ghc` from this list.
-          # Then, you can access `ghc` like `cabal exec -- ghc --version`.
-
-          # However, sometimes, HLS wants a GHC.
-          # In this case, write it before `HLS` - see https://github.com/NixOS/nixpkgs/issues/225895
-          # ghc
-
-          hls
+          pkgs.haskell.packages."ghc${ghcVersion}".haskell-language-server
         ];
 
         # --- Packages ---
 
         packages = mkShellApps {
-          eoc = pkgs.buildNpmPackage rec {
+          eoc = pkgs.buildNpmPackage {
             name = "";
             version = "0.15.1";
             src = inputs.eoc;

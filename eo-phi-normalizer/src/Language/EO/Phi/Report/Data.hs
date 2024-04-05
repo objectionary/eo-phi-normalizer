@@ -18,7 +18,7 @@ module Language.EO.Phi.Report.Data where
 
 import Data.Aeson (FromJSON, ToJSON)
 import GHC.Generics (Generic)
-import Language.EO.Phi.Metrics.Data (BindingMetrics (..), Metrics (..), MetricsCount, ProgramMetrics, SafeNumber (..))
+import Language.EO.Phi.Metrics.Data (BindingMetrics (..), Metrics (..), MetricsCount, ProgramMetrics)
 import Language.EO.Phi.Metrics.Data qualified as Metrics
 import Language.EO.Phi.TH (deriveJSON)
 import Text.Printf (printf)
@@ -43,9 +43,10 @@ data MetricsChangeCategory a
 $(deriveJSON ''MetricsChangeCategory)
 
 type MetricsChange = Metrics Percent
-type MetricsChangeSafe = Metrics (SafeNumber Double)
 
-newtype Percent = Percent {percent :: Double} deriving newtype (FromJSON, ToJSON)
+newtype Percent = Percent {percent :: Double}
+  deriving newtype
+    (FromJSON, ToJSON, Num, Fractional, Floating, Eq, Ord, Real, RealFrac, RealFloat)
 
 roundToStr :: Int -> Double -> String
 roundToStr = printf "%0.*f%%"
@@ -112,15 +113,24 @@ data Report = Report
 
 $(deriveJSON ''Report)
 
+-- >>> calculateMetricsChange Metrics { dataless = 0.1, applications = 0.2, formations = 0.2, dispatches = 0.2 } Metrics { dataless = 100, applications = 0, formations = 100, dispatches = 100 } Metrics { dataless = 90, applications = 0, formations = 93, dispatches = 60 }
+-- Metrics {formations = MetricsChange'Bad {change = 7.00%}, dataless = MetricsChange'Good {change = 10.00%}, applications = MetricsChange'NA, dispatches = MetricsChange'Good {change = 40.00%}}
 calculateMetricsChange :: MetricsChange -> MetricsCount -> MetricsCount -> MetricsChangeCategorized
 calculateMetricsChange expectedMetricsChange countInitial countNormalized =
   getMetricsChangeClassified <$> expectedMetricsChange <*> actualMetricsChange
  where
-  getMetricsChangeClassified (Percent expected) (SafeNumber'Number actual)
-    | actual >= expected = MetricsChange'Good (Percent actual)
-    | otherwise = MetricsChange'Bad (Percent actual)
-  getMetricsChangeClassified _ _ = MetricsChange'NA
-  actualMetricsChange :: MetricsChangeSafe
+  isFinite :: (RealFloat a) => a -> Bool
+  isFinite x = not (isNaN x || isInfinite x)
+
+  getMetricsChangeClassified :: Percent -> Percent -> MetricsChangeCategory Percent
+  getMetricsChangeClassified expected actual
+    | isFinite expected && isFinite actual =
+        if actual >= expected
+          then MetricsChange'Good actual
+          else MetricsChange'Bad actual
+    | otherwise = MetricsChange'NA
+
+  actualMetricsChange :: MetricsChange
   actualMetricsChange = (initial - normalized) / initial
   initial = fromIntegral <$> countInitial
   normalized = fromIntegral <$> countNormalized

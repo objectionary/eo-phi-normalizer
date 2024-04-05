@@ -1,5 +1,9 @@
 # normalizer metrics
 
+## PHI grammar
+
+![phi-grammar](../media/phi-grammar.png)
+
 ## Metrics
 
 We count:
@@ -8,10 +12,6 @@ We count:
 - [Object formations](#object-formations)
 - [Dynamic dispatches](#dynamic-dispatches)
 - [Dataless formations](#dataless-formations)
-
-### PHI grammar
-
-![phi-grammar](../media/phi-grammar.png)
 
 ### Object formations
 
@@ -27,12 +27,35 @@ We count:
 
 ### Dataless formations
 
-- `Primitive formation` - a formation that has a `Δ` attribute.
-  - `⟦ Δ ⤍ 00- ⟧`
-- `Dataless formation` - not primitive and does not have attributes that map to primitive formations.
-  - `⟦ d ↦ ⟦ φ ↦ ξ.ρ.c, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, c ↦ ∅ ⟧`
-    - the outermost formation with attributes `d` and `c` is dataless because it is not primitive and its attributes do not map to primitive formations.
-    - `d` is not dataless because it has an attribute `ν` that maps to a primitive formation.
+#### Definition: Δ-height
+
+Δ-height represents how far down we need to go inside (nested) formations to reach a Δ-binding.
+
+Δ-height for:
+
+- everything except a non-empty formation: `∞`
+- a formation with a delta-binding: `1`
+- any other formation: `1 + minimal height among attributes`
+  - `min(N, ∞) = min(∞, N) = N`
+  - `1 + ∞ = ∞`
+
+#### Definition: Dataless formation
+
+Dataless formation - a formation with the height `∞` or greater than `2`.
+
+#### Example
+
+```console
+{⟦ α0 ↦ Φ.something(α1 ↦ ⟦ α2 ↦ ⟦ α3 ↦ ⟦ Δ ⤍ 01- ⟧, α4 ↦ ⟦ ⟧ ⟧ ⟧) ⟧}
+```
+
+| Formation                                                                       | Height | Dataless |
+| ------------------------------------------------------------------------------- | ------ | -------- |
+| `⟦ Δ ⤍ 01- ⟧`                                                                   | `1`    | False    |
+| `⟦ ⟧`                                                                           | `∞`    | True     |
+| `⟦ α3 ↦ ⟦ Δ ⤍ 01- ⟧, α4 ↦ ⟦ ⟧ ⟧`                                                | `2`    | False    |
+| `⟦ α2 ↦ ⟦ α3 ↦ ⟦ Δ ⤍ 01- ⟧, α4 ↦ ⟦ ⟧ ⟧ ⟧`                                       | `3`    | True     |
+| `⟦ α0 ↦ Φ.something(α1 ↦ ⟦ α2 ↦ ⟦ α3 ↦ ⟦ Δ ⤍ 01- ⟧, α4 ↦ ⟦ ⟧ ⟧ ⟧) ⟧`            | `∞`    | True     |
 
 ## Environment
 
@@ -126,10 +149,10 @@ cat program.phi | normalizer metrics
 }
 ```
 
-### `--bindings-by-path`
+### `--bindings-path`
 
 ```$ as console
-normalizer metrics --bindings-by-path "a" program.phi
+normalizer metrics --bindings-path "a" program.phi
 ```
 
 ```console
