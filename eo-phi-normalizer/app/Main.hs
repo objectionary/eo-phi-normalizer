@@ -39,13 +39,13 @@ import Data.Text.Lazy as TL (unpack)
 import Data.Yaml (decodeFileThrow)
 import GHC.Generics (Generic)
 import Language.EO.Phi (Bytes (Bytes), Object (Formation), Program (Program), parseProgram, printTree)
-import Language.EO.Phi.Dataize (dataizeRecursively, dataizeRecursivelyChain, dataizeStep, dataizeStepChain)
+import Language.EO.Phi.Dataize
 import Language.EO.Phi.Metrics.Collect as Metrics (getProgramMetrics)
 import Language.EO.Phi.Metrics.Data as Metrics (ProgramMetrics (..), splitPath)
 import Language.EO.Phi.Report.Data (Report'InputConfig (..), Report'OutputConfig (..), ReportConfig (..), ReportItem (..), makeProgramReport, makeReport)
 import Language.EO.Phi.Report.Html (ReportFormat (..), reportCSS, reportJS, toStringReport)
 import Language.EO.Phi.Report.Html qualified as ReportHtml (ReportConfig (..))
-import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), applyRulesChainWith, applyRulesWith, defaultContext, objectSize, propagateName1)
+import Language.EO.Phi.Rules.Common
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRuleNamed, parseRuleSetFromFile)
 import Options.Applicative hiding (metavar)
 import Options.Applicative qualified as Optparse (metavar)
@@ -353,7 +353,8 @@ main = do
       unless (single || json) $ logStrLn ruleSet.title
       let Program bindings = program'
           uniqueResults
-            | chain = applyRulesChainWith limits ctx (Formation bindings)
+            -- Something here seems incorrect
+            | chain = map fst $ applyRulesChainWith' limits ctx (Formation bindings)
             | otherwise = pure . ("",) <$> applyRulesWith limits ctx (Formation bindings)
            where
             limits = ApplicationLimits maxDepth (maxGrowthFactor * objectSize (Formation bindings))
@@ -399,16 +400,16 @@ main = do
       ( if chain
           then do
             let dataizeChain
-                  | recursive = dataizeRecursivelyChain
-                  | otherwise = dataizeStepChain
-            forM_ (dataizeChain ctx inputObject) $ \case
+                  | recursive = dataizeRecursivelyChain'
+                  | otherwise = dataizeStepChain'
+            forM_ (fst (dataizeChain ctx inputObject)) $ \case
               (msg, Left obj) -> logStrLn (msg ++ ": " ++ printTree obj)
               (msg, Right (Bytes bytes)) -> logStrLn (msg ++ ": " ++ bytes)
           else do
             let dataize
                   -- This should be moved to a separate subcommand
                   | recursive = dataizeRecursively
-                  | otherwise = dataizeStep
+                  | otherwise = dataizeStep'
             case dataize ctx inputObject of
               Left obj -> logStrLn (printAsProgramOrAsObject obj)
               Right (Bytes bytes) -> logStrLn bytes

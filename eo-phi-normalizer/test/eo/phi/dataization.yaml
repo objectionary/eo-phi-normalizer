@@ -16,25 +16,48 @@ tests:
           ⟧
         ⟧
       ⟧}
-    output: '52-'
+    output:
+      bytes: "52-"
 
-  - name: Ignores 'Package' lambdas
+  - name: "Dataize in siblings of Package"
     input: |
       {⟦
-        σ ↦ Φ,
-        c ↦ Φ.org.eolang.float(Δ ⤍ 19-),
-        φ ↦ ξ.c.times(α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus(α0 ↦ ⟦ Δ ⤍ 20- ⟧),
         org ↦ ⟦
-          λ ⤍ Package,
           eolang ↦ ⟦
-            λ ⤍ Package,
-            float ↦ ⟦
-              Δ ⤍ ∅,
-              times ↦ ⟦ α0 ↦ ∅, λ ⤍ Times ⟧,
-              plus ↦ ⟦ α0 ↦ ∅, λ ⤍ Plus ⟧,
-              λ ⤍ Package
-            ⟧
-          ⟧
-        ⟧
+            bool ↦ ⟦ α0 ↦ ∅, φ ↦ ξ.α0 ⟧,
+            bytes ↦ ⟦ Δ ⤍ ∅ ⟧,
+            x ↦ ⟦
+              φ ↦ Φ.org.eolang.bool(
+                α0 ↦ Φ.org.eolang.bytes(Δ ⤍ 01-)
+              )
+            ⟧,
+            z ↦ ⟦
+              y ↦ ⟦
+                x ↦ ∅,
+                φ ↦ ξ.x
+              ⟧,
+              φ ↦ Φ.org.eolang.bool(
+                α0 ↦ Φ.org.eolang.bytes(Δ ⤍ 01-)
+              )
+            ⟧,
+            λ ⤍ Package
+          ⟧,
+          λ ⤍ Package
+        ⟧,
+        λ ⤍ Package
       ⟧}
-    output: '52-'
+    output:
+      object: |
+        ⟦
+          org ↦ ⟦
+            eolang ↦ ⟦
+              bool ↦ ⟦ α0 ↦ ∅, φ ↦ ξ.α0 ⟧,
+              bytes ↦ ⟦ Δ ⤍ ∅ ⟧,
+              x ↦ ⟦ Δ ⤍ 01- ⟧,
+              z ↦ ⟦ Δ ⤍ 01- ⟧,
+              λ ⤍ Package
+            ⟧,
+            λ ⤍ Package
+          ⟧,
+          λ ⤍ Package
+        ⟧

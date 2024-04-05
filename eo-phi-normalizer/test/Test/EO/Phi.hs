@@ -6,18 +6,19 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE StandaloneDeriving #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
+{-# OPTIONS_GHC -Wno-partial-fields #-}
 
 module Test.EO.Phi where
 
 import Control.Monad (forM)
-import Data.Aeson (FromJSON (..))
+import Data.Aeson (FromJSON (..), SumEncoding (UntaggedValue), defaultOptions, genericParseJSON, sumEncoding)
 import Data.Yaml qualified as Yaml
 import GHC.Generics (Generic)
 import System.Directory (listDirectory)
 import System.FilePath ((</>))
 
 import Data.List (sort)
-import Language.EO.Phi (unsafeParseProgram)
+import Language.EO.Phi (unsafeParseObject, unsafeParseProgram)
 import Language.EO.Phi qualified as Phi
 
 data PhiTestGroup = PhiTestGroup
@@ -43,9 +44,15 @@ data DataizeTestGroup = DataizeTestGroup
 data DataizeTest = DataizeTest
   { name :: String
   , input :: Phi.Program
-  , output :: Phi.Bytes
+  , output :: DataizationResult
   }
   deriving (Generic, FromJSON)
+data DataizationResult
+  = Bytes {bytes :: Phi.Bytes}
+  | Object {object :: Phi.Object}
+  deriving (Generic, Show)
+instance FromJSON DataizationResult where
+  parseJSON = genericParseJSON defaultOptions{sumEncoding = UntaggedValue}
 
 fileTests :: FilePath -> IO PhiTestGroup
 fileTests = Yaml.decodeFileThrow
@@ -64,5 +71,9 @@ allPhiTests dir = do
 -- | Parsing a $\varphi$-program from a JSON string.
 instance FromJSON Phi.Program where
   parseJSON = fmap unsafeParseProgram . parseJSON
+
+-- | Parsing a $\varphi$-object from a JSON string.
+instance FromJSON Phi.Object where
+  parseJSON = fmap unsafeParseObject . parseJSON
 
 deriving newtype instance FromJSON Phi.Bytes

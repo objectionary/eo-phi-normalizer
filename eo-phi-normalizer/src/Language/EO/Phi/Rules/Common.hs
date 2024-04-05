@@ -1,6 +1,9 @@
+{-# HLINT ignore "Use &&" #-}
+{-# LANGUAGE DeriveFunctor #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
@@ -8,6 +11,8 @@
 module Language.EO.Phi.Rules.Common where
 
 import Control.Applicative (Alternative ((<|>)), asum)
+import Control.Arrow (Arrow (first))
+import Control.Monad
 import Data.List (nubBy, sortOn)
 import Data.List.NonEmpty (NonEmpty (..), (<|))
 import Data.List.NonEmpty qualified as NonEmpty
@@ -52,6 +57,13 @@ data Context = Context
   , insideFormation :: Bool
   -- ^ Temporary hack for applying Ksi and Phi rules when dataizing
   }
+
+sameContext :: Context -> Context -> Bool
+sameContext ctx1 ctx2 =
+  and
+    [ outerFormations ctx1 == outerFormations ctx2
+    , currentAttr ctx1 == currentAttr ctx2
+    ]
 
 defaultContext :: [NamedRule] -> Object -> Context
 defaultContext rules obj =
@@ -99,12 +111,12 @@ withSubObject f ctx root =
       MetaFunction _ _ -> []
 
 -- | Given a unary function that operates only on plain objects,
--- converts it to a function that operates on name objects
+-- converts it to a function that operates on named objects
 propagateName1 :: (a -> b) -> (name, a) -> (name, b)
 propagateName1 f (name, obj) = (name, f obj)
 
 -- | Given a binary function that operates only on plain objects,
--- converts it to a function that operates on name objects
+-- converts it to a function that operates on named objects
 propagateName2 :: (a -> b -> c) -> (name, a) -> b -> (name, c)
 propagateName2 f (name, obj) bs = (name, f obj bs)
 
@@ -179,8 +191,10 @@ applyRulesWith limits@ApplicationLimits{..} ctx obj
         equalObject
         [ obj''
         | (_ruleName, obj') <- applyOneRule ctx obj
-        , objectSize obj' < maxTermSize
-        , obj'' <- applyRulesWith limits{maxDepth = maxDepth - 1} ctx obj'
+        , obj'' <-
+            if objectSize obj' < maxTermSize
+              then applyRulesWith limits{maxDepth = maxDepth - 1} ctx obj'
+              else [obj']
         ]
 
 equalProgram :: Program -> Program -> Bool
@@ -217,21 +231,79 @@ equalBinding (AlphaBinding attr1 obj1) (AlphaBinding attr2 obj2) = attr1 == attr
 equalBinding (DeltaBinding _) (DeltaBinding _) = True
 equalBinding b1 b2 = b1 == b2
 
+-- * Chain variants
+
+newtype Chain log result = Chain
+  {runChain :: Context -> [([(String, log)], result)]}
+  deriving (Functor)
+
+type NormalizeChain = Chain Object
+type DataizeChain = Chain (Either Object Bytes)
+
+instance Applicative (Chain a) where
+  pure x = Chain (const [([], x)])
+  (<*>) = ap
+
+instance Monad (Chain a) where
+  return = pure
+  Chain dx >>= f = Chain $ \ctx ->
+    [ (steps <> steps', y)
+    | (steps, x) <- dx ctx
+    , (steps', y) <- runChain (f x) ctx
+    ]
+
+logStep :: String -> info -> Chain info ()
+logStep msg info = Chain $ const [([(msg, info)], ())]
+
+choose :: [a] -> Chain log a
+choose xs = Chain $ \_ctx -> [(mempty, x) | x <- xs]
+
+msplit :: Chain log a -> Chain log (Maybe (a, Chain log a))
+msplit (Chain m) = Chain $ \ctx ->
+  case m ctx of
+    [] -> runChain (return Nothing) ctx
+    (logs, x) : xs -> [(logs, Just (x, Chain (const xs)))]
+
+transformLogs :: (log1 -> log2) -> Chain log1 a -> Chain log2 a
+transformLogs f (Chain normChain) = Chain $ map (first (map (fmap f))) . normChain
+
+transformNormLogs :: NormalizeChain a -> DataizeChain a
+transformNormLogs = transformLogs Left
+
+getContext :: Chain a Context
+getContext = Chain $ \ctx -> [([], ctx)]
+
+withContext :: Context -> Chain log a -> Chain log a
+withContext ctx (Chain f) = Chain (\_ -> f ctx)
+
+applyRulesChain' :: Context -> Object -> [([(String, Object)], Object)]
+applyRulesChain' ctx obj = applyRulesChainWith' (defaultApplicationLimits (objectSize obj)) ctx obj
+
 -- | Apply the rules until the object is normalized, preserving the history (chain) of applications.
-applyRulesChain :: Context -> Object -> [[(String, Object)]]
-applyRulesChain ctx obj = applyRulesChainWith (defaultApplicationLimits (objectSize obj)) ctx obj
+applyRulesChain :: Object -> NormalizeChain Object
+applyRulesChain obj = applyRulesChainWith (defaultApplicationLimits (objectSize obj)) obj
+
+applyRulesChainWith' :: ApplicationLimits -> Context -> Object -> [([(String, Object)], Object)]
+applyRulesChainWith' limits ctx obj = runChain (applyRulesChainWith limits obj) ctx
 
 -- | A variant of `applyRulesChain` with a maximum application depth.
-applyRulesChainWith :: ApplicationLimits -> Context -> Object -> [[(String, Object)]]
-applyRulesChainWith limits@ApplicationLimits{..} ctx obj
-  | maxDepth <= 0 = [[("Max depth hit", obj)]]
-  | isNF ctx obj = [[("Normal form", obj)]]
-  | otherwise =
-      [ (ruleName, obj) : chain
-      | (ruleName, obj') <- applyOneRule ctx obj
-      , objectSize obj' < maxTermSize
-      , chain <- applyRulesChainWith limits{maxDepth = maxDepth - 1} ctx obj'
-      ]
+applyRulesChainWith :: ApplicationLimits -> Object -> NormalizeChain Object
+applyRulesChainWith limits@ApplicationLimits{..} obj
+  | maxDepth <= 0 = do
+      logStep "Max depth hit" obj
+      return obj
+  | otherwise = do
+      ctx <- getContext
+      if isNF ctx obj
+        then do
+          logStep "Normal form" obj
+          return obj
+        else do
+          (ruleName, obj') <- choose (applyOneRule ctx obj)
+          logStep ruleName obj'
+          if objectSize obj' < maxTermSize
+            then applyRulesChainWith limits{maxDepth = maxDepth - 1} obj'
+            else return obj'
 
 -- * Helpers
 
