@@ -10,6 +10,7 @@ A Proposal is a document describing a proposed change to the normalizer.
   - Example: `001-pattern-matching-on-paths.md`.
 - Pull Request names must follow the format `[proposal] proposal_title`
   - Example: `[proposal] Pattern matching on paths`.
+- Proposals must go into the [proposals](./) directory.
 
 ## Proposal process
 
