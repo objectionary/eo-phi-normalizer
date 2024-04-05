@@ -43,6 +43,103 @@ examples should illustrate and elucidate a clearly-articulated
 specification that covers the general case.
 ]
 
+```yaml
+# Approach:
+# - Try to express patterns in terms of BNFC (https://bnfc.digitalgrammars.com/) (with slight modifications)
+# - Use <label :: (Type)> expressions to label non-terminals
+
+patterns:
+  - comment: |
+      MetaBinding combines three syntaxes:
+
+      (1) \?B1 ?x.?y... ↦ ?a.b ===> Binding B1 that matches with ?x.?y... ↦ ?a.b, can be used futher as ?B1
+
+      (2) ?bar => \?b_bar ξ.ρ.?b_a.?foo ===>
+        in the current formation,
+        find a binding with name ?bar where body contains somewhere ξ.ρ.?b_a.?foo,
+        and save its whole body to variable ?b_bar
+
+      (3) ?p1..?main ↦ ...     ===> some path to ?main
+      (3.1) if used in formation - means enclosure, for ex: ⟦ org ↦ ⟦ eolang ↦ ⟦ main ↦ ... ⟧ ⟧ ⟧
+      (3.2) if used in application - means dot notation, for ex (x ↦ org.eolang.main)
+
+      I believe (3) cannot be used without a right side (after ↦) so that I know when to stop searching.
+
+      I think (1) should include (3) as follows.
+
+      (1.1) \?A ?a.?b..c.?d..?e.f ↦ ⟦ ?B ⟧
+      (1.2) \?C ?g..h.?i ↦ ?j.k(D).?l..?m.n
+
+      In other words, MetaBinding should allow:
+      - optionally saving the full binding to a given metavariable (?A, ?C)
+      - matching individual path elements (?a, c, ?e, f, h, ?i)
+      - matching a segment of the path (?b.., ?d.., ?g..)
+      - matching an object on the right side (⟦ ?C ⟧, ?j.k(D).?l..?m.n)
+      - matching a segment of a path within a sequence of dispatches ?l..
+
+      Then
+      - (2) is expressible via (1) and $name
+      - (3) is expressible via (1) without a metavariable for the full binding
+    pattern: |
+      MetaBinding. Binding ::= ("\\" <binding :: (MetaId)>)? ((<pathElement :: (Attribute)> ".")* (<segment :: (MetaId)> "..")? (<name :: (Attribute)>) ".")* (<finalName :: (Attribute)>) "↦" <object :: (Object)>
+    description: |
+      Find a <binding> that has a path to a value after the "↦" that matches a given <object>.
+      When <binding> is given, the <binding> equals to the full binding.
+
+      The path can include:
+      - individual <pathElement>-s
+      - <segment>-s of unknown length
+
+      The path must include:
+      - the <finalName> of the last binding
+      - the <object> to match after the "↦"
+    examples:
+      - pattern: '⟦ \?FullBinding ?Path..?Name ↦ ?Object.world(?Bindings) ⟧'
+        input: "⟦ org ↦ ⟦ eolang ↦ ⟦ main ↦ hello.world(and ↦ you) ⟧ ⟧ ⟧"
+        matches:
+          - metavar: "?Path"
+            value: ["org", "eolang"]
+          - metavar: "?Name"
+            value: "main"
+          - metavar: "?Object"
+            value: "hello"
+          - metavar: "?Bindings"
+            value: [and ↦ you]
+          - metavar: "?PathHead"
+            value: ["org"]
+          - metavar: "?FullBinding"
+            value: [org ↦ ⟦ eolang ↦ ⟦ main ↦ hello.world(and ↦ you) ⟧ ⟧]
+        applications:
+          - application: $name(?FullBinding)
+            value: "org"
+        constructions:
+          - construction: "⟦ ?FullBinding ⟧"
+            value: "⟦ org ↦ ⟦ eolang ↦ ⟦ main ↦ hello.world(and ↦ you) ⟧ ⟧ ⟧"
+      - pattern: '(\?FullBinding ?Name ↦ ?DispatchPath..?DispatchName.world)'
+        input: "(x ↦ Φ.org.eolang.world, y ↦ Φ.org.eolang.work)"
+        matches:
+          - metavar: "?FullBinding"
+            value: "x ↦ Φ.org.eolang.world"
+          - metavar: "?Name"
+            value: "x"
+          - metavar: "?DispatchPath"
+            value: ["Φ", "org"]
+          - metavar: "?DispatchName"
+            value: "eolang"
+        constructions:
+          - construction: "⟦ ?FullBinding ⟧"
+            value: "⟦ x ↦ Φ.org.eolang.world ⟧"
+  - pattern: |
+      ExpressionObject. Expression ::= Object
+    examples:
+      - ξ
+      - ⟦ a ↦ ?B ⟧
+  - pattern: |
+      ExpressionFunction. Expression ::= Function
+    examples:
+      - $name(?a)
+```
+
 ## Examples
 
 [
