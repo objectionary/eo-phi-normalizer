@@ -169,8 +169,8 @@ jobs:
           mkdir -p dist/haddock
           mv $(stack path --local-doc-root)/* dist/haddock
 
-      - name: Run mdsh
-        run: ./scripts/run-mdsh.sh
+      - name: Update Markdown files
+        run: ./scripts/update-markdown.sh
 
       - name: Configure git for github-actions
         run: |

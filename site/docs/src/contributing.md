@@ -80,7 +80,7 @@ Run `npm i` to locally install the `prettier` version that we use.
 
 ### Automatic updates
 
-In CI, on the `master` branch, we run [scripts/run-mdsh](https://github.com/objectionary/normalizer/blob/master/scripts/run-mdsh.sh) and commit changes.
+In CI, on the `master` branch, we run a [script](https://github.com/objectionary/normalizer/blob/master/scripts/update-markdown.sh) to update Markdown files and then we commit changes.
 
 So, no worries if you haven't run `mdsh` in your PR!
 

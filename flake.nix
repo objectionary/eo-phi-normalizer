@@ -194,11 +194,11 @@
                 export LC_ALL=C.UTF-8
                 stack install
 
-                cat << EOF > scripts/run-mdsh.sh
+                cat << EOF > scripts/update-markdown.sh
                 ${text}
                 EOF
 
-                chmod +x scripts/run-mdsh.sh
+                chmod +x scripts/update-markdown.sh
 
                 ${text}
                 '';
