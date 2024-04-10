@@ -99,6 +99,7 @@
           mdsh
           pkgs.mdbook
           pkgs.haskell.packages."ghc${ghcVersion}".haskell-language-server
+          pkgs.mdbook-linkcheck
         ];
 
         # --- Packages ---
