@@ -1,4 +1,4 @@
-# normalizer
+# Normalizer
 
 See commands supported by the `normalizer` executable.
 

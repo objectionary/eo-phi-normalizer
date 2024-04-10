@@ -1,4 +1,4 @@
-# normalizer metrics
+# `normalizer metrics`
 
 ## PHI grammar
 
