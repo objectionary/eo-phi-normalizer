@@ -133,7 +133,7 @@ chmod +x scripts/run-fourmolu.sh
 
 See [docs](https://pre-commit.com/#adding-pre-commit-plugins-to-your-project).
 
-See [.pre-commit-config.yaml](.pre-commit-config.yaml).
+See [.pre-commit-config.yaml](https://github.com/objectionary/normalizer/blob/master/.pre-commit-config.yaml).
 
 You can run a specific hook (see [docs](https://pre-commit.com/#pre-commit-run)):
 
