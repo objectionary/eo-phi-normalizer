@@ -27,35 +27,27 @@ We count:
 
 ### Dataless formations
 
-#### Definition: Δ-height
+#### Definition: \\( \Delta \\)-depth
 
-Δ-height represents how far down we need to go inside (nested) formations to reach a Δ-binding.
+\\( \Delta \\)-depth of an object describes how deep data is in the object
+when recursively traversing values attached to the object attributes. That is, \\( \Delta \\)-depth is \\( \infty \\)
+for all objects except formations. More specifically:
 
-Δ-height for:
+1. the \\( \Delta \\)-depth of a formation with bytes attached to a \\( \Delta \\)-attribute is \\( 1 \\)-;
+1. for a non-empty formation, the \\( \Delta \\)--depth is:
+   1. \\( 1 + M \\), where \\( M \\) is the minimal depth among objects attached to attributes of this formation;
+   1. \\( \infty \\) if there are no objects attached to attributes of this formation;
+1. otherwise, the \\( \Delta \\)-depth of an object is \\( \infty \\).
 
-- everything except a non-empty formation: `∞`
-- a formation with a delta-binding: `1`
-- any other formation: `1 + minimal height among attributes`
-  - `min(N, ∞) = min(∞, N) = N`
-  - `1 + ∞ = ∞`
+#### Definition: Dataless object
 
-#### Definition: Dataless formation
+An object is dataless if its \\( \Delta \\)-depth is greater than 2.
 
-Dataless formation - a formation with the height `∞` or greater than `2`.
+#### Examples
 
-#### Example
+The following table demonstrates objects with their \\( \Delta \\)-depths:
 
-```console
-{⟦ α0 ↦ Φ.something(α1 ↦ ⟦ α2 ↦ ⟦ α3 ↦ ⟦ Δ ⤍ 01- ⟧, α4 ↦ ⟦ ⟧ ⟧ ⟧) ⟧}
-```
-
-| Formation                                                            | Height | Dataless |
-| -------------------------------------------------------------------- | ------ | -------- |
-| `⟦ Δ ⤍ 01- ⟧`                                                        | `1`    | False    |
-| `⟦ ⟧`                                                                | `∞`    | True     |
-| `⟦ α3 ↦ ⟦ Δ ⤍ 01- ⟧, α4 ↦ ⟦ ⟧ ⟧`                                     | `2`    | False    |
-| `⟦ α2 ↦ ⟦ α3 ↦ ⟦ Δ ⤍ 01- ⟧, α4 ↦ ⟦ ⟧ ⟧ ⟧`                            | `3`    | True     |
-| `⟦ α0 ↦ Φ.something(α1 ↦ ⟦ α2 ↦ ⟦ α3 ↦ ⟦ Δ ⤍ 01- ⟧, α4 ↦ ⟦ ⟧ ⟧ ⟧) ⟧` | `∞`    | True     |
+![metrics](../media/metrics.png)
 
 ## Environment
 
