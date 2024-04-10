@@ -6,6 +6,7 @@ Dataization is the process through which data is extracted from a given program/
 
 To dataize a given program written in \\( \varphi \\)-calculus, the first step is to normalize it according to the process outlined in [`normalize tranform` docs](./normalizer-transform.md).
 Then, a single step of dataization is performed according to the following rules in order of priority:
+
 1. If the object is a formation that contains a \\( \Delta \\)-binding and no empty bindings, the bytes attached to it are returned
 2. If the object is a formation that contains a \\( \lambda \\)-binding and no empty bindings, the attached value is evaluated as a known built-in function and its result is returned. Currently, the following functions are supported:
    - `Times`
@@ -60,14 +61,14 @@ normalizer dataize --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.y
 ```
 
 ```console
-Normal form: ⟦ σ ↦ Φ, c ↦ Φ.org.eolang.float (Δ ⤍ 19-), φ ↦ ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧), org ↦ ⟦ eolang ↦ ⟦ float ↦ ⟦ Δ ⤍ ∅, times ↦ ⟦ α0 ↦ ∅, λ ⤍ Times ⟧, plus ↦ ⟦ α0 ↦ ∅, λ ⤍ Plus ⟧ ⟧ ⟧ ⟧ ⟧
+Dataizing inside phi: ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧)
 Dataizing inside phi: ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧)
 Dataizing inside application: ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus
-Dataizing inside dispatch: ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧) (α0 ↦ ⟦ Δ ⤍ 20- ⟧)
-Dataizing inside application: ξ.c.times.plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧)
-Dataizing inside dispatch: ξ.c (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧)
-Dataizing inside dispatch: ξ.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧)
-Nothing to dataize: ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧)
+Dataizing inside dispatch: ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧)
+Dataizing inside application: ξ.c.times
+Dataizing inside dispatch: ξ.c
+Dataizing inside dispatch: ξ
+Nothing to dataize: ξ
 ```
 
 ### `--output-file`

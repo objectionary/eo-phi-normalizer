@@ -49,13 +49,13 @@ Dataless formation - a formation with the height `∞` or greater than `2`.
 {⟦ α0 ↦ Φ.something(α1 ↦ ⟦ α2 ↦ ⟦ α3 ↦ ⟦ Δ ⤍ 01- ⟧, α4 ↦ ⟦ ⟧ ⟧ ⟧) ⟧}
 ```
 
-| Formation                                                                       | Height | Dataless |
-| ------------------------------------------------------------------------------- | ------ | -------- |
-| `⟦ Δ ⤍ 01- ⟧`                                                                   | `1`    | False    |
-| `⟦ ⟧`                                                                           | `∞`    | True     |
-| `⟦ α3 ↦ ⟦ Δ ⤍ 01- ⟧, α4 ↦ ⟦ ⟧ ⟧`                                                | `2`    | False    |
-| `⟦ α2 ↦ ⟦ α3 ↦ ⟦ Δ ⤍ 01- ⟧, α4 ↦ ⟦ ⟧ ⟧ ⟧`                                       | `3`    | True     |
-| `⟦ α0 ↦ Φ.something(α1 ↦ ⟦ α2 ↦ ⟦ α3 ↦ ⟦ Δ ⤍ 01- ⟧, α4 ↦ ⟦ ⟧ ⟧ ⟧) ⟧`            | `∞`    | True     |
+| Formation                                                            | Height | Dataless |
+| -------------------------------------------------------------------- | ------ | -------- |
+| `⟦ Δ ⤍ 01- ⟧`                                                        | `1`    | False    |
+| `⟦ ⟧`                                                                | `∞`    | True     |
+| `⟦ α3 ↦ ⟦ Δ ⤍ 01- ⟧, α4 ↦ ⟦ ⟧ ⟧`                                     | `2`    | False    |
+| `⟦ α2 ↦ ⟦ α3 ↦ ⟦ Δ ⤍ 01- ⟧, α4 ↦ ⟦ ⟧ ⟧ ⟧`                            | `3`    | True     |
+| `⟦ α0 ↦ Φ.something(α1 ↦ ⟦ α2 ↦ ⟦ α3 ↦ ⟦ Δ ⤍ 01- ⟧, α4 ↦ ⟦ ⟧ ⟧ ⟧) ⟧` | `∞`    | True     |
 
 ## Environment
 
@@ -71,7 +71,7 @@ normalizer metrics --help
 
 ```console
 Usage: normalizer metrics [FILE] [-o|--output-file FILE]
-                          [-b|--bindings-by-path PATH]
+                          [-b|--bindings-path PATH]
 
   Collect metrics for a PHI program.
 
@@ -80,9 +80,9 @@ Available options:
                            read from stdin.
   -o,--output-file FILE    Output to FILE. When this option is not specified,
                            output to stdout.
-  -b,--bindings-by-path PATH
-                           Report metrics for bindings of a formation accessible
-                           in a program by a PATH. The default PATH is empty.
+  -b,--bindings-path PATH  Report metrics for bindings of a formation accessible
+                           in a program by the PATH. When this option is not
+                           specified, metrics for bindings are not reported.
                            Example of a PATH: 'org.eolang'.
   -h,--help                Show this help text
 ```
@@ -95,23 +95,10 @@ normalizer metrics program.phi
 
 ```json
 {
-  "bindingsByPathMetrics": {
-    "bindingsMetrics": [
-      {
-        "metrics": {
-          "applications": 1,
-          "dataless": 1,
-          "dispatches": 4,
-          "formations": 4
-        },
-        "name": "a"
-      }
-    ],
-    "path": []
-  },
-  "programMetrics": {
+  "bindings-by-path-metrics": null,
+  "program-metrics": {
     "applications": 1,
-    "dataless": 1,
+    "dataless": 5,
     "dispatches": 4,
     "formations": 5
   }
@@ -126,23 +113,10 @@ cat program.phi | normalizer metrics
 
 ```json
 {
-  "bindingsByPathMetrics": {
-    "bindingsMetrics": [
-      {
-        "metrics": {
-          "applications": 1,
-          "dataless": 1,
-          "dispatches": 4,
-          "formations": 4
-        },
-        "name": "a"
-      }
-    ],
-    "path": []
-  },
-  "programMetrics": {
+  "bindings-by-path-metrics": null,
+  "program-metrics": {
     "applications": 1,
-    "dataless": 1,
+    "dataless": 5,
     "dispatches": 4,
     "formations": 5
   }
@@ -157,12 +131,12 @@ normalizer metrics --bindings-path "a" program.phi
 
 ```console
 {
-  "bindingsByPathMetrics": {
-    "bindingsMetrics": [
+  "bindings-by-path-metrics": {
+    "bindings-metrics": [
       {
         "metrics": {
           "applications": 0,
-          "dataless": 0,
+          "dataless": 2,
           "dispatches": 2,
           "formations": 2
         },
@@ -178,13 +152,11 @@ normalizer metrics --bindings-path "a" program.phi
         "name": "e"
       }
     ],
-    "path": [
-      "a"
-    ]
+    "path": "a"
   },
-  "programMetrics": {
+  "program-metrics": {
     "applications": 1,
-    "dataless": 1,
+    "dataless": 5,
     "dispatches": 4,
     "formations": 5
   }

@@ -27,17 +27,17 @@ Your specification may include,
 - LBNF grammar and semantics of any new syntactic constructs (see [LBNF reference](https://bnfc.readthedocs.io/en/latest/lbnf.html)).
 - how the proposed change interacts with existing normalizer features, in case that is otherwise ambiguous
 
-Strive for *precision*.
+Strive for _precision_.
 
 Think about corner cases. Write down
 general rules and invariants.
 
 Note, however, that this section should focus on a precise
-*specification*; it need not (and should not) devote space to
-*implementation* details -- the "Implementation Plan" section can be used for that.
+_specification_; it need not (and should not) devote space to
+_implementation_ details -- the "Implementation Plan" section can be used for that.
 
 The specification can, and almost always should, be illustrated with
-*examples* that illustrate corner cases. But it is not sufficient to
+_examples_ that illustrate corner cases. But it is not sufficient to
 give a couple of examples and regard that as the specification! The
 examples should illustrate and elucidate a clearly-articulated
 specification that covers the general case.
@@ -71,7 +71,7 @@ during the PR discussion.
 List alternative designs to your proposed change. Both existing
 workarounds, or alternative choices for the changes. Explain
 the reasons for choosing the proposed change over these alternative:
-*e.g.* they can be cheaper but insufficient, or better but too
+_e.g._ they can be cheaper but insufficient, or better but too
 expensive. Or something else.
 
 The PR discussion often raises other potential designs, and they should be
