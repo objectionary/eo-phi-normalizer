@@ -408,7 +408,12 @@ mergeBindings xs ys
           ]
 
 deepMerge :: Program -> Program -> Either String Program
-deepMerge (Program xs) (Program ys) = Program <$> mergeBindings xs ys
+deepMerge (Program xs) (Program ys) = Program <$> mergeBindings (mkPackage xs) (mkPackage ys)
+ where
+  mkPackage bs
+    | isPackage bs = bs
+    -- FIXME: check if lambda attribute exists and throw error!
+    | otherwise = LambdaBinding (Function "Package") : bs
 
 deepMergePrograms :: [Program] -> Either String Program
 deepMergePrograms [] = Right (Program [])
