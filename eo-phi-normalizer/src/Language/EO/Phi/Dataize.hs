@@ -3,6 +3,9 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE ViewPatterns #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+
+{-# HLINT ignore "Redundant fmap" #-}
 
 module Language.EO.Phi.Dataize where
 
@@ -70,12 +73,14 @@ dataizeStepChain obj@(Formation bs)
   hasEmpty = any isEmpty bs
 dataizeStepChain (Application obj bindings) = do
   logStep "Dataizing inside application" (Left obj)
-  (ctx, obj') <- dataizeStepChain obj
-  return (ctx, left (`Application` bindings) obj')
+  modifyContext (\c -> c{dataizePackage = False}) $ do
+    (ctx, obj') <- dataizeStepChain obj
+    return (ctx, left (`Application` bindings) obj')
 dataizeStepChain (ObjectDispatch obj attr) = do
   logStep "Dataizing inside dispatch" (Left obj)
-  (ctx, obj') <- dataizeStepChain obj
-  return (ctx, left (`ObjectDispatch` attr) obj')
+  modifyContext (\c -> c{dataizePackage = False}) $ do
+    (ctx, obj') <- dataizeStepChain obj
+    return (ctx, left (`ObjectDispatch` attr) obj')
 dataizeStepChain obj = do
   logStep "Nothing to dataize" (Left obj)
   ctx <- getContext
@@ -87,20 +92,25 @@ dataizeRecursivelyChain' ctx obj = head (runChain (dataizeRecursivelyChain obj) 
 -- | Recursively perform normalization and dataization until we get bytes in the end,
 -- reporting intermediate steps
 dataizeRecursivelyChain :: Object -> DataizeChain (Either Object Bytes)
-dataizeRecursivelyChain obj = do
-  ctx <- getContext
-  msplit (transformNormLogs (applyRulesChain obj)) >>= \case
-    Nothing -> do
-      logStep "No rules applied" (Left obj)
-      return (Left obj)
-    -- We trust that all chains lead to the same result due to confluence
-    Just (normObj, _alternatives) -> do
-      (ctx', step) <- dataizeStepChain normObj
-      case step of
-        (Left stillObj)
-          | stillObj == normObj && ctx `sameContext` ctx' -> return step -- dataization changed nothing
-          | otherwise -> withContext ctx' $ dataizeRecursivelyChain stillObj -- partially dataized
-        bytes -> return bytes
+dataizeRecursivelyChain = go 0
+ where
+  go :: Int -> Object -> DataizeChain (Either Object Bytes)
+  go n obj
+    | n > 10 = return (Left obj)
+    | otherwise = do
+        ctx <- getContext
+        msplit (transformNormLogs (applyRulesChain obj)) >>= \case
+          Nothing -> do
+            logStep "No rules applied" (Left obj)
+            return (Left obj)
+          -- We trust that all chains lead to the same result due to confluence
+          Just (normObj, _alternatives) -> do
+            (ctx', step) <- dataizeStepChain normObj
+            case step of
+              (Left stillObj)
+                | stillObj == normObj && ctx `sameContext` ctx' -> return step -- dataization changed nothing
+                | otherwise -> withContext ctx' $ go (n + 1) stillObj -- partially dataized
+              bytes -> return bytes
 
 -- | Given normalization context, a function on data (bytes interpreted as integers), an object,
 -- and the current state of evaluation, returns the new object and a possibly modified state along with intermediate steps.
@@ -129,11 +139,15 @@ evaluateBuiltinFunChain :: String -> Object -> EvaluationState -> DataizeChain (
 evaluateBuiltinFunChain "Plus" obj = evaluateDataizationFunChain (+) obj
 evaluateBuiltinFunChain "Times" obj = evaluateDataizationFunChain (*) obj
 evaluateBuiltinFunChain "Package" (Formation bindings) = do
-  \_state -> do
-    let (packageBindings, restBindings) = span isPackage bindings
-    bs <- mapM dataizeBindingChain restBindings
-    logStep "Dataized 'Package' siblings" (Left $ Formation (bs ++ packageBindings))
-    return (Formation (bs ++ packageBindings), ())
+  \state -> do
+    fmap dataizePackage getContext >>= \case
+      True -> do
+        let (packageBindings, restBindings) = span isPackage bindings
+        bs <- mapM dataizeBindingChain restBindings
+        logStep "Dataized 'Package' siblings" (Left $ Formation (bs ++ packageBindings))
+        return (Formation (bs ++ packageBindings), state)
+      False ->
+        return (Formation bindings, state)
  where
   isPackage (LambdaBinding (Function "Package")) = True
   isPackage _ = False
