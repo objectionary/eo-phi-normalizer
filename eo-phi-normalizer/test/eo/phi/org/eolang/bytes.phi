@@ -3,6 +3,7 @@
     org ↦ ⟦
       eolang ↦ ⟦
         bytes ↦ ⟦
+          Δ ⤍ ∅,
           eq ↦ ⟦
             λ ⤍ Lambda,
             x ↦ ∅
