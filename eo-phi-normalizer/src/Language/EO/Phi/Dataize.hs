@@ -92,25 +92,20 @@ dataizeRecursivelyChain' ctx obj = head (runChain (dataizeRecursivelyChain obj) 
 -- | Recursively perform normalization and dataization until we get bytes in the end,
 -- reporting intermediate steps
 dataizeRecursivelyChain :: Object -> DataizeChain (Either Object Bytes)
-dataizeRecursivelyChain = go 0
- where
-  go :: Int -> Object -> DataizeChain (Either Object Bytes)
-  go n obj
-    | n > 10 = return (Left obj)
-    | otherwise = do
-        ctx <- getContext
-        msplit (transformNormLogs (applyRulesChain obj)) >>= \case
-          Nothing -> do
-            logStep "No rules applied" (Left obj)
-            return (Left obj)
-          -- We trust that all chains lead to the same result due to confluence
-          Just (normObj, _alternatives) -> do
-            (ctx', step) <- dataizeStepChain normObj
-            case step of
-              (Left stillObj)
-                | stillObj == normObj && ctx `sameContext` ctx' -> return step -- dataization changed nothing
-                | otherwise -> withContext ctx' $ go (n + 1) stillObj -- partially dataized
-              bytes -> return bytes
+dataizeRecursivelyChain obj = do
+  ctx <- getContext
+  msplit (transformNormLogs (applyRulesChain obj)) >>= \case
+    Nothing -> do
+      logStep "No rules applied" (Left obj)
+      return (Left obj)
+    -- We trust that all chains lead to the same result due to confluence
+    Just (normObj, _alternatives) -> do
+      (ctx', step) <- dataizeStepChain normObj
+      case step of
+        (Left stillObj)
+          | stillObj == normObj && ctx `sameContext` ctx' -> return step -- dataization changed nothing
+          | otherwise -> withContext ctx' $ dataizeRecursivelyChain stillObj -- partially dataized
+        bytes -> return bytes
 
 -- | Given normalization context, a function on data (bytes interpreted as integers), an object,
 -- and the current state of evaluation, returns the new object and a possibly modified state along with intermediate steps.

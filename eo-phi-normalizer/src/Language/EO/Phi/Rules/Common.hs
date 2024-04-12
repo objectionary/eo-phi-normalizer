@@ -16,7 +16,6 @@ import Data.List (nubBy, sortOn)
 import Data.List.NonEmpty (NonEmpty (..), (<|))
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.String (IsString (..))
-import Debug.Trace (trace)
 import Language.EO.Phi.Syntax.Abs
 import Language.EO.Phi.Syntax.Lex (Token)
 import Language.EO.Phi.Syntax.Par
@@ -256,7 +255,7 @@ instance Monad (Chain a) where
     ]
 
 logStep :: String -> info -> Chain info ()
-logStep msg info = trace msg $ Chain $ const [([(msg, info)], ())]
+logStep msg info = Chain $ const [([(msg, info)], ())]
 
 choose :: [a] -> Chain log a
 choose xs = Chain $ \_ctx -> [(mempty, x) | x <- xs]
