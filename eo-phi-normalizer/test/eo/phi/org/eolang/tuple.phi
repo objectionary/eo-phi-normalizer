@@ -1,0 +1,105 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        tuple ↦ ⟦
+          head ↦ ∅,
+          tail ↦ ∅,
+          empty ↦ ⟦
+            at ↦ ⟦
+              i ↦ ∅,
+              φ ↦ Φ.org.eolang.error(
+                α0 ↦ Φ.org.eolang.string(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 43-61-6E-27-74-20-67-65-74-20-61-6E-20-6F-62-6A-65-63-74-20-66-72-6F-6D-20-74-68-65-20-65-6D-70-74-79-20-74-75-70-6C-65
+                  )
+                )
+              )
+            ⟧,
+            with ↦ ⟦
+              x ↦ ∅,
+              φ ↦ ξ.σ.σ.σ.tuple(
+                α0 ↦ ξ.σ.σ.σ.tuple.empty,
+                α1 ↦ ξ.x
+              )
+            ⟧,
+            length ↦ Φ.org.eolang.int(
+              α0 ↦ Φ.org.eolang.bytes(
+                Δ ⤍ 00-00-00-00-00-00-00-00
+              )
+            )
+          ⟧,
+          length ↦ ⟦
+            φ ↦ ξ.ρ.head.length.plus(
+              α0 ↦ Φ.org.eolang.int(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-00-00-00-00-00-00-01
+                )
+              )
+            )
+          ⟧,
+          at ↦ ⟦
+            i ↦ ∅,
+            idx ↦ ξ.i,
+            len ↦ ξ.ρ.length,
+            index ↦ ξ.idx.lt(
+              α0 ↦ Φ.org.eolang.int(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-00-00-00-00-00-00-00
+                )
+              )
+            ).if(
+              α0 ↦ ξ.len.plus(
+                α0 ↦ ξ.idx
+              ),
+              α1 ↦ ξ.idx
+            ),
+            φ ↦ ξ.index.lt(
+              α0 ↦ Φ.org.eolang.int(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-00-00-00-00-00-00-00
+                )
+              )
+            ).or(
+              α0 ↦ ξ.index.gte(
+                α0 ↦ ξ.len
+              )
+            ).if(
+              α0 ↦ Φ.org.eolang.error(
+                α0 ↦ Φ.org.eolang.string(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 47-69-76-65-6E-20-69-6E-64-65-78-20-69-73-20-6F-75-74-20-6F-66-20-74-75-70-6C-65-20-62-6F-75-6E-64-73
+                  )
+                )
+              ),
+              α1 ↦ ξ.at-without-checks(
+                α0 ↦ ξ.index
+              )
+            ),
+            at-without-checks ↦ ⟦
+              i ↦ ∅,
+              idx ↦ ξ.i,
+              φ ↦ ξ.idx.lt(
+                α0 ↦ ξ.σ.σ.head.length
+              ).if(
+                α0 ↦ ξ.ρ.ρ.head.at.at-without-checks(
+                  α0 ↦ ξ.idx
+                ),
+                α1 ↦ ξ.ρ.ρ.tail
+              )
+            ⟧
+          ⟧,
+          with ↦ ⟦
+            x ↦ ∅,
+            φ ↦ ξ.σ.σ.tuple(
+              α0 ↦ ξ.ρ,
+              α1 ↦ ξ.x
+            )
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

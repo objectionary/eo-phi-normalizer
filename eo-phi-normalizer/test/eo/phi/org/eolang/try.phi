@@ -1,0 +1,16 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        try ↦ ⟦
+          λ ⤍ Lambda,
+          main ↦ ∅,
+          catch ↦ ∅,
+          finally ↦ ∅
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

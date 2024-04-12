@@ -1,0 +1,72 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        bytes ↦ ⟦
+          eq ↦ ⟦
+            λ ⤍ Lambda,
+            x ↦ ∅
+          ⟧,
+          size ↦ ⟦
+            λ ⤍ Lambda
+          ⟧,
+          slice ↦ ⟦
+            λ ⤍ Lambda,
+            start ↦ ∅,
+            len ↦ ∅
+          ⟧,
+          as-string ↦ ⟦
+            λ ⤍ Lambda
+          ⟧,
+          as-int ↦ ⟦
+            λ ⤍ Lambda
+          ⟧,
+          as-float ↦ ⟦
+            λ ⤍ Lambda
+          ⟧,
+          and ↦ ⟦
+            λ ⤍ Lambda,
+            b ↦ ∅
+          ⟧,
+          or ↦ ⟦
+            λ ⤍ Lambda,
+            b ↦ ∅
+          ⟧,
+          xor ↦ ⟦
+            λ ⤍ Lambda,
+            b ↦ ∅
+          ⟧,
+          not ↦ ⟦
+            λ ⤍ Lambda
+          ⟧,
+          left ↦ ⟦
+            x ↦ ∅,
+            φ ↦ ξ.ρ.right(
+              α0 ↦ ξ.x.neg
+            )
+          ⟧,
+          right ↦ ⟦
+            λ ⤍ Lambda,
+            x ↦ ∅
+          ⟧,
+          as-bool ↦ ⟦
+            φ ↦ ξ.ρ.eq(
+              α0 ↦ ξ.σ.σ.bytes(
+                Δ ⤍ 01-
+              )
+            )
+          ⟧,
+          as-bytes ↦ ⟦
+            φ ↦ ξ.ρ
+          ⟧,
+          concat ↦ ⟦
+            λ ⤍ Lambda,
+            b ↦ ∅
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

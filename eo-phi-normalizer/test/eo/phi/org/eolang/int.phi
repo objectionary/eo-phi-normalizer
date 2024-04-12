@@ -1,0 +1,75 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        int ↦ ⟦
+          as-bytes ↦ ∅,
+          φ ↦ ξ.as-bytes,
+          eq ↦ ⟦
+            x ↦ ∅,
+            φ ↦ ξ.ρ.as-bytes.eq(
+              α0 ↦ ξ.x.as-bytes
+            )
+          ⟧,
+          lt ↦ ⟦
+            x ↦ ∅,
+            φ ↦ ξ.x.plus(
+              α0 ↦ ξ.ρ.neg
+            ).gt(
+              α0 ↦ ξ.σ.σ.int(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-00-00-00-00-00-00-00
+                )
+              )
+            )
+          ⟧,
+          lte ↦ ⟦
+            x ↦ ∅,
+            φ ↦ ξ.ρ.gt(
+              α0 ↦ ξ.x
+            ).not
+          ⟧,
+          gt ↦ ⟦
+            λ ⤍ Lambda,
+            x ↦ ∅
+          ⟧,
+          gte ↦ ⟦
+            x ↦ ∅,
+            φ ↦ ξ.ρ.lt(
+              α0 ↦ ξ.x
+            ).not
+          ⟧,
+          neg ↦ ⟦
+            φ ↦ ξ.ρ.times(
+              α0 ↦ ξ.σ.σ.int(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ FF-FF-FF-FF-FF-FF-FF-FF
+                )
+              )
+            )
+          ⟧,
+          plus ↦ ⟦
+            λ ⤍ Lambda,
+            x ↦ ∅
+          ⟧,
+          minus ↦ ⟦
+            x ↦ ∅,
+            φ ↦ ξ.ρ.plus(
+              α0 ↦ ξ.x.neg
+            )
+          ⟧,
+          times ↦ ⟦
+            λ ⤍ Lambda,
+            x ↦ ∅
+          ⟧,
+          div ↦ ⟦
+            λ ⤍ Lambda,
+            x ↦ ∅
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}
