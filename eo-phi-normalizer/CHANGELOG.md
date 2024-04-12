@@ -6,6 +6,29 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to the
 [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## v0.3.1 — 2024-04-12
+
+This version supports proper dataization of test programs with dependencies.
+
+New:
+
+- Add `--dependency-file FILE` option to enable dependencies (e.g. `bool.phi`, `bytes.phi`) (see [#265](https://github.com/objectionary/normalizer/pull/265))
+
+Changes and fixes:
+
+- Fix handling of `Package` atom (also improves related code, see [#239](https://github.com/objectionary/normalizer/pull/239) and [#265](https://github.com/objectionary/normalizer/pull/265))
+- Update the dataless objects metric (see [#234](https://github.com/objectionary/normalizer/pull/234))
+- Improve reports (see [#225](https://github.com/objectionary/normalizer/pull/225))
+
+Documentation and maintenance:
+
+- Establish proposals format and process (see [#248](https://github.com/objectionary/normalizer/pull/248))
+- Improve the docs job, improve the site, fix minor errors (see [#228](https://github.com/objectionary/normalizer/pull/228))
+- Fix `hlint` warnings (see [#241](https://github.com/objectionary/normalizer/pull/241))
+- CI: run doctests (see [#230](https://github.com/objectionary/normalizer/pull/230))
+- CI: switch back to the official `stack-action` (see [#246](https://github.com/objectionary/normalizer/pull/246))
+- CI: publish extra files in artifacts (in particular, dependencies like `bool.phi`, see [#245](https://github.com/objectionary/normalizer/pull/245))
+
 ## v0.3.0 — 2024-03-26
 
 In this version the main executable has been renamed to `normalizer`
