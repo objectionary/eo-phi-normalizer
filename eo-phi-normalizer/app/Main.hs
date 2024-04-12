@@ -37,7 +37,6 @@ import Data.String.Interpolate (i, iii)
 import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy as TL (unpack)
 import Data.Yaml (decodeFileThrow)
-import Debug.Trace (trace)
 import GHC.Generics (Generic)
 import Language.EO.Phi (AlphaIndex (AlphaIndex), Attribute (Alpha), Binding (..), Bytes (Bytes), Function (..), Object (Formation), Program (Program), parseProgram, printTree)
 import Language.EO.Phi.Dataize
@@ -382,8 +381,7 @@ isPackageBinding _ = False
 
 mergeBinding :: Binding -> Binding -> Either String Binding
 mergeBinding (AlphaBinding a (Formation xs)) (AlphaBinding b (Formation ys))
-  | a == b =
-      trace ("Merging under " <> printTree a) $ AlphaBinding a . Formation <$> mergeBindings xs ys
+  | a == b = AlphaBinding a . Formation <$> mergeBindings xs ys
 mergeBinding x y | x == y = return x
 mergeBinding x y =
   Left $
