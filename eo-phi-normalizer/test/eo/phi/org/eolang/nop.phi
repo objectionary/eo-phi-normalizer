@@ -1,0 +1,18 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        nop ↦ ⟦
+          args ↦ ∅,
+          φ ↦ Φ.org.eolang.bool(
+            α0 ↦ Φ.org.eolang.bytes(
+              Δ ⤍ 01-
+            )
+          )
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

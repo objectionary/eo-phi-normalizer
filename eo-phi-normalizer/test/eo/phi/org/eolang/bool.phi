@@ -1,0 +1,82 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        bool ↦ ⟦
+          as-bytes ↦ ∅,
+          φ ↦ ξ.as-bytes,
+          eq ↦ ⟦
+            x ↦ ∅,
+            φ ↦ ξ.ρ.as-bytes.eq(
+              α0 ↦ ξ.x.as-bytes
+            )
+          ⟧,
+          if ↦ ⟦
+            λ ⤍ Lambda,
+            t ↦ ∅,
+            f ↦ ∅
+          ⟧,
+          not ↦ ⟦
+            φ ↦ ξ.ρ.eq(
+              α0 ↦ ξ.σ.σ.bool(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-
+                )
+              )
+            )
+          ⟧,
+          and ↦ ⟦
+            x ↦ ∅,
+            φ ↦ ξ.ρ.if(
+              α0 ↦ ξ.x.if(
+                α0 ↦ ξ.σ.σ.bool(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 01-
+                  )
+                ),
+                α1 ↦ ξ.σ.σ.bool(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 00-
+                  )
+                )
+              ),
+              α1 ↦ ξ.σ.σ.bool(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-
+                )
+              )
+            )
+          ⟧,
+          or ↦ ⟦
+            x ↦ ∅,
+            φ ↦ ξ.ρ.if(
+              α0 ↦ ξ.σ.σ.bool(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 01-
+                )
+              ),
+              α1 ↦ ξ.x.if(
+                α0 ↦ ξ.σ.σ.bool(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 01-
+                  )
+                ),
+                α1 ↦ ξ.σ.σ.bool(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 00-
+                  )
+                )
+              )
+            )
+          ⟧,
+          while ↦ ⟦
+            λ ⤍ Lambda,
+            f ↦ ∅
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

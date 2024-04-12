@@ -3,7 +3,6 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE TupleSections #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
@@ -56,6 +55,8 @@ data Context = Context
   , currentAttr :: Attribute
   , insideFormation :: Bool
   -- ^ Temporary hack for applying Ksi and Phi rules when dataizing
+  , dataizePackage :: Bool
+  -- ^ Temporary flag to only dataize Package attributes for the top-level formation.
   }
 
 sameContext :: Context -> Context -> Bool
@@ -72,6 +73,7 @@ defaultContext rules obj =
     , outerFormations = NonEmpty.singleton obj
     , currentAttr = Sigma
     , insideFormation = False
+    , dataizePackage = True
     }
 
 -- | A rule tries to apply a transformation to the root object, if possible.
@@ -274,7 +276,10 @@ getContext :: Chain a Context
 getContext = Chain $ \ctx -> [([], ctx)]
 
 withContext :: Context -> Chain log a -> Chain log a
-withContext ctx (Chain f) = Chain (\_ -> f ctx)
+withContext = modifyContext . const
+
+modifyContext :: (Context -> Context) -> Chain log a -> Chain log a
+modifyContext g (Chain f) = Chain (f . g)
 
 applyRulesChain' :: Context -> Object -> [([(String, Object)], Object)]
 applyRulesChain' ctx obj = applyRulesChainWith' (defaultApplicationLimits (objectSize obj)) ctx obj

@@ -1,0 +1,14 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        seq ↦ ⟦
+          λ ⤍ Lambda,
+          steps ↦ ∅
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

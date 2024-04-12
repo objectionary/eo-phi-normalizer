@@ -1,0 +1,13 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        error ↦ ⟦
+          λ ⤍ Lambda
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

@@ -1,0 +1,13 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        cage ↦ ⟦
+          λ ⤍ Lambda
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}
