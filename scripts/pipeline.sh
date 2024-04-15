@@ -5,7 +5,7 @@ if ! [ -d node_modules ]; then npm i; fi
 export LC_ALL=C.UTF-8
 
 shopt -s expand_aliases
-EO="0.35.8"
+EO="0.36.0"
 alias eo="npx eoc --parser=${EO}"
 
 shopt -s extglob
