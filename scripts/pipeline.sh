@@ -100,36 +100,43 @@ function tests_without_normalization {
 }
 
 
-function tests_with_normalization {
+function normalization {
     print_message "Normalize PHI"
 
     mkdir -p phi-normalized
     cd phi
-    PHI_FILES="$(find . -type f -not -path './.eoc/*')"
-    dependencies_files="$(find .eoc/phi/org/eolang -type f)"
+    phi_files="$(find . -type f -not -path './.eoc/*')"
+    dependency_files="$(find .eoc/phi/org/eolang -type f)"
+    export dependency_files
 
-    function normalize {
-        set -x
+    function normalize_file {
         local f="$1"
         destination="../phi-normalized/$f"
         mkdir -p "$(dirname "$destination")"
 
+        dependency_file_options="$(printf "%s" "$dependency_files" | xargs -I {} printf "--dependency-file %s " {})"
+
+        set -x
+        # shellcheck disable=SC2086
         stack run -- \
             dataize \
             --rules \
             ../../eo-phi-normalizer/test/eo/phi/rules/yegor.yaml \
-            $(printf "%s" "$(find .eoc/phi/org/eolang -type f)" | xargs -I {} printf "--dependency-file %s " {}) \
+            $dependency_file_options \
             "$f" \
-            > "$destination" || set +x
+            > "$destination" \
+            || set +x
         set +x
     }
 
-    export -f normalize
+    export -f normalize_file
 
-    time printf "%s" "$PHI_FILES" \
-        | xargs -I {} bash -c 'normalize {}'
+    time printf "%s" "$phi_files" \
+        | xargs -I {} bash -c 'normalize_file {}'
     cd ..
+}
 
+function tests_with_normalization {
 
     print_message "Convert normalized PHI to EO"
 
@@ -139,7 +146,6 @@ function tests_with_normalization {
     cp -r .eoc/unphi/!(org) .eoc/2-optimize
     eo print
     cd ..
-
 
     print_message "Test EO with normalization"
 
