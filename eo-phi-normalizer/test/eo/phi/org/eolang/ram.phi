@@ -1,0 +1,34 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        ram ↦ ⟦
+          size ↦ ∅,
+          write ↦ ⟦
+            λ ⤍ Lambda,
+            position ↦ ∅,
+            data ↦ ∅
+          ⟧,
+          slice ↦ ⟦
+            λ ⤍ Lambda,
+            position ↦ ∅,
+            size ↦ ∅
+          ⟧,
+          ram-slice ↦ ⟦
+            position ↦ ∅,
+            size ↦ ∅,
+            φ ↦ ⟦
+              λ ⤍ Lambda
+            ⟧,
+            write ↦ ⟦
+              λ ⤍ Lambda,
+              data ↦ ∅
+            ⟧
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

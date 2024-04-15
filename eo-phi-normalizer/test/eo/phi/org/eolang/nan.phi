@@ -1,0 +1,82 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        nan ↦ ⟦
+          φ ↦ Φ.org.eolang.float(
+            α0 ↦ Φ.org.eolang.bytes(
+              Δ ⤍ 00-00-00-00-00-00-00-00
+            )
+          ).div(
+            α0 ↦ Φ.org.eolang.float(
+              α0 ↦ Φ.org.eolang.bytes(
+                Δ ⤍ 00-00-00-00-00-00-00-00
+              )
+            )
+          ),
+          eq ↦ ⟦
+            x ↦ ∅,
+            φ ↦ Φ.org.eolang.bool(
+              α0 ↦ Φ.org.eolang.bytes(
+                Δ ⤍ 00-
+              )
+            )
+          ⟧,
+          lt ↦ ⟦
+            x ↦ ∅,
+            φ ↦ Φ.org.eolang.bool(
+              α0 ↦ Φ.org.eolang.bytes(
+                Δ ⤍ 00-
+              )
+            )
+          ⟧,
+          lte ↦ ⟦
+            x ↦ ∅,
+            φ ↦ Φ.org.eolang.bool(
+              α0 ↦ Φ.org.eolang.bytes(
+                Δ ⤍ 00-
+              )
+            )
+          ⟧,
+          gt ↦ ⟦
+            x ↦ ∅,
+            φ ↦ Φ.org.eolang.bool(
+              α0 ↦ Φ.org.eolang.bytes(
+                Δ ⤍ 00-
+              )
+            )
+          ⟧,
+          gte ↦ ⟦
+            x ↦ ∅,
+            φ ↦ Φ.org.eolang.bool(
+              α0 ↦ Φ.org.eolang.bytes(
+                Δ ⤍ 00-
+              )
+            )
+          ⟧,
+          times ↦ ⟦
+            x ↦ ∅,
+            φ ↦ ξ.ρ
+          ⟧,
+          plus ↦ ⟦
+            x ↦ ∅,
+            φ ↦ ξ.ρ
+          ⟧,
+          neg ↦ ⟦
+            φ ↦ ξ.ρ
+          ⟧,
+          minus ↦ ⟦
+            x ↦ ∅,
+            φ ↦ ξ.ρ
+          ⟧,
+          div ↦ ⟦
+            x ↦ ∅,
+            φ ↦ ξ.ρ
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

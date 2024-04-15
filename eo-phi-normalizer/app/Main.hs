@@ -26,7 +26,7 @@
 
 module Main (main) where
 
-import Control.Monad (forM, unless, when)
+import Control.Monad (foldM, forM, unless, when)
 import Data.Foldable (forM_)
 
 import Control.Exception (Exception (..), SomeException, catch, throw)
@@ -38,7 +38,7 @@ import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy as TL (unpack)
 import Data.Yaml (decodeFileThrow)
 import GHC.Generics (Generic)
-import Language.EO.Phi (Bytes (Bytes), Object (Formation), Program (Program), parseProgram, printTree)
+import Language.EO.Phi (AlphaIndex (AlphaIndex), Attribute (Alpha), Binding (..), Bytes (Bytes), Function (..), Object (Formation), Program (Program), parseProgram, printTree)
 import Language.EO.Phi.Dataize
 import Language.EO.Phi.Metrics.Collect as Metrics (getProgramMetrics)
 import Language.EO.Phi.Metrics.Data as Metrics (ProgramMetrics (..), splitPath)
@@ -60,6 +60,7 @@ data CLI'TransformPhi = CLI'TransformPhi
   , single :: Bool
   , json :: Bool
   , inputFile :: Maybe FilePath
+  , dependencies :: [FilePath]
   , maxDepth :: Int
   , maxGrowthFactor :: Int
   }
@@ -68,6 +69,7 @@ data CLI'TransformPhi = CLI'TransformPhi
 data CLI'DataizePhi = CLI'DataizePhi
   { rulesPath :: String
   , inputFile :: Maybe FilePath
+  , dependencies :: [FilePath]
   , outputFile :: Maybe String
   , recursive :: Bool
   , chain :: Bool
@@ -140,6 +142,11 @@ outputFileOption = optional $ strOption (long "output-file" <> short 'o' <> meta
 inputFileArg :: Parser (Maybe String)
 inputFileArg = optional $ strArgument (metavar.file <> help [i|#{fileMetavarName} to read input from. When no #{fileMetavarName} is specified, read from stdin.|])
 
+dependenciesArg :: Parser [FilePath]
+dependenciesArg =
+  many $
+    strOption (long "dependency-file" <> short 'd' <> metavar.file <> help [i|#{fileMetavarName} to read dependencies from (zero or more dependency files allowed).|])
+
 jsonSwitch :: Parser Bool
 jsonSwitch = switch (long "json" <> short 'j' <> help "Output JSON.")
 
@@ -191,10 +198,12 @@ commandParser =
       let maxValue = 10
        in option auto (long "max-growth-factor" <> metavar.int <> value maxValue <> help [i|The factor by which to allow the input term to grow before stopping. Defaults to #{maxValue}.|])
     inputFile <- inputFileArg
+    dependencies <- dependenciesArg
     pure CLI'TransformPhi{..}
   dataize = do
     rulesPath <- strOption (long "rules" <> short 'r' <> metavar.file <> help [i|#{fileMetavarName} with user-defined rules. Must be specified.|])
     inputFile <- inputFileArg
+    dependencies <- dependenciesArg
     outputFile <- outputFileOption
     recursive <- switch (long "recursive" <> help "Apply dataization + normalization recursively.")
     chain <- switch (long "chain" <> help "Display all the intermediate steps.")
@@ -270,6 +279,7 @@ data CLI'Exception
   | CouldNotRead {message :: String}
   | CouldNotParse {message :: String}
   | CouldNotNormalize
+  | CouldNotMergeDependencies {message :: String}
   | Impossible {message :: String}
   deriving anyclass (Exception)
 
@@ -281,6 +291,7 @@ instance Show CLI'Exception where
     CouldNotRead{..} -> [i|Could not read the program:\n#{message}|]
     CouldNotParse{..} -> [i|An error occurred when parsing the input program:\n#{message}|]
     CouldNotNormalize -> [i|Could not normalize the program.|]
+    CouldNotMergeDependencies{..} -> message
     Impossible{..} -> message
 
 getFile :: Maybe FilePath -> IO (Maybe String)
@@ -335,6 +346,81 @@ getMetrics bindingsPath inputFile = do
   program <- getProgram inputFile
   either throw pure (getMetrics' program bindingsPath)
 
+-- ** Merging programs with dependencies
+
+bindingAttr :: Binding -> Maybe Attribute
+bindingAttr (AlphaBinding a _) = Just a
+bindingAttr (EmptyBinding a) = Just a
+bindingAttr (DeltaBinding _) = Just (Alpha (AlphaIndex "Δ"))
+bindingAttr DeltaEmptyBinding = Just (Alpha (AlphaIndex "Δ"))
+bindingAttr LambdaBinding{} = Just (Alpha (AlphaIndex "λ"))
+bindingAttr MetaBindings{} = Nothing
+bindingAttr MetaDeltaBinding{} = Nothing
+
+zipBindings :: [Binding] -> [Binding] -> ([Binding], [(Binding, Binding)])
+zipBindings xs ys = (xs' <> ys', collisions)
+ where
+  as = map bindingAttr xs
+  bs = map bindingAttr ys
+
+  xs' = [x | x <- xs, bindingAttr x `notElem` bs]
+  ys' = [y | y <- ys, bindingAttr y `notElem` as]
+  collisions =
+    [ (x, y)
+    | x <- xs
+    , y <- ys
+    , bindingAttr x == bindingAttr y
+    ]
+
+isPackage :: [Binding] -> Bool
+isPackage = any isPackageBinding
+
+isPackageBinding :: Binding -> Bool
+isPackageBinding (LambdaBinding (Function "Package")) = True
+isPackageBinding _ = False
+
+mergeBinding :: Binding -> Binding -> Either String Binding
+mergeBinding (AlphaBinding a (Formation xs)) (AlphaBinding b (Formation ys))
+  | a == b = AlphaBinding a . Formation <$> mergeBindings xs ys
+mergeBinding x y | x == y = return x
+mergeBinding x y =
+  Left $
+    concat @[]
+      [ "conflict when adding dependencies (trying to merge non-formations)"
+      , printTree x
+      , printTree y
+      ]
+
+mergeBindings :: [Binding] -> [Binding] -> Either String [Binding]
+mergeBindings xs ys
+  | isPackage xs && isPackage ys = do
+      case zipBindings xs ys of
+        (zs, collisions) -> do
+          ws <- mapM (uncurry mergeBinding) collisions
+          return (zs <> ws)
+  | otherwise =
+      Left $
+        concat @[]
+          [ "conflict when adding dependencies (trying to merge non-Package formations "
+          , printTree (Formation xs)
+          , printTree (Formation ys)
+          , " )"
+          ]
+
+deepMerge :: Program -> Program -> Either String Program
+deepMerge (Program xs) (Program ys) = Program <$> mergeBindings (mkPackage xs) (mkPackage ys)
+ where
+  mkPackage bs
+    | isPackage bs = bs
+    -- FIXME: check if lambda attribute exists and throw error!
+    | otherwise = LambdaBinding (Function "Package") : bs
+
+deepMergePrograms :: [Program] -> Either String Program
+deepMergePrograms [] = Right (Program [])
+deepMergePrograms (p : ps) = foldM deepMerge p ps
+
+-- * Main
+
 main :: IO ()
 main = do
   opts <- customExecParser pprefs cliOpts
@@ -348,9 +434,13 @@ main = do
       logStrLn $ encodeToJSONString metrics
     CLI'TransformPhi' CLI'TransformPhi{..} -> do
       program' <- getProgram inputFile
+      deps <- mapM (getProgram . Just) dependencies
       (logStrLn, logStr) <- getLoggers outputFile
       ruleSet <- parseRuleSetFromFile rulesPath
       unless (single || json) $ logStrLn ruleSet.title
+      bindingsWithDeps <- case deepMergePrograms (program' : deps) of
+        Left err -> throw (CouldNotMergeDependencies err)
+        Right (Program bindingsWithDeps) -> return bindingsWithDeps
       let Program bindings = program'
           uniqueResults
             -- Something here seems incorrect
@@ -358,7 +448,7 @@ main = do
             | otherwise = pure . ("",) <$> applyRulesWith limits ctx (Formation bindings)
            where
             limits = ApplicationLimits maxDepth (maxGrowthFactor * objectSize (Formation bindings))
-            ctx = defaultContext (convertRuleNamed <$> ruleSet.rules) (Formation bindings)
+            ctx = defaultContext (convertRuleNamed <$> ruleSet.rules) (Formation bindingsWithDeps) -- IMPORTANT: context contains dependencies!
           totalResults = length uniqueResults
       when (null uniqueResults || null (head uniqueResults)) (throw CouldNotNormalize)
       if
@@ -393,10 +483,14 @@ main = do
     CLI'DataizePhi' CLI'DataizePhi{..} -> do
       (logStrLn, _logStr) <- getLoggers outputFile
       program' <- getProgram inputFile
+      deps <- mapM (getProgram . Just) dependencies
+      bindingsWithDeps <- case deepMergePrograms (program' : deps) of
+        Left err -> throw (CouldNotMergeDependencies err)
+        Right (Program bindingsWithDeps) -> return bindingsWithDeps
       ruleSet <- parseRuleSetFromFile rulesPath
       let (Program bindings) = program'
       let inputObject = Formation bindings
-      let ctx = defaultContext (convertRuleNamed <$> ruleSet.rules) inputObject
+      let ctx = defaultContext (convertRuleNamed <$> ruleSet.rules) (Formation bindingsWithDeps) -- IMPORTANT: context contains dependencies!
       ( if chain
           then do
             let dataizeChain

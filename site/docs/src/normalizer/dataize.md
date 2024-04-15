@@ -48,7 +48,7 @@ Available options:
   -h,--help                Show this help text
 ```
 
-### `--rules`
+### `--rules FILE`
 
 Similar to `--rules` for the `transform` subcommand, this argument accepts the path to a YAML file containing the rules to be used in the normalization phase.
 
@@ -71,9 +71,14 @@ Dataizing inside dispatch: ξ
 Nothing to dataize: ξ
 ```
 
-### `--output-file`
+### `--output-file FILE`
 
 Redirects the output to file of the given path instead of `stdout`.
+
+### `--dependency-file FILE`
+
+Injects package dependencies from a given file into the context when dataizing the input.
+Can be used multiple times to inject multiple dependencies.
 
 ### `--recursive`
 

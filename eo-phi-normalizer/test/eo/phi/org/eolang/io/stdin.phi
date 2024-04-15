@@ -1,0 +1,21 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        io ↦ ⟦
+          stdin ↦ ⟦
+            next-line ↦ ⟦
+              λ ⤍ Lambda
+            ⟧,
+            φ ↦ ⟦
+              λ ⤍ Lambda
+            ⟧
+          ⟧,
+          λ ⤍ Package
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

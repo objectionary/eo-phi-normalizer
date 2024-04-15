@@ -91,11 +91,12 @@ Available options:
   -h,--help                Show this help text
 ```
 
-### `--rules`
+### `--rules FILE`
 
-Normalize a 𝜑-expression from `program.phi` using the [yegor.yaml](#yegoryaml) rules.
+Normalize a 𝜑-expression from `program.phi` using the rules from a given file (e.g. [yegor.yaml](#yegoryaml)).
 
-There can be multiple numbered results that correspond to multiple rule application sequences.
+The output may contain multiple numbered results that correspond to different possible rule application sequences
+(even if the final result is the same).
 
 ```$ as console
 normalizer transform --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml program.phi
@@ -168,6 +169,15 @@ normalizer transform --single --json --rules ./eo-phi-normalizer/test/eo/phi/rul
 ```console
 "{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧ ⟧ }"
 ```
+
+### `--output-file FILE`
+
+Redirects the output to file of the given path instead of `stdout`.
+
+### `--dependency-file FILE`
+
+Injects package dependencies from a given file into the context when transforming the input.
+Can be used multiple times to inject multiple dependencies.
 
 ### `FILE` not specified (read from stdin)
 
