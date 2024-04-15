@@ -77,10 +77,10 @@ items:
   phi-normalized: pipeline/phi-normalized/runtime-tests.phi
   bindings-path-phi: org.eolang
   bindings-path-phi-normalized: org.eolang
-- phi: pipeline/phi/rust-tests.phi
-  phi-normalized: pipeline/phi-normalized/rust-tests.phi
-  bindings-path-phi: org.eolang
-  bindings-path-phi-normalized: org.eolang
+# - phi: pipeline/phi/rust-tests.phi
+#   phi-normalized: pipeline/phi-normalized/rust-tests.phi
+#   bindings-path-phi: org.eolang
+#   bindings-path-phi-normalized: org.eolang
 - phi: pipeline/phi/seq-tests.phi
   phi-normalized: pipeline/phi-normalized/seq-tests.phi
   bindings-path-phi: org.eolang
