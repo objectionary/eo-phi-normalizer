@@ -156,8 +156,8 @@ function generate_report () {
 }
 
 check_configs
-# prepare_directory
-# enter_directory
-# tests_without_normalization
-# tests_with_normalization
-# generate_report
+prepare_directory
+enter_directory
+tests_without_normalization
+tests_with_normalization
+generate_report
