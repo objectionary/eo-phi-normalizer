@@ -84,7 +84,7 @@ jobs:
 
       - name: Install mdsh
         if: runner.os == 'Linux' && github.head_ref
-        uses: baptiste0928/cargo-install@v3.0.1
+        uses: baptiste0928/cargo-install@v3.1.0
         with:
           crate: mdsh
           git: https://github.com/zimbatm/mdsh
