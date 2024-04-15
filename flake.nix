@@ -109,11 +109,11 @@
           };
 
           # Default package & app.
-          apps.default = self'.apps.haskell-template;
+          apps.default = self'.packages.default;
 
           packages =
             mkShellApps {
-              default = self'.packages.haskell-template;
+              default = self'.packages.eo-phi-normalizer;
               pipeline = {
                 runtimeInputs = [
                   stack-wrapped
@@ -121,18 +121,11 @@
                   pkgs.maven
                   pkgs.perl
                 ];
-                text =
-                  let
-                    mkProgram = n: ''
-                      export PROGRAM="${builtins.toString n}"
-                      ${builtins.readFile ./scripts/pipeline.sh}
-                    '';
-                  in
-                  ''
-                    export JAVA_HOME="${pkgs.jdk21.home}"
-                    ${lib.concatMapStringsSep "\n\n" mkProgram [ 2 ]}
-                  '';
-                description = "Run pipeline";
+                text = ''
+                  export JAVA_HOME="${pkgs.jdk21.home}"
+                  ${builtins.readFile ./scripts/pipeline.sh}
+                '';
+                meta.description = "Run pipeline";
                 excludeShellChecks = [ "SC2139" ];
               };
 
