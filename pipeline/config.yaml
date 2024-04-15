@@ -6,7 +6,7 @@ sets:
 - source: eo/eo-runtime/src/test/eo/org/eolang/bool-tests.eo
   yaml: pipeline/yaml/bool-tests.yaml
   destination: pipeline/eo/bool-tests.eo
-  enable: false
+  # enable: false
 - source: eo/eo-runtime/src/test/eo/org/eolang/bytes-tests.eo
   yaml: pipeline/yaml/bytes-tests.yaml
   destination: pipeline/eo/bytes-tests.eo
