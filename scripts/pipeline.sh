@@ -104,7 +104,7 @@ function tests_with_normalization {
 
     mkdir -p phi-normalized
     cd phi
-    PHI_FILES="$(find . -name '*.phi' -not -path '.eoc/**')"
+    PHI_FILES="$(find . -type f -not -path './.eoc/*')"
     dependencies_files="$(find .eoc/phi/org/eolang -type f)"
 
     function normalize {
