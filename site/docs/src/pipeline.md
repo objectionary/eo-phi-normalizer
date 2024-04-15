@@ -1,4 +1,4 @@
-# Quick start
+# Pipeline
 
 ## Install `normalizer` from the repository
 
