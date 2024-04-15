@@ -106,7 +106,10 @@ function tests_with_normalization {
     cd phi
     PHI_FILES="$(find . -name '*.phi' -not -path '.eoc/**')"
     dependencies_files="$(find .eoc/phi/org/eolang -type f)"
-    for f in $PHI_FILES; do
+
+    function normalize {
+        set -x
+        local f="$1"
         destination="../phi-normalized/$f"
         mkdir -p "$(dirname "$destination")"
 
@@ -116,8 +119,14 @@ function tests_with_normalization {
             ../../eo-phi-normalizer/test/eo/phi/rules/yegor.yaml \
             $(printf "%s" "$(find .eoc/phi/org/eolang -type f)" | xargs -I {} printf "--dependency-file %s " {}) \
             "$f" \
-            > "$destination"
-    done
+            > "$destination" || set +x
+        set +x
+    }
+
+    export -f normalize
+
+    time printf "%s" "$PHI_FILES" \
+        | xargs -I {} bash -c 'normalize {}'
     cd ..
 
 
