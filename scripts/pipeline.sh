@@ -69,7 +69,7 @@ function tests_with_normalization {
     PHI_FILES="$(find . -name '*.phi' -not -path '.eoc/**')"
     for f in $PHI_FILES; do
         destination="../phi-normalized/$f"
-        mkdir -p $(dirname $destination)
+        mkdir -p "$(dirname "$destination")"
 
         stack run -- \
             transform \
@@ -77,7 +77,7 @@ function tests_with_normalization {
             --rules \
             ../../eo-phi-normalizer/test/eo/phi/rules/yegor.yaml \
             "$f" \
-            > $destination
+            > "$destination"
     done
     cd ..
 
