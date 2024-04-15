@@ -49,7 +49,9 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
       fail-fast: false
-
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
@@ -60,6 +62,8 @@ jobs:
         uses: freckle/stack-action@v5
         with:
           stack-build-arguments: ${{ github.ref_name != 'master' && '--fast' || '' }} --pedantic
+          stack-build-arguments-build: --copy-bins
+          stack-build-arguments-test: --force-dirty
           # TODO #213:10m enable macos test after https://github.com/objectionary/normalizer/issues/180 is resolved
           # TODO #98:10m enable windows tests after https://github.com/objectionary/normalizer/issues/185 is resolved
           test: ${{ matrix.os != 'windows-latest' && matrix.os != 'macos-latest'}}
@@ -77,6 +81,32 @@ jobs:
       - name: Run pipeline
         shell: bash
         run: ./scripts/pipeline.sh
+
+      - name: Install mdsh
+        if: runner.os == 'Linux' && github.head_ref
+        uses: baptiste0928/cargo-install@v3.0.1
+        with:
+          crate: mdsh
+          git: https://github.com/zimbatm/mdsh
+          tag: v0.8.0
+
+      - name: Update Markdown files
+        if: runner.os == 'Linux' && github.head_ref
+        run: ./scripts/update-markdown.sh
+
+      - name: Commit files
+        if: runner.os == 'Linux' && github.head_ref
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr checkout ${{ github.event.pull_request.number }}
+
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+          git add site proposals README.md
+          git commit -m "Update Markdown files"
+
+          git push
 
       - name: Upload pipeline artifact
         id: pipeline-artifact
@@ -129,7 +159,6 @@ jobs:
     if: ${{ github.ref_name == 'master' }}
     name: "Build and upload site (master)"
     runs-on: ubuntu-latest
-
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
@@ -138,7 +167,7 @@ jobs:
         uses: freckle/stack-action@v5
         with:
           test: false
-          stack-build-arguments: --fast --haddock --copy-bins
+          stack-build-arguments: --fast --haddock
           cache-prefix: docs-
 
       - name: Download pipeline artifact
@@ -152,40 +181,10 @@ jobs:
         with:
           mdbook-version: "latest"
 
-      - name: cargo-install
-        uses: baptiste0928/cargo-install@v3.0.1
-        with:
-          crate: mdsh
-          git: https://github.com/zimbatm/mdsh
-          tag: v0.8.0
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
       - name: Add haddock
         run: |
           mkdir -p dist/haddock
           mv $(stack path --local-doc-root)/* dist/haddock
-
-      - name: Run mdsh
-        run: ./scripts/run-mdsh.sh
-
-      - name: Configure git for github-actions
-        run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-
-      - name: Commit changes produced by mdsh
-        run: |
-          git pull --rebase --autostash
-
-          git add site
-
-          git commit -m "Run mdsh" \
-            && git push \
-            || true
 
       - name: Add docs
         run: |
