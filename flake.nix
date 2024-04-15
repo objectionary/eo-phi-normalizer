@@ -8,6 +8,10 @@
     haskell-flake.url = "github:srid/haskell-flake";
     treefmt-nix.url = "github:numtide/treefmt-nix";
     treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
+    flake-compat = {
+      url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
+      flake = false;
+    };
   };
 
   outputs =
@@ -29,12 +33,28 @@
           ...
         }:
         let
+          ghcVersion = "964";
+          stack-wrapped = pkgs.symlinkJoin {
+            name = "stack"; # will be available as the usual `stack` in terminal
+            paths = [ pkgs.stack ];
+            buildInputs = [ pkgs.makeWrapper ];
+            postBuild = ''
+              wrapProgram $out/bin/stack \
+                --add-flags "\
+                  --system-ghc \
+                  --no-install-ghc \
+                  --nix \
+                  --nix-shell-file stack.nix \
+                  --nix-path nixpkgs=${inputs.nixpkgs} \
+                "
+            '';
+          };
           mkShellApps = lib.mapAttrs (
             name: value:
             if !(lib.isDerivation value) && lib.isAttrs value then
               pkgs.writeShellApplication (value // { inherit name; })
             else
-              lib.id
+              value
           );
         in
         {
@@ -55,6 +75,8 @@
                 ];
               }
             );
+
+            basePackages = pkgs.haskell.packages."ghc${ghcVersion}";
 
             # Development shell configuration
             devShell = {
@@ -94,7 +116,7 @@
               default = self'.packages.haskell-template;
               pipeline = {
                 runtimeInputs = [
-                  pkgs.stack
+                  stack-wrapped
                   pkgs.jdk21
                   pkgs.maven
                   pkgs.perl
@@ -118,7 +140,7 @@
                 runtimeInputs = [
                   pkgs.mdsh
                   pkgs.mdbook-linkcheck
-                  pkgs.stack
+                  stack-wrapped
                 ];
                 text =
                   let
@@ -154,15 +176,21 @@
                     ${text}
                   '';
               };
+
+              # buildStackProject arguments: https://github.com/NixOS/nixpkgs/blob/c7089236291045a523429e681bdaecb49bb501f3/pkgs/development/haskell-modules/generic-stack-builder.nix#L4-L11
+              stack-shell = pkgs.haskell.lib.buildStackProject {
+                name = "stack-shell";
+                ghc = pkgs.haskell.compiler."ghc${ghcVersion}";
+              };
             };
 
           # Default shell.
           devshells.default =
             let
               tools = [
+                stack-wrapped
                 pkgs.ghcid
                 pkgs.hpack
-                pkgs.stack
                 pkgs.gh
                 pkgs.mdsh
                 pkgs.mdbook
