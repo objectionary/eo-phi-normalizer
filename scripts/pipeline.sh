@@ -24,6 +24,7 @@ function check_configs {
     eo_files="$(mktemp)"
     (
         cd "$eo_tests"
+        # shellcheck disable=SC2035
         find * -type f \
             | sort \
             | uniq \
