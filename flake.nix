@@ -111,71 +111,70 @@
           # Default package & app.
           apps.default = self'.packages.default;
 
-          packages =
-            mkShellApps {
-              default = self'.packages.eo-phi-normalizer;
-              pipeline = {
-                runtimeInputs = [
-                  stack-wrapped
-                  pkgs.jdk21
-                  pkgs.maven
-                  pkgs.perl
-                ];
-                text = ''
-                  export JAVA_HOME="${pkgs.jdk21.home}"
-                  ${builtins.readFile ./scripts/pipeline.sh}
-                '';
-                meta.description = "Run pipeline";
-                excludeShellChecks = [ "SC2139" ];
-              };
-
-              update-markdown = {
-                runtimeInputs = [
-                  pkgs.mdsh
-                  pkgs.mdbook-linkcheck
-                  stack-wrapped
-                ];
-                text =
-                  let
-                    text = ''
-                      mdsh
-
-                      ${lib.concatMapStringsSep "\n" (x: "mdsh -i site/docs/src/${x} --work_dir .") [
-                        "common/sample-program.md"
-                        "common/celsius.md"
-                        "normalizer.md"
-                        "normalizer/transform.md"
-                        "normalizer/metrics.md"
-                        "normalizer/dataize.md"
-                        "normalizer/report.md"
-                        "contributing.md"
-                      ]}
-
-                      rm program.phi celsius.phi
-
-                      npm i
-                      npx prettier -w "**/*.md"'';
-                  in
-                  ''
-                    export LC_ALL=C.UTF-8
-                    stack install
-
-                    cat << EOF > scripts/run-mdsh.sh
-                    ${text}
-                    EOF
-
-                    chmod +x scripts/run-mdsh.sh
-
-                    ${text}
-                  '';
-              };
-
-              # buildStackProject arguments: https://github.com/NixOS/nixpkgs/blob/c7089236291045a523429e681bdaecb49bb501f3/pkgs/development/haskell-modules/generic-stack-builder.nix#L4-L11
-              stack-shell = pkgs.haskell.lib.buildStackProject {
-                name = "stack-shell";
-                ghc = pkgs.haskell.compiler."ghc${ghcVersion}";
-              };
+          packages = mkShellApps {
+            default = self'.packages.eo-phi-normalizer;
+            pipeline = {
+              runtimeInputs = [
+                stack-wrapped
+                pkgs.jdk21
+                pkgs.maven
+                pkgs.perl
+              ];
+              text = ''
+                export JAVA_HOME="${pkgs.jdk21.home}"
+                ${builtins.readFile ./scripts/pipeline.sh}
+              '';
+              meta.description = "Run pipeline";
+              excludeShellChecks = [ "SC2139" ];
             };
+
+            update-markdown = {
+              runtimeInputs = [
+                pkgs.mdsh
+                pkgs.mdbook-linkcheck
+                stack-wrapped
+              ];
+              text =
+                let
+                  text = ''
+                    mdsh
+
+                    ${lib.concatMapStringsSep "\n" (x: "mdsh -i site/docs/src/${x} --work_dir .") [
+                      "common/sample-program.md"
+                      "common/celsius.md"
+                      "normalizer.md"
+                      "normalizer/transform.md"
+                      "normalizer/metrics.md"
+                      "normalizer/dataize.md"
+                      "normalizer/report.md"
+                      "contributing.md"
+                    ]}
+
+                    rm program.phi celsius.phi
+
+                    npm i
+                    npx prettier -w "**/*.md"'';
+                in
+                ''
+                  export LC_ALL=C.UTF-8
+                  stack install
+
+                  cat << EOF > scripts/run-mdsh.sh
+                  ${text}
+                  EOF
+
+                  chmod +x scripts/run-mdsh.sh
+
+                  ${text}
+                '';
+            };
+
+            # buildStackProject arguments: https://github.com/NixOS/nixpkgs/blob/c7089236291045a523429e681bdaecb49bb501f3/pkgs/development/haskell-modules/generic-stack-builder.nix#L4-L11
+            stack-shell = pkgs.haskell.lib.buildStackProject {
+              name = "stack-shell";
+              ghc = pkgs.haskell.compiler."ghc${ghcVersion}";
+            };
+          };
 
           # Default shell.
           devshells.default =
