@@ -14,3 +14,5 @@ git-repository-icon = "fa-github"
 
 [build]
 build-dir = "./docs"
+
+[output.linkcheck]

@@ -1,4 +1,4 @@
-# normalizer
+# Normalizer
 
 See commands supported by the `normalizer` executable.
 
@@ -18,4 +18,6 @@ Available commands:
   transform                Transform a PHI program.
   metrics                  Collect metrics for a PHI program.
   dataize                  Dataize a PHI program.
+  report                   Generate reports about initial and normalized PHI
+                           programs.
 ```

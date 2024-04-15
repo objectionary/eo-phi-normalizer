@@ -83,18 +83,18 @@ function tests_without_normalization {
 
     print_message "Convert PHI to EO without normalization"
 
-    mkdir -p eo-not-normalized
+    mkdir -p eo-non-normalized
     cd phi
     cp -r ../eo/.eoc .
     eo unphi --tests
     cp -r .eoc/unphi/!(org) .eoc/2-optimize
     eo print
-    cp -r .eoc/print/!(org) ../eo-not-normalized
+    cp -r .eoc/print/!(org) ../eo-non-normalized
     cd ..
 
     print_message "Test EO without normalization"
 
-    cd eo-not-normalized
+    cd eo-non-normalized
     eo test
     cd ..
 }

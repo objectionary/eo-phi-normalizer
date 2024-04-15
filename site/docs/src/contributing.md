@@ -29,6 +29,9 @@ Available options:
 Available commands:
   transform                Transform a PHI program.
   metrics                  Collect metrics for a PHI program.
+  dataize                  Dataize a PHI program.
+  report                   Generate reports about initial and normalized PHI
+                           programs.
 ```
 
 Or, omit the executable name.
@@ -48,6 +51,9 @@ Available options:
 Available commands:
   transform                Transform a PHI program.
   metrics                  Collect metrics for a PHI program.
+  dataize                  Dataize a PHI program.
+  report                   Generate reports about initial and normalized PHI
+                           programs.
 ```
 
 ## Test
@@ -80,7 +86,7 @@ Run `npm i` to locally install the `prettier` version that we use.
 
 ### Automatic updates
 
-In CI, on the `master` branch, we run [scripts/run-mdsh](https://github.com/objectionary/normalizer/blob/master/scripts/run-mdsh.sh) and commit changes.
+In CI, on the `master` branch, we run a [script](https://github.com/objectionary/normalizer/blob/master/scripts/update-markdown.sh) to update Markdown files and then we commit changes.
 
 So, no worries if you haven't run `mdsh` in your PR!
 
@@ -127,7 +133,7 @@ chmod +x scripts/run-fourmolu.sh
 
 See [docs](https://pre-commit.com/#adding-pre-commit-plugins-to-your-project).
 
-See [.pre-commit-config.yaml](.pre-commit-config.yaml).
+See [.pre-commit-config.yaml](https://github.com/objectionary/normalizer/blob/master/.pre-commit-config.yaml).
 
 You can run a specific hook (see [docs](https://pre-commit.com/#pre-commit-run)):
 

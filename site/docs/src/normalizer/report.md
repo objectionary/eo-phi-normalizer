@@ -1,4 +1,4 @@
-# normalizer report
+# `normalizer report`
 
 ## Reports
 

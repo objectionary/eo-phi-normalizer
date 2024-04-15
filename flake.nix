@@ -164,6 +164,7 @@
                   export LC_ALL=C.UTF-8
                   stack install
 
+
                   cat << EOF > scripts/run-mdsh.sh
                   ${text}
                   EOF
