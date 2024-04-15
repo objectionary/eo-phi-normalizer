@@ -114,7 +114,7 @@ function normalization {
         destination="../phi-normalized/$f"
         mkdir -p "$(dirname "$destination")"
 
-        dependency_file_options="$(printf "%s" "$dependency_files" | xargs -I {} printf "--dependency-file %s " {})"
+        dependency_file_options="$(printf "%s" "$dependency_files" | xargs -I {} printf "%s" " --dependency-file {} ")"
 
         set -x
         # shellcheck disable=SC2086
