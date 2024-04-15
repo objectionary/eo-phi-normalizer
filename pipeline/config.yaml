@@ -6,7 +6,7 @@ sets:
 - source: eo/eo-runtime/src/test/eo/org/eolang/bool-tests.eo
   yaml: pipeline/yaml/bool-tests.yaml
   destination: pipeline/eo/bool-tests.eo
-  enable: false
+  # enable: false
 - source: eo/eo-runtime/src/test/eo/org/eolang/bytes-tests.eo
   yaml: pipeline/yaml/bytes-tests.yaml
   destination: pipeline/eo/bytes-tests.eo
@@ -16,18 +16,27 @@ sets:
 - source: eo/eo-runtime/src/test/eo/org/eolang/cti-test.eo
   yaml: pipeline/yaml/cti-test.yaml
   destination: pipeline/eo/cti-test.eo
+- source: eo/eo-runtime/src/test/eo/org/eolang/dataized-tests.eo
+  yaml: pipeline/yaml/dataized-tests.yaml
+  destination: pipeline/eo/dataized-tests.eo
 - source: eo/eo-runtime/src/test/eo/org/eolang/float-tests.eo
   yaml: pipeline/yaml/float-tests.yaml
   destination: pipeline/eo/float-tests.eo
 - source: eo/eo-runtime/src/test/eo/org/eolang/goto-tests.eo
   yaml: pipeline/yaml/goto-tests.yaml
   destination: pipeline/eo/goto-tests.eo
-- source: eo/eo-runtime/src/test/eo/org/eolang/heap-tests.eo
-  yaml: pipeline/yaml/heap-tests.yaml
-  destination: pipeline/eo/heap-tests.eo
+- source: eo/eo-runtime/src/test/eo/org/eolang/if-tests.eo
+  yaml: pipeline/yaml/if-tests.yaml
+  destination: pipeline/eo/if-tests.eo
 - source: eo/eo-runtime/src/test/eo/org/eolang/int-tests.eo
   yaml: pipeline/yaml/int-tests.yaml
   destination: pipeline/eo/int-tests.eo
+- source: eo/eo-runtime/src/test/eo/org/eolang/io/stdout-tests.eo
+  yaml: pipeline/yaml/io/stdout-tests.yaml
+  destination: pipeline/eo/io/stdout-tests.eo
+- source: eo/eo-runtime/src/test/eo/org/eolang/malloc-tests.eo
+  yaml: pipeline/yaml/malloc-tests.yaml
+  destination: pipeline/eo/malloc-tests.eo
 - source: eo/eo-runtime/src/test/eo/org/eolang/memory-tests.eo
   yaml: pipeline/yaml/memory-tests.yaml
   destination: pipeline/eo/memory-tests.eo
@@ -37,19 +46,11 @@ sets:
 - source: eo/eo-runtime/src/test/eo/org/eolang/negative-infinity-tests.eo
   yaml: pipeline/yaml/negative-infinity-tests.yaml
   destination: pipeline/eo/negative-infinity-tests.eo
-- source: eo/eo-runtime/src/test/eo/org/eolang/nop-tests.eo
-  yaml: pipeline/yaml/nop-tests.yaml
-  destination: pipeline/eo/nop-tests.eo
 - source: eo/eo-runtime/src/test/eo/org/eolang/positive-infinity-tests.eo
   yaml: pipeline/yaml/positive-infinity-tests.yaml
   destination: pipeline/eo/positive-infinity-tests.eo
   exclude:
   - float-equal-to-nan-and-infinites-is-false-highload
-- source: eo/eo-runtime/src/test/eo/org/eolang/ram-tests.eo
-  yaml: pipeline/yaml/ram-tests.yaml
-  destination: pipeline/eo/ram-tests.eo
-  exclude:
-  - slice-chain
 - source: eo/eo-runtime/src/test/eo/org/eolang/runtime-tests.eo
   yaml: pipeline/yaml/runtime-tests.yaml
   destination: pipeline/eo/runtime-tests.eo
@@ -85,18 +86,6 @@ sets:
 - source: eo/eo-runtime/src/test/eo/org/eolang/tuple-tests.eo
   yaml: pipeline/yaml/tuple-tests.yaml
   destination: pipeline/eo/tuple-tests.eo
-- source: eo/eo-runtime/src/test/eo/org/eolang/unit-tests.eo
-  yaml: pipeline/yaml/unit-tests.yaml
-  destination: pipeline/eo/unit-tests.eo
-- source: eo/eo-runtime/src/test/eo/org/eolang/io/stdout-tests.eo
-  yaml: pipeline/stdout-tests.yaml
-  destination: pipeline/eo/io/stdout-tests.eo
-  enable: false
-- source: eo/eo-runtime/src/test/eo/org/eolang/io/tupled-stdout-test.eo
-  yaml: pipeline/tupled-stdout-test.yaml
-  destination: pipeline/eo/io/tupled-stdout-test.eo
-  enable: false
-- source: eo/eo-runtime/src/test/eo/org/eolang/io/tupled-stdout.eo
-  yaml: pipeline/tupled-stdout.yaml
-  destination: pipeline/eo/io/tupled-stdout.eo
-  enable: false
+- source: eo/eo-runtime/src/test/eo/org/eolang/while-tests.eo
+  yaml: pipeline/yaml/while-tests.yaml
+  destination: pipeline/eo/while-tests.eo

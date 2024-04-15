@@ -1,1 +1,3 @@
-packages: eo-phi-normalizer
+packages:
+    ./eo-phi-normalizer
+    ./scripts/transform-eo-tests

@@ -13,6 +13,10 @@ items:
   phi-normalized: pipeline/phi-normalized/as-phi-tests.phi
   bindings-path-phi: org.eolang
   bindings-path-phi-normalized: org.eolang
+- phi: pipeline/phi/bool-tests.phi
+  phi-normalized: pipeline/phi-normalized/bool-tests.phi
+  bindings-path-phi: org.eolang
+  bindings-path-phi-normalized: org.eolang
 - phi: pipeline/phi/bytes-tests.phi
   phi-normalized: pipeline/phi-normalized/bytes-tests.phi
   bindings-path-phi: org.eolang
@@ -25,6 +29,10 @@ items:
   phi-normalized: pipeline/phi-normalized/cti-test.phi
   bindings-path-phi: org.eolang
   bindings-path-phi-normalized: org.eolang
+- phi: pipeline/phi/dataized-tests.phi
+  phi-normalized: pipeline/phi-normalized/dataized-tests.phi
+  bindings-path-phi: org.eolang
+  bindings-path-phi-normalized: org.eolang
 - phi: pipeline/phi/float-tests.phi
   phi-normalized: pipeline/phi-normalized/float-tests.phi
   bindings-path-phi: org.eolang
@@ -33,12 +41,20 @@ items:
   phi-normalized: pipeline/phi-normalized/goto-tests.phi
   bindings-path-phi: org.eolang
   bindings-path-phi-normalized: org.eolang
-- phi: pipeline/phi/heap-tests.phi
-  phi-normalized: pipeline/phi-normalized/heap-tests.phi
+- phi: pipeline/phi/if-tests.phi
+  phi-normalized: pipeline/phi-normalized/if-tests.phi
   bindings-path-phi: org.eolang
   bindings-path-phi-normalized: org.eolang
 - phi: pipeline/phi/int-tests.phi
   phi-normalized: pipeline/phi-normalized/int-tests.phi
+  bindings-path-phi: org.eolang
+  bindings-path-phi-normalized: org.eolang
+- phi: pipeline/phi/io/stdout-tests.phi
+  phi-normalized: pipeline/phi-normalized/io/stdout-tests.phi
+  bindings-path-phi: org.eolang
+  bindings-path-phi-normalized: org.eolang
+- phi: pipeline/phi/malloc-tests.phi
+  phi-normalized: pipeline/phi-normalized/malloc-tests.phi
   bindings-path-phi: org.eolang
   bindings-path-phi-normalized: org.eolang
 - phi: pipeline/phi/memory-tests.phi
@@ -53,22 +69,18 @@ items:
   phi-normalized: pipeline/phi-normalized/negative-infinity-tests.phi
   bindings-path-phi: org.eolang
   bindings-path-phi-normalized: org.eolang
-- phi: pipeline/phi/nop-tests.phi
-  phi-normalized: pipeline/phi-normalized/nop-tests.phi
-  bindings-path-phi: org.eolang
-  bindings-path-phi-normalized: org.eolang
 - phi: pipeline/phi/positive-infinity-tests.phi
   phi-normalized: pipeline/phi-normalized/positive-infinity-tests.phi
-  bindings-path-phi: org.eolang
-  bindings-path-phi-normalized: org.eolang
-- phi: pipeline/phi/ram-tests.phi
-  phi-normalized: pipeline/phi-normalized/ram-tests.phi
   bindings-path-phi: org.eolang
   bindings-path-phi-normalized: org.eolang
 - phi: pipeline/phi/runtime-tests.phi
   phi-normalized: pipeline/phi-normalized/runtime-tests.phi
   bindings-path-phi: org.eolang
   bindings-path-phi-normalized: org.eolang
+# - phi: pipeline/phi/rust-tests.phi
+#   phi-normalized: pipeline/phi-normalized/rust-tests.phi
+#   bindings-path-phi: org.eolang
+#   bindings-path-phi-normalized: org.eolang
 - phi: pipeline/phi/seq-tests.phi
   phi-normalized: pipeline/phi-normalized/seq-tests.phi
   bindings-path-phi: org.eolang
@@ -89,7 +101,7 @@ items:
   phi-normalized: pipeline/phi-normalized/tuple-tests.phi
   bindings-path-phi: org.eolang
   bindings-path-phi-normalized: org.eolang
-- phi: pipeline/phi/unit-tests.phi
-  phi-normalized: pipeline/phi-normalized/unit-tests.phi
+- phi: pipeline/phi/while-tests.phi
+  phi-normalized: pipeline/phi-normalized/while-tests.phi
   bindings-path-phi: org.eolang
   bindings-path-phi-normalized: org.eolang
