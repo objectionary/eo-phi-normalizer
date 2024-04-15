@@ -198,8 +198,12 @@
               commands = {
                 inherit tools;
                 scripts = [
-                  self'.packages.pipeline
-                  self'.packages.update-markdown
+                  {
+                    prefix = "nix run .#";
+                    packages = {
+                      inherit (self'.packages) pipeline update-markdown;
+                    };
+                  }
                 ];
               };
             };
