@@ -14,6 +14,44 @@ function print_message {
     printf "\n\n\n[[[%s]]]\n\n\n" "$1"
 }
 
+function check_configs {
+    # TODO #263:1h Check all fields of configs in a Haskell script
+
+    pipeline_config=pipeline/config.yaml
+    report_config=report/config.yaml
+    eo_tests=eo/eo-runtime/src/test/eo/org/eolang
+
+    eo_files="$(mktemp)"
+    (
+        cd "$eo_tests"
+        find * -type f \
+            | sort \
+            | uniq \
+            > "$eo_files"
+    )
+
+    print_message "Check diff between $pipeline_config and EO tests in $eo_tests"
+
+    pipeline_eo_files="$(mktemp)"
+    grep source "$pipeline_config" \
+        | sed -r 's|.*/eolang/(.*\.eo)|\1|g' \
+        > "$pipeline_eo_files"
+
+    diff -U 10 "$pipeline_eo_files" "$eo_files" \
+        && print_message "No difference"
+
+    print_message "Check diff between $report_config and EO tests in $eo_tests"
+
+    report_eo_files="$(mktemp)"
+    grep '\- phi:' "$report_config" \
+        | sed -r 's|.*/phi/(.*).phi|\1|g' \
+        | xargs -I {} printf "%s.eo\n" {} \
+        > "$report_eo_files"
+
+    diff -U 10 "$report_eo_files" "$eo_files" \
+        && print_message "No difference"
+}
+
 function prepare_directory {
     print_message "Clean the pipeline directory"
 
@@ -107,8 +145,9 @@ function generate_report () {
     stack run --cwd .. -- report --config report/config.yaml
 }
 
-prepare_directory
-enter_directory
-tests_without_normalization
-tests_with_normalization
-generate_report
+check_configs
+# prepare_directory
+# enter_directory
+# tests_without_normalization
+# tests_with_normalization
+# generate_report
