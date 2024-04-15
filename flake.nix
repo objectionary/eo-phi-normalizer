@@ -96,7 +96,6 @@
           treefmt.config = {
             projectRootFile = "flake.nix";
             programs.nixfmt-rfc-style.enable = true;
-            programs.cabal-fmt.enable = true;
             programs.fourmolu = {
               enable = true;
               ghcOpts = [
@@ -104,7 +103,13 @@
                 "CPP"
               ];
             };
-            settings.formatter.fourmolu.excludes = [ "eo" ];
+            settings.formatter.fourmolu.excludes = [
+              "eo"
+              "Setup.hs"
+              "Abs.hs"
+              "Print.hs"
+              "*.cabal"
+            ];
             settings.global.excludes = [ "eo" ];
           };
 
