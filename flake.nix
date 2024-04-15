@@ -1,6 +1,5 @@
 {
   inputs = {
-    flakes.url = "github:deemp/flakes";
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     devshell.url = "github:deemp/devshell";
     flake-utils.url = "github:numtide/flake-utils";
@@ -29,6 +28,15 @@
           pkgs,
           ...
         }:
+        let
+          mkShellApps = lib.mapAttrs (
+            name: value:
+            if !(lib.isDerivation value) && lib.isAttrs value then
+              pkgs.writeShellApplication (value // { inherit name; })
+            else
+              lib.id
+          );
+        in
         {
           # Our only Haskell project. You can have multiple projects, but this template
           # has only one.
@@ -82,9 +90,6 @@
           apps.default = self'.apps.haskell-template;
 
           packages =
-            let
-              inherit (inputs.flakes.lib.${system}.drv-tools) mkShellApps;
-            in
             mkShellApps {
               default = self'.packages.haskell-template;
               pipeline = {
