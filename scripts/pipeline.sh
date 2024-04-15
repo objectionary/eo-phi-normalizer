@@ -166,5 +166,6 @@ check_configs
 prepare_directory
 enter_directory
 tests_without_normalization
+normalization
 tests_with_normalization
 generate_report
