@@ -181,9 +181,11 @@ jobs:
           merge-multiple: true
 
       - name: Setup mdBook
-        uses: peaceiris/actions-mdbook@v1
+        uses: jontze/action-mdbook@v3
         with:
-          mdbook-version: "latest"
+          token: ${{secrets.GITHUB_TOKEN}}
+          mdbook-version: "~0.4.37"
+          use-linkcheck: true
 
       - name: Add haddock
         run: |
