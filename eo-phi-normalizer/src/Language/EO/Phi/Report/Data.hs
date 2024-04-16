@@ -141,11 +141,11 @@ makeProgramReport reportConfig reportItem metricsPhi metricsPhiNormalized =
  where
   bindingsRows =
     case (metricsPhi.bindingsByPathMetrics, metricsPhiNormalized.bindingsByPathMetrics) of
-      (Just bindingsMetricsNormalized, Just bindingsMetricsInitial) ->
+      (Just bindingsMetricsInitial, Just bindingsMetricsNormalized) ->
         [ ReportRow
           { fileInitial = Just reportItem.phi
           , fileNormalized = Just reportItem.phiNormalized
-          , bindingsPathInitial = Just bindingsMetricsNormalized.path
+          , bindingsPathInitial = Just bindingsMetricsInitial.path
           , bindingsPathNormalized = Just bindingsMetricsNormalized.path
           , attributeInitial = Just attributeInitial
           , attributeNormalized = Just attributeNormalized
