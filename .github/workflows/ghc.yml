@@ -87,7 +87,7 @@ jobs:
         if: runner.os == 'Linux'
         run: ./scripts/update-markdown.sh
 
-      - name: Commit files
+      - name: Configure git
         if: runner.os == 'Linux'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -96,10 +96,19 @@ jobs:
 
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
-          git add site proposals README.md
-          git commit -m "Update Markdown files"
 
-          git push
+      - name: Commit and push changes in Markdown files
+        if: runner.os == 'Linux'
+        run: |
+          files="site proposals README.md"
+
+          if [ -n "$(git status --porcelain $files)" ]; then
+            git add $files
+            git commit -m "Update Markdown files"
+            git push
+          else
+            printf "Nothing to commit."
+          fi
 
       - uses: actions/setup-java@v4
         with:
