@@ -21,9 +21,9 @@ import GHC.Generics (Generic)
 import Language.EO.Phi.Metrics.Data (BindingMetrics (..), Metrics (..), MetricsCount, ProgramMetrics)
 import Language.EO.Phi.Metrics.Data qualified as Metrics
 import Language.EO.Phi.TH (deriveJSON)
+import PyF (PyFToString (..))
 import Text.Printf (printf)
 import Prelude hiding (div, id, span)
-import PyF (PyFToString(..))
 
 data ReportItem = ReportItem
   { phi :: FilePath

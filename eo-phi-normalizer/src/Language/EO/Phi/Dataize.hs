@@ -12,7 +12,6 @@ module Language.EO.Phi.Dataize where
 import Control.Arrow (ArrowChoice (left))
 import Data.List (singleton)
 import Data.Maybe (listToMaybe)
-import PyF (fmt)
 import Language.EO.Phi (Binding (DeltaEmptyBinding, EmptyBinding))
 import Language.EO.Phi.Rules.Common
 import Language.EO.Phi.Syntax.Abs (
@@ -23,6 +22,7 @@ import Language.EO.Phi.Syntax.Abs (
   Function (Function),
   Object (Application, Formation, ObjectDispatch, Termination),
  )
+import PyF (fmt)
 
 -- | Perform one step of dataization to the object (if possible).
 dataizeStep :: Context -> Object -> (Context, Either Object Bytes)

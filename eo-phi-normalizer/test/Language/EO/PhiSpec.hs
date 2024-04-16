@@ -13,13 +13,13 @@ import Control.Monad (forM_)
 import Data.Char (isSpace)
 import Data.List (dropWhileEnd)
 import Data.String (IsString (..))
-import PyF (fmt)
 import Data.Yaml (decodeFileThrow)
 import Language.EO.Phi
 import Language.EO.Phi.Metrics.Collect (getProgramMetrics)
 import Language.EO.Phi.Metrics.Data (BindingsByPathMetrics (..), ProgramMetrics (..))
 import Language.EO.Phi.Rules.Common (Rule, defaultContext, equalProgram)
 import Language.EO.Phi.Rules.PhiPaper (rule1, rule6)
+import PyF (fmt)
 import Test.EO.Phi
 import Test.Hspec
 import Test.Metrics.Phi (MetricsTest (..), MetricsTestSet (..))

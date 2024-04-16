@@ -23,13 +23,13 @@ import Data.List (intercalate)
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.Maybe (fromMaybe)
 import Data.String (IsString (..))
-import PyF (fmt)
 import Data.Yaml qualified as Yaml
 import GHC.Generics (Generic)
 import Language.EO.Phi (printTree)
 import Language.EO.Phi.Rules.Common (Context (insideFormation, outerFormations), NamedRule)
 import Language.EO.Phi.Rules.Common qualified as Common
 import Language.EO.Phi.Syntax.Abs
+import PyF (fmt)
 
 -- $setup
 -- >>> :set -XOverloadedStrings
