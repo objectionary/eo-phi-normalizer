@@ -3,7 +3,7 @@
     org ↦ ⟦
       eolang ↦ ⟦
         try ↦ ⟦
-          λ ⤍ Lambda,
+          λ ⤍ Lorg_eolang_try,
           main ↦ ∅,
           catch ↦ ∅,
           finally ↦ ∅

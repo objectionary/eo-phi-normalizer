@@ -2,9 +2,9 @@
   ⟦
     org ↦ ⟦
       eolang ↦ ⟦
-        as-phi ↦ ⟦
-          λ ⤍ Lorg_eolang_as_phi,
-          x ↦ ∅
+        dataized ↦ ⟦
+          λ ⤍ Lorg_eolang_dataized,
+          target ↦ ∅
         ⟧,
         λ ⤍ Package
       ⟧,

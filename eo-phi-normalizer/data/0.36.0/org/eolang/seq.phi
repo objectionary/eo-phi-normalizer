@@ -3,7 +3,7 @@
     org ↦ ⟦
       eolang ↦ ⟦
         seq ↦ ⟦
-          λ ⤍ Lambda,
+          λ ⤍ Lorg_eolang_seq,
           steps ↦ ∅
         ⟧,
         λ ⤍ Package

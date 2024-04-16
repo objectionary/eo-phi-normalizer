@@ -3,7 +3,75 @@
     org ↦ ⟦
       eolang ↦ ⟦
         memory ↦ ⟦
-          λ ⤍ Lambda
+          data ↦ ∅,
+          alloc ↦ ξ.φ.alloc,
+          φ ↦ ⟦
+            bts ↦ Φ.org.eolang.dataized(
+              α0 ↦ ξ.ρ.data
+            ).as-bytes,
+            p ↦ Φ.org.eolang.malloc(
+              α0 ↦ ξ.bts.size
+            ).pointer,
+            φ ↦ Φ.org.eolang.seq(
+              α0 ↦ Φ.org.eolang.tuple(
+                α0 ↦ Φ.org.eolang.tuple(
+                  α0 ↦ Φ.org.eolang.tuple.empty,
+                  α1 ↦ ξ.p.write(
+                    α0 ↦ Φ.org.eolang.int(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ 00-00-00-00-00-00-00-00
+                      )
+                    ),
+                    α1 ↦ ξ.bts
+                  )
+                ),
+                α1 ↦ ξ.ρ.allocated(
+                  α0 ↦ ξ.p
+                )
+              )
+            )
+          ⟧,
+          allocated ↦ ⟦
+            pointer ↦ ∅,
+            alloc ↦ ξ,
+            φ ↦ ξ.pointer.read(
+              α0 ↦ Φ.org.eolang.int(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-00-00-00-00-00-00-00
+                )
+              ),
+              α1 ↦ ξ.pointer.size
+            ),
+            write ↦ ⟦
+              data ↦ ∅,
+              φ ↦ Φ.org.eolang.seq(
+                α0 ↦ Φ.org.eolang.tuple(
+                  α0 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple.empty,
+                    α1 ↦ ξ.ρ.pointer.write(
+                      α0 ↦ Φ.org.eolang.int(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 00-00-00-00-00-00-00-00
+                        )
+                      ),
+                      α1 ↦ ξ.data
+                    )
+                  ),
+                  α1 ↦ ξ.ρ.pointer.read(
+                    α0 ↦ Φ.org.eolang.int(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ 00-00-00-00-00-00-00-00
+                      )
+                    ),
+                    α1 ↦ ξ.ρ.pointer.size
+                  )
+                )
+              )
+            ⟧,
+            free ↦ ⟦
+              φ ↦ ξ.ρ.pointer.free
+            ⟧
+          ⟧
         ⟧,
         λ ⤍ Package
       ⟧,

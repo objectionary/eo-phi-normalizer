@@ -30,64 +30,90 @@
             )
           ⟧,
           length ↦ ⟦
-            φ ↦ ξ.ρ.head.length.plus(
-              α0 ↦ Φ.org.eolang.int(
-                α0 ↦ Φ.org.eolang.bytes(
-                  Δ ⤍ 00-00-00-00-00-00-00-01
+            φ ↦ Φ.org.eolang.int(
+              α0 ↦ ξ.len
+            ),
+            len ↦ Φ.org.eolang.dataized(
+              α0 ↦ ξ.ρ.head.length.plus(
+                α0 ↦ Φ.org.eolang.int(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 00-00-00-00-00-00-00-01
+                  )
                 )
               )
-            )
+            ).as-bytes
           ⟧,
           at ↦ ⟦
             i ↦ ∅,
-            idx ↦ ξ.i,
             len ↦ ξ.ρ.length,
-            index ↦ ξ.idx.lt(
+            index ↦ Φ.org.eolang.dataized(
+              α0 ↦ Φ.org.eolang.if(
+                α0 ↦ Φ.org.eolang.int(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 00-00-00-00-00-00-00-00
+                  )
+                ).gt(
+                  α0 ↦ ξ.idx
+                ),
+                α1 ↦ ξ.len.plus(
+                  α0 ↦ ξ.idx
+                ),
+                α2 ↦ ξ.idx
+              )
+            ).as-bytes,
+            φ ↦ Φ.org.eolang.if(
               α0 ↦ Φ.org.eolang.int(
                 α0 ↦ Φ.org.eolang.bytes(
                   Δ ⤍ 00-00-00-00-00-00-00-00
                 )
-              )
-            ).if(
-              α0 ↦ ξ.len.plus(
-                α0 ↦ ξ.idx
+              ).gt(
+                α0 ↦ ξ.index
+              ).or(
+                α0 ↦ ξ.len.lte(
+                  α0 ↦ ξ.index
+                )
               ),
-              α1 ↦ ξ.idx
-            ),
-            φ ↦ ξ.index.lt(
-              α0 ↦ Φ.org.eolang.int(
-                α0 ↦ Φ.org.eolang.bytes(
-                  Δ ⤍ 00-00-00-00-00-00-00-00
-                )
-              )
-            ).or(
-              α0 ↦ ξ.index.gte(
-                α0 ↦ ξ.len
-              )
-            ).if(
-              α0 ↦ Φ.org.eolang.error(
+              α1 ↦ Φ.org.eolang.error(
                 α0 ↦ Φ.org.eolang.string(
                   α0 ↦ Φ.org.eolang.bytes(
                     Δ ⤍ 47-69-76-65-6E-20-69-6E-64-65-78-20-69-73-20-6F-75-74-20-6F-66-20-74-75-70-6C-65-20-62-6F-75-6E-64-73
                   )
                 )
               ),
-              α1 ↦ ξ.at-without-checks(
-                α0 ↦ ξ.index
+              α2 ↦ ξ.at-fast(
+                α0 ↦ ξ.ρ,
+                α1 ↦ ξ.len
               )
             ),
-            at-without-checks ↦ ⟦
-              i ↦ ∅,
-              idx ↦ ξ.i,
-              φ ↦ ξ.idx.lt(
-                α0 ↦ ξ.σ.σ.head.length
-              ).if(
-                α0 ↦ ξ.ρ.ρ.head.at.at-without-checks(
-                  α0 ↦ ξ.idx
+            at-fast ↦ ⟦
+              tup ↦ ∅,
+              len ↦ ∅,
+              φ ↦ Φ.org.eolang.if(
+                α0 ↦ ξ.len.plus(
+                  α0 ↦ Φ.org.eolang.int(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ FF-FF-FF-FF-FF-FF-FF-FF
+                    )
+                  )
+                ).gt(
+                  α0 ↦ ξ.ρ.index
                 ),
-                α1 ↦ ξ.ρ.ρ.tail
+                α1 ↦ ξ.ρ.at-fast(
+                  α0 ↦ ξ.tup.head,
+                  α1 ↦ ξ.len.plus(
+                    α0 ↦ Φ.org.eolang.int(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ FF-FF-FF-FF-FF-FF-FF-FF
+                      )
+                    )
+                  )
+                ),
+                α2 ↦ ξ.tup.tail
               )
-            ⟧
+            ⟧,
+            idx ↦ Φ.org.eolang.dataized(
+              α0 ↦ ξ.i
+            ).as-bytes
           ⟧,
           with ↦ ⟦
             x ↦ ∅,

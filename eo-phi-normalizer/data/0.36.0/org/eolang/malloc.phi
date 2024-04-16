@@ -1,0 +1,35 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        malloc ↦ ⟦
+          size ↦ ∅,
+          pointer ↦ ξ.φ.pointer,
+          φ ↦ ⟦
+            λ ⤍ Lorg_eolang_malloc_φ
+          ⟧,
+          memory-block-pointer ↦ ⟦
+            id ↦ ∅,
+            pointer ↦ ξ,
+            size ↦ ξ.ρ.size,
+            read ↦ ⟦
+              λ ⤍ Lorg_eolang_malloc_memory_block_pointer_read,
+              offset ↦ ∅,
+              length ↦ ∅
+            ⟧,
+            write ↦ ⟦
+              λ ⤍ Lorg_eolang_malloc_memory_block_pointer_write,
+              offset ↦ ∅,
+              data ↦ ∅
+            ⟧,
+            free ↦ ⟦
+              λ ⤍ Lorg_eolang_malloc_memory_block_pointer_free
+            ⟧
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}
