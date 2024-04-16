@@ -103,6 +103,27 @@
         "type": "github"
       }
     },
+    "mdsh": {
+      "inputs": {
+        "flake-utils": [
+          "flake-utils"
+        ],
+        "nixpkgs": "nixpkgs_2"
+      },
+      "locked": {
+        "lastModified": 1713264580,
+        "narHash": "sha256-6Ndk6+LSzqoBN95bDsyHzjaQTVgjrCL1pBCDxjNyaAo=",
+        "owner": "deemp",
+        "repo": "mdsh",
+        "rev": "8fd15abe91f51df72bd1e44013b3dd3936888372",
+        "type": "github"
+      },
+      "original": {
+        "owner": "deemp",
+        "repo": "mdsh",
+        "type": "github"
+      }
+    },
     "nixpkgs": {
       "locked": {
         "lastModified": 1704161960,
@@ -139,6 +160,22 @@
     },
     "nixpkgs_2": {
       "locked": {
+        "lastModified": 1708847675,
+        "narHash": "sha256-RUZ7KEs/a4EzRELYDGnRB6i7M1Izii3JD/LyzH0c6Tg=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "2a34566b67bef34c551f204063faeecc444ae9da",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "ref": "nixpkgs-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
+    "nixpkgs_3": {
+      "locked": {
         "lastModified": 1712696601,
         "narHash": "sha256-puFPFSa/RC83JilUgB48/VL387eu2QN066Jv6X971LY=",
         "owner": "nixos",
@@ -160,7 +197,8 @@
         "flake-parts": "flake-parts",
         "flake-utils": "flake-utils_2",
         "haskell-flake": "haskell-flake",
-        "nixpkgs": "nixpkgs_2",
+        "mdsh": "mdsh",
+        "nixpkgs": "nixpkgs_3",
         "systems": "systems_3",
         "treefmt-nix": "treefmt-nix"
       }

@@ -8,6 +8,11 @@
     haskell-flake.url = "github:srid/haskell-flake";
     treefmt-nix.url = "github:numtide/treefmt-nix";
     treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
+    # TODO #286:20m Use github:zimbatm/mdsh after https://github.com/zimbatm/mdsh/pull/63 is merged
+    mdsh = {
+      url = "github:deemp/mdsh";
+      inputs.flake-utils.follows = "flake-utils";
+    };
     flake-compat = {
       url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
       flake = false;
@@ -135,7 +140,7 @@
 
             update-markdown = {
               runtimeInputs = [
-                pkgs.mdsh
+                inputs.mdsh.packages.${system}.default
                 pkgs.mdbook-linkcheck
                 stack-wrapped
               ];
@@ -165,11 +170,11 @@
                   stack install
 
 
-                  cat << EOF > scripts/run-mdsh.sh
+                  cat << EOF > scripts/update-markdown.sh
                   ${text}
                   EOF
 
-                  chmod +x scripts/run-mdsh.sh
+                  chmod +x scripts/update-markdown.sh
 
                   ${text}
                 '';
