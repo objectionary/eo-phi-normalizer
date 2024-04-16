@@ -24,7 +24,7 @@ Next, we normalize these `PHI` programs and get normalized `PHI` programs.
 
 ### Report configuration file
 
-The report configuration file has several attributes:
+A report configuration file has several attributes:
 
 - `input`
   - `js` - Optional path to a `JavaScript` file that should be inlined into an `HTML` report.
@@ -86,15 +86,4 @@ Available options:
 
 ### `--config`
 
-Generate reports using a configuration file `report/config.yaml`.
-
-```$ as console
-normalizer report --config report/config.yaml
-ls report/report*
-```
-
-```console
-report/report.html
-report/report.json
-report/report.md
-```
+Provide a report configuration file (see [Report configuration file](#report-configuration-file)).
