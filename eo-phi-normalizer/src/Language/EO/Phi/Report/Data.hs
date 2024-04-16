@@ -23,6 +23,7 @@ import Language.EO.Phi.Metrics.Data qualified as Metrics
 import Language.EO.Phi.TH (deriveJSON)
 import Text.Printf (printf)
 import Prelude hiding (div, id, span)
+import PyF (PyFToString(..))
 
 data ReportItem = ReportItem
   { phi :: FilePath
@@ -54,6 +55,10 @@ roundToStr = printf "%0.*f%%"
 instance Show Percent where
   show :: Percent -> String
   show Percent{..} = roundToStr 2 (percent * 100)
+
+instance PyFToString Percent where
+  pyfToString :: Percent -> String
+  pyfToString = show
 
 type MetricsChangeCategorized = Metrics (MetricsChangeCategory Percent)
 

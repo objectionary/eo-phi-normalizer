@@ -9,7 +9,7 @@ module Main (main) where
 import Distribution.Simple (defaultMainWithHooks, hookedPrograms, postConf, preBuild, simpleUserHooks)
 import Distribution.Simple.Program (Program (..), findProgramVersion, simpleProgram)
 import System.Process (system)
-import Data.String.Interpolate (i)
+import PyF (fmt)
 
 -- | Run BNFC, happy, and alex on the grammar before the actual build step.
 --
@@ -19,7 +19,7 @@ main = defaultMainWithHooks $ simpleUserHooks
   { hookedPrograms = [ bnfcProgram ]
   , postConf       = \args flags packageDesc localBuildInfo -> do
 #ifndef mingw32_HOST_OS
-      _ <- system [i|
+      _ <- system [fmt|
             bnfc --haskell -d -p Language.EO.Phi --generic -o src/ grammar/EO/Phi/Syntax.cf
             cd src/Language/EO/Phi/Syntax
             alex Lex.x

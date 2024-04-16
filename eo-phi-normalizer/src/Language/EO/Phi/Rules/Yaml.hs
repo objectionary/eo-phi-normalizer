@@ -23,7 +23,7 @@ import Data.List (intercalate)
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.Maybe (fromMaybe)
 import Data.String (IsString (..))
-import Data.String.Interpolate (i)
+import PyF (fmt)
 import Data.Yaml qualified as Yaml
 import GHC.Generics (Generic)
 import Language.EO.Phi (printTree)
@@ -221,7 +221,7 @@ instance Show Subst where
       , "}"
       ]
    where
-    showMappings metas = intercalate "; " $ map (\(MetaId metaId, obj) -> [i|#{metaId} -> '#{printTree obj}'|]) metas
+    showMappings metas = intercalate "; " $ map (\(MetaId metaId, obj) -> [fmt|{metaId} -> '{printTree obj}'|]) metas
 
 instance Semigroup Subst where
   (<>) = mergeSubst

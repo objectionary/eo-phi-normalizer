@@ -12,7 +12,7 @@ module Language.EO.Phi.Dataize where
 import Control.Arrow (ArrowChoice (left))
 import Data.List (singleton)
 import Data.Maybe (listToMaybe)
-import Data.String.Interpolate (i)
+import PyF (fmt)
 import Language.EO.Phi (Binding (DeltaEmptyBinding, EmptyBinding))
 import Language.EO.Phi.Rules.Common
 import Language.EO.Phi.Syntax.Abs (
@@ -120,7 +120,7 @@ evaluateDataizationFunChain func obj _state = do
   result <- case (lhs, rhs) of
     (Right l, Right r) -> do
       let (Bytes bytes) = intToBytes (bytesToInt r `func` bytesToInt l)
-          resultObj = [i|Φ.org.eolang.float(Δ ⤍ #{bytes})|]
+          resultObj = [fmt|Φ.org.eolang.float(Δ ⤍ {bytes})|]
       logStep "Evaluated function" (Left resultObj)
       return resultObj
     _ -> do
