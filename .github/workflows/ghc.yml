@@ -74,15 +74,6 @@ jobs:
           node-version: 20
           cache: npm
 
-      - uses: actions/setup-java@v4
-        with:
-          distribution: "zulu"
-          java-version: 21
-
-      - name: Run pipeline
-        shell: bash
-        run: ./scripts/pipeline.sh
-
       - name: Install mdsh
         if: runner.os == 'Linux'
         uses: baptiste0928/cargo-install@v3.1.0
@@ -109,6 +100,15 @@ jobs:
           git commit -m "Update Markdown files"
 
           git push
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: "zulu"
+          java-version: 21
+
+      - name: Run pipeline
+        shell: bash
+        run: ./scripts/pipeline.sh
 
       - name: Upload pipeline artifact
         id: pipeline-artifact
@@ -164,6 +164,8 @@ jobs:
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
 
       - name: 🧰 Setup Stack
         uses: freckle/stack-action@v5
