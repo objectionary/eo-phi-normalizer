@@ -84,12 +84,13 @@ jobs:
         run: ./scripts/pipeline.sh
 
       - name: Install mdsh
-        if: runner.os == 'Linux' && github.head_ref
-        uses: baptiste0928/cargo-install@v3.0.1
+        if: runner.os == 'Linux'
+        uses: baptiste0928/cargo-install@v3.1.0
         with:
           crate: mdsh
-          git: https://github.com/zimbatm/mdsh
-          tag: v0.8.0
+          # TODO #286:20m Use zimbatm/mdsh after https://github.com/zimbatm/mdsh/pull/63 is merged
+          git: https://github.com/deemp/mdsh
+          branch: main
 
       - name: Update Markdown files
         if: runner.os == 'Linux' && github.head_ref
