@@ -93,15 +93,15 @@ jobs:
           branch: main
 
       - name: Update Markdown files
-        if: runner.os == 'Linux' && github.head_ref
+        if: runner.os == 'Linux'
         run: ./scripts/update-markdown.sh
 
       - name: Commit files
-        if: runner.os == 'Linux' && github.head_ref
+        if: runner.os == 'Linux'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr checkout ${{ github.event.pull_request.number }}
+          ${{ github.head_ref && format('gh pr checkout {0}', github.event.pull_request.number) || ''}}
 
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
