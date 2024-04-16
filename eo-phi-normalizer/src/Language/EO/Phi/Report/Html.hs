@@ -29,6 +29,9 @@ import Text.Blaze.Html5 hiding (i)
 import Text.Blaze.Html5.Attributes (class_, colspan, id, onclick, type_, value)
 import Prelude hiding (div, id, span)
 
+-- $setup
+-- >>> import Text.Blaze.Html.Renderer.String (renderHtml)
+
 -- | JavaScript file to embed into HTML reports
 reportJS :: String
 reportJS = T.unpack $ T.decodeUtf8 $(embedFileRelative "report/main.js")
@@ -94,7 +97,6 @@ instance ToMarkup Percent where
   toMarkup :: Percent -> Markup
   toMarkup = toMarkup . show
 
--- >>> import Text.Blaze.Html.Renderer.String (renderHtml)
 -- >>> reportConfig = ReportConfig { expectedMetricsChange = 0, format = ReportFormat'Markdown }
 --
 -- >>> renderHtml $ toHtmlChange reportConfig (MetricsChange'Bad 0.2)
