@@ -73,6 +73,7 @@ normalizer transform --help
 Usage: normalizer transform (-r|--rules FILE) [-c|--chain] [-j|--json]
                             [-o|--output-file FILE] [-s|--single]
                             [--max-depth INT] [--max-growth-factor INT] [FILE]
+                            [-d|--dependency-file FILE]
 
   Transform a PHI program.
 
@@ -88,6 +89,9 @@ Available options:
                            before stopping. Defaults to 10.
   FILE                     FILE to read input from. When no FILE is specified,
                            read from stdin.
+  -d,--dependency-file FILE
+                           FILE to read dependencies from (zero or more
+                           dependency files allowed).
   -h,--help                Show this help text
 ```
 

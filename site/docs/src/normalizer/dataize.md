@@ -32,8 +32,8 @@ normalizer dataize --help
 ```
 
 ```console
-Usage: normalizer dataize (-r|--rules FILE) [FILE] [-o|--output-file FILE]
-                          [--recursive] [--chain]
+Usage: normalizer dataize (-r|--rules FILE) [FILE] [-d|--dependency-file FILE]
+                          [-o|--output-file FILE] [--recursive] [--chain]
 
   Dataize a PHI program.
 
@@ -41,6 +41,9 @@ Available options:
   -r,--rules FILE          FILE with user-defined rules. Must be specified.
   FILE                     FILE to read input from. When no FILE is specified,
                            read from stdin.
+  -d,--dependency-file FILE
+                           FILE to read dependencies from (zero or more
+                           dependency files allowed).
   -o,--output-file FILE    Output to FILE. When this option is not specified,
                            output to stdout.
   --recursive              Apply dataization + normalization recursively.
