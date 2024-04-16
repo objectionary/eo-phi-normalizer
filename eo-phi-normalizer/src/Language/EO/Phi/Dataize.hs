@@ -133,6 +133,10 @@ evaluateDataizationFunChain func obj _state = do
 evaluateBuiltinFunChain :: String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
 evaluateBuiltinFunChain "Plus" obj = evaluateDataizationFunChain (+) obj
 evaluateBuiltinFunChain "Times" obj = evaluateDataizationFunChain (*) obj
+evaluateBuiltinFunChain "Lorg_eolang_int_gt" obj = evaluateDataizationFunChain (>) obj
+evaluateBuiltinFunChain "Lorg_eolang_int_plus" obj = evaluateDataizationFunChain (+) obj
+evaluateBuiltinFunChain "Lorg_eolang_int_times" obj = evaluateDataizationFunChain (*) obj
+evaluateBuiltinFunChain "Lorg_eolang_int_div" obj = evaluateDataizationFunChain div obj
 evaluateBuiltinFunChain "Package" (Formation bindings) = do
   \state -> do
     fmap dataizePackage getContext >>= \case
