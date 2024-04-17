@@ -3,15 +3,18 @@ set -euo pipefail
 if ! [ -d node_modules ]; then npm i; fi
 
 export LC_ALL=C.UTF-8
-
 shopt -s expand_aliases
-EO="0.36.0"
-alias eo="npx eoc --parser=${EO}"
-
 shopt -s extglob
+EO="${EO:-$(yq '.project.parent.version' -p xml < eo/eo-runtime/pom.xml)}"
 
 function print_message {
     printf "\n\n\n[[[%s]]]\n\n\n" "$1"
+}
+
+print_message "EO version: $EO"
+
+function eo {
+    npx eoc --parser="$EO" "$@"
 }
 
 function check_configs {
