@@ -163,31 +163,44 @@ evaluateBinaryDataizationFunChain resultToBytes bytesToParam wrapBytes arg1 arg2
       return Termination
   return (result, ())
 
+-- | Unary functions operate on the given object without any additional parameters
+evaluateUnaryDataizationFunChain
+  :: (res -> Bytes) -- ^ How to convert the result back to bytes
+  -> (Bytes -> a) -- ^ How to interpret the bytes in terms of the given data type
+  -> (Bytes -> Object) -- ^ How to wrap the bytes in an object
+  -> (Object -> Object) -- ^ Extract the argument to be dataized
+  -> (a -> res) -- ^ A unary function on the argument
+  -> Object
+  -> EvaluationState
+  -> DataizeChain (Object, EvaluationState)
+evaluateUnaryDataizationFunChain resultToBytes bytesToParam wrapBytes extractArg func =
+  evaluateBinaryDataizationFunChain resultToBytes bytesToParam wrapBytes extractArg id (const func)
+
+extractRho :: Object -> Object
+extractRho = (`ObjectDispatch` Rho)
+extractAlpha0 :: Object -> Object
+extractAlpha0 = (`ObjectDispatch` (Alpha (AlphaIndex "α0")))
+wrapBytesInInt :: Bytes -> Object
+wrapBytesInInt (Bytes bytes) = [i|Φ.org.eolang.int(Δ ⤍ #{bytes})|]
+wrapBytesInBytes :: Bytes -> Object
+wrapBytesInBytes (Bytes bytes) = [i|Φ.org.eolang.bytes(Δ ⤍ #{bytes})|]
+
 -- This should maybe get converted to a type class and some instances?
-evaluateIntIntFunChain :: (Int -> Int -> Int) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
-evaluateIntIntFunChain = evaluateBinaryDataizationFunChain
-  intToBytes
-  bytesToInt
-  (\(Bytes bytes) -> [i|Φ.org.eolang.int(Δ ⤍ #{bytes})|])
-  (`ObjectDispatch` Rho)
-  (`ObjectDispatch` (Alpha (AlphaIndex "α0")))
-evaluateIntBoolFunChain :: (Int -> Int -> Bool) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
-evaluateIntBoolFunChain = evaluateBinaryDataizationFunChain
-  boolToBytes
-  bytesToInt
-  (\(Bytes bytes) -> [i|Φ.org.eolang.bytes(Δ ⤍ #{bytes})|])
-  (`ObjectDispatch` Rho)
-  (`ObjectDispatch` (Alpha (AlphaIndex "α0")))
+evaluateIntIntIntFunChain :: (Int -> Int -> Int) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
+evaluateIntIntIntFunChain = evaluateBinaryDataizationFunChain intToBytes bytesToInt wrapBytesInInt extractRho extractAlpha0
+
+evaluateIntIntBoolFunChain :: (Int -> Int -> Bool) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
+evaluateIntIntBoolFunChain = evaluateBinaryDataizationFunChain boolToBytes bytesToInt wrapBytesInBytes extractRho extractAlpha0
 
 -- | Like `evaluateDataizationFunChain` but specifically for the built-in functions.
 -- This function is not safe. It returns undefined for unknown functions
 evaluateBuiltinFunChain :: String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
-evaluateBuiltinFunChain "Plus" obj = evaluateIntIntFunChain (+) obj -- FIXME: change to float variant
-evaluateBuiltinFunChain "Times" obj = evaluateIntIntFunChain (*) obj -- FIXME: change to float variant
-evaluateBuiltinFunChain "Lorg_eolang_int_gt" obj = evaluateIntBoolFunChain (>) obj
-evaluateBuiltinFunChain "Lorg_eolang_int_plus" obj = evaluateIntIntFunChain (+) obj
-evaluateBuiltinFunChain "Lorg_eolang_int_times" obj = evaluateIntIntFunChain (*) obj
-evaluateBuiltinFunChain "Lorg_eolang_int_div" obj = evaluateIntIntFunChain div obj
+evaluateBuiltinFunChain "Plus" obj = evaluateIntIntIntFunChain (+) obj -- FIXME: change to float variant
+evaluateBuiltinFunChain "Times" obj = evaluateIntIntIntFunChain (*) obj -- FIXME: change to float variant
+evaluateBuiltinFunChain "Lorg_eolang_int_gt" obj = evaluateIntIntBoolFunChain (>) obj
+evaluateBuiltinFunChain "Lorg_eolang_int_plus" obj = evaluateIntIntIntFunChain (+) obj
+evaluateBuiltinFunChain "Lorg_eolang_int_times" obj = evaluateIntIntIntFunChain (*) obj
+evaluateBuiltinFunChain "Lorg_eolang_int_div" obj = evaluateIntIntIntFunChain div obj
 evaluateBuiltinFunChain "Package" (Formation bindings) = do
   \state -> do
     fmap dataizePackage getContext >>= \case
