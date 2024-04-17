@@ -1,3 +1,5 @@
+# shellcheck disable=SC2148
+
 set -euo pipefail
 
 if ! [ -d node_modules ]; then npm i; fi
@@ -57,6 +59,7 @@ function check_configs {
 }
 
 function prepare_directory {
+
     print_message "Clean the pipeline directory"
 
     rm -rf pipeline/*/
@@ -68,12 +71,14 @@ function prepare_directory {
 }
 
 function enter_directory {
+
     print_message "Enter the pipeline directory"
 
     cd pipeline
 }
 
-function tests_without_normalization {
+function convert_eo_to_phi {
+
     print_message "Convert EO to PHI"
 
     mkdir -p phi
@@ -82,7 +87,9 @@ function tests_without_normalization {
     eo phi
     cp -r .eoc/phi/!(org) ../phi
     cd ..
+}
 
+function convert_phi_to_eo {
 
     print_message "Convert PHI to EO without normalization"
 
@@ -95,6 +102,10 @@ function tests_without_normalization {
     cp -r .eoc/print/!(org) ../eo-non-normalized
     cd ..
 
+}
+
+function test_without_normalization {
+
     print_message "Test EO without normalization"
 
     cd eo-non-normalized
@@ -102,8 +113,8 @@ function tests_without_normalization {
     cd ..
 }
 
+function normalize {
 
-function normalization {
     print_message "Normalize PHI"
 
     mkdir -p phi-normalized
@@ -140,8 +151,7 @@ function normalization {
     cd ..
 }
 
-function tests_with_normalization {
-
+function convert_normalized_phi_to_eo {
     print_message "Convert normalized PHI to EO"
 
     cd phi-normalized
@@ -150,6 +160,9 @@ function tests_with_normalization {
     cp -r .eoc/unphi/!(org) .eoc/2-optimize
     eo print
     cd ..
+}
+
+function test_with_normalization {
 
     print_message "Test EO with normalization"
 
@@ -160,7 +173,8 @@ function tests_with_normalization {
     cd ..
 }
 
-function generate_report () {
+function generate_report {
+
     print_message "Generate a report"
 
     stack run --cwd .. -- report --config report/config.yaml
@@ -169,7 +183,10 @@ function generate_report () {
 check_configs
 prepare_directory
 enter_directory
-tests_without_normalization
-normalization
-tests_with_normalization
+convert_eo_to_phi
+convert_phi_to_eo
+test_without_normalization
+normalize
+convert_normalized_phi_to_eo
+test_with_normalization
 generate_report
