@@ -135,19 +135,59 @@ evaluateDataizationFunChain resultToBytes bytesToParam wrapBytes func obj _state
       return Termination
   return (result, ())
 
+evaluateBinaryDataizationFunChain
+  :: (res -> Bytes) -- ^ How to convert the result back to bytes
+  -> (Bytes -> a) -- ^ How to interpret the bytes in terms of the given data type
+  -> (Bytes -> Object) -- ^ How to wrap the bytes in an object
+  -> (Object -> Object) -- ^ Extract the 1st argument to be dataized
+  -> (Object -> Object) -- ^ Extract the 2nd argument to be dataized
+  -> (a -> a -> res) -- ^ A binary function on the argument
+  -> Object
+  -> EvaluationState
+  -> DataizeChain (Object, EvaluationState)
+evaluateBinaryDataizationFunChain resultToBytes bytesToParam wrapBytes arg1 arg2 func obj _state = do
+  let lhsArg = arg1 obj
+  let rhsArg = arg2 obj
+  logStep "Evaluating LHS" (Left lhsArg)
+  lhs <- dataizeRecursivelyChain lhsArg
+  logStep "Evaluating RHS" (Left rhsArg)
+  rhs <- dataizeRecursivelyChain rhsArg
+  result <- case (lhs, rhs) of
+    (Right l, Right r) -> do
+      let bytes = resultToBytes (bytesToParam r `func` bytesToParam l)
+          resultObj = wrapBytes bytes
+      logStep "Evaluated function" (Left resultObj)
+      return resultObj
+    _ -> do
+      logStep "Couldn't find bytes in one or both of LHS and RHS" (Left Termination)
+      return Termination
+  return (result, ())
+
 -- This should maybe get converted to a type class and some instances?
-evaluateIntFunChain :: (Int -> Int -> Int) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
-evaluateIntFunChain = evaluateDataizationFunChain intToBytes bytesToInt (\(Bytes bytes) -> [i|Φ.org.eolang.int(Δ ⤍ #{bytes})|])
+evaluateIntIntFunChain :: (Int -> Int -> Int) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
+evaluateIntIntFunChain = evaluateBinaryDataizationFunChain
+  intToBytes
+  bytesToInt
+  (\(Bytes bytes) -> [i|Φ.org.eolang.int(Δ ⤍ #{bytes})|])
+  (`ObjectDispatch` Rho)
+  (`ObjectDispatch` (Alpha (AlphaIndex "α0")))
+evaluateIntBoolFunChain :: (Int -> Int -> Bool) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
+evaluateIntBoolFunChain = evaluateBinaryDataizationFunChain
+  boolToBytes
+  bytesToInt
+  (\(Bytes bytes) -> [i|Φ.org.eolang.bytes(Δ ⤍ #{bytes})|])
+  (`ObjectDispatch` Rho)
+  (`ObjectDispatch` (Alpha (AlphaIndex "α0")))
 
 -- | Like `evaluateDataizationFunChain` but specifically for the built-in functions.
 -- This function is not safe. It returns undefined for unknown functions
 evaluateBuiltinFunChain :: String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
-evaluateBuiltinFunChain "Plus" obj = evaluateIntFunChain (+) obj -- FIXME: change to float variant
-evaluateBuiltinFunChain "Times" obj = evaluateIntFunChain (*) obj -- FIXME: change to float variant
-evaluateBuiltinFunChain "Lorg_eolang_int_gt" obj = evaluateIntFunChain (>) obj
-evaluateBuiltinFunChain "Lorg_eolang_int_plus" obj = evaluateIntFunChain (+) obj
-evaluateBuiltinFunChain "Lorg_eolang_int_times" obj = evaluateIntFunChain (*) obj
-evaluateBuiltinFunChain "Lorg_eolang_int_div" obj = evaluateIntFunChain div obj
+evaluateBuiltinFunChain "Plus" obj = evaluateIntIntFunChain (+) obj -- FIXME: change to float variant
+evaluateBuiltinFunChain "Times" obj = evaluateIntIntFunChain (*) obj -- FIXME: change to float variant
+evaluateBuiltinFunChain "Lorg_eolang_int_gt" obj = evaluateIntBoolFunChain (>) obj
+evaluateBuiltinFunChain "Lorg_eolang_int_plus" obj = evaluateIntIntFunChain (+) obj
+evaluateBuiltinFunChain "Lorg_eolang_int_times" obj = evaluateIntIntFunChain (*) obj
+evaluateBuiltinFunChain "Lorg_eolang_int_div" obj = evaluateIntIntFunChain div obj
 evaluateBuiltinFunChain "Package" (Formation bindings) = do
   \state -> do
     fmap dataizePackage getContext >>= \case
