@@ -120,6 +120,7 @@ function normalization {
         # shellcheck disable=SC2086
         stack run -- \
             dataize \
+            --recursive \
             --rules \
             ../../eo-phi-normalizer/test/eo/phi/rules/yegor.yaml \
             $dependency_file_options \
