@@ -10,6 +10,7 @@
 module Language.EO.Phi.Dataize where
 
 import Control.Arrow (ArrowChoice (left))
+import Data.Bits
 import Data.List (singleton)
 import Data.Maybe (listToMaybe)
 import Data.String.Interpolate (i)
@@ -182,6 +183,8 @@ extractAlpha0 :: Object -> Object
 extractAlpha0 = (`ObjectDispatch` (Alpha (AlphaIndex "α0")))
 wrapBytesInInt :: Bytes -> Object
 wrapBytesInInt (Bytes bytes) = [i|Φ.org.eolang.int(Δ ⤍ #{bytes})|]
+wrapBytesInFloat :: Bytes -> Object
+wrapBytesInFloat (Bytes bytes) = [i|Φ.org.eolang.float(Δ ⤍ #{bytes})|]
 wrapBytesInBytes :: Bytes -> Object
 wrapBytesInBytes (Bytes bytes) = [i|Φ.org.eolang.bytes(Δ ⤍ #{bytes})|]
 
@@ -192,6 +195,10 @@ evaluateIntIntIntFunChain = evaluateBinaryDataizationFunChain intToBytes bytesTo
 evaluateIntIntBoolFunChain :: (Int -> Int -> Bool) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
 evaluateIntIntBoolFunChain = evaluateBinaryDataizationFunChain boolToBytes bytesToInt wrapBytesInBytes extractRho extractAlpha0
 
+-- Int because Bytes are just a string, but Int has a Bits instance
+-- evaluateBytesFunChain :: (Int -> Int -> Int) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
+-- evaluateBytesFunChain = evaluateDataizationFunChain intToBytes bytesToInt (\(Bytes bytes) -> [i|Φ.org.eolang.bytes(Δ ⤍ #{bytes})|]) (`ObjectDispatch` Rho) (`ObjectDispatch` (Alpha (AlphaIndex "α0")))
+
 -- | Like `evaluateDataizationFunChain` but specifically for the built-in functions.
 -- This function is not safe. It returns undefined for unknown functions
 evaluateBuiltinFunChain :: String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
@@ -201,6 +208,18 @@ evaluateBuiltinFunChain "Lorg_eolang_int_gt" obj = evaluateIntIntBoolFunChain (>
 evaluateBuiltinFunChain "Lorg_eolang_int_plus" obj = evaluateIntIntIntFunChain (+) obj
 evaluateBuiltinFunChain "Lorg_eolang_int_times" obj = evaluateIntIntIntFunChain (*) obj
 evaluateBuiltinFunChain "Lorg_eolang_int_div" obj = evaluateIntIntIntFunChain div obj
+-- evaluateBuiltinFunChain "Lorg_eolang_bytes_eq" obj = evaluateBytesBoolFunChain (==) obj
+-- evaluateBuiltinFunChain "Lorg_eolang_bytes_size" obj = _ -- TODO
+-- evaluateBuiltinFunChain "Lorg_eolang_bytes_slice" obj = _ -- TODO
+-- evaluateBuiltinFunChain "Lorg_eolang_bytes_as_string" obj = _ -- TODO
+evaluateBuiltinFunChain "Lorg_eolang_bytes_as_int" obj = evaluateUnaryDataizationFunChain id id wrapBytesInInt extractAlpha0 id obj
+evaluateBuiltinFunChain "Lorg_eolang_bytes_as_float" obj = evaluateUnaryDataizationFunChain id id wrapBytesInFloat extractAlpha0 id obj
+-- evaluateBuiltinFunChain "Lorg_eolang_bytes_and" obj = evaluateBytesFunChain (.&.) obj
+-- evaluateBuiltinFunChain "Lorg_eolang_bytes_or" obj = evaluateBytesFunChain (.|.) obj
+-- evaluateBuiltinFunChain "Lorg_eolang_bytes_xor" obj = evaluateBytesFunChain (.^.) obj
+-- evaluateBuiltinFunChain "Lorg_eolang_bytes_not" obj = _ -- TODO
+-- evaluateBuiltinFunChain "Lorg_eolang_bytes_right" obj = _ -- TODO
+-- evaluateBuiltinFunChain "Lorg_eolang_bytes_concat" obj = _ -- TODO
 evaluateBuiltinFunChain "Package" (Formation bindings) = do
   \state -> do
     fmap dataizePackage getContext >>= \case

@@ -346,6 +346,16 @@ bytesToInt (Bytes (filter (/= '-') . dropWhile (== '0') -> bytes))
   | null bytes = 0
   | otherwise = fst $ head $ readHex bytes
 
+boolToBytes :: Bool -> Bytes
+boolToBytes True = Bytes "01-"
+boolToBytes False = Bytes "00-"
+
+bytesToBool :: Bytes -> Bool
+bytesToBool (Bytes "00-") = False
+bytesToBool _ = True -- TODO: verify that anything (not just 01-) can be interpreted as true
+
+-- floatToBytes :: Float -> Bytes
+
 minNu :: Int
 minNu = -1
 
