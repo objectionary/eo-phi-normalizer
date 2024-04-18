@@ -161,6 +161,7 @@
             };
 
             update-markdown = {
+              meta.description = "Update Markdown files using mdsh and prettier";
               runtimeInputs = [
                 inputs.mdsh.packages.${system}.default
                 pkgs.mdbook-linkcheck
@@ -170,7 +171,6 @@
                 let
                   name = "update-markdown";
                   text = ''
-                    # shellcheck disable=SC2148
                     mdsh
 
                     ${lib.concatMapStringsSep "\n" (x: "mdsh -i site/docs/src/${x} --work_dir .") [
@@ -194,6 +194,8 @@
                   stack install
 
                   cat << EOF > scripts/${name}.sh
+                  # shellcheck disable=SC2148
+
                   ${text}
                   EOF
 
