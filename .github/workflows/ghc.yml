@@ -117,22 +117,10 @@ jobs:
         shell: bash
         run: ./scripts/pipeline.sh
 
-      - name: Update normalizer data files
-        id: update-data-files
-        if: runner.os == 'Linux'
-        run: |
-          EO="$(yq '.project.parent.version' -p xml < eo/eo-runtime/pom.xml)"
-          data_directory="eo-phi-normalizer/data/$EO"
-
-          echo "data_directory=$data_directory" >> "$GITHUB_OUTPUT"
-
-          mkdir -p "$data_directory"
-          cp -r pipeline/phi/.eoc/phi/org "$data_directory"
-
       - name: Commit and push changes in normalizer data files
         if: runner.os == 'Linux'
         run: |
-          data_directory="${{ steps.update-data-files.outputs.data_directory }}"
+          data_directory="eo-phi-normalizer/data"
           if [ -n "$(git status --porcelain $data_directory)" ]; then
             git add $data_directory
             git commit -m "Update normalizer data files"
