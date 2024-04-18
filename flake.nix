@@ -122,10 +122,8 @@
             programs.hlint.enable = true;
             shellcheck.enable = true;
             settings.formatter.fourmolu.excludes = [
-              "eo"
-              "Setup.hs"
-              "Abs.hs"
-              "Print.hs"
+              "eo-phi-normalizer/Setup.hs"
+              "eo-phi-normalizer/src/Language/EO/Phi/Syntax/*"
               "*.cabal"
             ];
             settings.formatter.hlint.excludes = settings.formatter.fourmolu.excludes;
