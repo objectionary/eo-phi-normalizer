@@ -165,6 +165,7 @@
               ];
               text =
                 let
+                  name = "update-markdown";
                   text = ''
                     # shellcheck disable=SC2148
                     mdsh
@@ -189,12 +190,11 @@
                   export LC_ALL=C.UTF-8
                   stack install
 
-
-                  cat << EOF > scripts/update-markdown.sh
+                  cat << EOF > scripts/${name}.sh
                   ${text}
                   EOF
 
-                  chmod +x scripts/update-markdown.sh
+                  chmod +x scripts/${name}.sh
 
                   ${text}
                 '';
