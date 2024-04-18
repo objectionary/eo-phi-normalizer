@@ -17,9 +17,14 @@ jobs:
   check:
     name: "Run static checks"
     runs-on: ubuntu-latest
+    outputs:
+      EO: ${{ steps.get-eo-version.outputs.EO }}
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: true
+          ref: ${{ github.ref }}
 
       - uses: haskell-actions/run-fourmolu@v10
         with:
@@ -40,6 +45,15 @@ jobs:
       - uses: haskell-actions/hlint-run@v2
         with:
           hlint-bin: ${{ steps.get-hlint-bin.outputs.hlint-bin }}
+
+      - name: Get EO version
+        id: get-eo-version
+        run: |
+          EO="$(yq '.project.parent.version' -p xml < eo/eo-runtime/pom.xml)"
+
+          printf "%s" "$EO"
+
+          printf "EO=$EO\n" >> $GITHUB_OUTPUT
 
   pipeline:
     name: Run pipeline
@@ -115,6 +129,8 @@ jobs:
 
       - name: Run pipeline
         shell: bash
+        env:
+          EO: ${{ needs.check.outputs.EO }}
         run: ./scripts/pipeline.sh
 
       - name: Commit and push changes in normalizer data files
