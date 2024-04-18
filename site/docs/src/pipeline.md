@@ -6,6 +6,12 @@ See [Installation](./installation.md).
 
 ## Install dependencies
 
+Install [yq](https://github.com/mikefarah/yq).
+
+```$ as console
+yq --version
+```
+
 Install [NodeJS](https://nodejs.org/en).
 
 ```$ as console
