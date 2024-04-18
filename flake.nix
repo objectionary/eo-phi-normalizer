@@ -231,7 +231,18 @@
                 pkgs.mdbook
                 pkgs.yq-go
                 pkgs.jdk21
+                {
+                  expose = false;
+                  packages = {
+                    inherit
+                      (config.haskellProjects.default.defaults.devShell.tools config.haskellProjects.default.outputs.finalPackages)
+                      cabal-install
+                      haskell-language-server
+                      ;
+                  };
+                }
               ];
+
               scripts = [
                 {
                   prefix = "nix run .#";
