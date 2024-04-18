@@ -204,6 +204,7 @@
                 pkgs.gh
                 pkgs.mdsh
                 pkgs.mdbook
+                pkgs.yq-go
               ];
             in
             {
