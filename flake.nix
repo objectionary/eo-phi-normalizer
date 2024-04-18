@@ -95,12 +95,11 @@
             basePackages = pkgs.haskell.packages."ghc${ghcVersion}";
 
             # don't want hlint and ghcid - https://github.com/srid/haskell-flake/blob/847292fc793a5c15c873e52e7751ee4267ef32a0/nix/modules/project/defaults.nix#L23-L28
-            defaults.enable = false;
+            defaults.devShell.tools = hp: { inherit (hp) cabal-install haskell-language-server; };
 
             # Development shell configuration
             devShell = {
               hlsCheck.enable = false;
-              tools = hp: { inherit (hp) cabal-install haskell-language-server; };
             };
 
             # What should haskell-flake add to flake outputs?
