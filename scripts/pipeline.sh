@@ -162,6 +162,13 @@ function normalize {
     cd ..
 }
 
+function generate_report {
+
+    print_message "Generate a report"
+
+    stack run --cwd .. -- report --config report/config.yaml
+}
+
 function convert_normalized_phi_to_eo {
     print_message "Convert normalized PHI to EO"
 
@@ -184,13 +191,6 @@ function test_with_normalization {
     cd ..
 }
 
-function generate_report {
-
-    print_message "Generate a report"
-
-    stack run --cwd .. -- report --config report/config.yaml
-}
-
 check_configs
 prepare_directory
 enter_directory
@@ -199,6 +199,6 @@ update_normalizer_phi_files
 convert_phi_to_eo
 test_without_normalization
 normalize
+generate_report
 convert_normalized_phi_to_eo
 test_with_normalization
-generate_report
