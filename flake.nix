@@ -186,7 +186,9 @@
                   ${text}
                 '';
             };
+          };
 
+          devShells = {
             # buildStackProject arguments: https://github.com/NixOS/nixpkgs/blob/c7089236291045a523429e681bdaecb49bb501f3/pkgs/development/haskell-modules/generic-stack-builder.nix#L4-L11
             stack-shell = pkgs.haskell.lib.buildStackProject {
               name = "stack-shell";
