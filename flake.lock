@@ -101,15 +101,15 @@
         ]
       },
       "locked": {
-        "lastModified": 1713264580,
+        "lastModified": 1713271556,
         "narHash": "sha256-6Ndk6+LSzqoBN95bDsyHzjaQTVgjrCL1pBCDxjNyaAo=",
-        "owner": "deemp",
+        "owner": "zimbatm",
         "repo": "mdsh",
-        "rev": "8fd15abe91f51df72bd1e44013b3dd3936888372",
+        "rev": "a8d8a7232e2c7dd689a8de7111119b52f762d157",
         "type": "github"
       },
       "original": {
-        "owner": "deemp",
+        "owner": "zimbatm",
         "repo": "mdsh",
         "type": "github"
       }

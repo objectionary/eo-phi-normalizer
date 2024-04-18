@@ -15,9 +15,8 @@
     haskell-flake.url = "github:srid/haskell-flake";
     treefmt-nix.url = "github:numtide/treefmt-nix";
     treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
-    # TODO #286:20m Use github:zimbatm/mdsh after https://github.com/zimbatm/mdsh/pull/63 is merged
     mdsh = {
-      url = "github:deemp/mdsh";
+      url = "github:zimbatm/mdsh";
       inputs.flake-utils.follows = "flake-utils";
       inputs.nixpkgs.follows = "nixpkgs";
     };
