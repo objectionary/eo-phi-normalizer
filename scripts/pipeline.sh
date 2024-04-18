@@ -5,13 +5,13 @@ set -euo pipefail
 if ! [ -d node_modules ]; then npm i; fi
 
 export LC_ALL=C.UTF-8
-shopt -s expand_aliases
 shopt -s extglob
-EO="${EO:-$(yq '.project.parent.version' -p xml < eo/eo-runtime/pom.xml)}"
 
 function print_message {
     printf "\n\n\n[[[%s]]]\n\n\n" "$1"
 }
+
+EO="${EO:-$(yq '.project.parent.version' -p xml < eo/eo-runtime/pom.xml)}"
 
 print_message "EO version: $EO"
 
