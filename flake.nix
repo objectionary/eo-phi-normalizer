@@ -49,6 +49,7 @@
           stack-wrapped = pkgs.symlinkJoin {
             name = "stack"; # will be available as the usual `stack` in terminal
             paths = [ pkgs.stack ];
+            meta = pkgs.stack.meta;
             buildInputs = [ pkgs.makeWrapper ];
             postBuild = ''
               wrapProgram $out/bin/stack \
