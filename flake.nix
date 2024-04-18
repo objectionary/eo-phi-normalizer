@@ -90,9 +90,13 @@
 
             basePackages = pkgs.haskell.packages."ghc${ghcVersion}";
 
+            # don't want hlint and ghcid - https://github.com/srid/haskell-flake/blob/847292fc793a5c15c873e52e7751ee4267ef32a0/nix/modules/project/defaults.nix#L23-L28
+            defaults.enable = false;
+
             # Development shell configuration
             devShell = {
               hlsCheck.enable = false;
+              tools = hp: { inherit (hp) cabal-install haskell-language-server; };
             };
 
             # What should haskell-flake add to flake outputs?
@@ -105,7 +109,7 @@
 
           # Auto formatters. This also adds a flake check to ensure that the
           # source tree was auto formatted.
-          treefmt.config = {
+          treefmt.config = rec {
             projectRootFile = "flake.nix";
             programs.nixfmt-rfc-style.enable = true;
             programs.fourmolu = {
@@ -115,6 +119,7 @@
                 "CPP"
               ];
             };
+            programs.hlint.enable = true;
             settings.formatter.fourmolu.excludes = [
               "eo"
               "Setup.hs"
@@ -122,6 +127,7 @@
               "Print.hs"
               "*.cabal"
             ];
+            settings.formatter.hlint.excludes = settings.formatter.fourmolu.excludes;
             settings.global.excludes = [ "eo" ];
           };
 
