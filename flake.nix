@@ -166,6 +166,7 @@
               text =
                 let
                   text = ''
+                    # shellcheck disable=SC2148
                     mdsh
 
                     ${lib.concatMapStringsSep "\n" (x: "mdsh -i site/docs/src/${x} --work_dir .") [
