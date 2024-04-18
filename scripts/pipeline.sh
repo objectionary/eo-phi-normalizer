@@ -89,6 +89,17 @@ function convert_eo_to_phi {
     cd ..
 }
 
+function update_normalizer_phi_files {
+
+    print_message "Update .phi data files in eo-phi-normalizer"
+
+    cd eo
+    data_directory="../../eo-phi-normalizer/data/$EO"
+    mkdir -p "$data_directory"
+    cp -r .eoc/phi/org "$data_directory"
+    cd ..
+}
+
 function convert_phi_to_eo {
 
     print_message "Convert PHI to EO without normalization"
@@ -184,6 +195,7 @@ check_configs
 prepare_directory
 enter_directory
 convert_eo_to_phi
+update_normalizer_phi_files
 convert_phi_to_eo
 test_without_normalization
 normalize
