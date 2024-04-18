@@ -248,6 +248,7 @@
                   prefix = "nix run .#";
                   packages = {
                     inherit (self'.packages) pipeline update-markdown;
+                    normalizer = self'.packages.default;
                   };
                 }
               ];
