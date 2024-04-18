@@ -109,25 +109,32 @@
 
           # Auto formatters. This also adds a flake check to ensure that the
           # source tree was auto formatted.
-          treefmt.config = rec {
+          treefmt.config = {
             projectRootFile = "flake.nix";
-            programs.nixfmt-rfc-style.enable = true;
-            programs.fourmolu = {
-              enable = true;
-              ghcOpts = [
-                "NoPatternSynonyms"
-                "CPP"
-              ];
+            programs = {
+              nixfmt-rfc-style.enable = true;
+              hlint.enable = true;
+              shellcheck.enable = true;
+              fourmolu = {
+                enable = true;
+                ghcOpts = [
+                  "NoPatternSynonyms"
+                  "CPP"
+                ];
+              };
             };
-            programs.hlint.enable = true;
-            shellcheck.enable = true;
-            settings.formatter.fourmolu.excludes = [
-              "eo-phi-normalizer/Setup.hs"
-              "eo-phi-normalizer/src/Language/EO/Phi/Syntax/*"
-              "*.cabal"
-            ];
-            settings.formatter.hlint.excludes = settings.formatter.fourmolu.excludes;
-            settings.global.excludes = [ "eo" ];
+            settings = {
+              formatter = rec {
+                fourmolu.excludes = [
+                  "eo"
+                  "eo-phi-normalizer/Setup.hs"
+                  "eo-phi-normalizer/src/Language/EO/Phi/Syntax/*"
+                  "*.cabal"
+                ];
+                hlint.excludes = fourmolu.excludes;
+              };
+              global.excludes = [ "eo" ];
+            };
           };
 
           # Default package & app.
