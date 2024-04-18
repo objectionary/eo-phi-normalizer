@@ -230,6 +230,7 @@
                 pkgs.mdsh
                 pkgs.mdbook
                 pkgs.yq-go
+                pkgs.jdk21
               ];
               scripts = [
                 {
