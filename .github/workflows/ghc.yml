@@ -89,8 +89,6 @@ jobs:
 
       - name: Configure git
         if: runner.os == 'Linux'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           ${{ github.head_ref && format('gh pr checkout {0}', github.event.pull_request.number) || ''}}
 
@@ -133,8 +131,6 @@ jobs:
 
       - name: Commit and push changes in normalizer data files
         if: runner.os == 'Linux'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           data_directory="${{ steps.update-data-files.outputs.data_directory }}"
           if [ -n "$(git status --porcelain $data_directory)" ]; then
