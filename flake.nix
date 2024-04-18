@@ -211,8 +211,12 @@
           };
 
           # Default shell.
-          devshells.default =
-            let
+          devshells.default = {
+            packagesFrom = [
+              config.haskellProjects.default.outputs.devShell
+              config.treefmt.build.devShell
+            ];
+            commands = {
               tools = [
                 stack-wrapped
                 pkgs.ghcid
@@ -222,25 +226,17 @@
                 pkgs.mdbook
                 pkgs.yq-go
               ];
-            in
-            {
-              packagesFrom = [
-                config.haskellProjects.default.outputs.devShell
-                config.treefmt.build.devShell
-              ];
               bash.extra = "export LANG=C.utf8";
-              commands = {
-                inherit tools;
-                scripts = [
-                  {
-                    prefix = "nix run .#";
-                    packages = {
-                      inherit (self'.packages) pipeline update-markdown;
-                    };
-                  }
-                ];
-              };
+              scripts = [
+                {
+                  prefix = "nix run .#";
+                  packages = {
+                    inherit (self'.packages) pipeline update-markdown;
+                  };
+                }
+              ];
             };
+          };
         };
     };
 
