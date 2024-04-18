@@ -120,6 +120,7 @@
               ];
             };
             programs.hlint.enable = true;
+            shellcheck.enable = true;
             settings.formatter.fourmolu.excludes = [
               "eo"
               "Setup.hs"
