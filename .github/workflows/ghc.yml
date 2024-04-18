@@ -88,43 +88,6 @@ jobs:
           node-version: 20
           cache: npm
 
-      - name: Install mdsh
-        if: runner.os == 'Linux'
-        uses: baptiste0928/cargo-install@v3.1.0
-        with:
-          crate: mdsh
-          # TODO #286:20m Use zimbatm/mdsh after https://github.com/zimbatm/mdsh/pull/63 is merged
-          git: https://github.com/deemp/mdsh
-          branch: main
-
-      - name: Update Markdown files
-        if: runner.os == 'Linux'
-        run: ./scripts/update-markdown.sh
-
-      - name: Configure git
-        if: runner.os == 'Linux'
-        env:
-          # required for gh
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          ${{ github.head_ref && format('gh pr checkout {0}', github.event.pull_request.number) || ''}}
-
-          git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "github-actions[bot]"
-
-      - name: Commit and push changes in Markdown files
-        if: runner.os == 'Linux'
-        run: |
-          files="site proposals README.md"
-
-          if [ -n "$(git status --porcelain $files)" ]; then
-            git add $files
-            git commit -m "Update Markdown files"
-            git push
-          else
-            printf "Nothing to commit."
-          fi
-
       - uses: actions/setup-java@v4
         with:
           distribution: "zulu"
@@ -136,8 +99,19 @@ jobs:
           EO: ${{ needs.check.outputs.EO }}
         run: ./scripts/pipeline.sh
 
+      - name: Configure git
+        if: always() && runner.os == 'Linux'
+        env:
+          # required for gh
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          ${{ github.head_ref && format('gh pr checkout {0}', github.event.pull_request.number) || ''}}
+
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+
       - name: Commit and push changes in normalizer data files
-        if: runner.os == 'Linux'
+        if: always() && runner.os == 'Linux'
         run: |
           data_directory="eo-phi-normalizer/data"
           if [ -n "$(git status --porcelain $data_directory)" ]; then
@@ -146,6 +120,32 @@ jobs:
             git push
           else
             echo "Nothing to commit.";
+          fi
+
+      - name: Install mdsh
+        if: always() && runner.os == 'Linux'
+        uses: baptiste0928/cargo-install@v3.1.0
+        with:
+          crate: mdsh
+          # TODO #286:20m Use zimbatm/mdsh after https://github.com/zimbatm/mdsh/pull/63 is merged
+          git: https://github.com/deemp/mdsh
+          branch: main
+
+      - name: Update Markdown files
+        if: always() && runner.os == 'Linux'
+        run: ./scripts/update-markdown.sh
+
+      - name: Commit and push changes in Markdown files
+        if: always() && runner.os == 'Linux'
+        run: |
+          files="site proposals README.md"
+
+          if [ -n "$(git status --porcelain $files)" ]; then
+            git add $files
+            git commit -m "Update Markdowfilesn files"
+            git push
+          else
+            printf "Nothing to commit."
           fi
 
       - name: Upload pipeline artifact
