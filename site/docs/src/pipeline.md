@@ -1,8 +1,8 @@
 # Pipeline
 
-## Install `normalizer` from the repository
+## Enter the repository and install `normalizer`
 
-See [Installation](./installation.md).
+{{ #include ./common/install.md }}
 
 ## Install dependencies
 
@@ -42,15 +42,6 @@ The pipeline has several stages:
 - Translate normalized `PHI` programs to normalized `EO` programs
 - Test normalized `EO` programs
 - Report metrics on initial `PHI` programs and normalized `PHI` programs
-
-### Environment
-
-Current directory should be the root directory of the `normalizer` repo.
-
-```console
-git clone https://github.com/objectionary/normalizer --recurse-submodules
-cd normalizer
-```
 
 ### Modify pipeline configuration
 
