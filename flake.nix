@@ -157,7 +157,7 @@
                 ${builtins.readFile ./scripts/pipeline.sh}
               '';
               meta.description = "Run pipeline";
-              excludeShellChecks = [ "SC2139" ];
+              excludeShellChecks = [ "SC2317" ];
             };
 
             update-markdown = {
