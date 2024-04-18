@@ -69,6 +69,9 @@
             else
               value
           );
+          bash.vars = ''
+            export LC_ALL=C.UTF-8
+          '';
         in
         {
           # Our only Haskell project. You can have multiple projects, but this template
@@ -188,7 +191,7 @@
                     npx prettier -w "**/*.md"'';
                 in
                 ''
-                  export LC_ALL=C.UTF-8
+                  ${bash.vars}
                   stack install
 
                   cat << EOF > scripts/${name}.sh
@@ -216,6 +219,7 @@
               config.haskellProjects.default.outputs.devShell
               config.treefmt.build.devShell
             ];
+            bash.extra = bash.vars;
             commands = {
               tools = [
                 stack-wrapped
@@ -226,7 +230,6 @@
                 pkgs.mdbook
                 pkgs.yq-go
               ];
-              bash.extra = "export LANG=C.utf8";
               scripts = [
                 {
                   prefix = "nix run .#";
