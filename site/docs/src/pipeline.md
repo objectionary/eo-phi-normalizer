@@ -24,10 +24,6 @@ Install [Java](https://www.java.com/en/download/help/download_options.html).
 java --version
 ```
 
-## Run normalizer
-
-See [normalizer](./normalizer.md) for supported commands.
-
 ## Run pipeline
 
 ### Pipeline stages
@@ -60,7 +56,9 @@ An initial `EO` program is an original `EO` program with some top-level objects 
 
 ### Run script
 
-Run `scripts/pipeline.sh`.
+```sh
+bash ./scripts/pipeline.sh
+```
 
 The script will run for several minutes and write the following entries to the `pipeline` directory:.
 
