@@ -76,7 +76,7 @@ jobs:
       - name: 🧰 Setup Stack
         uses: freckle/stack-action@v5
         with:
-          stack-build-arguments: ${{ github.ref_name != 'master' && '--fast' || '' }} --pedantic
+          stack-build-arguments: --pedantic
           stack-build-arguments-build: --copy-bins
           stack-build-arguments-test: --force-dirty
           # TODO #213:10m enable macos test after https://github.com/objectionary/normalizer/issues/180 is resolved
