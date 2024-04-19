@@ -9,6 +9,7 @@
 
 module Language.EO.Phi.Dataize where
 
+import Control.Arrow (left)
 import Data.List (singleton)
 import Data.Maybe (listToMaybe)
 import Language.EO.Phi.Rules.Common
@@ -51,7 +52,6 @@ dataizeStepChain obj@(Formation bs)
       logStep "Dataizing inside phi" (Left decoratee)
       ctx <- getContext
       let extendedContext = (extendContextWith obj ctx){currentAttr = Phi}
-      logStep "Dataizing inside phi" (Left decoratee)
       withContext extendedContext $ dataizeStepChain decoratee
   | otherwise = do
       logStep "No change to formation" (Left obj)
@@ -62,16 +62,18 @@ dataizeStepChain obj@(Formation bs)
   isEmpty DeltaEmptyBinding = True
   isEmpty _ = False
   hasEmpty = any isEmpty bs
--- dataizeStepChain (Application obj bindings) = do
---   logStep "Dataizing inside application" (Left obj)
---   modifyContext (\c -> c{dataizePackage = False}) $ do
---     (ctx, obj') <- dataizeStepChain obj
---     return (ctx, left (`Application` bindings) obj')
--- dataizeStepChain (ObjectDispatch obj attr) = do
---   logStep "Dataizing inside dispatch" (Left obj)
---   modifyContext (\c -> c{dataizePackage = False}) $ do
---     (ctx, obj') <- dataizeStepChain obj
---     return (ctx, left (`ObjectDispatch` attr) obj')
+-- IMPORTANT: dataize the object being copied IF normalization is stuck on it!
+dataizeStepChain (Application obj bindings) = do
+  logStep "Dataizing inside application" (Left obj)
+  modifyContext (\c -> c{dataizePackage = False}) $ do
+    (ctx, obj') <- dataizeStepChain obj
+    return (ctx, left (`Application` bindings) obj')
+-- IMPORTANT: dataize the object being dispatched IF normalization is stuck on it!
+dataizeStepChain (ObjectDispatch obj attr) = do
+  logStep "Dataizing inside dispatch" (Left obj)
+  modifyContext (\c -> c{dataizePackage = False}) $ do
+    (ctx, obj') <- dataizeStepChain obj
+    return (ctx, left (`ObjectDispatch` attr) obj')
 dataizeStepChain obj = do
   logStep "Nothing to dataize" (Left obj)
   ctx <- getContext
@@ -84,6 +86,7 @@ dataizeRecursivelyChain' ctx obj = head (runChain (dataizeRecursivelyChain obj) 
 -- reporting intermediate steps
 dataizeRecursivelyChain :: Object -> DataizeChain (Either Object Bytes)
 dataizeRecursivelyChain obj = do
+  logStep "Dataizing" (Left obj)
   ctx <- getContext
   msplit (transformNormLogs (applyRulesChain obj)) >>= \case
     Nothing -> do
