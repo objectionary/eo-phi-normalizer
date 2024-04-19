@@ -181,6 +181,8 @@ extractRho :: Object -> Object
 extractRho = (`ObjectDispatch` Rho)
 extractAlpha0 :: Object -> Object
 extractAlpha0 = (`ObjectDispatch` (Alpha (AlphaIndex "α0")))
+extractX :: Object -> Object
+extractX = (`ObjectDispatch` (Alpha (AlphaIndex "x")))
 wrapBytesInInt :: Bytes -> Object
 wrapBytesInInt (Bytes bytes) = [i|Φ.org.eolang.int(Δ ⤍ #{bytes})|]
 wrapBytesInFloat :: Bytes -> Object
@@ -190,10 +192,10 @@ wrapBytesInBytes (Bytes bytes) = [i|Φ.org.eolang.bytes(Δ ⤍ #{bytes})|]
 
 -- This should maybe get converted to a type class and some instances?
 evaluateIntIntIntFunChain :: (Int -> Int -> Int) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
-evaluateIntIntIntFunChain = evaluateBinaryDataizationFunChain intToBytes bytesToInt wrapBytesInInt extractRho extractAlpha0
+evaluateIntIntIntFunChain = evaluateBinaryDataizationFunChain intToBytes bytesToInt wrapBytesInInt extractRho extractX
 
 evaluateIntIntBoolFunChain :: (Int -> Int -> Bool) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
-evaluateIntIntBoolFunChain = evaluateBinaryDataizationFunChain boolToBytes bytesToInt wrapBytesInBytes extractRho extractAlpha0
+evaluateIntIntBoolFunChain = evaluateBinaryDataizationFunChain boolToBytes bytesToInt wrapBytesInBytes extractRho extractX
 
 -- Int because Bytes are just a string, but Int has a Bits instance
 -- evaluateBytesFunChain :: (Int -> Int -> Int) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
@@ -202,8 +204,8 @@ evaluateIntIntBoolFunChain = evaluateBinaryDataizationFunChain boolToBytes bytes
 -- | Like `evaluateDataizationFunChain` but specifically for the built-in functions.
 -- This function is not safe. It returns undefined for unknown functions
 evaluateBuiltinFunChain :: String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
-evaluateBuiltinFunChain "Plus" obj = evaluateIntIntIntFunChain (+) obj -- FIXME: change to float variant
-evaluateBuiltinFunChain "Times" obj = evaluateIntIntIntFunChain (*) obj -- FIXME: change to float variant
+evaluateBuiltinFunChain "Plus" obj = evaluateBinaryDataizationFunChain intToBytes bytesToInt wrapBytesInInt extractRho extractAlpha0 (+) obj -- FIXME: change to float variant
+evaluateBuiltinFunChain "Times" obj = evaluateBinaryDataizationFunChain intToBytes bytesToInt wrapBytesInInt extractRho extractAlpha0 (*) obj -- FIXME: change to float variant
 evaluateBuiltinFunChain "Lorg_eolang_int_gt" obj = evaluateIntIntBoolFunChain (>) obj
 evaluateBuiltinFunChain "Lorg_eolang_int_plus" obj = evaluateIntIntIntFunChain (+) obj
 evaluateBuiltinFunChain "Lorg_eolang_int_times" obj = evaluateIntIntIntFunChain (*) obj
