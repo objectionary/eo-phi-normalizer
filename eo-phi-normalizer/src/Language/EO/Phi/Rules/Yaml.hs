@@ -25,7 +25,8 @@ import Data.Maybe (fromMaybe)
 import Data.String (IsString (..))
 import Data.Yaml qualified as Yaml
 import GHC.Generics (Generic)
-import Language.EO.Phi (printTree)
+
+import Language.EO.Phi
 import Language.EO.Phi.Rules.Common (Context (insideFormation, outerFormations), NamedRule)
 import Language.EO.Phi.Rules.Common qualified as Common
 import Language.EO.Phi.Syntax.Abs
@@ -136,6 +137,7 @@ objectHasMetavars ThisObject = False
 objectHasMetavars Termination = False
 objectHasMetavars (MetaObject _) = True
 objectHasMetavars (MetaFunction _ _) = True
+objectHasMetavars (MetaSubstThis _ _) = True -- technically not a metavar, but a substitution
 
 bindingHasMetavars :: Binding -> Bool
 bindingHasMetavars (AlphaBinding attr obj) = attrHasMetavars attr || objectHasMetavars obj
@@ -245,7 +247,43 @@ applySubst subst@Subst{..} = \case
   GlobalObject -> GlobalObject
   ThisObject -> ThisObject
   obj@(MetaObject x) -> fromMaybe obj $ lookup x objectMetas
-  obj -> obj
+  Termination -> Termination
+  MetaSubstThis obj thisObj -> MetaSubstThis (applySubst subst thisObj) (applySubst subst obj)
+  obj@MetaFunction{} -> obj
+
+substThis :: Object -> Object -> Object
+substThis thisObj = go
+ where
+  isAttachedRho (AlphaBinding Rho _) = True
+  isAttachedRho _ = False
+  go = \case
+    ThisObject -> thisObj -- ξ is substituted
+    -- IMPORTANT: we are injecting a ρ-attribute in formations!
+    obj@(Formation bindings)
+      | any isAttachedRho bindings -> obj
+      | otherwise -> Formation (bindings ++ [AlphaBinding Rho thisObj])
+    -- everywhere else we simply recursively traverse the φ-term
+    Application obj bindings -> Application (go obj) (map (substThisBinding thisObj) bindings)
+    ObjectDispatch obj a -> ObjectDispatch (go obj) a
+    GlobalObject -> GlobalObject
+    Termination -> Termination
+    obj@MetaSubstThis{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
+    obj@MetaObject{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
+    obj@MetaFunction{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
+
+-- {⟦ x ↦ ⟦ b ↦ ⟦ Δ ⤍ 01- ⟧, φ ↦ ⟦ b ↦ ⟦ Δ ⤍ 02- ⟧, c ↦ ⟦ a ↦ ξ.ρ.ρ.b ⟧.a ⟧.c ⟧.φ, λ ⤍ Package ⟧}
+
+-- {⟦ λ ⤍ Package, x ↦ ⟦ b ↦ ⟦⟧ ⟧ ⟧}
+
+substThisBinding :: Object -> Binding -> Binding
+substThisBinding obj = \case
+  AlphaBinding a obj' -> AlphaBinding a (substThis obj obj')
+  EmptyBinding a -> EmptyBinding a
+  DeltaBinding bytes -> DeltaBinding bytes
+  DeltaEmptyBinding -> DeltaEmptyBinding
+  LambdaBinding bytes -> LambdaBinding bytes
+  b@MetaBindings{} -> error ("impossible: trying to substitute ξ in " <> printTree b)
+  b@MetaDeltaBinding{} -> error ("impossible: trying to substitute ξ in " <> printTree b)
 
 applySubstAttr :: Subst -> Attribute -> Attribute
 applySubstAttr Subst{..} = \case
@@ -315,6 +353,7 @@ evaluateMetaFuncs' (MetaFunction (MetaFunctionName "@T") _) = do
 evaluateMetaFuncs' (Formation bindings) = Formation <$> mapM evaluateMetaFuncsBinding bindings
 evaluateMetaFuncs' (Application obj bindings) = Application <$> evaluateMetaFuncs' obj <*> mapM evaluateMetaFuncsBinding bindings
 evaluateMetaFuncs' (ObjectDispatch obj a) = ObjectDispatch <$> evaluateMetaFuncs' obj <*> pure a
+evaluateMetaFuncs' (MetaSubstThis obj thisObj) = evaluateMetaFuncs' (substThis thisObj obj)
 evaluateMetaFuncs' obj = pure obj
 
 evaluateMetaFuncsBinding :: Binding -> State MetaState Binding
