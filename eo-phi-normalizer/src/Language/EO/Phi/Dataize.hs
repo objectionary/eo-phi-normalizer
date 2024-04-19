@@ -9,19 +9,10 @@
 
 module Language.EO.Phi.Dataize where
 
-import Control.Arrow (ArrowChoice (left))
 import Data.List (singleton)
 import Data.Maybe (listToMaybe)
-import Language.EO.Phi (Binding (DeltaEmptyBinding, EmptyBinding))
 import Language.EO.Phi.Rules.Common
-import Language.EO.Phi.Syntax.Abs (
-  AlphaIndex (AlphaIndex),
-  Attribute (Alpha, Phi, Rho),
-  Binding (AlphaBinding, DeltaBinding, LambdaBinding),
-  Bytes (Bytes),
-  Function (Function),
-  Object (Application, Formation, ObjectDispatch, Termination),
- )
+import Language.EO.Phi.Syntax.Abs
 import PyF (fmt)
 
 -- | Perform one step of dataization to the object (if possible).

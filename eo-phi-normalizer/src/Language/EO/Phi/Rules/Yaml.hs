@@ -29,7 +29,6 @@ import GHC.Generics (Generic)
 import Language.EO.Phi
 import Language.EO.Phi.Rules.Common (Context (insideFormation, outerFormations), NamedRule)
 import Language.EO.Phi.Rules.Common qualified as Common
-import Language.EO.Phi.Syntax.Abs
 import PyF (fmt)
 
 -- $setup
