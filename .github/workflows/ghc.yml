@@ -142,7 +142,7 @@ jobs:
 
           if [ -n "$(git status --porcelain $files)" ]; then
             git add $files
-            git commit -m "Update Markdowfilesn files"
+            git commit -m "Update Markdown files"
             git push
           else
             printf "Nothing to commit."
