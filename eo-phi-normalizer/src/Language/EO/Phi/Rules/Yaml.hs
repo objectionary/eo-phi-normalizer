@@ -255,12 +255,16 @@ substThis thisObj = go
  where
   isAttachedRho (AlphaBinding Rho _) = True
   isAttachedRho _ = False
+
+  isEmptyRho (EmptyBinding Rho) = True
+  isEmptyRho _ = False
+
   go = \case
     ThisObject -> thisObj -- ξ is substituted
     -- IMPORTANT: we are injecting a ρ-attribute in formations!
     obj@(Formation bindings)
       | any isAttachedRho bindings -> obj
-      | otherwise -> Formation (bindings ++ [AlphaBinding Rho thisObj])
+      | otherwise -> Formation (filter (not . isEmptyRho) bindings ++ [AlphaBinding Rho thisObj])
     -- everywhere else we simply recursively traverse the φ-term
     Application obj bindings -> Application (go obj) (map (substThisBinding thisObj) bindings)
     ObjectDispatch obj a -> ObjectDispatch (go obj) a
