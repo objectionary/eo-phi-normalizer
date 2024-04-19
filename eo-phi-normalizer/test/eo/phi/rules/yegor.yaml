@@ -120,9 +120,24 @@ rules:
     pattern: |
       ⟦ !a ↦ !n, !B ⟧.!a
     result: |
-      !n(ρ ↦ ⟦ !B ⟧)
+      !n[ ξ ↦ ⟦ !B ⟧ ]
     when:
       - nf_inside_formation: '!n'
+    tests:
+      - name: Should match
+        input: ⟦ hello ↦ ⟦⟧ ⟧.hello
+        output: ['⟦⟧(ρ ↦ ⟦⟧)']
+      - name: Shouldn't match
+        input: ⟦ ⟧.hello
+        output: []
+
+  - name: Rule 6a
+    description: 'Accessing an α-binding (for object with ρ ↦ ∅)'
+    pattern: |
+      ⟦ !a ↦ !n, ρ ↦ ∅, !B ⟧.!a
+    result: |
+      !n[ ξ ↦ ⟦ !B ⟧ ]
+    when: []
     tests:
       - name: Should match
         input: ⟦ hello ↦ ⟦⟧ ⟧.hello
