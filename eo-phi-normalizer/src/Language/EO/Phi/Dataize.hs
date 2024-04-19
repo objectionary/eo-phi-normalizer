@@ -71,16 +71,16 @@ dataizeStepChain obj@(Formation bs)
   isEmpty DeltaEmptyBinding = True
   isEmpty _ = False
   hasEmpty = any isEmpty bs
-dataizeStepChain (Application obj bindings) = do
-  logStep "Dataizing inside application" (Left obj)
-  modifyContext (\c -> c{dataizePackage = False}) $ do
-    (ctx, obj') <- dataizeStepChain obj
-    return (ctx, left (`Application` bindings) obj')
-dataizeStepChain (ObjectDispatch obj attr) = do
-  logStep "Dataizing inside dispatch" (Left obj)
-  modifyContext (\c -> c{dataizePackage = False}) $ do
-    (ctx, obj') <- dataizeStepChain obj
-    return (ctx, left (`ObjectDispatch` attr) obj')
+-- dataizeStepChain (Application obj bindings) = do
+--   logStep "Dataizing inside application" (Left obj)
+--   modifyContext (\c -> c{dataizePackage = False}) $ do
+--     (ctx, obj') <- dataizeStepChain obj
+--     return (ctx, left (`Application` bindings) obj')
+-- dataizeStepChain (ObjectDispatch obj attr) = do
+--   logStep "Dataizing inside dispatch" (Left obj)
+--   modifyContext (\c -> c{dataizePackage = False}) $ do
+--     (ctx, obj') <- dataizeStepChain obj
+--     return (ctx, left (`ObjectDispatch` attr) obj')
 dataizeStepChain obj = do
   logStep "Nothing to dataize" (Left obj)
   ctx <- getContext
@@ -133,7 +133,7 @@ evaluateDataizationFunChain func obj _state = do
 evaluateBuiltinFunChain :: String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
 evaluateBuiltinFunChain "Plus" obj = evaluateDataizationFunChain (+) obj
 evaluateBuiltinFunChain "Times" obj = evaluateDataizationFunChain (*) obj
-evaluateBuiltinFunChain "Package" (Formation bindings) = do
+evaluateBuiltinFunChain "Package" obj@(Formation bindings) = do
   \state -> do
     fmap dataizePackage getContext >>= \case
       True -> do
@@ -147,7 +147,9 @@ evaluateBuiltinFunChain "Package" (Formation bindings) = do
   isPackage (LambdaBinding (Function "Package")) = True
   isPackage _ = False
   dataizeBindingChain (AlphaBinding attr o) = do
-    dataizationResult <- dataizeRecursivelyChain o
+    ctx <- getContext
+    let extendedContext = (extendContextWith obj ctx){currentAttr = attr}
+    dataizationResult <- withContext extendedContext $ dataizeRecursivelyChain o
     return (AlphaBinding attr (either id (Formation . singleton . DeltaBinding) dataizationResult))
   dataizeBindingChain b = return b
 evaluateBuiltinFunChain _ obj = \state -> return (obj, state)
