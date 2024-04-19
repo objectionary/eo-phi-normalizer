@@ -1,17 +1,23 @@
+# shellcheck disable=SC2148
+
 set -euo pipefail
 
 if ! [ -d node_modules ]; then npm i; fi
 
-shopt -s expand_aliases
-EO="0.35.8"
-alias eo="npx eoc --parser=${EO}"
-
 shopt -s extglob
-
+EO="${EO:-$(yq '.project.parent.version' -p xml < eo/eo-runtime/pom.xml)}"
 DIR=try-unphi
 
+function print_message {
+    printf "\n\n\n[[[%s]]]\n\n\n" "$1"
+}
+
+function eo {
+    npx eoc --parser="${EO}"
+}
+
 function prepare_directory {
-    printf "\nPrepare the $DIR directory\n\n"
+    print_message "Prepare the $DIR directory"
 
     mkdir -p $DIR/phi
     mkdir -p $DIR/init
@@ -24,13 +30,13 @@ function prepare_directory {
 }
 
 function enter_directory {
-    printf "\nEnter the $DIR directory\n\n"
+    print_message "Enter the $DIR directory"
 
     cd $DIR
 }
 
 function init_eoc {
-    printf "\nGenerate an initial .eoc directory\n\n"
+    print_message "Generate an initial .eoc directory"
 
     cd init
 
@@ -60,7 +66,7 @@ EOM
 }
 
 function unphi {
-    printf "\nUnphi\n\n"
+    print_message "Unphi"
 
     cd tmp
 

@@ -1,1 +1,1 @@
-{ }: (import ./.).packages.${builtins.currentSystem}.stack-shell
+{ }: (import ./.).devShells.${builtins.currentSystem}.stack-shell

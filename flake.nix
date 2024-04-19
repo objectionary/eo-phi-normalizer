@@ -1,13 +1,25 @@
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-    devshell.url = "github:deemp/devshell";
-    flake-utils.url = "github:numtide/flake-utils";
+    devshell = {
+      url = "github:deemp/devshell";
+      inputs.flake-utils.follows = "flake-utils";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+    flake-utils = {
+      url = "github:numtide/flake-utils";
+      inputs.systems.follows = "systems";
+    };
     systems.url = "github:nix-systems/default";
     flake-parts.url = "github:hercules-ci/flake-parts";
     haskell-flake.url = "github:srid/haskell-flake";
     treefmt-nix.url = "github:numtide/treefmt-nix";
     treefmt-nix.inputs.nixpkgs.follows = "nixpkgs";
+    mdsh = {
+      url = "github:zimbatm/mdsh";
+      inputs.flake-utils.follows = "flake-utils";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
     flake-compat = {
       url = "https://flakehub.com/f/edolstra/flake-compat/1.tar.gz";
       flake = false;
@@ -37,6 +49,7 @@
           stack-wrapped = pkgs.symlinkJoin {
             name = "stack"; # will be available as the usual `stack` in terminal
             paths = [ pkgs.stack ];
+            meta = pkgs.stack.meta;
             buildInputs = [ pkgs.makeWrapper ];
             postBuild = ''
               wrapProgram $out/bin/stack \
@@ -56,6 +69,9 @@
             else
               value
           );
+          bash.vars = ''
+            export LC_ALL=C.UTF-8
+          '';
         in
         {
           # Our only Haskell project. You can have multiple projects, but this template
@@ -81,6 +97,10 @@
             # Development shell configuration
             devShell = {
               hlsCheck.enable = false;
+              tools = hp: {
+                hlint = null;
+                ghcid = null;
+              };
             };
 
             # What should haskell-flake add to flake outputs?
@@ -95,22 +115,30 @@
           # source tree was auto formatted.
           treefmt.config = {
             projectRootFile = "flake.nix";
-            programs.nixfmt-rfc-style.enable = true;
-            programs.fourmolu = {
-              enable = true;
-              ghcOpts = [
-                "NoPatternSynonyms"
-                "CPP"
-              ];
+            programs = {
+              nixfmt-rfc-style.enable = true;
+              hlint.enable = true;
+              shellcheck.enable = true;
+              fourmolu = {
+                enable = true;
+                ghcOpts = [
+                  "NoPatternSynonyms"
+                  "CPP"
+                ];
+              };
             };
-            settings.formatter.fourmolu.excludes = [
-              "eo"
-              "Setup.hs"
-              "Abs.hs"
-              "Print.hs"
-              "*.cabal"
-            ];
-            settings.global.excludes = [ "eo" ];
+            settings = {
+              formatter = rec {
+                fourmolu.excludes = [
+                  "eo"
+                  "eo-phi-normalizer/Setup.hs"
+                  "eo-phi-normalizer/src/Language/EO/Phi/Syntax/*"
+                  "*.cabal"
+                ];
+                hlint.excludes = fourmolu.excludes;
+              };
+              global.excludes = [ "eo" ];
+            };
           };
 
           # Default package & app.
@@ -130,17 +158,19 @@
                 ${builtins.readFile ./scripts/pipeline.sh}
               '';
               meta.description = "Run pipeline";
-              excludeShellChecks = [ "SC2139" ];
+              excludeShellChecks = [ "SC2317" ];
             };
 
             update-markdown = {
+              meta.description = "Update Markdown files using mdsh and prettier";
               runtimeInputs = [
-                pkgs.mdsh
+                inputs.mdsh.packages.${system}.default
                 pkgs.mdbook-linkcheck
                 stack-wrapped
               ];
               text =
                 let
+                  name = "update-markdown";
                   text = ''
                     mdsh
 
@@ -161,20 +191,23 @@
                     npx prettier -w "**/*.md"'';
                 in
                 ''
-                  export LC_ALL=C.UTF-8
+                  ${bash.vars}
                   stack install
 
+                  cat << EOF > scripts/${name}.sh
+                  # shellcheck disable=SC2148
 
-                  cat << EOF > scripts/run-mdsh.sh
                   ${text}
                   EOF
 
-                  chmod +x scripts/run-mdsh.sh
+                  chmod +x scripts/${name}.sh
 
                   ${text}
                 '';
             };
+          };
 
+          devShells = {
             # buildStackProject arguments: https://github.com/NixOS/nixpkgs/blob/c7089236291045a523429e681bdaecb49bb501f3/pkgs/development/haskell-modules/generic-stack-builder.nix#L4-L11
             stack-shell = pkgs.haskell.lib.buildStackProject {
               name = "stack-shell";
@@ -183,35 +216,44 @@
           };
 
           # Default shell.
-          devshells.default =
-            let
+          devshells.default = {
+            packagesFrom = [
+              config.haskellProjects.default.outputs.devShell
+              config.treefmt.build.devShell
+            ];
+            bash.extra = bash.vars;
+            commands = {
               tools = [
                 stack-wrapped
-                pkgs.ghcid
                 pkgs.hpack
                 pkgs.gh
                 pkgs.mdsh
                 pkgs.mdbook
+                pkgs.yq-go
+                pkgs.jdk21
+                {
+                  expose = false;
+                  packages = {
+                    inherit
+                      (config.haskellProjects.default.defaults.devShell.tools config.haskellProjects.default.outputs.finalPackages)
+                      cabal-install
+                      haskell-language-server
+                      ;
+                  };
+                }
               ];
-            in
-            {
-              packagesFrom = [
-                config.haskellProjects.default.outputs.devShell
-                config.treefmt.build.devShell
+
+              scripts = [
+                {
+                  prefix = "nix run .#";
+                  packages = {
+                    inherit (self'.packages) pipeline update-markdown;
+                    normalizer = self'.packages.default;
+                  };
+                }
               ];
-              bash.extra = "export LANG=C.utf8";
-              commands = {
-                inherit tools;
-                scripts = [
-                  {
-                    prefix = "nix run .#";
-                    packages = {
-                      inherit (self'.packages) pipeline update-markdown;
-                    };
-                  }
-                ];
-              };
             };
+          };
         };
     };
 

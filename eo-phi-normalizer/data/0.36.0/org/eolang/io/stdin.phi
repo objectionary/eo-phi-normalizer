@@ -5,10 +5,10 @@
         io ↦ ⟦
           stdin ↦ ⟦
             next-line ↦ ⟦
-              λ ⤍ Lambda
+              λ ⤍ Lorg_eolang_io_stdin_next_line
             ⟧,
             φ ↦ ⟦
-              λ ⤍ Lambda
+              λ ⤍ Lorg_eolang_io_stdin_φ
             ⟧
           ⟧,
           λ ⤍ Package

@@ -5,12 +5,7 @@ Then, the `normalizer` executable will be available on `PATH`.
 
 ## Install from the repository
 
-```sh
-git clone https://github.com/objectionary/normalizer --recurse-submodules
-cd normalizer
-export LC_ALL=C.UTF-8
-stack install normalizer
-```
+{{ #include ./common/install.md }}
 
 ## Install from Hackage
 

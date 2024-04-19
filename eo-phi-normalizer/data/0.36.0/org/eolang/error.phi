@@ -2,8 +2,9 @@
   ⟦
     org ↦ ⟦
       eolang ↦ ⟦
-        cage ↦ ⟦
-          λ ⤍ Lambda
+        error ↦ ⟦
+          λ ⤍ Lorg_eolang_error,
+          message ↦ ∅
         ⟧,
         λ ⤍ Package
       ⟧,

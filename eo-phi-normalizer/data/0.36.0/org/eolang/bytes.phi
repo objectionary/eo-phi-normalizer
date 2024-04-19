@@ -3,42 +3,41 @@
     org ↦ ⟦
       eolang ↦ ⟦
         bytes ↦ ⟦
-          Δ ⤍ ∅,
           eq ↦ ⟦
-            λ ⤍ Lambda,
+            λ ⤍ Lorg_eolang_bytes_eq,
             x ↦ ∅
           ⟧,
           size ↦ ⟦
-            λ ⤍ Lambda
+            λ ⤍ Lorg_eolang_bytes_size
           ⟧,
           slice ↦ ⟦
-            λ ⤍ Lambda,
+            λ ⤍ Lorg_eolang_bytes_slice,
             start ↦ ∅,
             len ↦ ∅
           ⟧,
           as-string ↦ ⟦
-            λ ⤍ Lambda
+            λ ⤍ Lorg_eolang_bytes_as_string
           ⟧,
           as-int ↦ ⟦
-            λ ⤍ Lambda
+            λ ⤍ Lorg_eolang_bytes_as_int
           ⟧,
           as-float ↦ ⟦
-            λ ⤍ Lambda
+            λ ⤍ Lorg_eolang_bytes_as_float
           ⟧,
           and ↦ ⟦
-            λ ⤍ Lambda,
+            λ ⤍ Lorg_eolang_bytes_and,
             b ↦ ∅
           ⟧,
           or ↦ ⟦
-            λ ⤍ Lambda,
+            λ ⤍ Lorg_eolang_bytes_or,
             b ↦ ∅
           ⟧,
           xor ↦ ⟦
-            λ ⤍ Lambda,
+            λ ⤍ Lorg_eolang_bytes_xor,
             b ↦ ∅
           ⟧,
           not ↦ ⟦
-            λ ⤍ Lambda
+            λ ⤍ Lorg_eolang_bytes_not
           ⟧,
           left ↦ ⟦
             x ↦ ∅,
@@ -47,12 +46,12 @@
             )
           ⟧,
           right ↦ ⟦
-            λ ⤍ Lambda,
+            λ ⤍ Lorg_eolang_bytes_right,
             x ↦ ∅
           ⟧,
           as-bool ↦ ⟦
             φ ↦ ξ.ρ.eq(
-              α0 ↦ ξ.σ.σ.bytes(
+              α0 ↦ Φ.org.eolang.bytes(
                 Δ ⤍ 01-
               )
             )
@@ -61,7 +60,7 @@
             φ ↦ ξ.ρ
           ⟧,
           concat ↦ ⟦
-            λ ⤍ Lambda,
+            λ ⤍ Lorg_eolang_bytes_concat,
             b ↦ ∅
           ⟧
         ⟧,

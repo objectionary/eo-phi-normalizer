@@ -1,17 +1,22 @@
+# shellcheck disable=SC2148
+
 set -euo pipefail
 
 if ! [ -d node_modules ]; then npm i; fi
 
 export LC_ALL=C.UTF-8
-
-shopt -s expand_aliases
-EO="0.36.0"
-alias eo="npx eoc --parser=${EO}"
-
 shopt -s extglob
 
 function print_message {
     printf "\n\n\n[[[%s]]]\n\n\n" "$1"
+}
+
+EO="${EO:-$(yq '.project.parent.version' -p xml < eo/eo-runtime/pom.xml)}"
+
+print_message "EO version: $EO"
+
+function eo {
+    npx eoc --parser="$EO" "$@"
 }
 
 function check_configs {
@@ -54,6 +59,7 @@ function check_configs {
 }
 
 function prepare_directory {
+
     print_message "Clean the pipeline directory"
 
     rm -rf pipeline/*/
@@ -65,12 +71,14 @@ function prepare_directory {
 }
 
 function enter_directory {
+
     print_message "Enter the pipeline directory"
 
     cd pipeline
 }
 
-function tests_without_normalization {
+function convert_eo_to_phi {
+
     print_message "Convert EO to PHI"
 
     mkdir -p phi
@@ -79,7 +87,20 @@ function tests_without_normalization {
     eo phi
     cp -r .eoc/phi/!(org) ../phi
     cd ..
+}
 
+function update_normalizer_phi_files {
+
+    print_message "Update .phi data files in eo-phi-normalizer"
+
+    cd eo
+    data_directory="../../eo-phi-normalizer/data/$EO"
+    mkdir -p "$data_directory"
+    cp -r .eoc/phi/org "$data_directory"
+    cd ..
+}
+
+function convert_phi_to_eo {
 
     print_message "Convert PHI to EO without normalization"
 
@@ -92,6 +113,10 @@ function tests_without_normalization {
     cp -r .eoc/print/!(org) ../eo-non-normalized
     cd ..
 
+}
+
+function test_without_normalization {
+
     print_message "Test EO without normalization"
 
     cd eo-non-normalized
@@ -99,8 +124,8 @@ function tests_without_normalization {
     cd ..
 }
 
+function normalize {
 
-function normalization {
     print_message "Normalize PHI"
 
     mkdir -p phi-normalized
@@ -120,6 +145,7 @@ function normalization {
         # shellcheck disable=SC2086
         stack run -- \
             dataize \
+            --recursive \
             --rules \
             ../../eo-phi-normalizer/test/eo/phi/rules/yegor.yaml \
             $dependency_file_options \
@@ -136,8 +162,14 @@ function normalization {
     cd ..
 }
 
-function tests_with_normalization {
+function generate_report {
 
+    print_message "Generate a report"
+
+    stack run --cwd .. -- report --config report/config.yaml
+}
+
+function convert_normalized_phi_to_eo {
     print_message "Convert normalized PHI to EO"
 
     cd phi-normalized
@@ -146,6 +178,9 @@ function tests_with_normalization {
     cp -r .eoc/unphi/!(org) .eoc/2-optimize
     eo print
     cd ..
+}
+
+function test_with_normalization {
 
     print_message "Test EO with normalization"
 
@@ -156,16 +191,14 @@ function tests_with_normalization {
     cd ..
 }
 
-function generate_report () {
-    print_message "Generate a report"
-
-    stack run --cwd .. -- report --config report/config.yaml
-}
-
 check_configs
 prepare_directory
 enter_directory
-tests_without_normalization
-normalization
-tests_with_normalization
+convert_eo_to_phi
+update_normalizer_phi_files
+convert_phi_to_eo
+test_without_normalization
+normalize
 generate_report
+convert_normalized_phi_to_eo
+test_with_normalization

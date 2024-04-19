@@ -13,13 +13,13 @@ import Control.Monad (forM_)
 import Data.Char (isSpace)
 import Data.List (dropWhileEnd)
 import Data.String (IsString (..))
-import Data.String.Interpolate (i)
 import Data.Yaml (decodeFileThrow)
 import Language.EO.Phi
 import Language.EO.Phi.Metrics.Collect (getProgramMetrics)
 import Language.EO.Phi.Metrics.Data (BindingsByPathMetrics (..), ProgramMetrics (..))
 import Language.EO.Phi.Rules.Common (Rule, defaultContext, equalProgram)
 import Language.EO.Phi.Rules.PhiPaper (rule1, rule6)
+import PyF (fmt)
 import Test.EO.Phi
 import Test.Hspec
 import Test.Metrics.Phi (MetricsTest (..), MetricsTestSet (..))
@@ -36,7 +36,7 @@ spec = do
   describe "Pre-defined rules" $
     forM_ ([(1, rule1), (6, rule6)] :: [(Int, Rule)]) $
       \(idx, rule) -> do
-        PhiTestGroup{..} <- runIO (fileTests [i|test/eo/phi/rule-#{idx}.yaml|])
+        PhiTestGroup{..} <- runIO (fileTests [fmt|test/eo/phi/rule-{idx}.yaml|])
         describe title $
           forM_ tests $
             \PhiTest{..} ->

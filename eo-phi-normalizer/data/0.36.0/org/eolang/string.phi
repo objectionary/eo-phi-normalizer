@@ -12,10 +12,10 @@
             )
           ⟧,
           length ↦ ⟦
-            λ ⤍ Lambda
+            λ ⤍ Lorg_eolang_string_length
           ⟧,
           slice ↦ ⟦
-            λ ⤍ Lambda,
+            λ ⤍ Lorg_eolang_string_slice,
             start ↦ ∅,
             len ↦ ∅
           ⟧

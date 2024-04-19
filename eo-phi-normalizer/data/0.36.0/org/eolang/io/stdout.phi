@@ -4,7 +4,7 @@
       eolang ↦ ⟦
         io ↦ ⟦
           stdout ↦ ⟦
-            λ ⤍ Lambda,
+            λ ⤍ Lorg_eolang_io_stdout,
             text ↦ ∅
           ⟧,
           λ ⤍ Package
