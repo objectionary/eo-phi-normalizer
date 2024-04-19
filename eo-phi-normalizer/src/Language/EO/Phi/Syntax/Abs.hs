@@ -25,6 +25,7 @@ data Object
     | GlobalObject
     | ThisObject
     | Termination
+    | MetaSubstThis Object Object
     | MetaObject MetaId
     | MetaFunction MetaFunctionName Object
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)

@@ -22,6 +22,7 @@ ObjectDispatch. Object ::= Object "." Attribute ;
 GlobalObject.   Object ::= "Φ";
 ThisObject.     Object ::= "ξ";
 Termination.    Object ::= "⊥" ;
+MetaSubstThis.  Object ::= Object "[" "ξ" "↦" Object "]" ;
 MetaObject.     Object ::= MetaId ;
 MetaFunction.   Object ::= MetaFunctionName "(" Object ")" ;
 
