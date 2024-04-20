@@ -127,8 +127,7 @@ jobs:
         uses: baptiste0928/cargo-install@v3.1.0
         with:
           crate: mdsh
-          # TODO #286:20m Use zimbatm/mdsh after https://github.com/zimbatm/mdsh/pull/63 is merged
-          git: https://github.com/deemp/mdsh
+          git: https://github.com/zimbatm/mdsh
           branch: main
 
       - name: Update Markdown files
@@ -142,7 +141,7 @@ jobs:
 
           if [ -n "$(git status --porcelain $files)" ]; then
             git add $files
-            git commit -m "Update Markdowfilesn files"
+            git commit -m "Update Markdown files"
             git push
           else
             printf "Nothing to commit."
