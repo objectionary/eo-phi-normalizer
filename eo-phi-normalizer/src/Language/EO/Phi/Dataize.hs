@@ -247,9 +247,34 @@ evaluateBuiltinFunChain "Lorg_eolang_bytes_xor" obj = evaluateBytesBytesBytesFun
 evaluateBuiltinFunChain "Lorg_eolang_bytes_not" obj = evaluateBytesBytesFunChain complement obj
 -- evaluateBuiltinFunChain "Lorg_eolang_bytes_right" obj = _ -- TODO
 -- evaluateBuiltinFunChain "Lorg_eolang_bytes_concat" obj = _ -- TODO
+-- float
+-- evaluateBuiltinFunChain "Lorg_eolang_float_gt" obj = _ -- TODO
+-- evaluateBuiltinFunChain "Lorg_eolang_float_times" obj = _ -- TODO
+-- evaluateBuiltinFunChain "Lorg_eolang_float_plus" obj = _ -- TODO
+-- evaluateBuiltinFunChain "Lorg_eolang_float_div" obj = _ -- TODO
 -- string
 evaluateBuiltinFunChain "Lorg_eolang_string_length" obj = evaluateUnaryDataizationFunChain intToBytes bytesToString wrapBytesInInt extractRho length obj
 -- evaluateBuiltinFunChain "Lorg_eolang_string_slice" obj = _ -- TODO
+-- malloc
+-- evaluateBuiltinFunChain "Lorg_eolang_malloc_φ" obj = _ -- TODO
+-- evaluateBuiltinFunChain "Lorg_eolang_malloc_memory_block_pointer_read" obj = _ -- TODO
+-- evaluateBuiltinFunChain "Lorg_eolang_malloc_memory_block_pointer_write" obj = _ -- TODO
+-- evaluateBuiltinFunChain "Lorg_eolang_malloc_memory_block_pointer_free" obj = _ -- TODO
+-- cage
+-- evaluateBuiltinFunChain "Lorg_eolang_cage_φ" obj = _ -- TODO
+-- evaluateBuiltinFunChain "Lorg_eolang_cage_encaged_φ" obj = _ -- TODO
+-- evaluateBuiltinFunChain "Lorg_eolang_cage_encaged_encage" obj = _ -- TODO
+-- I/O
+-- evaluateBuiltinFunChain "Lorg_eolang_io_stdin_next_line" obj = _ -- TODO
+-- evaluateBuiltinFunChain "Lorg_eolang_io_stdin_φ" obj = _ -- TODO
+-- evaluateBuiltinFunChain "Lorg_eolang_io_stdout" obj = _ -- TODO
+-- others
+-- evaluateBuiltinFunChain "Lorg_eolang_dataized" obj = _ -- TODO
+-- evaluateBuiltinFunChain "Lorg_eolang_error" obj = _ -- TODO
+-- evaluateBuiltinFunChain "Lorg_eolang_seq" obj = _ -- TODO
+-- evaluateBuiltinFunChain "Lorg_eolang_as_phi" obj = _ -- TODO
+-- evaluateBuiltinFunChain "Lorg_eolang_rust" obj = _ -- TODO
+-- evaluateBuiltinFunChain "Lorg_eolang_try" obj = _ -- TODO
 evaluateBuiltinFunChain "Package" (Formation bindings) = do
   \state -> do
     fmap dataizePackage getContext >>= \case
