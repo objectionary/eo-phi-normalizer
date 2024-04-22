@@ -229,10 +229,12 @@ evaluateBytesBytesFunChain = evaluateUnaryDataizationFunChain intToBytes bytesTo
 evaluateBuiltinFunChain :: String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
 evaluateBuiltinFunChain "Plus" obj = evaluateBinaryDataizationFunChain intToBytes bytesToInt wrapBytesInInt extractRho extractAlpha0 (+) obj -- FIXME: change to float variant
 evaluateBuiltinFunChain "Times" obj = evaluateBinaryDataizationFunChain intToBytes bytesToInt wrapBytesInInt extractRho extractAlpha0 (*) obj -- FIXME: change to float variant
+-- int
 evaluateBuiltinFunChain "Lorg_eolang_int_gt" obj = evaluateIntIntBoolFunChain (>) obj
 evaluateBuiltinFunChain "Lorg_eolang_int_plus" obj = evaluateIntIntIntFunChain (+) obj
 evaluateBuiltinFunChain "Lorg_eolang_int_times" obj = evaluateIntIntIntFunChain (*) obj
 evaluateBuiltinFunChain "Lorg_eolang_int_div" obj = evaluateIntIntIntFunChain div obj
+-- bytes
 evaluateBuiltinFunChain "Lorg_eolang_bytes_eq" obj = evaluateBinaryDataizationFunChain boolToBytes bytesToInt wrapBytesInBytes extractRho extractX (==) obj
 -- evaluateBuiltinFunChain "Lorg_eolang_bytes_size" obj = _ -- TODO
 -- evaluateBuiltinFunChain "Lorg_eolang_bytes_slice" obj = _ -- TODO
@@ -245,6 +247,9 @@ evaluateBuiltinFunChain "Lorg_eolang_bytes_xor" obj = evaluateBytesBytesBytesFun
 evaluateBuiltinFunChain "Lorg_eolang_bytes_not" obj = evaluateBytesBytesFunChain complement obj
 -- evaluateBuiltinFunChain "Lorg_eolang_bytes_right" obj = _ -- TODO
 -- evaluateBuiltinFunChain "Lorg_eolang_bytes_concat" obj = _ -- TODO
+-- string
+evaluateBuiltinFunChain "Lorg_eolang_string_length" obj = evaluateUnaryDataizationFunChain intToBytes bytesToString wrapBytesInInt extractRho length obj
+-- evaluateBuiltinFunChain "Lorg_eolang_string_slice" obj = _ -- TODO
 evaluateBuiltinFunChain "Package" (Formation bindings) = do
   \state -> do
     fmap dataizePackage getContext >>= \case
