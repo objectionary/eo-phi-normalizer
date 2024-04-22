@@ -190,7 +190,7 @@ evaluateUnaryDataizationFunChain ::
   EvaluationState ->
   DataizeChain (Object, EvaluationState)
 evaluateUnaryDataizationFunChain resultToBytes bytesToParam wrapBytes extractArg func =
-  evaluateBinaryDataizationFunChain resultToBytes bytesToParam wrapBytes extractArg id (const func)
+  evaluateBinaryDataizationFunChain resultToBytes bytesToParam wrapBytes extractArg id (const . func)
 
 extractRho :: Object -> Object
 extractRho = (`ObjectDispatch` Rho)
