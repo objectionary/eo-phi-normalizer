@@ -326,17 +326,19 @@ objectBindings (Application obj bs) = objectBindings obj ++ bs
 objectBindings (ObjectDispatch obj _attr) = objectBindings obj
 objectBindings _ = []
 
+padLeft :: Int -> [Char] -> [Char]
+padLeft n s = replicate (n - length s) '0' ++ s
+
 normalizeBytes :: String -> String
-normalizeBytes = insertDashes . pad
+normalizeBytes = insertDashes . padLeft 2
  where
-  pad s = (if even (length s) then "" else "0") ++ s
   insertDashes s
     | length s <= 2 = s ++ "-"
     | otherwise =
         let go = \case
               [] -> []
               [x] -> [x]
-              [x, y] -> [x, y, '-']
+              [x, y] -> [x, y]
               (x : y : xs) -> x : y : '-' : go xs
          in go s
 
@@ -358,7 +360,7 @@ bytesToBool (Bytes "00-") = False
 bytesToBool _ = True -- TODO: verify that anything (not just 01-) can be interpreted as true
 
 stringToBytes :: String -> Bytes
-stringToBytes s = Bytes $ normalizeBytes $ foldMap ((`showHex` "") . fromEnum) s
+stringToBytes s = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "") . fromEnum) s
 
 bytesToString :: Bytes -> String
 bytesToString (Bytes bytes) = map (toEnum . fst . head . readHex) $ words (map dashToSpace bytes)
