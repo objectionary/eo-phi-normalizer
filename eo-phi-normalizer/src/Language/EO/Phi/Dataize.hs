@@ -218,8 +218,11 @@ evaluateCastingFunction :: (Bytes -> Object) -> Object -> EvaluationState -> Dat
 evaluateCastingFunction wrap = evaluateUnaryDataizationFunChain id id wrap extractRho id
 
 -- Int because Bytes are just a string, but Int has a Bits instance
--- evaluateBytesFunChain :: (Int -> Int -> Int) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
--- evaluateBytesFunChain = evaluateDataizationFunChain intToBytes bytesToInt (\(Bytes bytes) -> [i|Φ.org.eolang.bytes(Δ ⤍ #{bytes})|]) (`ObjectDispatch` Rho) (`ObjectDispatch` (Alpha (AlphaIndex "α0")))
+evaluateBytesBytesBytesFunChain :: (Int -> Int -> Int) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
+evaluateBytesBytesBytesFunChain = evaluateBinaryDataizationFunChain intToBytes bytesToInt wrapBytesInBytes extractRho extractX
+
+evaluateBytesBytesFunChain :: (Int -> Int) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
+evaluateBytesBytesFunChain = evaluateUnaryDataizationFunChain intToBytes bytesToInt wrapBytesInBytes extractRho
 
 -- | Like `evaluateDataizationFunChain` but specifically for the built-in functions.
 -- This function is not safe. It returns undefined for unknown functions
@@ -230,16 +233,16 @@ evaluateBuiltinFunChain "Lorg_eolang_int_gt" obj = evaluateIntIntBoolFunChain (>
 evaluateBuiltinFunChain "Lorg_eolang_int_plus" obj = evaluateIntIntIntFunChain (+) obj
 evaluateBuiltinFunChain "Lorg_eolang_int_times" obj = evaluateIntIntIntFunChain (*) obj
 evaluateBuiltinFunChain "Lorg_eolang_int_div" obj = evaluateIntIntIntFunChain div obj
--- evaluateBuiltinFunChain "Lorg_eolang_bytes_eq" obj = evaluateBytesBoolFunChain (==) obj
+evaluateBuiltinFunChain "Lorg_eolang_bytes_eq" obj = evaluateBinaryDataizationFunChain boolToBytes bytesToInt wrapBytesInBytes extractRho extractX (==) obj
 -- evaluateBuiltinFunChain "Lorg_eolang_bytes_size" obj = _ -- TODO
 -- evaluateBuiltinFunChain "Lorg_eolang_bytes_slice" obj = _ -- TODO
 evaluateBuiltinFunChain "Lorg_eolang_bytes_as_string" obj = evaluateCastingFunction wrapBytesInString obj
 evaluateBuiltinFunChain "Lorg_eolang_bytes_as_int" obj = evaluateCastingFunction wrapBytesInInt obj
 evaluateBuiltinFunChain "Lorg_eolang_bytes_as_float" obj = evaluateCastingFunction wrapBytesInFloat obj
--- evaluateBuiltinFunChain "Lorg_eolang_bytes_and" obj = evaluateBytesFunChain (.&.) obj
--- evaluateBuiltinFunChain "Lorg_eolang_bytes_or" obj = evaluateBytesFunChain (.|.) obj
--- evaluateBuiltinFunChain "Lorg_eolang_bytes_xor" obj = evaluateBytesFunChain (.^.) obj
--- evaluateBuiltinFunChain "Lorg_eolang_bytes_not" obj = _ -- TODO
+evaluateBuiltinFunChain "Lorg_eolang_bytes_and" obj = evaluateBytesBytesBytesFunChain (.&.) obj
+evaluateBuiltinFunChain "Lorg_eolang_bytes_or" obj = evaluateBytesBytesBytesFunChain (.|.) obj
+evaluateBuiltinFunChain "Lorg_eolang_bytes_xor" obj = evaluateBytesBytesBytesFunChain (.^.) obj
+evaluateBuiltinFunChain "Lorg_eolang_bytes_not" obj = evaluateBytesBytesFunChain complement obj
 -- evaluateBuiltinFunChain "Lorg_eolang_bytes_right" obj = _ -- TODO
 -- evaluateBuiltinFunChain "Lorg_eolang_bytes_concat" obj = _ -- TODO
 evaluateBuiltinFunChain "Package" (Formation bindings) = do
