@@ -13,7 +13,7 @@ import Control.Arrow (ArrowChoice (left))
 import Data.Bits
 import Data.List (singleton)
 import Data.Maybe (listToMaybe)
-import Language.EO.Phi (Binding (DeltaEmptyBinding, EmptyBinding))
+import Language.EO.Phi (Attribute (Label), Binding (DeltaEmptyBinding, EmptyBinding), LabelId (LabelId))
 import Language.EO.Phi.Rules.Common
 import Language.EO.Phi.Syntax.Abs (
   AlphaIndex (AlphaIndex),
@@ -196,8 +196,8 @@ extractRho :: Object -> Object
 extractRho = (`ObjectDispatch` Rho)
 extractAlpha0 :: Object -> Object
 extractAlpha0 = (`ObjectDispatch` Alpha (AlphaIndex "α0"))
-extractX :: Object -> Object
-extractX = (`ObjectDispatch` Alpha (AlphaIndex "x"))
+extractLabel :: String -> Object -> Object
+extractLabel attrName = (`ObjectDispatch` Label (LabelId attrName))
 wrapBytesInInt :: Bytes -> Object
 wrapBytesInInt (Bytes bytes) = [fmt|Φ.org.eolang.int(Δ ⤍ {bytes})|]
 wrapBytesInFloat :: Bytes -> Object
@@ -209,23 +209,23 @@ wrapBytesInString (Bytes bytes) = [fmt|Φ.org.eolang.string(Δ ⤍ {bytes})|]
 
 -- This should maybe get converted to a type class and some instances?
 evaluateIntIntIntFunChain :: (Int -> Int -> Int) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
-evaluateIntIntIntFunChain = evaluateBinaryDataizationFunChain intToBytes bytesToInt wrapBytesInInt extractRho extractX
+evaluateIntIntIntFunChain = evaluateBinaryDataizationFunChain intToBytes bytesToInt wrapBytesInInt extractRho (extractLabel "x")
 
 evaluateIntIntBoolFunChain :: (Int -> Int -> Bool) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
-evaluateIntIntBoolFunChain = evaluateBinaryDataizationFunChain boolToBytes bytesToInt wrapBytesInBytes extractRho extractX
+evaluateIntIntBoolFunChain = evaluateBinaryDataizationFunChain boolToBytes bytesToInt wrapBytesInBytes extractRho (extractLabel "x")
 
 evaluateCastingFunction :: (Bytes -> Object) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
 evaluateCastingFunction wrap = evaluateUnaryDataizationFunChain id id wrap extractRho id
 
 -- Int because Bytes are just a string, but Int has a Bits instance
 evaluateBytesBytesBytesFunChain :: (Int -> Int -> Int) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
-evaluateBytesBytesBytesFunChain = evaluateBinaryDataizationFunChain intToBytes bytesToInt wrapBytesInBytes extractRho extractX
+evaluateBytesBytesBytesFunChain = evaluateBinaryDataizationFunChain intToBytes bytesToInt wrapBytesInBytes extractRho (extractLabel "b")
 
 evaluateBytesBytesFunChain :: (Int -> Int) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
 evaluateBytesBytesFunChain = evaluateUnaryDataizationFunChain intToBytes bytesToInt wrapBytesInBytes extractRho
 
 evaluateFloatFloatFloatFunChain :: (Double -> Double -> Double) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
-evaluateFloatFloatFloatFunChain = evaluateBinaryDataizationFunChain floatToBytes bytesToFloat wrapBytesInFloat extractRho extractX
+evaluateFloatFloatFloatFunChain = evaluateBinaryDataizationFunChain floatToBytes bytesToFloat wrapBytesInFloat extractRho (extractLabel "x")
 
 -- | Like `evaluateDataizationFunChain` but specifically for the built-in functions.
 -- This function is not safe. It returns undefined for unknown functions
@@ -238,7 +238,7 @@ evaluateBuiltinFunChain "Lorg_eolang_int_plus" obj = evaluateIntIntIntFunChain (
 evaluateBuiltinFunChain "Lorg_eolang_int_times" obj = evaluateIntIntIntFunChain (*) obj
 evaluateBuiltinFunChain "Lorg_eolang_int_div" obj = evaluateIntIntIntFunChain div obj
 -- bytes
-evaluateBuiltinFunChain "Lorg_eolang_bytes_eq" obj = evaluateBinaryDataizationFunChain boolToBytes bytesToInt wrapBytesInBytes extractRho extractX (==) obj
+evaluateBuiltinFunChain "Lorg_eolang_bytes_eq" obj = evaluateBinaryDataizationFunChain boolToBytes bytesToInt wrapBytesInBytes extractRho (extractLabel "x") (==) obj
 evaluateBuiltinFunChain "Lorg_eolang_bytes_size" obj = evaluateUnaryDataizationFunChain intToBytes id wrapBytesInBytes extractRho (\(Bytes bytes) -> length (words (map dashToSpace bytes))) obj
  where
   dashToSpace '-' = ' '
@@ -254,7 +254,7 @@ evaluateBuiltinFunChain "Lorg_eolang_bytes_not" obj = evaluateBytesBytesFunChain
 -- evaluateBuiltinFunChain "Lorg_eolang_bytes_right" obj = _ -- TODO
 -- evaluateBuiltinFunChain "Lorg_eolang_bytes_concat" obj = _ -- TODO
 -- float
-evaluateBuiltinFunChain "Lorg_eolang_float_gt" obj = evaluateBinaryDataizationFunChain boolToBytes bytesToFloat wrapBytesInBytes extractRho extractX (>) obj
+evaluateBuiltinFunChain "Lorg_eolang_float_gt" obj = evaluateBinaryDataizationFunChain boolToBytes bytesToFloat wrapBytesInBytes extractRho (extractLabel "x") (>) obj
 evaluateBuiltinFunChain "Lorg_eolang_float_times" obj = evaluateFloatFloatFloatFunChain (*) obj
 evaluateBuiltinFunChain "Lorg_eolang_float_plus" obj = evaluateFloatFloatFloatFunChain (+) obj
 evaluateBuiltinFunChain "Lorg_eolang_float_div" obj = evaluateFloatFloatFloatFunChain (/) obj
