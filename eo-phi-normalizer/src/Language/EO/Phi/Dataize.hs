@@ -110,14 +110,18 @@ dataizeRecursivelyChain obj = do
 
 -- | Given converters between Bytes and some data type, a binary function on this data type, an object,
 -- and the current state of evaluation, returns the new object and a possibly modified state along with intermediate steps.
-evaluateDataizationFunChain
-  :: (res -> Bytes) -- ^ How to convert the result back to bytes
-  -> (Bytes -> a) -- ^ How to interpret the bytes in terms of the given data type
-  -> (Bytes -> Object) -- ^ How to wrap the bytes in an object
-  -> (a -> a -> res) -- ^ A binary function on the data
-  -> Object
-  -> EvaluationState
-  -> DataizeChain (Object, EvaluationState)
+evaluateDataizationFunChain ::
+  -- | How to convert the result back to bytes
+  (res -> Bytes) ->
+  -- | How to interpret the bytes in terms of the given data type
+  (Bytes -> a) ->
+  -- | How to wrap the bytes in an object
+  (Bytes -> Object) ->
+  -- | A binary function on the data
+  (a -> a -> res) ->
+  Object ->
+  EvaluationState ->
+  DataizeChain (Object, EvaluationState)
 evaluateDataizationFunChain resultToBytes bytesToParam wrapBytes func obj _state = do
   let o_rho = ObjectDispatch obj Rho
   let o_a0 = ObjectDispatch obj (Alpha (AlphaIndex "α0"))
@@ -136,16 +140,22 @@ evaluateDataizationFunChain resultToBytes bytesToParam wrapBytes func obj _state
       return Termination
   return (result, ())
 
-evaluateBinaryDataizationFunChain
-  :: (res -> Bytes) -- ^ How to convert the result back to bytes
-  -> (Bytes -> a) -- ^ How to interpret the bytes in terms of the given data type
-  -> (Bytes -> Object) -- ^ How to wrap the bytes in an object
-  -> (Object -> Object) -- ^ Extract the 1st argument to be dataized
-  -> (Object -> Object) -- ^ Extract the 2nd argument to be dataized
-  -> (a -> a -> res) -- ^ A binary function on the argument
-  -> Object
-  -> EvaluationState
-  -> DataizeChain (Object, EvaluationState)
+evaluateBinaryDataizationFunChain ::
+  -- | How to convert the result back to bytes
+  (res -> Bytes) ->
+  -- | How to interpret the bytes in terms of the given data type
+  (Bytes -> a) ->
+  -- | How to wrap the bytes in an object
+  (Bytes -> Object) ->
+  -- | Extract the 1st argument to be dataized
+  (Object -> Object) ->
+  -- | Extract the 2nd argument to be dataized
+  (Object -> Object) ->
+  -- | A binary function on the argument
+  (a -> a -> res) ->
+  Object ->
+  EvaluationState ->
+  DataizeChain (Object, EvaluationState)
 evaluateBinaryDataizationFunChain resultToBytes bytesToParam wrapBytes arg1 arg2 func obj _state = do
   let lhsArg = arg1 obj
   let rhsArg = arg2 obj
@@ -165,24 +175,29 @@ evaluateBinaryDataizationFunChain resultToBytes bytesToParam wrapBytes arg1 arg2
   return (result, ())
 
 -- | Unary functions operate on the given object without any additional parameters
-evaluateUnaryDataizationFunChain
-  :: (res -> Bytes) -- ^ How to convert the result back to bytes
-  -> (Bytes -> a) -- ^ How to interpret the bytes in terms of the given data type
-  -> (Bytes -> Object) -- ^ How to wrap the bytes in an object
-  -> (Object -> Object) -- ^ Extract the argument to be dataized
-  -> (a -> res) -- ^ A unary function on the argument
-  -> Object
-  -> EvaluationState
-  -> DataizeChain (Object, EvaluationState)
+evaluateUnaryDataizationFunChain ::
+  -- | How to convert the result back to bytes
+  (res -> Bytes) ->
+  -- | How to interpret the bytes in terms of the given data type
+  (Bytes -> a) ->
+  -- | How to wrap the bytes in an object
+  (Bytes -> Object) ->
+  -- | Extract the argument to be dataized
+  (Object -> Object) ->
+  -- | A unary function on the argument
+  (a -> res) ->
+  Object ->
+  EvaluationState ->
+  DataizeChain (Object, EvaluationState)
 evaluateUnaryDataizationFunChain resultToBytes bytesToParam wrapBytes extractArg func =
   evaluateBinaryDataizationFunChain resultToBytes bytesToParam wrapBytes extractArg id (const func)
 
 extractRho :: Object -> Object
 extractRho = (`ObjectDispatch` Rho)
 extractAlpha0 :: Object -> Object
-extractAlpha0 = (`ObjectDispatch` (Alpha (AlphaIndex "α0")))
+extractAlpha0 = (`ObjectDispatch` Alpha (AlphaIndex "α0"))
 extractX :: Object -> Object
-extractX = (`ObjectDispatch` (Alpha (AlphaIndex "x")))
+extractX = (`ObjectDispatch` Alpha (AlphaIndex "x"))
 wrapBytesInInt :: Bytes -> Object
 wrapBytesInInt (Bytes bytes) = [i|Φ.org.eolang.int(Δ ⤍ #{bytes})|]
 wrapBytesInFloat :: Bytes -> Object
