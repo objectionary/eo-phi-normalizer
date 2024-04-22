@@ -1,10 +1,16 @@
 # Pipeline
 
-## Install `normalizer` from the repository
+## Enter the repository and install `normalizer`
 
-See [Installation](./installation.md).
+{{ #include ./common/install.md }}
 
 ## Install dependencies
+
+Install [yq](https://github.com/mikefarah/yq).
+
+```$ as console
+yq --version
+```
 
 Install [NodeJS](https://nodejs.org/en).
 
@@ -17,10 +23,6 @@ Install [Java](https://www.java.com/en/download/help/download_options.html).
 ```$ as console
 java --version
 ```
-
-## Run normalizer
-
-See [normalizer](./normalizer.md) for supported commands.
 
 ## Run pipeline
 
@@ -36,15 +38,6 @@ The pipeline has several stages:
 - Translate normalized `PHI` programs to normalized `EO` programs
 - Test normalized `EO` programs
 - Report metrics on initial `PHI` programs and normalized `PHI` programs
-
-### Environment
-
-Current directory should be the root directory of the `normalizer` repo.
-
-```console
-git clone https://github.com/objectionary/normalizer --recurse-submodules
-cd normalizer
-```
 
 ### Modify pipeline configuration
 
@@ -63,7 +56,9 @@ An initial `EO` program is an original `EO` program with some top-level objects 
 
 ### Run script
 
-Run `scripts/pipeline.sh`.
+```sh
+bash ./scripts/pipeline.sh
+```
 
 The script will run for several minutes and write the following entries to the `pipeline` directory:.
 

@@ -1,0 +1,16 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        if ↦ ⟦
+          λ ⤍ Lorg_eolang_if,
+          condition ↦ ∅,
+          left ↦ ∅,
+          right ↦ ∅
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

@@ -33,7 +33,6 @@ import Control.Exception (Exception (..), SomeException, catch, throw)
 import Data.Aeson (ToJSON)
 import Data.Aeson.Encode.Pretty (Config (..), Indent (..), defConfig, encodePrettyToTextBuilder')
 import Data.List (intercalate)
-import Data.String.Interpolate (i, iii)
 import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy as TL (unpack)
 import Data.Yaml (decodeFileThrow)
@@ -49,6 +48,7 @@ import Language.EO.Phi.Rules.Common
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRuleNamed, parseRuleSetFromFile)
 import Options.Applicative hiding (metavar)
 import Options.Applicative qualified as Optparse (metavar)
+import PyF (fmt, fmtTrim)
 import System.Directory (createDirectoryIfMissing, doesFileExist)
 import System.FilePath (takeDirectory)
 import System.IO (IOMode (WriteMode), getContents', hFlush, hPutStr, hPutStrLn, openFile, stdout)
@@ -95,9 +95,6 @@ data CLI
   | CLI'ReportPhi' CLI'ReportPhi
   deriving (Show)
 
-fileMetavarName :: String
-fileMetavarName = "FILE"
-
 data MetavarName = MetavarName
   { file :: String
   , int :: String
@@ -137,15 +134,15 @@ optionName =
     }
 
 outputFileOption :: Parser (Maybe String)
-outputFileOption = optional $ strOption (long "output-file" <> short 'o' <> metavar.file <> help [i|Output to #{fileMetavarName}. When this option is not specified, output to stdout.|])
+outputFileOption = optional $ strOption (long "output-file" <> short 'o' <> metavar.file <> help [fmt|Output to {metavarName.file}. When this option is not specified, output to stdout.|])
 
 inputFileArg :: Parser (Maybe String)
-inputFileArg = optional $ strArgument (metavar.file <> help [i|#{fileMetavarName} to read input from. When no #{fileMetavarName} is specified, read from stdin.|])
+inputFileArg = optional $ strArgument (metavar.file <> help [fmt|{metavarName.file} to read input from. When no {metavarName.file} is specified, read from stdin.|])
 
 dependenciesArg :: Parser [FilePath]
 dependenciesArg =
   many $
-    strOption (long "dependency-file" <> short 'd' <> metavar.file <> help [i|#{fileMetavarName} to read dependencies from (zero or more dependency files allowed).|])
+    strOption (long "dependency-file" <> short 'd' <> metavar.file <> help [fmt|{metavarName.file} to read dependencies from (zero or more dependency files allowed).|])
 
 jsonSwitch :: Parser Bool
 jsonSwitch = switch (long "json" <> short 'j' <> help "Output JSON.")
@@ -159,10 +156,10 @@ bindingsPathOption =
           <> metavar.path
           <> help
             let path' = metavarName.path
-             in [iii|
-                  Report metrics for bindings of a formation accessible in a program by the #{path'}.
+             in [fmtTrim|
+                  Report metrics for bindings of a formation accessible in a program by the {path'}.
                   When this option is not specified, metrics for bindings are not reported.
-                  Example of a #{path'}: 'org.eolang'.
+                  Example of a {path'}: 'org.eolang'.
                 |]
       )
 
@@ -184,24 +181,22 @@ commandParser =
     pure CLI'MetricsPhi{..}
 
   transform = do
-    rulesPath <-
-      let file' = metavarName.file
-       in strOption (long "rules" <> short 'r' <> metavar.file <> help [i|#{file'} with user-defined rules. Must be specified.|])
+    rulesPath <- strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. Must be specified.|])
     chain <- switch (long "chain" <> short 'c' <> help "Output transformation steps.")
     json <- jsonSwitch
     outputFile <- outputFileOption
     single <- switch (long "single" <> short 's' <> help "Output a single expression.")
     maxDepth <-
       let maxValue = 10
-       in option auto (long "max-depth" <> metavar.int <> value maxValue <> help [i|Maximum depth of rules application. Defaults to #{maxValue}.|])
+       in option auto (long "max-depth" <> metavar.int <> value maxValue <> help [fmt|Maximum depth of rules application. Defaults to {maxValue}.|])
     maxGrowthFactor <-
       let maxValue = 10
-       in option auto (long "max-growth-factor" <> metavar.int <> value maxValue <> help [i|The factor by which to allow the input term to grow before stopping. Defaults to #{maxValue}.|])
+       in option auto (long "max-growth-factor" <> metavar.int <> value maxValue <> help [fmt|The factor by which to allow the input term to grow before stopping. Defaults to {maxValue}.|])
     inputFile <- inputFileArg
     dependencies <- dependenciesArg
     pure CLI'TransformPhi{..}
   dataize = do
-    rulesPath <- strOption (long "rules" <> short 'r' <> metavar.file <> help [i|#{fileMetavarName} with user-defined rules. Must be specified.|])
+    rulesPath <- strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. Must be specified.|])
     inputFile <- inputFileArg
     dependencies <- dependenciesArg
     outputFile <- outputFileOption
@@ -209,9 +204,7 @@ commandParser =
     chain <- switch (long "chain" <> help "Display all the intermediate steps.")
     pure CLI'DataizePhi{..}
   report = do
-    configFile <-
-      let file' = metavarName.file
-       in strOption (long "config" <> short 'c' <> metavar.file <> help [i|The #{file'} with a report configuration.|])
+    configFile <- strOption (long "config" <> short 'c' <> metavar.file <> help [fmt|A report configuration {metavarName.file}.|])
     pure CLI'ReportPhi{..}
 
 data CommandParserInfo = CommandParserInfo
@@ -286,11 +279,11 @@ data CLI'Exception
 instance Show CLI'Exception where
   show :: CLI'Exception -> String
   show = \case
-    NotAFormation{..} -> [i|Could not find bindings at path '#{bindingsPath}' because an object at '#{path}' is not a formation.|]
-    FileDoesNotExist{..} -> [i|File '#{file}' does not exist.|]
-    CouldNotRead{..} -> [i|Could not read the program:\n#{message}|]
-    CouldNotParse{..} -> [i|An error occurred when parsing the input program:\n#{message}|]
-    CouldNotNormalize -> [i|Could not normalize the program.|]
+    NotAFormation{..} -> [fmt|Could not find bindings at path '{bindingsPath}' because an object at '{path}' is not a formation.|]
+    FileDoesNotExist{..} -> [fmt|File '{file}' does not exist.|]
+    CouldNotRead{..} -> [fmt|Could not read the program:\n{message}|]
+    CouldNotParse{..} -> [fmt|An error occurred when parsing the input program:\n{message}|]
+    CouldNotNormalize -> [fmt|Could not normalize the program.|]
     CouldNotMergeDependencies{..} -> message
     Impossible{..} -> message
 
@@ -333,9 +326,9 @@ getMetrics' program bindingsPath = do
              in
               Left $
                 Impossible
-                  [iii|
+                  [fmtTrim|
                     Impossible happened!
-                    The option #{bindingsPath'} was not specified yet there were errors finding attributes by #{path'}.
+                    The option {bindingsPath'} was not specified yet there were errors finding attributes by {path'}.
                   |]
           Just bindingsPath' -> Left $ NotAFormation (intercalate "." path) bindingsPath'
       )

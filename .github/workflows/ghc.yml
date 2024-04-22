@@ -17,9 +17,14 @@ jobs:
   check:
     name: "Run static checks"
     runs-on: ubuntu-latest
+    outputs:
+      EO: ${{ steps.get-eo-version.outputs.EO }}
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
+        with:
+          submodules: true
+          ref: ${{ github.ref }}
 
       - uses: haskell-actions/run-fourmolu@v10
         with:
@@ -41,6 +46,15 @@ jobs:
         with:
           hlint-bin: ${{ steps.get-hlint-bin.outputs.hlint-bin }}
 
+      - name: Get EO version
+        id: get-eo-version
+        run: |
+          EO="$(yq '.project.parent.version' -p xml < eo/eo-runtime/pom.xml)"
+
+          printf "%s" "$EO"
+
+          printf "EO=$EO\n" >> $GITHUB_OUTPUT
+
   pipeline:
     name: Run pipeline
     needs: check
@@ -57,11 +71,12 @@ jobs:
         uses: actions/checkout@v4
         with:
           submodules: true
+          ref: ${{ github.ref }}
 
       - name: 🧰 Setup Stack
         uses: freckle/stack-action@v5
         with:
-          stack-build-arguments: ${{ github.ref_name != 'master' && '--fast' || '' }} --pedantic
+          stack-build-arguments: --pedantic
           stack-build-arguments-build: --copy-bins
           stack-build-arguments-test: --force-dirty
           # TODO #213:10m enable macos test after https://github.com/objectionary/normalizer/issues/180 is resolved
@@ -80,33 +95,57 @@ jobs:
 
       - name: Run pipeline
         shell: bash
+        env:
+          EO: ${{ needs.check.outputs.EO }}
         run: ./scripts/pipeline.sh
 
-      - name: Install mdsh
-        if: runner.os == 'Linux' && github.head_ref
-        uses: baptiste0928/cargo-install@v3.0.1
-        with:
-          crate: mdsh
-          git: https://github.com/zimbatm/mdsh
-          tag: v0.8.0
-
-      - name: Update Markdown files
-        if: runner.os == 'Linux' && github.head_ref
-        run: ./scripts/update-markdown.sh
-
-      - name: Commit files
-        if: runner.os == 'Linux' && github.head_ref
+      - name: Configure git
+        if: always() && runner.os == 'Linux'
         env:
+          # required for gh
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr checkout ${{ github.event.pull_request.number }}
+          ${{ github.head_ref && format('gh pr checkout {0}', github.event.pull_request.number) || ''}}
 
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
-          git add site proposals README.md
-          git commit -m "Update Markdown files"
 
-          git push
+      - name: Commit and push changes in normalizer data files
+        if: always() && runner.os == 'Linux'
+        run: |
+          data_directory="eo-phi-normalizer/data"
+          if [ -n "$(git status --porcelain $data_directory)" ]; then
+            git add $data_directory
+            git commit -m "Update normalizer data files"
+            git push
+          else
+            echo "Nothing to commit.";
+          fi
+
+      - name: Install mdsh
+        if: always() && runner.os == 'Linux'
+        uses: baptiste0928/cargo-install@v3.1.0
+        with:
+          crate: mdsh
+          git: https://github.com/zimbatm/mdsh
+          branch: main
+
+      - name: Update Markdown files
+        if: always() && runner.os == 'Linux'
+        run: ./scripts/update-markdown.sh
+
+      - name: Commit and push changes in Markdown files
+        if: always() && runner.os == 'Linux'
+        run: |
+          files="site proposals README.md"
+
+          if [ -n "$(git status --porcelain $files)" ]; then
+            git add $files
+            git commit -m "Update Markdown files"
+            git push
+          else
+            printf "Nothing to commit."
+          fi
 
       - name: Upload pipeline artifact
         id: pipeline-artifact
@@ -162,6 +201,8 @@ jobs:
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref }}
 
       - name: 🧰 Setup Stack
         uses: freckle/stack-action@v5
@@ -177,9 +218,11 @@ jobs:
           merge-multiple: true
 
       - name: Setup mdBook
-        uses: peaceiris/actions-mdbook@v1
+        uses: jontze/action-mdbook@v3
         with:
-          mdbook-version: "latest"
+          token: ${{secrets.GITHUB_TOKEN}}
+          mdbook-version: "~0.4.37"
+          use-linkcheck: true
 
       - name: Add haddock
         run: |

@@ -21,6 +21,7 @@ import GHC.Generics (Generic)
 import Language.EO.Phi.Metrics.Data (BindingMetrics (..), Metrics (..), MetricsCount, ProgramMetrics)
 import Language.EO.Phi.Metrics.Data qualified as Metrics
 import Language.EO.Phi.TH (deriveJSON)
+import PyF (PyFToString (..))
 import Text.Printf (printf)
 import Prelude hiding (div, id, span)
 
@@ -54,6 +55,10 @@ roundToStr = printf "%0.*f%%"
 instance Show Percent where
   show :: Percent -> String
   show Percent{..} = roundToStr 2 (percent * 100)
+
+instance PyFToString Percent where
+  pyfToString :: Percent -> String
+  pyfToString = show
 
 type MetricsChangeCategorized = Metrics (MetricsChangeCategory Percent)
 
@@ -141,11 +146,11 @@ makeProgramReport reportConfig reportItem metricsPhi metricsPhiNormalized =
  where
   bindingsRows =
     case (metricsPhi.bindingsByPathMetrics, metricsPhiNormalized.bindingsByPathMetrics) of
-      (Just bindingsMetricsNormalized, Just bindingsMetricsInitial) ->
+      (Just bindingsMetricsInitial, Just bindingsMetricsNormalized) ->
         [ ReportRow
           { fileInitial = Just reportItem.phi
           , fileNormalized = Just reportItem.phiNormalized
-          , bindingsPathInitial = Just bindingsMetricsNormalized.path
+          , bindingsPathInitial = Just bindingsMetricsInitial.path
           , bindingsPathNormalized = Just bindingsMetricsNormalized.path
           , attributeInitial = Just attributeInitial
           , attributeNormalized = Just attributeNormalized

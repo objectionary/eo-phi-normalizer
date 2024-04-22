@@ -7,32 +7,43 @@
           φ ↦ ξ.as-bytes,
           eq ↦ ⟦
             x ↦ ∅,
-            x-as-bytes ↦ ξ.x.as-bytes,
-            self-as-bytes ↦ ξ.ρ.as-bytes,
-            nan-as-bytes ↦ Φ.org.eolang.nan.as-bytes,
-            pos-zero-as-bytes ↦ ξ.σ.σ.float(
-              α0 ↦ Φ.org.eolang.bytes(
-                Δ ⤍ 00-00-00-00-00-00-00-00
+            x-as-bytes ↦ Φ.org.eolang.dataized(
+              α0 ↦ ξ.x
+            ).as-bytes,
+            self-as-bytes ↦ Φ.org.eolang.dataized(
+              α0 ↦ ξ.ρ
+            ).as-bytes,
+            nan-as-bytes ↦ Φ.org.eolang.dataized(
+              α0 ↦ Φ.org.eolang.nan
+            ).as-bytes,
+            pos-zero-as-bytes ↦ Φ.org.eolang.dataized(
+              α0 ↦ ξ.σ.σ.float(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-00-00-00-00-00-00-00
+                )
               )
             ).as-bytes,
-            neg-zero-as-bytes ↦ ξ.σ.σ.float(
-              α0 ↦ Φ.org.eolang.bytes(
-                Δ ⤍ 80-00-00-00-00-00-00-00
+            neg-zero-as-bytes ↦ Φ.org.eolang.dataized(
+              α0 ↦ ξ.σ.σ.float(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 80-00-00-00-00-00-00-00
+                )
               )
             ).as-bytes,
-            φ ↦ ξ.x-as-bytes.eq(
-              α0 ↦ ξ.nan-as-bytes
-            ).or(
-              α0 ↦ ξ.self-as-bytes.eq(
+            φ ↦ Φ.org.eolang.if(
+              α0 ↦ ξ.x-as-bytes.eq(
                 α0 ↦ ξ.nan-as-bytes
-              )
-            ).if(
-              α0 ↦ Φ.org.eolang.bool(
+              ).or(
+                α0 ↦ ξ.self-as-bytes.eq(
+                  α0 ↦ ξ.nan-as-bytes
+                )
+              ),
+              α1 ↦ Φ.org.eolang.bool(
                 α0 ↦ Φ.org.eolang.bytes(
                   Δ ⤍ 00-
                 )
               ),
-              α1 ↦ ξ.x-as-bytes.eq(
+              α2 ↦ ξ.x-as-bytes.eq(
                 α0 ↦ ξ.pos-zero-as-bytes
               ).or(
                 α0 ↦ ξ.x-as-bytes.eq(
@@ -55,19 +66,26 @@
           ⟧,
           lt ↦ ⟦
             x ↦ ∅,
-            φ ↦ ξ.ρ.neg.plus(
-              α0 ↦ ξ.x
+            φ ↦ ξ.σ.σ.float(
+              α0 ↦ Φ.org.eolang.bytes(
+                Δ ⤍ 00-00-00-00-00-00-00-00
+              )
             ).gt(
-              α0 ↦ ξ.σ.σ.float(
-                α0 ↦ Φ.org.eolang.bytes(
-                  Δ ⤍ 00-00-00-00-00-00-00-00
+              α0 ↦ ξ.ρ.minus(
+                α0 ↦ ξ.σ.σ.float(
+                  α0 ↦ ξ.value
                 )
               )
-            )
+            ),
+            value ↦ Φ.org.eolang.dataized(
+              α0 ↦ ξ.x
+            ).as-bytes
           ⟧,
           lte ↦ ⟦
             x ↦ ∅,
-            value ↦ ξ.x,
+            value ↦ Φ.org.eolang.dataized(
+              α0 ↦ ξ.x
+            ).as-bytes,
             φ ↦ ξ.ρ.eq(
               α0 ↦ ξ.value
             ).or(
@@ -77,12 +95,14 @@
             )
           ⟧,
           gt ↦ ⟦
-            λ ⤍ Lambda,
+            λ ⤍ Lorg_eolang_float_gt,
             x ↦ ∅
           ⟧,
           gte ↦ ⟦
             x ↦ ∅,
-            value ↦ ξ.x,
+            value ↦ Φ.org.eolang.dataized(
+              α0 ↦ ξ.x
+            ).as-bytes,
             φ ↦ ξ.ρ.eq(
               α0 ↦ ξ.value
             ).or(
@@ -92,11 +112,11 @@
             )
           ⟧,
           times ↦ ⟦
-            λ ⤍ Lambda,
+            λ ⤍ Lorg_eolang_float_times,
             x ↦ ∅
           ⟧,
           plus ↦ ⟦
-            λ ⤍ Lambda,
+            λ ⤍ Lorg_eolang_float_plus,
             x ↦ ∅
           ⟧,
           neg ↦ ⟦
@@ -115,7 +135,7 @@
             )
           ⟧,
           div ↦ ⟦
-            λ ⤍ Lambda,
+            λ ⤍ Lorg_eolang_float_div,
             x ↦ ∅
           ⟧
         ⟧,

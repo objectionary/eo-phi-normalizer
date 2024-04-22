@@ -2,11 +2,9 @@
   ⟦
     org ↦ ⟦
       eolang ↦ ⟦
-        try ↦ ⟦
-          λ ⤍ Lambda,
-          main ↦ ∅,
-          catch ↦ ∅,
-          finally ↦ ∅
+        seq ↦ ⟦
+          λ ⤍ Lorg_eolang_seq,
+          steps ↦ ∅
         ⟧,
         λ ⤍ Package
       ⟧,

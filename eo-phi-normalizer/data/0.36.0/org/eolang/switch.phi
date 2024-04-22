@@ -4,32 +4,36 @@
       eolang ↦ ⟦
         switch ↦ ⟦
           cases ↦ ∅,
-          len ↦ ξ.cases.length,
+          len ↦ Φ.org.eolang.dataized(
+            α0 ↦ ξ.cases.length
+          ).as-bytes,
           case-at ↦ ⟦
             index ↦ ∅,
-            φ ↦ ξ.index.eq(
-              α0 ↦ ξ.ρ.len
-            ).if(
-              α0 ↦ Φ.org.eolang.bool(
+            φ ↦ Φ.org.eolang.if(
+              α0 ↦ ξ.index.eq(
+                α0 ↦ ξ.ρ.len
+              ),
+              α1 ↦ Φ.org.eolang.bool(
                 α0 ↦ Φ.org.eolang.bytes(
                   Δ ⤍ 01-
                 )
               ),
-              α1 ↦ ξ.case.at(
-                α0 ↦ Φ.org.eolang.int(
-                  α0 ↦ Φ.org.eolang.bytes(
-                    Δ ⤍ 00-00-00-00-00-00-00-00
-                  )
-                )
-              ).if(
+              α2 ↦ Φ.org.eolang.if(
                 α0 ↦ ξ.case.at(
+                  α0 ↦ Φ.org.eolang.int(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 00-00-00-00-00-00-00-00
+                    )
+                  )
+                ),
+                α1 ↦ ξ.case.at(
                   α0 ↦ Φ.org.eolang.int(
                     α0 ↦ Φ.org.eolang.bytes(
                       Δ ⤍ 00-00-00-00-00-00-00-01
                     )
                   )
                 ),
-                α1 ↦ ξ.ρ.case-at(
+                α2 ↦ ξ.ρ.case-at(
                   α0 ↦ ξ.index.plus(
                     α0 ↦ Φ.org.eolang.int(
                       α0 ↦ Φ.org.eolang.bytes(
@@ -44,21 +48,22 @@
               α0 ↦ ξ.index
             )
           ⟧,
-          φ ↦ ξ.cases.length.eq(
-            α0 ↦ Φ.org.eolang.int(
-              α0 ↦ Φ.org.eolang.bytes(
-                Δ ⤍ 00-00-00-00-00-00-00-00
+          φ ↦ Φ.org.eolang.if(
+            α0 ↦ ξ.len.eq(
+              α0 ↦ Φ.org.eolang.int(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-00-00-00-00-00-00-00
+                )
               )
-            )
-          ).if(
-            α0 ↦ Φ.org.eolang.error(
+            ),
+            α1 ↦ Φ.org.eolang.error(
               α0 ↦ Φ.org.eolang.string(
                 α0 ↦ Φ.org.eolang.bytes(
                   Δ ⤍ 73-77-69-74-63-68-20-63-61-73-65-73-20-61-72-65-20-65-6D-70-74-79
                 )
               )
             ),
-            α1 ↦ ξ.case-at(
+            α2 ↦ ξ.case-at(
               α0 ↦ Φ.org.eolang.int(
                 α0 ↦ Φ.org.eolang.bytes(
                   Δ ⤍ 00-00-00-00-00-00-00-00

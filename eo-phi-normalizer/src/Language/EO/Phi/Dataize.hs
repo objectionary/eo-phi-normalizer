@@ -13,7 +13,6 @@ import Control.Arrow (ArrowChoice (left))
 import Data.Bits
 import Data.List (singleton)
 import Data.Maybe (listToMaybe)
-import Data.String.Interpolate (i)
 import Language.EO.Phi (Binding (DeltaEmptyBinding, EmptyBinding))
 import Language.EO.Phi.Rules.Common
 import Language.EO.Phi.Syntax.Abs (
@@ -24,6 +23,7 @@ import Language.EO.Phi.Syntax.Abs (
   Function (Function),
   Object (Application, Formation, ObjectDispatch, Termination),
  )
+import PyF (fmt)
 
 -- | Perform one step of dataization to the object (if possible).
 dataizeStep :: Context -> Object -> (Context, Either Object Bytes)
@@ -199,13 +199,13 @@ extractAlpha0 = (`ObjectDispatch` Alpha (AlphaIndex "α0"))
 extractX :: Object -> Object
 extractX = (`ObjectDispatch` Alpha (AlphaIndex "x"))
 wrapBytesInInt :: Bytes -> Object
-wrapBytesInInt (Bytes bytes) = [i|Φ.org.eolang.int(Δ ⤍ #{bytes})|]
+wrapBytesInInt (Bytes bytes) = [fmt|Φ.org.eolang.int(Δ ⤍ {bytes})|]
 wrapBytesInFloat :: Bytes -> Object
-wrapBytesInFloat (Bytes bytes) = [i|Φ.org.eolang.float(Δ ⤍ #{bytes})|]
+wrapBytesInFloat (Bytes bytes) = [fmt|Φ.org.eolang.float(Δ ⤍ {bytes})|]
 wrapBytesInBytes :: Bytes -> Object
-wrapBytesInBytes (Bytes bytes) = [i|Φ.org.eolang.bytes(Δ ⤍ #{bytes})|]
+wrapBytesInBytes (Bytes bytes) = [fmt|Φ.org.eolang.bytes(Δ ⤍ {bytes})|]
 wrapBytesInString :: Bytes -> Object
-wrapBytesInString (Bytes bytes) = [i|Φ.org.eolang.string(Δ ⤍ #{bytes})|]
+wrapBytesInString (Bytes bytes) = [fmt|Φ.org.eolang.string(Δ ⤍ {bytes})|]
 
 -- This should maybe get converted to a type class and some instances?
 evaluateIntIntIntFunChain :: (Int -> Int -> Int) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)

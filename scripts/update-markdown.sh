@@ -1,3 +1,4 @@
+# shellcheck disable=SC2148
 mdsh
 
 mdsh -i site/docs/src/common/sample-program.md --work_dir .

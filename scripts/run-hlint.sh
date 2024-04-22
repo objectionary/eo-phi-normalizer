@@ -1,2 +1,3 @@
-#!/bin/bash
-hlint --ignore-glob="**/Language/EO/Phi/Syntax/**" $@
+# shellcheck disable=SC2148
+
+hlint --ignore-glob="**/Language/EO/Phi/Syntax/**" "$@"

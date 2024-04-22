@@ -19,15 +19,18 @@ module Language.EO.Phi.Report.Html where
 import Data.FileEmbed (embedFileRelative)
 import Data.List (intercalate)
 import Data.Maybe (fromMaybe)
-import Data.String.Interpolate
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as T
 import Language.EO.Phi.Metrics.Data (Metrics (..), MetricsCount, toListMetrics)
 import Language.EO.Phi.Report.Data (MetricsChange, MetricsChangeCategorized, MetricsChangeCategory (..), Percent (..), ProgramReport (..), Report (..), ReportRow (..))
+import PyF (fmt)
 import Text.Blaze.Html.Renderer.String (renderHtml)
 import Text.Blaze.Html5 hiding (i)
 import Text.Blaze.Html5.Attributes (class_, colspan, id, onclick, type_, value)
 import Prelude hiding (div, id, span)
+
+-- $setup
+-- >>> import Text.Blaze.Html.Renderer.String (renderHtml)
 
 -- | JavaScript file to embed into HTML reports
 reportJS :: String
@@ -94,7 +97,6 @@ instance ToMarkup Percent where
   toMarkup :: Percent -> Markup
   toMarkup = toMarkup . show
 
--- >>> import Text.Blaze.Html.Renderer.String (renderHtml)
 -- >>> reportConfig = ReportConfig { expectedMetricsChange = 0, format = ReportFormat'Markdown }
 --
 -- >>> renderHtml $ toHtmlChange reportConfig (MetricsChange'Bad 0.2)
@@ -147,21 +149,21 @@ toHtmlReport reportConfig report =
   toHtml $
     [ h2 "Overview"
         <> p
-          [i|
+          [fmt|
             We translate EO files into initial PHI programs.
             Next, we normalize these programs and get normalized PHI programs.
             Then, we collect metrics for initial and normalized PHI programs.
           |]
         <> h2 "Metrics"
         <> p
-          [i|
+          [fmt|
             An EO file contains multiple test objects.
             After translation, these test objects become attributes in PHI programs.
             We call these attributes "tests".
           |]
         <> p
-          [i|
-            We collect metrics on the number of #{intercalate ", " (toListMetrics metricsNames)} in tests.
+          [fmt|
+            We collect metrics on the number of {intercalate ", " (toListMetrics metricsNames)} in tests.
             We want normalized tests to have less such elements than initial tests do.
           |]
         <> p "A metric change for a test is calculated by the formula"
@@ -175,50 +177,50 @@ toHtmlReport reportConfig report =
           )
         <> h3 "Expected"
         <> p
-          [i|
+          [fmt|
             Metric changes are expected to be as follows or greater:
           |]
         <> ul
           ( toHtml . toListMetrics $
-              makePercentItem
+              mkPercentItem
                 <$> metricsNames
                 <*> reportConfig.expectedMetricsChange
           )
         <> p
           ( let expectedImprovedProgramsPercentage = reportConfig.expectedImprovedProgramsPercentage
-             in [i|We expect such changes for at least #{expectedImprovedProgramsPercentage} of tests.|]
+             in [fmt|We expect such changes for at least {expectedImprovedProgramsPercentage:s} of tests.|]
           )
         <> h3 "Actual"
-        <> p [i|We normalized #{testsCount} tests.|]
-        <> p [i|All metrics were improved for #{makeNumber allChangesGoodCount} tests.|]
-        <> p [i|Tests where a particular metric was improved:|]
+        <> p [fmt|We normalized {testsCount} tests.|]
+        <> p [fmt|All metrics were improved for {mkNumber allGoodMetricsCount testsCount} tests.|]
+        <> p [fmt|Tests where a particular metric was improved:|]
         <> ul
           ( toHtml . toListMetrics $
-              makeItem
+              mkItem'
                 <$> metricsNames
                 <*> particularMetricsChangeGoodCount
           )
         <> h2 "Table"
-        <> p [i|The table below provides detailed information about tests.|]
+        <> p [fmt|The table below provides detailed information about tests.|]
     ]
       <> [
          -- https://stackoverflow.com/a/55743302
          -- https://stackoverflow.com/a/3169849
          ( script ! type_ "text/javascript" $
-            [i|
-                function copytable(el) {
+            [fmt|
+                function copytable(el) {{
                   var urlField = document.getElementById(el)
                   var range = document.createRange()
                   range.selectNode(urlField)
                   window.getSelection().addRange(range)
                   document.execCommand('copy')
 
-                  if (window.getSelection().empty) {  // Chrome
+                  if (window.getSelection().empty) {{  // Chrome
                     window.getSelection().empty();
-                  } else if (window.getSelection().removeAllRanges) {  // Firefox
+                  }} else if (window.getSelection().removeAllRanges) {{  // Firefox
                     window.getSelection().removeAllRanges();
-                  }
-                }
+                  }}
+                }}
               |]
          )
           <> (input ! type_ "button" ! value "Copy to Clipboard" ! onclick "copytable('table')")
@@ -253,15 +255,6 @@ toHtmlReport reportConfig report =
  where
   isMarkdown = reportConfig.format == ReportFormat'Markdown
 
-  makePercentItem :: String -> Percent -> Html
-  makePercentItem name percent = li $ b [i|#{name}: |] <> toHtml percent
-
-  makeNumber :: Int -> String
-  makeNumber number = [i|#{number} (#{mkPercentage allChangesGoodCount})|]
-
-  makeItem :: String -> Int -> Html
-  makeItem name number = li $ b [i|#{name}: |] <> toHtml (makeNumber number)
-
   tests = concatMap (.bindingsRows) report.programReports
 
   testsCount = length tests
@@ -272,13 +265,31 @@ toHtmlReport reportConfig report =
     MetricsChange'Good _ -> True
     _ -> False
 
-  countAllChanges cond = length $ filter (all cond) metricsChanges
-  allChangesGoodCount = countAllChanges isGood
-
-  mkPercentage x = Percent $ fromIntegral x / fromIntegral testsCount
+  countAllMetricsSatisfyingCondition cond = length $ filter (all cond) metricsChanges
+  allGoodMetricsCount = countAllMetricsSatisfyingCondition isGood
 
   particularMetricsChangeGoodCount :: Metrics Int
   particularMetricsChangeGoodCount = sum $ ((\x -> if x then 1 else 0) . isGood <$>) <$> metricsChanges
+
+  mkItem' = mkItem testsCount
+
+-- |
+-- >>> renderHtml (mkItem 10 "foo" 4)
+-- "<li><b>foo: </b>4 (40.00%)</li>"
+mkItem :: Int -> String -> Int -> Html
+mkItem total name part = li $ b [fmt|{name}: |] <> toHtml (mkNumber part total)
+
+mkPercentItem :: String -> Percent -> Html
+mkPercentItem name percent = li $ b [fmt|{name}: |] <> toHtml percent
+
+mkPercentage :: Int -> Int -> Percent
+mkPercentage part total = Percent $ fromIntegral part / fromIntegral total
+
+-- |
+-- >>> mkNumber 3 5
+-- "3 (60.00%)"
+mkNumber :: Int -> Int -> String
+mkNumber part total = [fmt|{part} ({mkPercentage part total:s})|]
 
 toStringReport :: ReportConfig -> Report -> String
 toStringReport reportConfig report = renderHtml $ toHtmlReport reportConfig report

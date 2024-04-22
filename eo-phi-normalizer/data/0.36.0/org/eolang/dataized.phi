@@ -2,9 +2,9 @@
   ⟦
     org ↦ ⟦
       eolang ↦ ⟦
-        seq ↦ ⟦
-          λ ⤍ Lambda,
-          steps ↦ ∅
+        dataized ↦ ⟦
+          λ ⤍ Lorg_eolang_dataized,
+          target ↦ ∅
         ⟧,
         λ ⤍ Package
       ⟧,
