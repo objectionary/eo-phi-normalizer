@@ -256,6 +256,7 @@
                 pkgs.gh
                 pkgs.mdsh
                 pkgs.mdbook
+                pkgs.mdbook-linkcheck
                 pkgs.yq-go
                 pkgs.jdk21
                 {
