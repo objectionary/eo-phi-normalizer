@@ -204,6 +204,8 @@ wrapBytesInFloat :: Bytes -> Object
 wrapBytesInFloat (Bytes bytes) = [i|Φ.org.eolang.float(Δ ⤍ #{bytes})|]
 wrapBytesInBytes :: Bytes -> Object
 wrapBytesInBytes (Bytes bytes) = [i|Φ.org.eolang.bytes(Δ ⤍ #{bytes})|]
+wrapBytesInString :: Bytes -> Object
+wrapBytesInString (Bytes bytes) = [i|Φ.org.eolang.string(Δ ⤍ #{bytes})|]
 
 -- This should maybe get converted to a type class and some instances?
 evaluateIntIntIntFunChain :: (Int -> Int -> Int) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
@@ -211,6 +213,9 @@ evaluateIntIntIntFunChain = evaluateBinaryDataizationFunChain intToBytes bytesTo
 
 evaluateIntIntBoolFunChain :: (Int -> Int -> Bool) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
 evaluateIntIntBoolFunChain = evaluateBinaryDataizationFunChain boolToBytes bytesToInt wrapBytesInBytes extractRho extractX
+
+evaluateCastingFunction :: (Bytes -> Object) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
+evaluateCastingFunction wrap = evaluateUnaryDataizationFunChain id id wrap extractRho id
 
 -- Int because Bytes are just a string, but Int has a Bits instance
 -- evaluateBytesFunChain :: (Int -> Int -> Int) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
@@ -228,9 +233,9 @@ evaluateBuiltinFunChain "Lorg_eolang_int_div" obj = evaluateIntIntIntFunChain di
 -- evaluateBuiltinFunChain "Lorg_eolang_bytes_eq" obj = evaluateBytesBoolFunChain (==) obj
 -- evaluateBuiltinFunChain "Lorg_eolang_bytes_size" obj = _ -- TODO
 -- evaluateBuiltinFunChain "Lorg_eolang_bytes_slice" obj = _ -- TODO
--- evaluateBuiltinFunChain "Lorg_eolang_bytes_as_string" obj = _ -- TODO
-evaluateBuiltinFunChain "Lorg_eolang_bytes_as_int" obj = evaluateUnaryDataizationFunChain id id wrapBytesInInt extractAlpha0 id obj
-evaluateBuiltinFunChain "Lorg_eolang_bytes_as_float" obj = evaluateUnaryDataizationFunChain id id wrapBytesInFloat extractAlpha0 id obj
+evaluateBuiltinFunChain "Lorg_eolang_bytes_as_string" obj = evaluateCastingFunction wrapBytesInString obj
+evaluateBuiltinFunChain "Lorg_eolang_bytes_as_int" obj = evaluateCastingFunction wrapBytesInInt obj
+evaluateBuiltinFunChain "Lorg_eolang_bytes_as_float" obj = evaluateCastingFunction wrapBytesInFloat obj
 -- evaluateBuiltinFunChain "Lorg_eolang_bytes_and" obj = evaluateBytesFunChain (.&.) obj
 -- evaluateBuiltinFunChain "Lorg_eolang_bytes_or" obj = evaluateBytesFunChain (.|.) obj
 -- evaluateBuiltinFunChain "Lorg_eolang_bytes_xor" obj = evaluateBytesFunChain (.^.) obj
