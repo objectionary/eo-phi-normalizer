@@ -69,8 +69,10 @@ library
     , aeson
     , array >=0.5.5.0
     , base >=4.7 && <5
+    , binary
     , blaze-html
     , blaze-markup
+    , bytestring
     , directory
     , file-embed >=0.0.16.0
     , filepath
@@ -103,8 +105,10 @@ executable normalizer
     , aeson-pretty
     , array >=0.5.5.0
     , base >=4.7 && <5
+    , binary
     , blaze-html
     , blaze-markup
+    , bytestring
     , directory
     , eo-phi-normalizer
     , file-embed >=0.0.16.0
@@ -157,8 +161,10 @@ test-suite doctests
     , aeson
     , array >=0.5.5.0
     , base >=4.7 && <5
+    , binary
     , blaze-html
     , blaze-markup
+    , bytestring
     , directory
     , doctest-parallel
     , eo-phi-normalizer
@@ -201,8 +207,10 @@ test-suite spec
     , aeson
     , array >=0.5.5.0
     , base >=4.7 && <5
+    , binary
     , blaze-html
     , blaze-markup
+    , bytestring
     , directory
     , eo-phi-normalizer
     , file-embed >=0.0.16.0

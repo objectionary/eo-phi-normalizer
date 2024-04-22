@@ -224,6 +224,9 @@ evaluateBytesBytesBytesFunChain = evaluateBinaryDataizationFunChain intToBytes b
 evaluateBytesBytesFunChain :: (Int -> Int) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
 evaluateBytesBytesFunChain = evaluateUnaryDataizationFunChain intToBytes bytesToInt wrapBytesInBytes extractRho
 
+evaluateFloatFloatFloatFunChain :: (Double -> Double -> Double) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
+evaluateFloatFloatFloatFunChain = evaluateBinaryDataizationFunChain floatToBytes bytesToFloat wrapBytesInFloat extractRho extractX
+
 -- | Like `evaluateDataizationFunChain` but specifically for the built-in functions.
 -- This function is not safe. It returns undefined for unknown functions
 evaluateBuiltinFunChain :: String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
@@ -236,7 +239,10 @@ evaluateBuiltinFunChain "Lorg_eolang_int_times" obj = evaluateIntIntIntFunChain 
 evaluateBuiltinFunChain "Lorg_eolang_int_div" obj = evaluateIntIntIntFunChain div obj
 -- bytes
 evaluateBuiltinFunChain "Lorg_eolang_bytes_eq" obj = evaluateBinaryDataizationFunChain boolToBytes bytesToInt wrapBytesInBytes extractRho extractX (==) obj
--- evaluateBuiltinFunChain "Lorg_eolang_bytes_size" obj = _ -- TODO
+evaluateBuiltinFunChain "Lorg_eolang_bytes_size" obj = evaluateUnaryDataizationFunChain intToBytes id wrapBytesInBytes extractRho (\(Bytes bytes) -> length (words (map dashToSpace bytes))) obj
+ where
+  dashToSpace '-' = ' '
+  dashToSpace c = c
 -- evaluateBuiltinFunChain "Lorg_eolang_bytes_slice" obj = _ -- TODO
 evaluateBuiltinFunChain "Lorg_eolang_bytes_as_string" obj = evaluateCastingFunction wrapBytesInString obj
 evaluateBuiltinFunChain "Lorg_eolang_bytes_as_int" obj = evaluateCastingFunction wrapBytesInInt obj
@@ -248,10 +254,10 @@ evaluateBuiltinFunChain "Lorg_eolang_bytes_not" obj = evaluateBytesBytesFunChain
 -- evaluateBuiltinFunChain "Lorg_eolang_bytes_right" obj = _ -- TODO
 -- evaluateBuiltinFunChain "Lorg_eolang_bytes_concat" obj = _ -- TODO
 -- float
--- evaluateBuiltinFunChain "Lorg_eolang_float_gt" obj = _ -- TODO
--- evaluateBuiltinFunChain "Lorg_eolang_float_times" obj = _ -- TODO
--- evaluateBuiltinFunChain "Lorg_eolang_float_plus" obj = _ -- TODO
--- evaluateBuiltinFunChain "Lorg_eolang_float_div" obj = _ -- TODO
+evaluateBuiltinFunChain "Lorg_eolang_float_gt" obj = evaluateBinaryDataizationFunChain boolToBytes bytesToFloat wrapBytesInBytes extractRho extractX (>) obj
+evaluateBuiltinFunChain "Lorg_eolang_float_times" obj = evaluateFloatFloatFloatFunChain (*) obj
+evaluateBuiltinFunChain "Lorg_eolang_float_plus" obj = evaluateFloatFloatFloatFunChain (+) obj
+evaluateBuiltinFunChain "Lorg_eolang_float_div" obj = evaluateFloatFloatFloatFunChain (/) obj
 -- string
 evaluateBuiltinFunChain "Lorg_eolang_string_length" obj = evaluateUnaryDataizationFunChain intToBytes bytesToString wrapBytesInInt extractRho length obj
 -- evaluateBuiltinFunChain "Lorg_eolang_string_slice" obj = _ -- TODO

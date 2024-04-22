@@ -54,6 +54,8 @@ dependencies:
   - blaze-markup
   - scientific
   - file-embed >= 0.0.16.0
+  - binary
+  - bytestring
 
 default-extensions:
   - ImportQualifiedPost
