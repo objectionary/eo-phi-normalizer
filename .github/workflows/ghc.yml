@@ -233,7 +233,7 @@ jobs:
         run: |
           cd site/docs
           mdbook build
-          mv docs ../../dist
+          mv docs/html ../../dist/docs
 
       - name: Add report
         run: |

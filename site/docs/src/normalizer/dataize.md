@@ -66,12 +66,7 @@ normalizer dataize --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.y
 ```console
 Dataizing inside phi: ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧)
 Dataizing inside phi: ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧)
-Dataizing inside application: ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus
-Dataizing inside dispatch: ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧)
-Dataizing inside application: ξ.c.times
-Dataizing inside dispatch: ξ.c
-Dataizing inside dispatch: ξ
-Nothing to dataize: ξ
+Nothing to dataize: ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧)
 ```
 
 ### `--output-file FILE`

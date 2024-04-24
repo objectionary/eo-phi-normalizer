@@ -96,12 +96,18 @@ extendContextWith obj ctx =
     { outerFormations = obj <| outerFormations ctx
     }
 
+isEmptyBinding :: Binding -> Bool
+isEmptyBinding EmptyBinding{} = True
+isEmptyBinding DeltaEmptyBinding{} = True
+isEmptyBinding _ = False
+
 withSubObject :: (Context -> Object -> [(String, Object)]) -> Context -> Object -> [(String, Object)]
 withSubObject f ctx root =
   f ctx root
     <|> case root of
-      Formation bindings ->
-        propagateName1 Formation <$> withSubObjectBindings f ((extendContextWith root ctx){insideFormation = True}) bindings
+      Formation bindings
+        | not (any isEmptyBinding bindings) -> propagateName1 Formation <$> withSubObjectBindings f ((extendContextWith root ctx){insideFormation = True}) bindings
+        | otherwise -> []
       Application obj bindings ->
         asum
           [ propagateName2 Application <$> withSubObject f ctx obj <*> pure bindings
@@ -113,6 +119,7 @@ withSubObject f ctx root =
       Termination -> []
       MetaObject _ -> []
       MetaFunction _ _ -> []
+      MetaSubstThis _ _ -> []
 
 -- | Given a unary function that operates only on plain objects,
 -- converts it to a function that operates on named objects
@@ -174,6 +181,7 @@ objectSize = \case
   Termination -> 1
   MetaObject{} -> 1 -- should be impossible
   MetaFunction{} -> 1 -- should be impossible
+  MetaSubstThis{} -> 1 -- should be impossible
 
 bindingSize :: Binding -> Int
 bindingSize = \case
