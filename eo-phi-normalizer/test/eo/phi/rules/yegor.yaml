@@ -146,6 +146,19 @@ rules:
         input: ⟦ ⟧.hello
         output: []
 
+  - name: Rule 7 α0
+    description: 'Application of α-binding'
+    # Warning: this is not correct for the chain variant because it only matches the first binding
+    # i.e., doesn't match an empty binding after an attached one.
+    # We should instead match the first empty binding.
+    pattern: |
+      ⟦ !a ↦ ∅, !B ⟧(α0 ↦ !n)
+    result: |
+      ⟦ !a ↦ !n, !B ⟧
+    when:
+      - nf: '!n'
+    tests: []
+
   - name: Rule 7a
     description: 'Application of α-binding'
     pattern: |
