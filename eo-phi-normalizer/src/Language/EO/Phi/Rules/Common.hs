@@ -14,6 +14,7 @@ import Control.Arrow (Arrow (first))
 import Control.Monad
 import Data.Binary qualified as Binary
 import Data.ByteString.Lazy qualified as ByteString
+import Data.Char (toUpper)
 import Data.List (nubBy, sortOn)
 import Data.List.NonEmpty (NonEmpty (..), (<|))
 import Data.List.NonEmpty qualified as NonEmpty
@@ -340,7 +341,7 @@ padLeft :: Int -> [Char] -> [Char]
 padLeft n s = replicate (n - length s) '0' ++ s
 
 normalizeBytes :: String -> String
-normalizeBytes = insertDashes . padLeft 2
+normalizeBytes = map toUpper . insertDashes . padLeft 2
  where
   insertDashes s
     | length s <= 2 = s ++ "-"
