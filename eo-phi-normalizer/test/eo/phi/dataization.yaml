@@ -195,3 +195,19 @@ tests:
           ⟧,
           λ ⤍ Package
         ⟧
+
+  - name: "int times and plus"
+    input: |
+      {⟦
+        φ ↦ ⟦
+          x ↦ ⟦
+            x ↦ ⟦ Δ ⤍ 09- ⟧,
+            ρ ↦ ⟦ Δ ⤍ 04- ⟧,
+            λ ⤍ Lorg_eolang_int_times
+          ⟧,
+          ρ ↦ ⟦ Δ ⤍ 08- ⟧,
+          λ ⤍ Lorg_eolang_int_plus
+        ⟧
+      ⟧}
+    output:
+      bytes: "2A-" # == 42
