@@ -126,7 +126,7 @@ rules:
     tests:
       - name: Should match
         input: ⟦ hello ↦ ⟦⟧ ⟧.hello
-        output: ['⟦⟧(ρ ↦ ⟦⟧)']
+        output: ['⟦ ρ ↦ ⟦⟧ ⟧']
       - name: Shouldn't match
         input: ⟦ ⟧.hello
         output: []
@@ -140,8 +140,8 @@ rules:
     when: []
     tests:
       - name: Should match
-        input: ⟦ hello ↦ ⟦⟧ ⟧.hello
-        output: ['⟦⟧(ρ ↦ ⟦⟧)']
+        input: ⟦ hello ↦ ⟦⟧, ρ ↦ ∅ ⟧.hello
+        output: ['⟦ ρ ↦ ⟦⟧ ⟧']
       - name: Shouldn't match
         input: ⟦ ⟧.hello
         output: []
