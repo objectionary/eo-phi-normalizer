@@ -204,8 +204,6 @@ wrapBytesInFloat :: Bytes -> Object
 wrapBytesInFloat (Bytes bytes) = [fmt|Φ.org.eolang.float(Δ ⤍ {bytes})|]
 wrapBytesInBytes :: Bytes -> Object
 wrapBytesInBytes (Bytes bytes) = [fmt|Φ.org.eolang.bytes(Δ ⤍ {bytes})|]
-wrapBytesInString :: Bytes -> Object
-wrapBytesInString (Bytes bytes) = [fmt|Φ.org.eolang.string(Δ ⤍ {bytes})|]
 
 -- This should maybe get converted to a type class and some instances?
 evaluateIntIntIntFunChain :: (Int -> Int -> Int) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
@@ -213,9 +211,6 @@ evaluateIntIntIntFunChain = evaluateBinaryDataizationFunChain intToBytes bytesTo
 
 evaluateIntIntBoolFunChain :: (Int -> Int -> Bool) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
 evaluateIntIntBoolFunChain = evaluateBinaryDataizationFunChain boolToBytes bytesToInt wrapBytesInBytes extractRho (extractLabel "x")
-
-evaluateCastingFunction :: (Bytes -> Object) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
-evaluateCastingFunction wrap = evaluateUnaryDataizationFunChain id id wrap extractRho id
 
 -- Int because Bytes are just a string, but Int has a Bits instance
 evaluateBytesBytesBytesFunChain :: (Int -> Int -> Int) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
@@ -244,9 +239,6 @@ evaluateBuiltinFunChain "Lorg_eolang_bytes_size" obj = evaluateUnaryDataizationF
   dashToSpace '-' = ' '
   dashToSpace c = c
 -- evaluateBuiltinFunChain "Lorg_eolang_bytes_slice" obj = _ -- TODO
-evaluateBuiltinFunChain "Lorg_eolang_bytes_as_string" obj = evaluateCastingFunction wrapBytesInString obj
-evaluateBuiltinFunChain "Lorg_eolang_bytes_as_int" obj = evaluateCastingFunction wrapBytesInInt obj
-evaluateBuiltinFunChain "Lorg_eolang_bytes_as_float" obj = evaluateCastingFunction wrapBytesInFloat obj
 evaluateBuiltinFunChain "Lorg_eolang_bytes_and" obj = evaluateBytesBytesBytesFunChain (.&.) obj
 evaluateBuiltinFunChain "Lorg_eolang_bytes_or" obj = evaluateBytesBytesBytesFunChain (.|.) obj
 evaluateBuiltinFunChain "Lorg_eolang_bytes_xor" obj = evaluateBytesBytesBytesFunChain (.^.) obj
