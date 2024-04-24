@@ -1,6 +1,6 @@
 title: Dataization tests
 tests:
-  - name: Celsius example
+  - name: "Celsius example"
     input: |
       {⟦
         σ ↦ Φ,
@@ -18,6 +18,140 @@ tests:
       ⟧}
     output:
       bytes: "52-"
+
+  - name: "Program with ξ.ρ.ρ"
+    input: |
+      {⟦ x ↦ ⟦ b ↦ ⟦ Δ ⤍ 01- ⟧, φ ↦ ⟦ b ↦ ⟦ Δ ⤍ 02- ⟧, c ↦ ⟦ a ↦ ξ.ρ.ρ.b, ρ ↦ ∅ ⟧.a, ρ ↦ ∅ ⟧.c, ρ ↦ ∅ ⟧.φ, λ ⤍ Package ⟧}
+    output:
+      object: |
+        ⟦ x ↦ ⟦ Δ ⤍ 01- ⟧, λ ⤍ Package ⟧
+
+  - name: "Preprocessing and dispatch"
+    input: |
+      {⟦ a ↦ ⟦ b ↦ ⟦ Δ ⤍ 01- ⟧ ⟧.b , λ ⤍ Package ⟧}
+    output:
+      object: |
+        ⟦ a ↦ ⟦ Δ ⤍ 01- ⟧, λ ⤍ Package ⟧
+
+  - name: "New values in copy through ξ"
+    input: |
+      {⟦ a ↦ ⟦ b ↦ ∅, c ↦ ξ.b ⟧, d ↦ ξ.a(b ↦ ⟦ Δ ⤍ 01- ⟧).c , λ ⤍ Package ⟧}
+    output:
+      object: |
+        ⟦ a ↦ ⟦ b ↦ ∅, c ↦ ξ.b ⟧, d ↦ ⟦ Δ ⤍ 01- ⟧, λ ⤍ Package ⟧
+
+  - name: "ρ-applications and stacked dispatches"
+    input: |
+      {⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ⟦ Δ ⤍ 01- ⟧ ⟧ ⟧ ⟧.a.b.c , λ ⤍ Package ⟧}
+    output:
+      object: |
+        ⟦ x ↦ ⟦ Δ ⤍ 01- ⟧, λ ⤍ Package ⟧
+
+  - name: "ρ-applications and immediate dispatches"
+    input: |
+      {⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ⟦ Δ ⤍ 01- ⟧ ⟧.c ⟧.b ⟧.a , λ ⤍ Package ⟧}
+    output:
+      object: |
+        ⟦ x ↦ ⟦ Δ ⤍ 01- ⟧, λ ⤍ Package ⟧
+
+  - name: "new values in copy through ρ"
+    input: |
+      {⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ξ.ρ.c ⟧.b, c ↦ ∅ ⟧, d ↦ ξ.x(c ↦ ⟦ Δ ⤍ 01- ⟧).a , λ ⤍ Package ⟧}
+    output:
+      object: |
+        ⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ξ.ρ.c ⟧.b, c ↦ ∅ ⟧, d ↦ ⟦ Δ ⤍ 01- ⟧, λ ⤍ Package ⟧
+
+  - name: "ρ and nested dispatches"
+    input: |
+      {⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ξ.ρ ⟧.c ⟧.b ⟧.a , λ ⤍ Package ⟧}
+    output:
+      object: |
+        ⟦ x ↦ ⟦ ρ ↦ ⟦ ⟧ ⟧, λ ⤍ Package ⟧
+
+  - name: "usage of Φ with a loop"
+    input: |
+      {⟦ a ↦ ⟦ b ↦ Φ.a ⟧ , λ ⤍ Package ⟧}
+    output:
+      object: |
+        ⟦ a ↦ ⟦ b ↦ Φ.a ⟧, λ ⤍ Package ⟧
+
+  - name: "ρ passed to both term of object application?"
+    input: |
+      {⟦ x ↦ ⟦ c ↦ ⟦ a ↦ ∅ ⟧ (a ↦ ⟦ d ↦ ξ.ρ ⟧) ⟧.c , λ ⤍ Package ⟧}
+    output:
+      object: |
+        ⟦ x ↦ ⟦ a ↦ ⟦ d ↦ ξ.ρ ⟧, ρ ↦ ⟦ ⟧ ⟧, λ ⤍ Package ⟧
+
+  # FIXME: fails because nf condition for ξ.b succeeds though it shouldn't
+  # - name: "ξ in application"
+  #   input: |
+  #     {⟦ x ↦ ⟦ a ↦ ∅ ⟧(a ↦ ξ.b), b ↦ ⟦ Δ ⤍ 01- ⟧ , λ ⤍ Package ⟧}
+  #   output:
+  #     object: |
+  #       {⟦ x ↦ ⟦ a ↦ ⟦ Δ ⤍ 01- ⟧ ⟧, b ↦ ⟦ Δ ⤍ 01- ⟧ , λ ⤍ Package ⟧}
+
+  - name: "ξ chain"
+    input: |
+      {⟦ a ↦ ξ.b, b ↦ ξ.c, c ↦ ξ.d, d ↦ ⟦ Δ ⤍ 01- ⟧ , λ ⤍ Package ⟧}
+    output:
+      object: |
+        ⟦ a ↦ ⟦ Δ ⤍ 01- ⟧, b ↦ ⟦ Δ ⤍ 01- ⟧, c ↦ ⟦ Δ ⤍ 01- ⟧, d ↦ ⟦ Δ ⤍ 01- ⟧, λ ⤍ Package ⟧
+
+  # FIXME: fails
+  # - name: "cross-reference (1)"
+  #   input: |
+  #     {⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ξ.ρ.d.e, c ↦ ⟦ Δ ⤍ 01- ⟧, ρ ↦ ∅ ⟧, d ↦ ⟦ e ↦ ξ.ρ.a.c, ρ ↦ ∅ ⟧, ρ ↦ ∅ ⟧.a.b , λ ⤍ Package ⟧}
+  #   output:
+  #     object: |
+  #       NOT ⟦ x ↦ ⊥, λ ⤍ Package ⟧
+
+  # FIXME: fails
+  # - name: "cross-reference (2)"
+  #   input: |
+  #     {⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ξ.ρ.d.e, c ↦ ξ.ρ.d.f ⟧, d ↦ ⟦ e ↦ ξ.ρ.a.c, f ↦ ⟦ Δ ⤍ 01- ⟧ ⟧ ⟧.a.b , λ ⤍ Package ⟧}
+  #   output:
+  #     object: |
+  #       NOT ⟦ x ↦ ⊥, λ ⤍ Package ⟧
+
+  # FIXME: fails
+  # - name: "cross-reference + dispatch (1)"
+  #   input: |
+  #     {⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ξ.ρ.d, c ↦ ⟦ Δ ⤍ 01- ⟧ ⟧, d ↦ ⟦ e ↦ ξ.ρ.a.c ⟧ ⟧.a.b.e , λ ⤍ Package ⟧}
+  #   output:
+  #     object: |
+  #       NOT ⟦ x ↦ ⊥, λ ⤍ Package ⟧
+
+  # FIXME: fails
+  # - name: "cross-reference + dispatch (1)"
+  #   input: |
+  #     {⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ξ.ρ.d, c ↦ ⟦ Δ ⤍ 01- ⟧ ⟧, d ↦ ⟦ e ↦ ξ.ρ.a.c ⟧ ⟧.a.b.e , λ ⤍ Package ⟧}
+  #   output:
+  #     object: |
+  #       NOT ⟦ x ↦ ⊥, λ ⤍ Package ⟧
+
+  # FIXME: fails
+  # - name: "cross-reference + dispatch (2)"
+  #   input: |
+  #     {⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ξ.ρ.d, c ↦ ξ.ρ.d.f ⟧, d ↦ ⟦ e ↦ ξ.ρ.a.c, f ↦ ⟦ Δ ⤍ 01- ⟧ ⟧ ⟧.a.b.e , λ ⤍ Package ⟧}
+  #   output:
+  #     object: |
+  #       NOT ⟦ x ↦ ⊥, λ ⤍ Package ⟧
+
+  # FIXME: fails
+  # - name: "cross-reference + dispatch (3)"
+  #   input: |
+  #     {⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ξ.ρ.d, c ↦ ξ.ρ.d ⟧, d ↦ ⟦ e ↦ ξ.ρ.a.c, f ↦ ⟦ Δ ⤍ 01- ⟧ ⟧ ⟧.a.b.e.f , λ ⤍ Package ⟧}
+  #   output:
+  #     object: |
+  #       NOT ⟦ x ↦ ⊥, λ ⤍ Package ⟧
+
+  # FIXME: fails
+  # - name: "interleaving ρ and other dispatches"
+  #   input: |
+  #     {⟦ x ↦ ⟦ a ↦ ξ.ρ.b.ρ.c ⟧.a, b ↦ ⟦⟧, c ↦ ⟦ Δ ⤍ 01- ⟧, λ ⤍ Package ⟧}
+  #   output:
+  #     object: |
+  #       NOT ⟦ x ↦ ⟦ ⟧.ρ.b.ρ.c, b ↦ ⟦ ⟧, c ↦ ⟦ Δ ⤍ 01- ⟧, λ ⤍ Package ⟧
 
   - name: "Dataize in siblings of Package"
     input: |

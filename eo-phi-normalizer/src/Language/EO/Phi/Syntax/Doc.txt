@@ -51,7 +51,8 @@ The reserved words used in Syntax are the following:
 The symbols used in Syntax are the following:
   | { | ⟦ | ⟧ | }
   | ( | ) | . | ⊥
-  | ↦ | ∅ | ⤍ | ,
+  | [ | ↦ | ] | ∅
+  | ⤍ | , |  |
 
 ===Comments===
 Single-line comments begin with //.Multiple-line comments are  enclosed with /* and */.
@@ -69,6 +70,7 @@ All other symbols are terminals.
   |  |  **|**  | ``Φ``
   |  |  **|**  | ``ξ``
   |  |  **|**  | ``⊥``
+  |  |  **|**  | //Object// ``[`` ``ξ`` ``↦`` //Object// ``]``
   |  |  **|**  | //MetaId//
   |  |  **|**  | //MetaFunctionName// ``(`` //Object// ``)``
   | //Binding// | -> | //Attribute// ``↦`` //Object//

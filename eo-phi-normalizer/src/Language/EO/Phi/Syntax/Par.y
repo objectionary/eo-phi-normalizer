@@ -45,22 +45,24 @@ import Language.EO.Phi.Syntax.Lex
   ')'                { PT _ (TS _ 2)                }
   ','                { PT _ (TS _ 3)                }
   '.'                { PT _ (TS _ 4)                }
-  '{'                { PT _ (TS _ 5)                }
-  '}'                { PT _ (TS _ 6)                }
-  'Δ'                { PT _ (TS _ 7)                }
-  'Φ'                { PT _ (TS _ 8)                }
-  'λ'                { PT _ (TS _ 9)                }
-  'ν'                { PT _ (TS _ 10)               }
-  'ξ'                { PT _ (TS _ 11)               }
-  'ρ'                { PT _ (TS _ 12)               }
-  'σ'                { PT _ (TS _ 13)               }
-  'φ'                { PT _ (TS _ 14)               }
-  '↦'                { PT _ (TS _ 15)               }
-  '∅'                { PT _ (TS _ 16)               }
-  '⊥'                { PT _ (TS _ 17)               }
-  '⟦'                { PT _ (TS _ 18)               }
-  '⟧'                { PT _ (TS _ 19)               }
-  '⤍'                { PT _ (TS _ 20)               }
+  '['                { PT _ (TS _ 5)                }
+  ']'                { PT _ (TS _ 6)                }
+  '{'                { PT _ (TS _ 7)                }
+  '}'                { PT _ (TS _ 8)                }
+  'Δ'                { PT _ (TS _ 9)                }
+  'Φ'                { PT _ (TS _ 10)               }
+  'λ'                { PT _ (TS _ 11)               }
+  'ν'                { PT _ (TS _ 12)               }
+  'ξ'                { PT _ (TS _ 13)               }
+  'ρ'                { PT _ (TS _ 14)               }
+  'σ'                { PT _ (TS _ 15)               }
+  'φ'                { PT _ (TS _ 16)               }
+  '↦'                { PT _ (TS _ 17)               }
+  '∅'                { PT _ (TS _ 18)               }
+  '⊥'                { PT _ (TS _ 19)               }
+  '⟦'                { PT _ (TS _ 20)               }
+  '⟧'                { PT _ (TS _ 21)               }
+  '⤍'                { PT _ (TS _ 22)               }
   L_Bytes            { PT _ (T_Bytes $$)            }
   L_Function         { PT _ (T_Function $$)         }
   L_LabelId          { PT _ (T_LabelId $$)          }
@@ -100,6 +102,7 @@ Object
   | 'Φ' { Language.EO.Phi.Syntax.Abs.GlobalObject }
   | 'ξ' { Language.EO.Phi.Syntax.Abs.ThisObject }
   | '⊥' { Language.EO.Phi.Syntax.Abs.Termination }
+  | Object '[' 'ξ' '↦' Object ']' { Language.EO.Phi.Syntax.Abs.MetaSubstThis $1 $5 }
   | MetaId { Language.EO.Phi.Syntax.Abs.MetaObject $1 }
   | MetaFunctionName '(' Object ')' { Language.EO.Phi.Syntax.Abs.MetaFunction $1 $3 }
 
