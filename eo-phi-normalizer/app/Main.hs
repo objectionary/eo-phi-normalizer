@@ -32,7 +32,7 @@ import Data.Foldable (forM_)
 import Control.Exception (Exception (..), SomeException, catch, throw)
 import Data.Aeson (ToJSON)
 import Data.Aeson.Encode.Pretty (Config (..), Indent (..), defConfig, encodePrettyToTextBuilder')
-import Data.List (intercalate)
+import Data.List (intercalate, isPrefixOf)
 import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy as TL (unpack)
 import Data.Yaml (decodeFileThrow)
@@ -46,6 +46,7 @@ import Language.EO.Phi.Report.Html (ReportFormat (..), reportCSS, reportJS, toSt
 import Language.EO.Phi.Report.Html qualified as ReportHtml (ReportConfig (..))
 import Language.EO.Phi.Rules.Common
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRuleNamed, parseRuleSetFromFile)
+import Language.EO.Phi.ToLaTeX
 import Options.Applicative hiding (metavar)
 import Options.Applicative qualified as Optparse (metavar)
 import PyF (fmt, fmtTrim)
@@ -59,6 +60,7 @@ data CLI'TransformPhi = CLI'TransformPhi
   , outputFile :: Maybe String
   , single :: Bool
   , json :: Bool
+  , latex :: Bool
   , inputFile :: Maybe FilePath
   , dependencies :: [FilePath]
   , maxDepth :: Int
@@ -73,6 +75,7 @@ data CLI'DataizePhi = CLI'DataizePhi
   , outputFile :: Maybe String
   , recursive :: Bool
   , chain :: Bool
+  , latex :: Bool
   }
   deriving (Show)
 
@@ -147,6 +150,9 @@ dependenciesArg =
 jsonSwitch :: Parser Bool
 jsonSwitch = switch (long "json" <> short 'j' <> help "Output JSON.")
 
+latexSwitch :: Parser Bool
+latexSwitch = switch (long "latex" <> short 'l' <> help "Output LaTeX.")
+
 bindingsPathOption :: Parser (Maybe String)
 bindingsPathOption =
   optional $
@@ -184,6 +190,7 @@ commandParser =
     rulesPath <- strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. Must be specified.|])
     chain <- switch (long "chain" <> short 'c' <> help "Output transformation steps.")
     json <- jsonSwitch
+    latex <- latexSwitch
     outputFile <- outputFileOption
     single <- switch (long "single" <> short 's' <> help "Output a single expression.")
     maxDepth <-
@@ -202,6 +209,7 @@ commandParser =
     outputFile <- outputFileOption
     recursive <- switch (long "recursive" <> help "Apply dataization + normalization recursively.")
     chain <- switch (long "chain" <> help "Display all the intermediate steps.")
+    latex <- latexSwitch
     pure CLI'DataizePhi{..}
   report = do
     configFile <- strOption (long "config" <> short 'c' <> metavar.file <> help [fmt|A report configuration {metavarName.file}.|])
@@ -460,6 +468,13 @@ main = do
                 { input = printTree program'
                 , output = (propagateName1 printAsProgramOrAsObject <$>) <$> uniqueResults
                 }
+        | chain && latex -> do
+            logStrLn . removeOrgEolang . latexToString . toLatex $ (Formation bindings)
+            forM_ uniqueResults $ \steps -> do
+              forM_ (init steps) $ \(_, step) -> do
+                logStrLn . removeOrgEolang . latexToString . toLatex $ step
+        | latex ->
+            logStrLn . removeOrgEolang . latexToString . toLatex $ snd (head (head uniqueResults))
         | otherwise -> do
             logStrLn "Input:"
             logStrLn (printTree program')
@@ -489,9 +504,19 @@ main = do
             let dataizeChain
                   | recursive = dataizeRecursivelyChain'
                   | otherwise = dataizeStepChain'
-            forM_ (fst (dataizeChain ctx inputObject)) $ \case
-              (msg, Left obj) -> logStrLn (msg ++ ": " ++ printTree obj)
-              (msg, Right (Bytes bytes)) -> logStrLn (msg ++ ": " ++ bytes)
+            if latex
+              then do
+                logStrLn . removeOrgEolang . latexToString . toLatex $ (Formation bindings)
+                forM_ (fst (dataizeChain ctx inputObject)) $ \case
+                  (msg, Left obj) ->
+                    if "Rule" `isPrefixOf` msg
+                      then logStrLn . removeOrgEolang . latexToString . toLatex $ obj
+                      else return ()
+                  (_, Right (Bytes bytes)) -> logStrLn bytes
+              else do
+                forM_ (fst (dataizeChain ctx inputObject)) $ \case
+                  (msg, Left obj) -> logStrLn (msg ++ ": " ++ printTree obj)
+                  (msg, Right (Bytes bytes)) -> logStrLn (msg ++ ": " ++ bytes)
           else do
             let dataize
                   -- This should be moved to a separate subcommand

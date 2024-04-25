@@ -52,6 +52,7 @@ library
       Language.EO.Phi.Syntax.Par
       Language.EO.Phi.Syntax.Print
       Language.EO.Phi.TH
+      Language.EO.Phi.ToLaTeX
   other-modules:
       Paths_eo_phi_normalizer
   hs-source-dirs:
@@ -140,6 +141,7 @@ test-suite doctests
       Language.EO.Phi.Syntax.Print
       Language.EO.Phi.Syntax.Skel
       Language.EO.Phi.TH
+      Language.EO.Phi.ToLaTeX
       Paths_eo_phi_normalizer
   hs-source-dirs:
       test/doctests
