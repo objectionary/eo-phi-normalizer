@@ -25,9 +25,6 @@ sets:
 - source: eo/eo-runtime/src/test/eo/org/eolang/goto-tests.eo
   yaml: pipeline/yaml/goto-tests.yaml
   destination: pipeline/eo/goto-tests.eo
-- source: eo/eo-runtime/src/test/eo/org/eolang/if-tests.eo
-  yaml: pipeline/yaml/if-tests.yaml
-  destination: pipeline/eo/if-tests.eo
 - source: eo/eo-runtime/src/test/eo/org/eolang/int-tests.eo
   yaml: pipeline/yaml/int-tests.yaml
   destination: pipeline/eo/int-tests.eo
@@ -37,9 +34,6 @@ sets:
 - source: eo/eo-runtime/src/test/eo/org/eolang/malloc-tests.eo
   yaml: pipeline/yaml/malloc-tests.yaml
   destination: pipeline/eo/malloc-tests.eo
-- source: eo/eo-runtime/src/test/eo/org/eolang/memory-tests.eo
-  yaml: pipeline/yaml/memory-tests.yaml
-  destination: pipeline/eo/memory-tests.eo
 - source: eo/eo-runtime/src/test/eo/org/eolang/nan-tests.eo
   yaml: pipeline/yaml/nan-tests.yaml
   destination: pipeline/eo/nan-tests.eo
