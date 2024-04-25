@@ -34,6 +34,7 @@ normalizer dataize --help
 ```console
 Usage: normalizer dataize (-r|--rules FILE) [FILE] [-d|--dependency-file FILE]
                           [-o|--output-file FILE] [--recursive] [--chain]
+                          [-l|--latex]
 
   Dataize a PHI program.
 
@@ -48,6 +49,7 @@ Available options:
                            output to stdout.
   --recursive              Apply dataization + normalization recursively.
   --chain                  Display all the intermediate steps.
+  -l,--latex               Output LaTeX.
   -h,--help                Show this help text
 ```
 
@@ -64,7 +66,6 @@ normalizer dataize --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.y
 ```
 
 ```console
-Dataizing inside phi: ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧)
 Dataizing inside phi: ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧)
 Dataizing inside application: ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus
 Dataizing inside dispatch: ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧)

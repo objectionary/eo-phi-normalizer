@@ -71,7 +71,7 @@ normalizer transform --help
 
 ```console
 Usage: normalizer transform (-r|--rules FILE) [-c|--chain] [-j|--json]
-                            [-o|--output-file FILE] [-s|--single]
+                            [-l|--latex] [-o|--output-file FILE] [-s|--single]
                             [--max-depth INT] [--max-growth-factor INT] [FILE]
                             [-d|--dependency-file FILE]
 
@@ -81,6 +81,7 @@ Available options:
   -r,--rules FILE          FILE with user-defined rules. Must be specified.
   -c,--chain               Output transformation steps.
   -j,--json                Output JSON.
+  -l,--latex               Output LaTeX.
   -o,--output-file FILE    Output to FILE. When this option is not specified,
                            output to stdout.
   -s,--single              Output a single expression.
