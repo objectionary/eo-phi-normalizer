@@ -78,6 +78,7 @@ library
     , generic-lens
     , lens
     , mtl
+    , regex-compat
     , scientific
     , template-haskell
     , text
@@ -114,6 +115,7 @@ executable normalizer
     , lens
     , mtl
     , optparse-applicative
+    , regex-compat
     , scientific
     , template-haskell
     , text
@@ -169,6 +171,7 @@ test-suite doctests
     , generic-lens
     , lens
     , mtl
+    , regex-compat
     , scientific
     , template-haskell
     , text
@@ -214,6 +217,7 @@ test-suite spec
     , hspec-discover
     , lens
     , mtl
+    , regex-compat
     , scientific
     , template-haskell
     , text

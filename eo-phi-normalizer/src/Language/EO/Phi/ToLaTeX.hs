@@ -5,8 +5,8 @@ module Language.EO.Phi.ToLaTeX where
 import Data.Foldable (fold)
 import Data.List (intersperse)
 import Data.Text qualified as T
-import Language.EO.Phi (Binding (..), Object (..), Program (Program))
-import Language.EO.Phi.Syntax.Abs (AlphaIndex (..), Attribute (..), Bytes (..), Function (..), LabelId (..))
+import Language.EO.Phi (AlphaIndex (..), Attribute (..), Binding (..), Bytes (..), Function (..), LabelId (..), Object (..), Program (Program))
+import Text.Regex (mkRegex, subRegex)
 
 newtype LaTeX = LaTeX String
   deriving (Show)
@@ -31,7 +31,8 @@ instance ToLatex Attribute where
   toLatex Sigma = LaTeX "&"
   toLatex (Alpha (AlphaIndex a)) = LaTeX ("\\alpha_" ++ tail a)
   toLatex (Label (LabelId l)) = LaTeX l
-  toLatex _ = undefined
+  toLatex (MetaAttr _) = error "rendering MetaBindings in LaTex format"
+  toLatex VTX = error "rendering VTX in LaTex format"
 
 instance ToLatex Binding where
   toLatex (AlphaBinding attr obj) =
@@ -44,7 +45,8 @@ instance ToLatex Binding where
     LaTeX "D> ?"
   toLatex (LambdaBinding (Function fn)) =
     LaTeX "L> " <> LaTeX fn
-  toLatex _ = undefined
+  toLatex (MetaBindings _) = error "rendering MetaBindings in LaTex format"
+  toLatex (MetaDeltaBinding _) = error "rendering MetaDeltaBinding in LaTex format"
 
 instance ToLatex Object where
   toLatex (Formation bindings) =
@@ -55,11 +57,15 @@ instance ToLatex Object where
     toLatex obj <> LaTeX "." <> toLatex attr
   toLatex GlobalObject = LaTeX "Q"
   toLatex ThisObject = LaTeX "$"
-  toLatex Termination = undefined -- todo: ask Yegor
-  toLatex _ = undefined
+  toLatex Termination = LaTeX "\\dead"
+  toLatex (MetaObject _) = error "rendering MetaObject in LaTex format"
+  toLatex (MetaFunction _ _) = error "rendering MetaFunction in LaTex format"
 
 removeOrgEolang :: String -> String
 removeOrgEolang = T.unpack . T.replace "Q.org.eolang" "QQ" . T.pack
 
+removeAlpha :: String -> String
+removeAlpha s = subRegex (mkRegex "\\\\alpha_([0-9]+) ->") s "\\1->"
+
 latexToString :: LaTeX -> String
-latexToString (LaTeX a) = a
+latexToString (LaTeX a) = removeAlpha . removeOrgEolang $ a

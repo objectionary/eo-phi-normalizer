@@ -469,12 +469,12 @@ main = do
                 , output = (propagateName1 printAsProgramOrAsObject <$>) <$> uniqueResults
                 }
         | chain && latex -> do
-            logStrLn . removeOrgEolang . latexToString . toLatex $ (Formation bindings)
+            logStrLn . latexToString . toLatex $ (Formation bindings)
             forM_ uniqueResults $ \steps -> do
               forM_ (init steps) $ \(_, step) -> do
-                logStrLn . removeOrgEolang . latexToString . toLatex $ step
+                logStrLn . latexToString . toLatex $ step
         | latex ->
-            logStrLn . removeOrgEolang . latexToString . toLatex $ snd (head (head uniqueResults))
+            logStrLn . latexToString . toLatex $ snd (head (head uniqueResults))
         | otherwise -> do
             logStrLn "Input:"
             logStrLn (printTree program')
@@ -506,11 +506,11 @@ main = do
                   | otherwise = dataizeStepChain'
             if latex
               then do
-                logStrLn . removeOrgEolang . latexToString . toLatex $ (Formation bindings)
+                logStrLn . latexToString . toLatex $ (Formation bindings)
                 forM_ (fst (dataizeChain ctx inputObject)) $ \case
                   (msg, Left obj) ->
                     if "Rule" `isPrefixOf` msg
-                      then logStrLn . removeOrgEolang . latexToString . toLatex $ obj
+                      then logStrLn . latexToString . toLatex $ obj
                       else return ()
                   (_, Right (Bytes bytes)) -> logStrLn bytes
               else do
