@@ -509,9 +509,7 @@ main = do
                 logStrLn . toLatexString $ Formation bindings
                 forM_ (fst (dataizeChain ctx inputObject)) $ \case
                   (msg, Left obj) ->
-                    if "Rule" `isPrefixOf` msg
-                      then logStrLn . toLatexString $ obj
-                      else return ()
+                    (when ("Rule" `isPrefixOf` msg) $ logStrLn . toLatexString $ obj)
                   (_, Right (Bytes bytes)) -> logStrLn bytes
               else do
                 forM_ (fst (dataizeChain ctx inputObject)) $ \case
