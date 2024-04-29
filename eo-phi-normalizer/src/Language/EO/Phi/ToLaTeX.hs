@@ -23,6 +23,8 @@ instance Monoid LaTeX where
 
 class ToLatex a where
   toLatex :: a -> LaTeX
+  toLatexString :: a -> String
+  toLatexString = latexToString . toLatex
 
 instance ToLatex Program where
   toLatex (Program bindings) =
