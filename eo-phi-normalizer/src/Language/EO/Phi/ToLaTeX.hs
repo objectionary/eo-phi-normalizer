@@ -12,7 +12,10 @@ import Language.EO.Phi (AlphaIndex (..), Attribute (..), Binding (..), Bytes (..
 import Text.Regex (mkRegex, subRegex)
 
 newtype LaTeX = LaTeX String
-  deriving newtype (Show, IsString)
+  deriving newtype (IsString)
+
+instance Show LaTeX where
+  show = latexToString
 
 instance Semigroup LaTeX where
   (LaTeX x) <> (LaTeX y) = LaTeX (x <> y)
@@ -67,5 +70,7 @@ removeOrgEolang = T.unpack . T.replace "Q.org.eolang" "QQ" . T.pack
 removeAlpha :: String -> String
 removeAlpha s = subRegex (mkRegex "\\\\alpha_([0-9]+) ->") s "\\1->"
 
+-- >>> toLatex ("{ ⟦ α0 ↦ ξ, α1 ↦ Φ.org.eolang.bytes( Δ ⤍ 00- ) ⟧ }" :: Program)
+-- \Big\{ [[ 0-> $, 1-> QQ.bytes( D> 00- ) ]] \Big\}
 latexToString :: LaTeX -> String
 latexToString (LaTeX a) = removeAlpha . removeOrgEolang $ a
