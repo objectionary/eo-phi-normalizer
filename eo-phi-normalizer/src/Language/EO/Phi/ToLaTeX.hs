@@ -11,7 +11,7 @@ import Data.Text qualified as T
 import Language.EO.Phi
 import Text.Regex (mkRegex, subRegex)
 
-newtype LaTeX = LaTeX String
+newtype LaTeX = LaTeX {unLaTeX :: String}
   deriving newtype (IsString, Semigroup, Monoid)
 
 instance Show LaTeX where
@@ -66,4 +66,4 @@ removeAlpha s = subRegex (mkRegex "\\\\alpha_([0-9]+) ->") s "\\1->"
 -- >>> toLatex ("{ ⟦ α0 ↦ ξ, α1 ↦ Φ.org.eolang.bytes( Δ ⤍ 00- ) ⟧ }" :: Program)
 -- \Big\{ [[ 0-> $, 1-> QQ.bytes( D> 00- ) ]] \Big\}
 latexToString :: LaTeX -> String
-latexToString (LaTeX a) = removeAlpha . removeOrgEolang $ a
+latexToString = removeAlpha . removeOrgEolang . unLaTeX
