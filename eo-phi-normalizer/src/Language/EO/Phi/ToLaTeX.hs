@@ -8,7 +8,7 @@ import Data.Foldable (fold)
 import Data.List (intersperse)
 import Data.String (IsString)
 import Data.Text qualified as T
-import Language.EO.Phi (AlphaIndex (..), Attribute (..), Binding (..), Bytes (..), Function (..), LabelId (..), Object (..), Program (Program))
+import Language.EO.Phi
 import Text.Regex (mkRegex, subRegex)
 
 newtype LaTeX = LaTeX String
