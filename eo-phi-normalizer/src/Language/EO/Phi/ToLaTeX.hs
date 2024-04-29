@@ -12,17 +12,10 @@ import Language.EO.Phi (AlphaIndex (..), Attribute (..), Binding (..), Bytes (..
 import Text.Regex (mkRegex, subRegex)
 
 newtype LaTeX = LaTeX String
-  deriving newtype (IsString)
+  deriving newtype (IsString, Semigroup, Monoid)
 
 instance Show LaTeX where
   show = latexToString
-
-instance Semigroup LaTeX where
-  (LaTeX x) <> (LaTeX y) = LaTeX (x <> y)
-
-instance Monoid LaTeX where
-  mempty = LaTeX ""
-  mappend = (<>)
 
 class ToLatex a where
   toLatex :: a -> LaTeX
