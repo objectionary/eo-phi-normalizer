@@ -5,7 +5,9 @@ Then, the `normalizer` executable will be available on `PATH`.
 
 ## Install from the repository
 
-{{ #include ./common/install.md }}
+{{#include ./common/enter-repository.md}}
+
+{{#include ./common/install.md}}
 
 ## Install from Hackage
 
