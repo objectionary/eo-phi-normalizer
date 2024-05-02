@@ -1,5 +1,4 @@
 Save a `PHI` program to a file.
-This program will be used in subsequent commands.
 
 ```$
 cat > celsius.phi <<EOM
