@@ -202,7 +202,6 @@
                     mdsh
 
                     ${lib.concatMapStringsSep "\n" (x: "mdsh -i site/docs/src/${x} --work_dir .") [
-                      "common/sample-program.md"
                       "common/celsius.md"
                       "normalizer.md"
                       "normalizer/transform.md"
@@ -212,7 +211,7 @@
                       "contributing.md"
                     ]}
 
-                    rm program.phi celsius.phi
+                    rm celsius.phi
 
                     npm i
                     npx prettier -w "**/*.md"'';
