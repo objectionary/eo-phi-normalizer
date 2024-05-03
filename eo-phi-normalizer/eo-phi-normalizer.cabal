@@ -52,6 +52,7 @@ library
       Language.EO.Phi.Syntax.Par
       Language.EO.Phi.Syntax.Print
       Language.EO.Phi.TH
+      Language.EO.Phi.ToLaTeX
   other-modules:
       Paths_eo_phi_normalizer
   hs-source-dirs:
@@ -77,6 +78,7 @@ library
     , generic-lens
     , lens
     , mtl
+    , regex-compat
     , scientific
     , template-haskell
     , text
@@ -113,6 +115,7 @@ executable normalizer
     , lens
     , mtl
     , optparse-applicative
+    , regex-compat
     , scientific
     , template-haskell
     , text
@@ -140,6 +143,7 @@ test-suite doctests
       Language.EO.Phi.Syntax.Print
       Language.EO.Phi.Syntax.Skel
       Language.EO.Phi.TH
+      Language.EO.Phi.ToLaTeX
       Paths_eo_phi_normalizer
   hs-source-dirs:
       test/doctests
@@ -167,6 +171,7 @@ test-suite doctests
     , generic-lens
     , lens
     , mtl
+    , regex-compat
     , scientific
     , template-haskell
     , text
@@ -212,6 +217,7 @@ test-suite spec
     , hspec-discover
     , lens
     , mtl
+    , regex-compat
     , scientific
     , template-haskell
     , text

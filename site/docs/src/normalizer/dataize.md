@@ -34,6 +34,7 @@ normalizer dataize --help
 ```console
 Usage: normalizer dataize (-r|--rules FILE) [FILE] [-d|--dependency-file FILE]
                           [-o|--output-file FILE] [--recursive] [--chain]
+                          [--tex]
 
   Dataize a PHI program.
 
@@ -48,6 +49,7 @@ Available options:
                            output to stdout.
   --recursive              Apply dataization + normalization recursively.
   --chain                  Display all the intermediate steps.
+  --tex                    Output LaTeX.
   -h,--help                Show this help text
 ```
 
