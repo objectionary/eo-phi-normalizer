@@ -194,9 +194,9 @@ extractAlpha0 = (`ObjectDispatch` Alpha (AlphaIndex "α0"))
 extractLabel :: String -> Object -> Object
 extractLabel attrName = (`ObjectDispatch` Label (LabelId attrName))
 wrapBytesInInt :: Bytes -> Object
-wrapBytesInInt (Bytes bytes) = [fmt|Φ.org.eolang.int(Δ ⤍ {bytes})|]
+wrapBytesInInt (Bytes bytes) = [fmt|Φ.org.eolang.int(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes}))|]
 wrapBytesInFloat :: Bytes -> Object
-wrapBytesInFloat (Bytes bytes) = [fmt|Φ.org.eolang.float(Δ ⤍ {bytes})|]
+wrapBytesInFloat (Bytes bytes) = [fmt|Φ.org.eolang.float(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes}))|]
 wrapBytesInBytes :: Bytes -> Object
 wrapBytesInBytes (Bytes bytes) = [fmt|Φ.org.eolang.bytes(Δ ⤍ {bytes})|]
 
