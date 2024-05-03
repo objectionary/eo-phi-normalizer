@@ -70,8 +70,8 @@ normalizer transform --help
 ```
 
 ```console
-Usage: normalizer transform (-r|--rules FILE) [-c|--chain] [-j|--json]
-                            [--tex] [-o|--output-file FILE] [-s|--single]
+Usage: normalizer transform (-r|--rules FILE) [-c|--chain] [-j|--json] [--tex]
+                            [-o|--output-file FILE] [-s|--single]
                             [--max-depth INT] [--max-growth-factor INT] [FILE]
                             [-d|--dependency-file FILE]
 

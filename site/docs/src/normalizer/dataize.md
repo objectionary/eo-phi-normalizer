@@ -34,7 +34,7 @@ normalizer dataize --help
 ```console
 Usage: normalizer dataize (-r|--rules FILE) [FILE] [-d|--dependency-file FILE]
                           [-o|--output-file FILE] [--recursive] [--chain]
-                          [-l|--latex]
+                          [--tex]
 
   Dataize a PHI program.
 
