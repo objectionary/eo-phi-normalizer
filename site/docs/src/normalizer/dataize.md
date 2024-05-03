@@ -93,7 +93,7 @@ normalizer dataize --recursive --rules eo-phi-normalizer/test/eo/phi/rules/yegor
 ```
 
 ```console
-52-
+00-00-00-00-00-00-00-32
 ```
 
 Can be combined with `--chain` to print all the intermediate steps of both normalization and dataization.
@@ -107,5 +107,5 @@ cat celsius.phi | normalizer dataize --recursive --rules ./eo-phi-normalizer/tes
 ```
 
 ```console
-52-
+00-00-00-00-00-00-00-32
 ```

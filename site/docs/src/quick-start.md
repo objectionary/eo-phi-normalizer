@@ -13,5 +13,5 @@ normalizer dataize --recursive --rules eo-phi-normalizer/test/eo/phi/rules/yegor
 ```
 
 ```console
-52-
+00-00-00-00-00-00-00-32
 ```
