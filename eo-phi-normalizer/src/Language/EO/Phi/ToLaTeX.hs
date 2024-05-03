@@ -56,6 +56,7 @@ instance ToLatex Object where
   toLatex Termination = "\\dead"
   toLatex (MetaObject _) = error "rendering MetaObject in LaTex format"
   toLatex (MetaFunction _ _) = error "rendering MetaFunction in LaTex format"
+  toLatex (MetaSubstThis _ _) = error "rendering MetaSubstThis in LaTex format"
 
 removeOrgEolang :: String -> String
 removeOrgEolang = T.unpack . T.replace "Q.org.eolang" "QQ" . T.pack
