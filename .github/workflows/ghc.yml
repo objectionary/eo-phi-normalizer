@@ -61,7 +61,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-latest, macos-12]
       fail-fast: false
     permissions:
       contents: write
@@ -81,7 +81,7 @@ jobs:
           stack-build-arguments-test: --force-dirty
           # TODO #213:10m enable macos test after https://github.com/objectionary/normalizer/issues/180 is resolved
           # TODO #98:10m enable windows tests after https://github.com/objectionary/normalizer/issues/185 is resolved
-          test: ${{ matrix.os != 'windows-latest' && matrix.os != 'macos-latest'}}
+          test: ${{ matrix.os != 'windows-latest' && matrix.os != 'macos-12'}}
 
       - uses: actions/setup-node@v4
         with:

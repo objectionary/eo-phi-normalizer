@@ -34,6 +34,7 @@ normalizer dataize --help
 ```console
 Usage: normalizer dataize (-r|--rules FILE) [FILE] [-d|--dependency-file FILE]
                           [-o|--output-file FILE] [--recursive] [--chain]
+                          [--tex]
 
   Dataize a PHI program.
 
@@ -48,6 +49,7 @@ Available options:
                            output to stdout.
   --recursive              Apply dataization + normalization recursively.
   --chain                  Display all the intermediate steps.
+  --tex                    Output LaTeX.
   -h,--help                Show this help text
 ```
 
@@ -65,8 +67,12 @@ normalizer dataize --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.y
 
 ```console
 Dataizing inside phi: ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧)
-Dataizing inside phi: ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧)
-Nothing to dataize: ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧)
+Dataizing inside application: ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus
+Dataizing inside dispatch: ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧)
+Dataizing inside application: ξ.c.times
+Dataizing inside dispatch: ξ.c
+Dataizing inside dispatch: ξ
+Nothing to dataize: ξ
 ```
 
 ### `--output-file FILE`
@@ -87,7 +93,7 @@ normalizer dataize --recursive --rules eo-phi-normalizer/test/eo/phi/rules/yegor
 ```
 
 ```console
-⊥
+52-
 ```
 
 Can be combined with `--chain` to print all the intermediate steps of both normalization and dataization.
@@ -101,5 +107,5 @@ cat celsius.phi | normalizer dataize --recursive --rules ./eo-phi-normalizer/tes
 ```
 
 ```console
-⊥
+52-
 ```

@@ -5,7 +5,9 @@ Then, the `normalizer` executable will be available on `PATH`.
 
 ## Install from the repository
 
-{{ #include ./common/install.md }}
+{{#include ./common/enter-repository.md}}
+
+{{#include ./common/install.md}}
 
 ## Install from Hackage
 
@@ -17,8 +19,7 @@ stack install --resolver lts-22.6 eo-phi-normalizer
 
 ## Update
 
-Run `stack install` as in one of the methods above.
-The command will update the installed executable.
+Run `stack install ...` as in one of the methods above.
 
 ## Uninstall
 
