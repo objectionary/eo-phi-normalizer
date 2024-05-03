@@ -228,13 +228,18 @@ evaluateBuiltinFunChain "Lorg_eolang_bytes_size" obj = evaluateUnaryDataizationF
  where
   dashToSpace '-' = ' '
   dashToSpace c = c
--- evaluateBuiltinFunChain "Lorg_eolang_bytes_slice" obj = _ -- TODO
+evaluateBuiltinFunChain "Lorg_eolang_bytes_slice" obj = \state -> do
+  thisStr <- dataizeRecursivelyChain (extractRho obj)
+  (Bytes bytes) <- case thisStr of
+    Right bytes -> pure bytes
+    Left _ -> fail "Couldn't find bytes"
+  evaluateBinaryDataizationFunChain id bytesToInt (extractLabel "start") (extractLabel "len") (\start len -> Bytes $ normalizeBytes $ take len (drop start (filter (/= '-') bytes))) obj state
 evaluateBuiltinFunChain "Lorg_eolang_bytes_and" obj = evaluateBytesBytesBytesFunChain (.&.) obj
 evaluateBuiltinFunChain "Lorg_eolang_bytes_or" obj = evaluateBytesBytesBytesFunChain (.|.) obj
 evaluateBuiltinFunChain "Lorg_eolang_bytes_xor" obj = evaluateBytesBytesBytesFunChain (.^.) obj
 evaluateBuiltinFunChain "Lorg_eolang_bytes_not" obj = evaluateBytesBytesFunChain complement obj
--- evaluateBuiltinFunChain "Lorg_eolang_bytes_right" obj = _ -- TODO
--- evaluateBuiltinFunChain "Lorg_eolang_bytes_concat" obj = _ -- TODO
+evaluateBuiltinFunChain "Lorg_eolang_bytes_right" obj = evaluateBinaryDataizationFunChain intToBytes bytesToInt extractRho (extractLabel "x") shiftR obj
+evaluateBuiltinFunChain "Lorg_eolang_bytes_concat" obj = evaluateBinaryDataizationFunChain id id extractRho (extractLabel "b") (\(Bytes b1) (Bytes b2) -> Bytes (b1 ++ b2)) obj
 -- float
 evaluateBuiltinFunChain "Lorg_eolang_float_gt" obj = evaluateBinaryDataizationFunChain boolToBytes bytesToFloat extractRho (extractLabel "x") (>) obj
 evaluateBuiltinFunChain "Lorg_eolang_float_times" obj = evaluateFloatFloatFloatFunChain (*) obj
@@ -242,7 +247,12 @@ evaluateBuiltinFunChain "Lorg_eolang_float_plus" obj = evaluateFloatFloatFloatFu
 evaluateBuiltinFunChain "Lorg_eolang_float_div" obj = evaluateFloatFloatFloatFunChain (/) obj
 -- string
 evaluateBuiltinFunChain "Lorg_eolang_string_length" obj = evaluateUnaryDataizationFunChain intToBytes bytesToString extractRho length obj
--- evaluateBuiltinFunChain "Lorg_eolang_string_slice" obj = _ -- TODO
+evaluateBuiltinFunChain "Lorg_eolang_string_slice" obj = \state -> do
+  thisStr <- dataizeRecursivelyChain (extractRho obj)
+  string <- case thisStr of
+    Right bytes -> pure $ bytesToString bytes
+    Left _ -> fail "Couldn't find bytes"
+  evaluateBinaryDataizationFunChain stringToBytes bytesToInt (extractLabel "start") (extractLabel "len") (\start len -> take len (drop start string)) obj state
 -- malloc
 -- evaluateBuiltinFunChain "Lorg_eolang_malloc_φ" obj = _ -- TODO
 -- evaluateBuiltinFunChain "Lorg_eolang_malloc_memory_block_pointer_read" obj = _ -- TODO

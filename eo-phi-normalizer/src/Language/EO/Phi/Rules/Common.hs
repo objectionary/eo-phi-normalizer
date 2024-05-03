@@ -265,6 +265,9 @@ instance Monad (Chain a) where
     , (steps', y) <- runChain (f x) ctx
     ]
 
+instance MonadFail (Chain a) where
+  fail _msg = Chain (const [])
+
 logStep :: String -> info -> Chain info ()
 logStep msg info = Chain $ const [([(msg, info)], ())]
 
