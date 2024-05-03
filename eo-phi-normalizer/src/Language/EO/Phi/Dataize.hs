@@ -9,19 +9,11 @@
 
 module Language.EO.Phi.Dataize where
 
-import Control.Arrow (ArrowChoice (left))
+import Control.Arrow (left)
 import Data.List (singleton)
 import Data.Maybe (listToMaybe)
-import Language.EO.Phi (Binding (DeltaEmptyBinding, EmptyBinding))
 import Language.EO.Phi.Rules.Common
-import Language.EO.Phi.Syntax.Abs (
-  AlphaIndex (AlphaIndex),
-  Attribute (Alpha, Phi, Rho),
-  Binding (AlphaBinding, DeltaBinding, LambdaBinding),
-  Bytes (Bytes),
-  Function (Function),
-  Object (Application, Formation, ObjectDispatch, Termination),
- )
+import Language.EO.Phi.Syntax.Abs
 import PyF (fmt)
 
 -- | Perform one step of dataization to the object (if possible).
@@ -60,7 +52,6 @@ dataizeStepChain obj@(Formation bs)
       logStep "Dataizing inside phi" (Left decoratee)
       ctx <- getContext
       let extendedContext = (extendContextWith obj ctx){currentAttr = Phi}
-      logStep "Dataizing inside phi" (Left decoratee)
       withContext extendedContext $ dataizeStepChain decoratee
   | otherwise = do
       logStep "No change to formation" (Left obj)
@@ -71,11 +62,13 @@ dataizeStepChain obj@(Formation bs)
   isEmpty DeltaEmptyBinding = True
   isEmpty _ = False
   hasEmpty = any isEmpty bs
+-- IMPORTANT: dataize the object being copied IF normalization is stuck on it!
 dataizeStepChain (Application obj bindings) = do
   logStep "Dataizing inside application" (Left obj)
   modifyContext (\c -> c{dataizePackage = False}) $ do
     (ctx, obj') <- dataizeStepChain obj
     return (ctx, left (`Application` bindings) obj')
+-- IMPORTANT: dataize the object being dispatched IF normalization is stuck on it!
 dataizeStepChain (ObjectDispatch obj attr) = do
   logStep "Dataizing inside dispatch" (Left obj)
   modifyContext (\c -> c{dataizePackage = False}) $ do
@@ -93,6 +86,7 @@ dataizeRecursivelyChain' ctx obj = head (runChain (dataizeRecursivelyChain obj) 
 -- reporting intermediate steps
 dataizeRecursivelyChain :: Object -> DataizeChain (Either Object Bytes)
 dataizeRecursivelyChain obj = do
+  logStep "Dataizing" (Left obj)
   ctx <- getContext
   msplit (transformNormLogs (applyRulesChain obj)) >>= \case
     Nothing -> do
@@ -133,7 +127,7 @@ evaluateDataizationFunChain func obj _state = do
 evaluateBuiltinFunChain :: String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
 evaluateBuiltinFunChain "Plus" obj = evaluateDataizationFunChain (+) obj
 evaluateBuiltinFunChain "Times" obj = evaluateDataizationFunChain (*) obj
-evaluateBuiltinFunChain "Package" (Formation bindings) = do
+evaluateBuiltinFunChain "Package" obj@(Formation bindings) = do
   \state -> do
     fmap dataizePackage getContext >>= \case
       True -> do
@@ -147,7 +141,9 @@ evaluateBuiltinFunChain "Package" (Formation bindings) = do
   isPackage (LambdaBinding (Function "Package")) = True
   isPackage _ = False
   dataizeBindingChain (AlphaBinding attr o) = do
-    dataizationResult <- dataizeRecursivelyChain o
+    ctx <- getContext
+    let extendedContext = (extendContextWith obj ctx){currentAttr = attr}
+    dataizationResult <- withContext extendedContext $ dataizeRecursivelyChain o
     return (AlphaBinding attr (either id (Formation . singleton . DeltaBinding) dataizationResult))
   dataizeBindingChain b = return b
 evaluateBuiltinFunChain _ obj = \state -> return (obj, state)

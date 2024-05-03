@@ -41,10 +41,6 @@ items:
   phi-normalized: pipeline/phi-normalized/goto-tests.phi
   bindings-path-phi: org.eolang
   bindings-path-phi-normalized: org.eolang
-- phi: pipeline/phi/if-tests.phi
-  phi-normalized: pipeline/phi-normalized/if-tests.phi
-  bindings-path-phi: org.eolang
-  bindings-path-phi-normalized: org.eolang
 - phi: pipeline/phi/int-tests.phi
   phi-normalized: pipeline/phi-normalized/int-tests.phi
   bindings-path-phi: org.eolang
@@ -55,10 +51,6 @@ items:
   bindings-path-phi-normalized: org.eolang
 - phi: pipeline/phi/malloc-tests.phi
   phi-normalized: pipeline/phi-normalized/malloc-tests.phi
-  bindings-path-phi: org.eolang
-  bindings-path-phi-normalized: org.eolang
-- phi: pipeline/phi/memory-tests.phi
-  phi-normalized: pipeline/phi-normalized/memory-tests.phi
   bindings-path-phi: org.eolang
   bindings-path-phi-normalized: org.eolang
 - phi: pipeline/phi/nan-tests.phi

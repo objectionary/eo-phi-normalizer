@@ -146,6 +146,7 @@
 
           packages = mkShellApps {
             default = self'.packages.eo-phi-normalizer;
+
             pipeline = {
               runtimeInputs = [
                 stack-wrapped
@@ -159,6 +160,32 @@
               '';
               meta.description = "Run pipeline";
               excludeShellChecks = [ "SC2317" ];
+            };
+
+            site-dev = {
+              meta.description = "Run `mdbook serve` in `site/docs`";
+              runtimeInputs = [
+                pkgs.mdbook
+                pkgs.mdbook-linkcheck
+              ];
+              text = ''
+                cd site/docs
+                mdbook serve
+              '';
+            };
+
+            site-build = {
+              meta.description = "Run `mdbook build` in `site/docs` and move result to `dist/docs`";
+              runtimeInputs = [
+                pkgs.mdbook
+                pkgs.mdbook-linkcheck
+              ];
+              text = ''
+                cd site/docs
+                mdbook build
+                mkdir -p ../../dist/docs
+                mv docs/html ../../dist/docs
+              '';
             };
 
             update-markdown = {
@@ -175,9 +202,9 @@
                     mdsh
 
                     ${lib.concatMapStringsSep "\n" (x: "mdsh -i site/docs/src/${x} --work_dir .") [
-                      "common/sample-program.md"
                       "common/celsius.md"
                       "normalizer.md"
+                      "quick-start.md"
                       "normalizer/transform.md"
                       "normalizer/metrics.md"
                       "normalizer/dataize.md"
@@ -185,7 +212,7 @@
                       "contributing.md"
                     ]}
 
-                    rm program.phi celsius.phi
+                    rm celsius.phi
 
                     npm i
                     npx prettier -w "**/*.md"'';
@@ -229,6 +256,7 @@
                 pkgs.gh
                 pkgs.mdsh
                 pkgs.mdbook
+                pkgs.mdbook-linkcheck
                 pkgs.yq-go
                 pkgs.jdk21
                 {
@@ -247,7 +275,7 @@
                 {
                   prefix = "nix run .#";
                   packages = {
-                    inherit (self'.packages) pipeline update-markdown;
+                    inherit (self'.packages) pipeline update-markdown site-dev site-build;
                     normalizer = self'.packages.default;
                   };
                 }

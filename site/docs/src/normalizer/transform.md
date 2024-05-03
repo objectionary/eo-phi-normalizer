@@ -59,7 +59,7 @@ cd normalizer
 
 ### Sample program
 
-{{#include ../common/sample-program.md}}
+{{#include ../common/celsius.md}}
 
 ## CLI
 
@@ -98,22 +98,22 @@ Available options:
 
 ### `--rules FILE`
 
-Normalize a 𝜑-expression from `program.phi` using the rules from a given file (e.g. [yegor.yaml](#yegoryaml)).
+Normalize a 𝜑-expression from `celsius.phi` using the rules from a given file (e.g. [yegor.yaml](#yegoryaml)).
 
 The output may contain multiple numbered results that correspond to different possible rule application sequences
 (even if the final result is the same).
 
 ```$ as console
-normalizer transform --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml program.phi
+normalizer transform --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
 ```
 
 ```console
 Rule set based on Yegor's draft
 Input:
-{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧ ⟧ }
+{ ⟦ σ ↦ Φ, c ↦ Φ.org.eolang.float (Δ ⤍ 19-), φ ↦ ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧), org ↦ ⟦ eolang ↦ ⟦ float ↦ ⟦ Δ ⤍ ∅, times ↦ ⟦ α0 ↦ ∅, λ ⤍ Times ⟧, plus ↦ ⟦ α0 ↦ ∅, λ ⤍ Plus ⟧ ⟧ ⟧ ⟧ ⟧ }
 ====================================================
 Result 1 out of 1:
-{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧ ⟧ }
+{ ⟦ σ ↦ Φ, c ↦ Φ.org.eolang.float (Δ ⤍ 19-), φ ↦ ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧), org ↦ ⟦ eolang ↦ ⟦ float ↦ ⟦ Δ ⤍ ∅, times ↦ ⟦ α0 ↦ ∅, λ ⤍ Times ⟧, plus ↦ ⟦ α0 ↦ ∅, λ ⤍ Plus ⟧ ⟧ ⟧ ⟧ ⟧ }
 ----------------------------------------------------
 ```
 
@@ -122,33 +122,33 @@ Result 1 out of 1:
 Use `--chain` to see numbered normalization steps for each normalization result.
 
 ```$ as console
-normalizer transform --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml program.phi
+normalizer transform --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
 ```
 
 ```console
 Rule set based on Yegor's draft
 Input:
-{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧ ⟧ }
+{ ⟦ σ ↦ Φ, c ↦ Φ.org.eolang.float (Δ ⤍ 19-), φ ↦ ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧), org ↦ ⟦ eolang ↦ ⟦ float ↦ ⟦ Δ ⤍ ∅, times ↦ ⟦ α0 ↦ ∅, λ ⤍ Times ⟧, plus ↦ ⟦ α0 ↦ ∅, λ ⤍ Plus ⟧ ⟧ ⟧ ⟧ ⟧ }
 ====================================================
 Result 1 out of 1:
-[ 1 / 1 ] Normal form: { ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧ ⟧ }
+[ 1 / 1 ] Normal form: { ⟦ σ ↦ Φ, c ↦ Φ.org.eolang.float (Δ ⤍ 19-), φ ↦ ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧), org ↦ ⟦ eolang ↦ ⟦ float ↦ ⟦ Δ ⤍ ∅, times ↦ ⟦ α0 ↦ ∅, λ ⤍ Times ⟧, plus ↦ ⟦ α0 ↦ ∅, λ ⤍ Plus ⟧ ⟧ ⟧ ⟧ ⟧ }
 ----------------------------------------------------
 ```
 
 ### `--json`
 
 ```$ as json
-normalizer transform --json --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml program.phi
+normalizer transform --json --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
 ```
 
 ```json
 {
-  "input": "{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧ ⟧ }",
+  "input": "{ ⟦ σ ↦ Φ, c ↦ Φ.org.eolang.float (Δ ⤍ 19-), φ ↦ ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧), org ↦ ⟦ eolang ↦ ⟦ float ↦ ⟦ Δ ⤍ ∅, times ↦ ⟦ α0 ↦ ∅, λ ⤍ Times ⟧, plus ↦ ⟦ α0 ↦ ∅, λ ⤍ Plus ⟧ ⟧ ⟧ ⟧ ⟧ }",
   "output": [
     [
       [
         "Normal form",
-        "{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧ ⟧ }"
+        "{ ⟦ σ ↦ Φ, c ↦ Φ.org.eolang.float (Δ ⤍ 19-), φ ↦ ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧), org ↦ ⟦ eolang ↦ ⟦ float ↦ ⟦ Δ ⤍ ∅, times ↦ ⟦ α0 ↦ ∅, λ ⤍ Times ⟧, plus ↦ ⟦ α0 ↦ ∅, λ ⤍ Plus ⟧ ⟧ ⟧ ⟧ ⟧ }"
       ]
     ]
   ]
@@ -158,21 +158,21 @@ normalizer transform --json --chain --rules ./eo-phi-normalizer/test/eo/phi/rule
 ### `--single`
 
 ```$ as console
-normalizer transform --single --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml program.phi
+normalizer transform --single --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
 ```
 
 ```console
-{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧ ⟧ }
+{ ⟦ σ ↦ Φ, c ↦ Φ.org.eolang.float (Δ ⤍ 19-), φ ↦ ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧), org ↦ ⟦ eolang ↦ ⟦ float ↦ ⟦ Δ ⤍ ∅, times ↦ ⟦ α0 ↦ ∅, λ ⤍ Times ⟧, plus ↦ ⟦ α0 ↦ ∅, λ ⤍ Plus ⟧ ⟧ ⟧ ⟧ ⟧ }
 ```
 
 ### `--single` `--json`
 
 ```$ as console
-normalizer transform --single --json --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml program.phi
+normalizer transform --single --json --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
 ```
 
 ```console
-"{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧ ⟧ }"
+"{ ⟦ σ ↦ Φ, c ↦ Φ.org.eolang.float (Δ ⤍ 19-), φ ↦ ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧), org ↦ ⟦ eolang ↦ ⟦ float ↦ ⟦ Δ ⤍ ∅, times ↦ ⟦ α0 ↦ ∅, λ ⤍ Times ⟧, plus ↦ ⟦ α0 ↦ ∅, λ ⤍ Plus ⟧ ⟧ ⟧ ⟧ ⟧ }"
 ```
 
 ### `--output-file FILE`
@@ -187,9 +187,9 @@ Can be used multiple times to inject multiple dependencies.
 ### `FILE` not specified (read from stdin)
 
 ```$ as console
-cat program.phi | normalizer transform --single --json --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml
+cat celsius.phi | normalizer transform --single --json --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml
 ```
 
 ```console
-"{ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b (c ↦ ⟦ ⟧).d ⟧ ⟧ }"
+"{ ⟦ σ ↦ Φ, c ↦ Φ.org.eolang.float (Δ ⤍ 19-), φ ↦ ξ.c.times (α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧), org ↦ ⟦ eolang ↦ ⟦ float ↦ ⟦ Δ ⤍ ∅, times ↦ ⟦ α0 ↦ ∅, λ ⤍ Times ⟧, plus ↦ ⟦ α0 ↦ ∅, λ ⤍ Plus ⟧ ⟧ ⟧ ⟧ ⟧ }"
 ```

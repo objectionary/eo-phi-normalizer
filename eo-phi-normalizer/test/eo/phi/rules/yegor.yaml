@@ -120,16 +120,44 @@ rules:
     pattern: |
       ⟦ !a ↦ !n, !B ⟧.!a
     result: |
-      !n(ρ ↦ ⟦ !B ⟧)
+      !n[ ξ ↦ ⟦ !B ⟧ ]
     when:
       - nf_inside_formation: '!n'
     tests:
       - name: Should match
         input: ⟦ hello ↦ ⟦⟧ ⟧.hello
-        output: ['⟦⟧(ρ ↦ ⟦⟧)']
+        output: ['⟦ ρ ↦ ⟦⟧ ⟧']
       - name: Shouldn't match
         input: ⟦ ⟧.hello
         output: []
+
+  - name: Rule 6a
+    description: 'Accessing an α-binding (for object with ρ ↦ ∅)'
+    pattern: |
+      ⟦ !a ↦ !n, ρ ↦ ∅, !B ⟧.!a
+    result: |
+      !n[ ξ ↦ ⟦ !B ⟧ ]
+    when: []
+    tests:
+      - name: Should match
+        input: ⟦ hello ↦ ⟦⟧, ρ ↦ ∅ ⟧.hello
+        output: ['⟦ ρ ↦ ⟦⟧ ⟧']
+      - name: Shouldn't match
+        input: ⟦ ⟧.hello
+        output: []
+
+  - name: Rule 7 α0
+    description: 'Application of α-binding'
+    # Warning: this is not correct for the chain variant because it only matches the first binding
+    # i.e., doesn't match an empty binding after an attached one.
+    # We should instead match the first empty binding.
+    pattern: |
+      ⟦ !a ↦ ∅, !B ⟧(α0 ↦ !n)
+    result: |
+      ⟦ !a ↦ !n, !B ⟧
+    when:
+      - nf: '!n'
+    tests: []
 
   - name: Rule 7a
     description: 'Application of α-binding'

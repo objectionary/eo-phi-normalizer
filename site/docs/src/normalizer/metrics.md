@@ -51,7 +51,7 @@ The following table demonstrates objects with their \\( \Delta \\)-depths:
 
 ## Environment
 
-{{#include ../common/sample-program.md}}
+{{#include ../common/celsius.md}}
 
 ## CLI
 
@@ -82,17 +82,17 @@ Available options:
 ### `FILE`
 
 ```$ as json
-normalizer metrics program.phi
+normalizer metrics celsius.phi
 ```
 
 ```json
 {
   "bindings-by-path-metrics": null,
   "program-metrics": {
-    "applications": 1,
-    "dataless": 5,
-    "dispatches": 4,
-    "formations": 5
+    "applications": 3,
+    "dataless": 6,
+    "dispatches": 6,
+    "formations": 8
   }
 }
 ```
@@ -100,17 +100,17 @@ normalizer metrics program.phi
 ### `FILE` not specified (read from stdin)
 
 ```$ as json
-cat program.phi | normalizer metrics
+cat celsius.phi | normalizer metrics
 ```
 
 ```json
 {
   "bindings-by-path-metrics": null,
   "program-metrics": {
-    "applications": 1,
-    "dataless": 5,
-    "dispatches": 4,
-    "formations": 5
+    "applications": 3,
+    "dataless": 6,
+    "dispatches": 6,
+    "formations": 8
   }
 }
 ```
@@ -118,7 +118,7 @@ cat program.phi | normalizer metrics
 ### `--bindings-path`
 
 ```$ as console
-normalizer metrics --bindings-path "a" program.phi
+normalizer metrics --bindings-path org.eolang celsius.phi
 ```
 
 ```console
@@ -128,29 +128,20 @@ normalizer metrics --bindings-path "a" program.phi
       {
         "metrics": {
           "applications": 0,
-          "dataless": 2,
-          "dispatches": 2,
-          "formations": 2
+          "dataless": 3,
+          "dispatches": 0,
+          "formations": 3
         },
-        "name": "b"
-      },
-      {
-        "metrics": {
-          "applications": 1,
-          "dataless": 1,
-          "dispatches": 2,
-          "formations": 1
-        },
-        "name": "e"
+        "name": "float"
       }
     ],
-    "path": "a"
+    "path": "org.eolang"
   },
   "program-metrics": {
-    "applications": 1,
-    "dataless": 5,
-    "dispatches": 4,
-    "formations": 5
+    "applications": 3,
+    "dataless": 6,
+    "dispatches": 6,
+    "formations": 8
   }
 }
 ```
