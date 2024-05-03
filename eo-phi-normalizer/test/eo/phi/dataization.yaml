@@ -17,7 +17,7 @@ tests:
         ⟧
       ⟧}
     output:
-      bytes: "52-"
+      bytes: "00-00-00-00-00-00-00-52"
 
   - name: "Program with ξ.ρ.ρ"
     input: |
@@ -205,9 +205,9 @@ tests:
             ρ ↦ ⟦ Δ ⤍ 04- ⟧,
             λ ⤍ Lorg_eolang_int_times
           ⟧,
-          ρ ↦ ⟦ Δ ⤍ 08- ⟧,
+          ρ ↦ ⟦ Δ ⤍ 06- ⟧,
           λ ⤍ Lorg_eolang_int_plus
         ⟧
       ⟧}
     output:
-      bytes: "2A-" # == 42
+      bytes: "00-00-00-00-00-00-00-2A" # == 42
