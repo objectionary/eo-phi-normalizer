@@ -49,7 +49,7 @@ Available options:
                            output to stdout.
   --recursive              Apply dataization + normalization recursively.
   --chain                  Display all the intermediate steps.
-  -l,--latex               Output LaTeX.
+  --tex                    Output LaTeX.
   -h,--help                Show this help text
 ```
 

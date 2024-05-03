@@ -151,7 +151,7 @@ jsonSwitch :: Parser Bool
 jsonSwitch = switch (long "json" <> short 'j' <> help "Output JSON.")
 
 latexSwitch :: Parser Bool
-latexSwitch = switch (long "latex" <> short 'l' <> help "Output LaTeX.")
+latexSwitch = switch (long "tex" <> help "Output LaTeX.")
 
 bindingsPathOption :: Parser (Maybe String)
 bindingsPathOption =
