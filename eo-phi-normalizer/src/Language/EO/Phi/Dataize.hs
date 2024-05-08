@@ -268,7 +268,7 @@ evaluateBuiltinFunChain "Lorg_eolang_string_slice" obj = \state -> do
 -- evaluateBuiltinFunChain "Lorg_eolang_io_stdout" obj = _ -- TODO
 -- others
 -- evaluateBuiltinFunChain "Lorg_eolang_dataized" obj = _ -- TODO
--- evaluateBuiltinFunChain "Lorg_eolang_error" obj = _ -- TODO
+evaluateBuiltinFunChain "Lorg_eolang_error" obj = evaluateUnaryDataizationFunChain stringToBytes bytesToString (extractLabel "message") error obj
 -- evaluateBuiltinFunChain "Lorg_eolang_seq" obj = _ -- TODO
 -- evaluateBuiltinFunChain "Lorg_eolang_as_phi" obj = _ -- TODO
 -- evaluateBuiltinFunChain "Lorg_eolang_rust" obj = _ -- TODO
