@@ -157,7 +157,7 @@ evaluateBinaryDataizationFunChain resultToBytes bytesToParam arg1 arg2 func obj 
   rhs <- dataizeRecursivelyChain rhsArg
   result <- case (lhs, rhs) of
     (Right l, Right r) -> do
-      let bytes = resultToBytes (bytesToParam r `func` bytesToParam l)
+      let bytes = resultToBytes (bytesToParam l `func` bytesToParam r)
           resultObj = Formation [DeltaBinding bytes]
       logStep "Evaluated function" (Left resultObj)
       return resultObj
