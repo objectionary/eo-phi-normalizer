@@ -1,0 +1,66 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        go ↦ ⟦
+          id ↦ Φ.org.eolang.dataized(
+            α0 ↦ Φ.org.eolang.malloc.of(
+              α0 ↦ Φ.org.eolang.int(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-00-00-00-00-00-00-08
+                )
+              ),
+              α1 ↦ ⟦
+                φ ↦ ξ.m.put(
+                  α0 ↦ ξ.m.id
+                ),
+                m ↦ ∅
+              ⟧
+            )
+          ).as-bytes,
+          to ↦ ⟦
+            body ↦ ∅,
+            φ ↦ Φ.org.eolang.try(
+              α0 ↦ ξ.body(
+                α0 ↦ ξ.token
+              ),
+              α1 ↦ ⟦
+                e ↦ ∅,
+                φ ↦ ξ.σ.ρ.id.eq(
+                  α0 ↦ ξ.e.id
+                ).if(
+                  α0 ↦ ξ.e.value,
+                  α1 ↦ Φ.org.eolang.error(
+                    α0 ↦ ξ.e
+                  )
+                )
+              ⟧,
+              α2 ↦ Φ.org.eolang.true
+            ),
+            token ↦ ⟦
+              backward ↦ Φ.org.eolang.error(
+                α0 ↦ ⟦
+                  value ↦ ξ.σ.ρ.ρ.to(
+                    α0 ↦ ξ.σ.ρ.body
+                  ),
+                  id ↦ ξ.σ.ρ.ρ.id
+                ⟧
+              ),
+              forward ↦ ⟦
+                res ↦ ∅,
+                φ ↦ Φ.org.eolang.error(
+                  α0 ↦ ⟦
+                    value ↦ ξ.σ.res,
+                    id ↦ ξ.σ.ρ.ρ.ρ.id
+                  ⟧
+                )
+              ⟧
+            ⟧
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

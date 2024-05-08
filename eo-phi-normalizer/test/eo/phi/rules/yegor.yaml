@@ -123,6 +123,7 @@ rules:
       !n[ ξ ↦ ⟦ !B ⟧ ]
     when:
       - nf_inside_formation: '!n'
+      - nf: '⟦ !B ⟧'
     tests:
       - name: Should match
         input: ⟦ hello ↦ ⟦⟧ ⟧.hello

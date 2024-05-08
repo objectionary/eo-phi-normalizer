@@ -1,18 +1,23 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NumericUnderscores #-}
-{-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
+{-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
+
+{-# HLINT ignore "Use ++" #-}
+{-# HLINT ignore "Functor law" #-}
 
 module Language.EO.Rules.PhiPaperSpec where
 
 import Control.Monad (forM_, guard)
 import Data.Aeson (FromJSON)
 import Data.Data (Data (toConstr))
+import Data.Function (on)
 import Data.List (intercalate)
 import Data.List qualified as List
 import Data.Yaml qualified as Yaml
@@ -42,7 +47,6 @@ instance Arbitrary Attribute where
 
 instance Arbitrary LabelId where
   arbitrary = LabelId <$> arbitraryNonEmptyString
-  shrink = genericShrink
 instance Arbitrary AlphaIndex where
   arbitrary = AlphaIndex <$> arbitraryNonEmptyString
 instance Arbitrary Bytes where
@@ -55,50 +59,98 @@ instance Arbitrary Phi.MetaFunctionName where
   arbitrary = Phi.MetaFunctionName . ("@" ++) <$> arbitraryNonEmptyString
 
 instance Arbitrary Binding where
-  arbitrary =
-    oneof
-      [ EmptyBinding . Label <$> arbitrary
-      , do
-          attr <- arbitrary
-          obj <- case attr of
-            VTX ->
-              Formation <$> do
-                bytes <- arbitrary
-                return [DeltaBinding bytes]
-            _ -> arbitrary
-          return (AlphaBinding attr obj)
-      , DeltaBinding <$> arbitrary
-      , LambdaBinding <$> arbitrary
-      , pure DeltaEmptyBinding
+  arbitrary = sized $ \n -> do
+    frequency
+      [ (1, EmptyBinding . Label <$> arbitrary)
+      ,
+        ( n
+        , do
+            attr <- arbitrary
+            obj <- case attr of
+              VTX ->
+                Formation <$> do
+                  bytes <- arbitrary
+                  return [DeltaBinding bytes]
+              _ -> arbitrary
+            return (AlphaBinding attr obj)
+        )
+      , (1, DeltaBinding <$> arbitrary)
+      , (1, LambdaBinding <$> arbitrary)
+      , (1, pure DeltaEmptyBinding)
       ]
   shrink (AlphaBinding VTX _) = [] -- do not shrink vertex bindings
   shrink (AlphaBinding attr obj) = AlphaBinding attr <$> shrink obj
   shrink _ = [] -- do not shrink deltas and lambdas
 
+-- | Split an integer into a list of positive integers,
+-- whose sum is less than or equal the initial one.
+--
+--    n >= 0  ==>  splitInt n >>= \xs -> sum xs <= n
+splitInt :: Int -> Gen [Int]
+splitInt n
+  | n <= 0 = return []
+  | otherwise =
+      frequency
+        [ (1, return [])
+        ,
+          ( n
+          , do
+              k <- chooseInt (1, n)
+              xs <- splitInt (n - k)
+              return (k : xs)
+          )
+        ]
+
+-- | Generate a list of items,
+-- such that the total size of the items does not exceed a given size.
+listOf' :: Gen a -> Gen [a]
+listOf' x = sized $ \n -> do
+  elemSizes <- splitInt n
+  mapM (`resize` x) elemSizes
+
+bindingAttr :: Binding -> Attribute
+bindingAttr = \case
+  AlphaBinding a _ -> a
+  EmptyBinding a -> a
+  DeltaBinding{} -> Label "Δ"
+  DeltaEmptyBinding{} -> Label "Δ"
+  LambdaBinding{} -> Label "λ"
+  MetaDeltaBinding{} -> Label "Δ"
+  MetaBindings{} -> error "attempting to retrieve attribute of meta bindings"
+
+arbitraryBindings :: Gen [Binding]
+arbitraryBindings =
+  List.nubBy ((==) `on` bindingAttr)
+    <$> listOf' arbitrary
+
+arbitraryAlphaLabelBindings :: Gen [Binding]
+arbitraryAlphaLabelBindings =
+  List.nubBy ((==) `on` bindingAttr)
+    <$> listOf' (AlphaBinding <$> (Label <$> arbitrary) <*> arbitrary)
+
+sizedLiftA2 :: (a -> b -> c) -> Gen a -> Gen b -> Gen c
+sizedLiftA2 f x y = sized $ \n -> do
+  xSize <- chooseInt (1, n - 1)
+  let ySize = n - xSize
+  f <$> resize xSize x <*> resize ySize y
+
 instance Arbitrary Object where
-  arbitrary = sized $ \n -> do
-    let arbitraryBinding = resize (n `div` 2) arbitrary
-        arbitraryAttr = resize (n `div` 2) arbitrary
-        arbitraryObj = resize (n `div` 2) arbitrary
-        sameAttr (AlphaBinding attr1 _) (AlphaBinding attr2 _) = attr1 == attr2
-        sameAttr (EmptyBinding attr1) (EmptyBinding attr2) = attr1 == attr2
-        sameAttr b1 b2 = toConstr b1 == toConstr b2
-        arbitraryBindings = List.nubBy sameAttr <$> listOf arbitraryBinding
-        arbitraryAlphaLabelBinding =
-          resize (n `div` 2) $
-            (AlphaBinding . Label <$> arbitrary) <*> arbitrary
-        arbitraryAlphaLabelBindings = List.nubBy sameAttr <$> listOf arbitraryAlphaLabelBinding
-    if n > 0
-      then
-        oneof
-          [ Formation <$> arbitraryBindings
-          , liftA2 Application arbitraryObj arbitraryAlphaLabelBindings
-          , liftA2 ObjectDispatch arbitraryObj arbitraryAttr
-          , ObjectDispatch GlobalObject <$> arbitraryAttr
-          , pure ThisObject
-          , pure Termination
+  arbitrary = sized $ \n ->
+    frequency $
+      concat
+        [ if n <= 1
+            then []
+            else
+              [ (n, Formation <$> arbitraryBindings)
+              , (n, sizedLiftA2 Application arbitrary arbitraryAlphaLabelBindings)
+              , (n, sizedLiftA2 ObjectDispatch arbitrary arbitrary)
+              ]
+        ,
+          [ (1, ObjectDispatch GlobalObject <$> arbitrary)
+          , (1, pure ThisObject)
+          , (1, pure Termination)
           ]
-      else pure $ Formation []
+        ]
   shrink = genericShrink
 
 data CriticalPair = CriticalPair
@@ -121,7 +173,7 @@ genCriticalPair rules = do
     _ -> error "IMPOSSIBLE HAPPENED"
  where
   fan = do
-    obj <- Formation . List.nubBy sameAttr <$> listOf arbitrary
+    obj <- Formation . List.nubBy sameAttr <$> listOf' arbitrary
     return (obj, applyOneRule (defaultContext rules obj) obj)
 
   sameAttr (AlphaBinding attr1 _) (AlphaBinding attr2 _) = attr1 == attr2
@@ -234,9 +286,9 @@ defaultSearchLimits = defaultApplicationLimits
 
 confluent :: [NamedRule] -> Property
 confluent rulesFromYaml = withMaxSuccess 1_000 $
-  forAllShrink (resize 40 $ genCriticalPair rulesFromYaml) (shrinkCriticalPair rulesFromYaml) $
+  forAllShrink (resize 100 $ genCriticalPair rulesFromYaml) (shrinkCriticalPair rulesFromYaml) $
     \pair@CriticalPair{..} ->
-      within 100_000 $ -- 0.1 second timeout per test
+      discardAfter 100_000 $ -- 0.1 second timeout per test (discard the test if it takes more than that)
         confluentCriticalPairN (defaultSearchLimits (objectSize sourceTerm)) rulesFromYaml pair
 
 confluentOnObject :: [NamedRule] -> Object -> Bool
