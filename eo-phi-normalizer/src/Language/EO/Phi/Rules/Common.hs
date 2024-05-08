@@ -366,8 +366,8 @@ bytesToInt (Bytes (filter (/= '-') . dropWhile (== '0') -> bytes))
   | otherwise = fst $ head $ readHex bytes
 
 boolToBytes :: Bool -> Bytes
-boolToBytes True = Bytes "01-"
-boolToBytes False = Bytes "00-"
+boolToBytes True = intToBytes 1
+boolToBytes False = intToBytes 0
 
 bytesToBool :: Bytes -> Bool
 bytesToBool (Bytes "00-") = False
