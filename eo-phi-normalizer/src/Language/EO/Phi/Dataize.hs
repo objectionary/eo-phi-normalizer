@@ -16,6 +16,7 @@ import Data.Maybe (listToMaybe)
 import Language.EO.Phi.Rules.Common
 import Language.EO.Phi.Syntax.Abs
 import PyF (fmt)
+import System.IO.Unsafe (unsafePerformIO)
 
 -- | Perform one step of dataization to the object (if possible).
 dataizeStep :: Context -> Object -> (Context, Either Object Bytes)
@@ -182,6 +183,10 @@ evaluateUnaryDataizationFunChain ::
 evaluateUnaryDataizationFunChain resultToBytes bytesToParam extractArg func =
   evaluateBinaryDataizationFunChain resultToBytes bytesToParam extractArg extractArg (const . func)
 
+evaluateIODataizationFunChain :: IO String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
+evaluateIODataizationFunChain action _obj state =
+  return (Formation [DeltaBinding (stringToBytes (unsafePerformIO action))], state)
+
 extractRho :: Object -> Object
 extractRho = (`ObjectDispatch` Rho)
 extractAlpha0 :: Object -> Object
@@ -263,9 +268,9 @@ evaluateBuiltinFunChain "Lorg_eolang_string_slice" obj = \state -> do
 -- evaluateBuiltinFunChain "Lorg_eolang_cage_encaged_φ" obj = _ -- TODO
 -- evaluateBuiltinFunChain "Lorg_eolang_cage_encaged_encage" obj = _ -- TODO
 -- I/O
--- evaluateBuiltinFunChain "Lorg_eolang_io_stdin_next_line" obj = _ -- TODO
--- evaluateBuiltinFunChain "Lorg_eolang_io_stdin_φ" obj = _ -- TODO
--- evaluateBuiltinFunChain "Lorg_eolang_io_stdout" obj = _ -- TODO
+evaluateBuiltinFunChain "Lorg_eolang_io_stdin_next_line" obj = evaluateIODataizationFunChain getLine obj
+evaluateBuiltinFunChain "Lorg_eolang_io_stdin_φ" obj = evaluateIODataizationFunChain getContents obj
+evaluateBuiltinFunChain "Lorg_eolang_io_stdout" obj = evaluateUnaryDataizationFunChain boolToBytes bytesToString (extractLabel "text") ((`seq` True) . unsafePerformIO . putStrLn) obj
 -- others
 -- evaluateBuiltinFunChain "Lorg_eolang_dataized" obj = _ -- TODO
 evaluateBuiltinFunChain "Lorg_eolang_error" obj = evaluateUnaryDataizationFunChain stringToBytes bytesToString (extractLabel "message") error obj
