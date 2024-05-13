@@ -10,6 +10,7 @@ import Test.Hspec
 import Language.EO.Phi (printTree)
 import Language.EO.Phi qualified as Phi
 import Language.EO.Phi.Dataize (dataizeRecursively)
+import Language.EO.Phi.Dependencies (deepMergePrograms)
 import Language.EO.Phi.Rules.Common (defaultContext, equalObject)
 import Language.EO.Phi.Rules.Yaml (convertRuleNamed, parseRuleSetFromFile, rules)
 import Test.EO.Phi (DataizationResult (Bytes, Object), DataizeTest (..), DataizeTestGroup (..), dataizationTests)
@@ -27,6 +28,13 @@ instance Eq ObjectOrBytes where
     x == y
   _ == _ = False
 
+getProgram :: FilePath -> IO Phi.Program
+getProgram inputFile = do
+  src <- readFile inputFile
+  case Phi.parseProgram src of
+    Left err -> error ("Error parsing program from '" ++ inputFile ++ "': " ++ err)
+    Right program -> pure program
+
 spec :: Spec
 spec = do
   DataizeTestGroup{..} <- runIO (dataizationTests "test/eo/phi/dataization.yaml")
@@ -35,12 +43,17 @@ spec = do
   describe title $
     forM_ tests $
       \test -> do
+        deps <- runIO $ mapM getProgram test.dependencies
+        let mergedProgs = case deepMergePrograms (test.input : deps) of
+              Left err -> error ("Error merging programs: " ++ err)
+              Right prog -> prog
+        let ctx = defaultContext rules (progToObj mergedProgs)
         let inputObj = progToObj test.input
         let expectedResult = case test.output of
               Object obj -> Left obj
               Bytes bytes -> Right bytes
         it test.name $ do
-          let dataizedResult = dataizeRecursively (defaultContext rules inputObj) inputObj
+          let dataizedResult = dataizeRecursively ctx inputObj
           ObjectOrBytes dataizedResult `shouldBe` ObjectOrBytes expectedResult
 
 progToObj :: Phi.Program -> Phi.Object

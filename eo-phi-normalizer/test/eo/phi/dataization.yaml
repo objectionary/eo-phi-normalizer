@@ -1,6 +1,9 @@
 title: Dataization tests
 tests:
   - name: "Celsius example"
+    dependencies:
+      - ./data/0.37.0/org/eolang/float.phi
+      - ./data/0.37.0/org/eolang/bytes.phi
     input: |
       {⟦
         c ↦ Φ.org.eolang.float(
@@ -13,6 +16,7 @@ tests:
       bytes: "01-01-00-00-00-00-00-00-00-07-00-00-00-00-00-40-13-FF-FF-FF-FF-FF-FF-FF-D2"
 
   - name: "Program with ξ.ρ.ρ"
+    dependencies: []
     input: |
       {⟦ x ↦ ⟦ b ↦ ⟦ Δ ⤍ 01- ⟧, φ ↦ ⟦ b ↦ ⟦ Δ ⤍ 02- ⟧, c ↦ ⟦ a ↦ ξ.ρ.ρ.b, ρ ↦ ∅ ⟧.a, ρ ↦ ∅ ⟧.c, ρ ↦ ∅ ⟧.φ, λ ⤍ Package ⟧}
     output:
@@ -20,6 +24,7 @@ tests:
         ⟦ x ↦ ⟦ Δ ⤍ 01- ⟧, λ ⤍ Package ⟧
 
   - name: "Preprocessing and dispatch"
+    dependencies: []
     input: |
       {⟦ a ↦ ⟦ b ↦ ⟦ Δ ⤍ 01- ⟧ ⟧.b , λ ⤍ Package ⟧}
     output:
@@ -27,6 +32,7 @@ tests:
         ⟦ a ↦ ⟦ Δ ⤍ 01- ⟧, λ ⤍ Package ⟧
 
   - name: "New values in copy through ξ"
+    dependencies: []
     input: |
       {⟦ a ↦ ⟦ b ↦ ∅, c ↦ ξ.b ⟧, d ↦ ξ.a(b ↦ ⟦ Δ ⤍ 01- ⟧).c , λ ⤍ Package ⟧}
     output:
@@ -34,6 +40,7 @@ tests:
         ⟦ a ↦ ⟦ b ↦ ∅, c ↦ ξ.b ⟧, d ↦ ⟦ Δ ⤍ 01- ⟧, λ ⤍ Package ⟧
 
   - name: "ρ-applications and stacked dispatches"
+    dependencies: []
     input: |
       {⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ⟦ Δ ⤍ 01- ⟧ ⟧ ⟧ ⟧.a.b.c , λ ⤍ Package ⟧}
     output:
@@ -41,6 +48,7 @@ tests:
         ⟦ x ↦ ⟦ Δ ⤍ 01- ⟧, λ ⤍ Package ⟧
 
   - name: "ρ-applications and immediate dispatches"
+    dependencies: []
     input: |
       {⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ⟦ Δ ⤍ 01- ⟧ ⟧.c ⟧.b ⟧.a , λ ⤍ Package ⟧}
     output:
@@ -48,6 +56,7 @@ tests:
         ⟦ x ↦ ⟦ Δ ⤍ 01- ⟧, λ ⤍ Package ⟧
 
   - name: "new values in copy through ρ"
+    dependencies: []
     input: |
       {⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ξ.ρ.c ⟧.b, c ↦ ∅ ⟧, d ↦ ξ.x(c ↦ ⟦ Δ ⤍ 01- ⟧).a , λ ⤍ Package ⟧}
     output:
@@ -55,6 +64,7 @@ tests:
         ⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ξ.ρ.c ⟧.b, c ↦ ∅ ⟧, d ↦ ⟦ Δ ⤍ 01- ⟧, λ ⤍ Package ⟧
 
   - name: "ρ and nested dispatches"
+    dependencies: []
     input: |
       {⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ξ.ρ ⟧.c ⟧.b ⟧.a , λ ⤍ Package ⟧}
     output:
@@ -62,6 +72,7 @@ tests:
         ⟦ x ↦ ⟦ ρ ↦ ⟦ ⟧ ⟧, λ ⤍ Package ⟧
 
   - name: "usage of Φ with a loop"
+    dependencies: []
     input: |
       {⟦ a ↦ ⟦ b ↦ Φ.a ⟧ , λ ⤍ Package ⟧}
     output:
@@ -69,6 +80,7 @@ tests:
         ⟦ a ↦ ⟦ b ↦ Φ.a ⟧, λ ⤍ Package ⟧
 
   - name: "ρ passed to both term of object application?"
+    dependencies: []
     input: |
       {⟦ x ↦ ⟦ c ↦ ⟦ a ↦ ∅ ⟧ (a ↦ ⟦ d ↦ ξ.ρ ⟧) ⟧.c , λ ⤍ Package ⟧}
     output:
@@ -77,6 +89,7 @@ tests:
 
   # FIXME: fails because nf condition for ξ.b succeeds though it shouldn't
   # - name: "ξ in application"
+  #   dependencies: []
   #   input: |
   #     {⟦ x ↦ ⟦ a ↦ ∅ ⟧(a ↦ ξ.b), b ↦ ⟦ Δ ⤍ 01- ⟧ , λ ⤍ Package ⟧}
   #   output:
@@ -84,6 +97,7 @@ tests:
   #       {⟦ x ↦ ⟦ a ↦ ⟦ Δ ⤍ 01- ⟧ ⟧, b ↦ ⟦ Δ ⤍ 01- ⟧ , λ ⤍ Package ⟧}
 
   - name: "ξ chain"
+    dependencies: []
     input: |
       {⟦ a ↦ ξ.b, b ↦ ξ.c, c ↦ ξ.d, d ↦ ⟦ Δ ⤍ 01- ⟧ , λ ⤍ Package ⟧}
     output:
@@ -92,6 +106,7 @@ tests:
 
   # FIXME: fails
   # - name: "cross-reference (1)"
+  #   dependencies: []
   #   input: |
   #     {⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ξ.ρ.d.e, c ↦ ⟦ Δ ⤍ 01- ⟧, ρ ↦ ∅ ⟧, d ↦ ⟦ e ↦ ξ.ρ.a.c, ρ ↦ ∅ ⟧, ρ ↦ ∅ ⟧.a.b , λ ⤍ Package ⟧}
   #   output:
@@ -100,6 +115,7 @@ tests:
 
   # FIXME: fails
   # - name: "cross-reference (2)"
+  #   dependencies: []
   #   input: |
   #     {⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ξ.ρ.d.e, c ↦ ξ.ρ.d.f ⟧, d ↦ ⟦ e ↦ ξ.ρ.a.c, f ↦ ⟦ Δ ⤍ 01- ⟧ ⟧ ⟧.a.b , λ ⤍ Package ⟧}
   #   output:
@@ -108,6 +124,7 @@ tests:
 
   # FIXME: fails
   # - name: "cross-reference + dispatch (1)"
+  #   dependencies: []
   #   input: |
   #     {⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ξ.ρ.d, c ↦ ⟦ Δ ⤍ 01- ⟧ ⟧, d ↦ ⟦ e ↦ ξ.ρ.a.c ⟧ ⟧.a.b.e , λ ⤍ Package ⟧}
   #   output:
@@ -116,6 +133,7 @@ tests:
 
   # FIXME: fails
   # - name: "cross-reference + dispatch (1)"
+  #   dependencies: []
   #   input: |
   #     {⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ξ.ρ.d, c ↦ ⟦ Δ ⤍ 01- ⟧ ⟧, d ↦ ⟦ e ↦ ξ.ρ.a.c ⟧ ⟧.a.b.e , λ ⤍ Package ⟧}
   #   output:
@@ -124,6 +142,7 @@ tests:
 
   # FIXME: fails
   # - name: "cross-reference + dispatch (2)"
+  #   dependencies: []
   #   input: |
   #     {⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ξ.ρ.d, c ↦ ξ.ρ.d.f ⟧, d ↦ ⟦ e ↦ ξ.ρ.a.c, f ↦ ⟦ Δ ⤍ 01- ⟧ ⟧ ⟧.a.b.e , λ ⤍ Package ⟧}
   #   output:
@@ -132,6 +151,7 @@ tests:
 
   # FIXME: fails
   # - name: "cross-reference + dispatch (3)"
+  #   dependencies: []
   #   input: |
   #     {⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ξ.ρ.d, c ↦ ξ.ρ.d ⟧, d ↦ ⟦ e ↦ ξ.ρ.a.c, f ↦ ⟦ Δ ⤍ 01- ⟧ ⟧ ⟧.a.b.e.f , λ ⤍ Package ⟧}
   #   output:
@@ -140,6 +160,7 @@ tests:
 
   # FIXME: fails
   # - name: "interleaving ρ and other dispatches"
+  #   dependencies: []
   #   input: |
   #     {⟦ x ↦ ⟦ a ↦ ξ.ρ.b.ρ.c ⟧.a, b ↦ ⟦⟧, c ↦ ⟦ Δ ⤍ 01- ⟧, λ ⤍ Package ⟧}
   #   output:
@@ -147,12 +168,13 @@ tests:
   #       NOT ⟦ x ↦ ⟦ ⟧.ρ.b.ρ.c, b ↦ ⟦ ⟧, c ↦ ⟦ Δ ⤍ 01- ⟧, λ ⤍ Package ⟧
 
   - name: "Dataize in siblings of Package"
+    dependencies:
+      - ./data/0.37.0/org/eolang/bytes.phi
     input: |
       {⟦
         org ↦ ⟦
           eolang ↦ ⟦
             bool ↦ ⟦ α0 ↦ ∅, φ ↦ ξ.α0 ⟧,
-            bytes ↦ ⟦ Δ ⤍ ∅ ⟧,
             x ↦ ⟦
               φ ↦ Φ.org.eolang.bool(
                 α0 ↦ Φ.org.eolang.bytes(Δ ⤍ 01-)
@@ -179,7 +201,6 @@ tests:
           org ↦ ⟦
             eolang ↦ ⟦
               bool ↦ ⟦ α0 ↦ ∅, φ ↦ ξ.α0 ⟧,
-              bytes ↦ ⟦ Δ ⤍ ∅ ⟧,
               x ↦ ⟦ Δ ⤍ 01- ⟧,
               z ↦ ⟦ Δ ⤍ 01- ⟧,
               λ ⤍ Package
@@ -190,6 +211,9 @@ tests:
         ⟧
 
   - name: "int times and plus"
+    dependencies:
+      - ./data/0.37.0/org/eolang/int.phi
+      - ./data/0.37.0/org/eolang/bytes.phi
     input: |
       {⟦
         φ ↦ ⟦
@@ -206,11 +230,16 @@ tests:
       bytes: "00-00-00-00-00-00-00-2A" # == 42
 
   - name: "int greater than"
+    dependencies:
+      - ./data/0.37.0/org/eolang/int.phi
+      - ./data/0.37.0/org/eolang/bytes.phi
     input: |
       {⟦
-        ρ ↦ ⟦ Δ ⤍ 06- ⟧,
-        x ↦ ⟦ Δ ⤍ 09- ⟧,
-        λ ⤍ Lorg_eolang_int_gt
+        φ ↦ ⟦
+          ρ ↦ ⟦ Δ ⤍ 06- ⟧,
+          x ↦ ⟦ Δ ⤍ 09- ⟧,
+          λ ⤍ Lorg_eolang_int_gt
+        ⟧
       ⟧}
     output:
       bytes: "00-00-00-00-00-00-00-00"
@@ -218,43 +247,60 @@ tests:
   # Missing int tests: div
 
   - name: "bitwise and"
+    dependencies:
+      - ./data/0.37.0/org/eolang/bytes.phi
     input: |
       {⟦
-        b ↦ ⟦ Δ ⤍ 15- ⟧,
-        ρ ↦ ⟦ Δ ⤍ 0D- ⟧,
-        λ ⤍ Lorg_eolang_bytes_and
+        φ ↦ ⟦
+          b ↦ ⟦ Δ ⤍ 15- ⟧,
+          ρ ↦ ⟦ Δ ⤍ 0D- ⟧,
+          λ ⤍ Lorg_eolang_bytes_and
+        ⟧
       ⟧}
     output:
       bytes: "00-00-00-00-00-00-00-05"
 
   - name: "bitwise not"
+    dependencies:
+      - ./data/0.37.0/org/eolang/bytes.phi
     input: |
       {⟦
-        ρ ↦ ⟦ Δ ⤍ 50-3D-10-C0-6F-12-42-69 ⟧,
-        λ ⤍ Lorg_eolang_bytes_not
+        φ ↦ ⟦
+          ρ ↦ ⟦ Δ ⤍ 50-3D-10-C0-6F-12-42-69 ⟧,
+          λ ⤍ Lorg_eolang_bytes_not
+        ⟧
       ⟧}
     output:
       bytes: "AF-C2-EF-3F-90-ED-BD-96"
 
   - name: "bytes size"
+    dependencies:
+      - ./data/0.37.0/org/eolang/int.phi
+      - ./data/0.37.0/org/eolang/bytes.phi
     input: |
       {⟦
-        ρ ↦ ⟦ Δ ⤍ 00-11-22-33-44 ⟧,
-        λ ⤍ Lorg_eolang_bytes_size
+        φ ↦ ⟦
+          ρ ↦ ⟦ Δ ⤍ 00-11-22-33-44 ⟧,
+          λ ⤍ Lorg_eolang_bytes_size
+        ⟧
       ⟧}
     output:
       bytes: "00-00-00-00-00-00-00-05"
 
   - name: "bytes shift and equal"
+    dependencies:
+      - ./data/0.37.0/org/eolang/bytes.phi
     input: |
       {⟦
-        ρ ↦ ⟦ Δ ⤍ 02-24-46-68-8A-AC-CE-F1 ⟧,
-        x ↦ ⟦
-          ρ ↦ ⟦ Δ ⤍ 11-22-33-44-55-66-77-88 ⟧,
-          x ↦ ⟦ Δ ⤍ 03- ⟧,
-          λ ⤍ Lorg_eolang_bytes_right
-        ⟧,
-        λ ⤍ Lorg_eolang_bytes_eq
+        φ ↦ ⟦
+          ρ ↦ ⟦ Δ ⤍ 02-24-46-68-8A-AC-CE-F1 ⟧,
+          x ↦ ⟦
+            ρ ↦ ⟦ Δ ⤍ 11-22-33-44-55-66-77-88 ⟧,
+            x ↦ ⟦ Δ ⤍ 03- ⟧,
+            λ ⤍ Lorg_eolang_bytes_right
+          ⟧,
+          λ ⤍ Lorg_eolang_bytes_eq
+        ⟧
       ⟧}
     output:
       bytes: "00-00-00-00-00-00-00-01"
@@ -262,6 +308,9 @@ tests:
   # Missing bytes tests: or, xor, slice, concat
 
   - name: "float times and plus"
+    dependencies:
+      - ./data/0.37.0/org/eolang/float.phi
+      - ./data/0.37.0/org/eolang/bytes.phi
     input: |
       {⟦
         φ ↦ ⟦
@@ -280,21 +329,32 @@ tests:
   # Missing float tests: gt, div
 
   - name: "string slice"
+    dependencies:
+      - ./data/0.37.0/org/eolang/string.phi
+      - ./data/0.37.0/org/eolang/bytes.phi
     input: |
       {⟦
-        start ↦ ⟦ Δ ⤍ 02- ⟧,
-        len ↦ ⟦ Δ ⤍ 05- ⟧,
-        ρ ↦ ⟦ Δ ⤍ 48-65-6C-6C-6F-20-77-6F-72-6C-64 ⟧, // == "Hello world"
-        λ ⤍ Lorg_eolang_string_slice
+        φ ↦ ⟦
+          start ↦ ⟦ Δ ⤍ 02- ⟧,
+          len ↦ ⟦ Δ ⤍ 05- ⟧,
+          ρ ↦ ⟦ Δ ⤍ 48-65-6C-6C-6F-20-77-6F-72-6C-64 ⟧, // == "Hello world"
+          λ ⤍ Lorg_eolang_string_slice
+        ⟧
       ⟧}
     output:
       bytes: "6C-6C-6F-20-77" # == "llo w"
 
   - name: "string length"
+    dependencies:
+      - ./data/0.37.0/org/eolang/string.phi
+      - ./data/0.37.0/org/eolang/int.phi
+      - ./data/0.37.0/org/eolang/bytes.phi
     input: |
       {⟦
-        ρ ↦ ⟦ Δ ⤍ 48-65-6C-6C-6F-20-77-6F-72-6C-64 ⟧, // == "Hello world"
-        λ ⤍ Lorg_eolang_string_length
+        φ ↦ ⟦
+          ρ ↦ ⟦ Δ ⤍ 48-65-6C-6C-6F-20-77-6F-72-6C-64 ⟧, // == "Hello world"
+          λ ⤍ Lorg_eolang_string_length
+        ⟧
       ⟧}
     output:
       bytes: "00-00-00-00-00-00-00-0B" # == 11
