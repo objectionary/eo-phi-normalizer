@@ -13,5 +13,5 @@ normalizer dataize --recursive --rules eo-phi-normalizer/test/eo/phi/rules/yegor
 ```
 
 ```console
-00-00-00-00-00-00-00-32
+⟦ α0 ↦ ⟦ Δ ⤍ 02- ⟧, λ ⤍ Times, ρ ↦ ⟦ Δ ⤍ 19-, plus ↦ ⟦ α0 ↦ ∅, λ ⤍ Plus ⟧, ρ ↦ ⟦ ρ ↦ ⟦ ⟧ ⟧ ⟧ ⟧.plus (α0 ↦ ⟦ Δ ⤍ 20- ⟧)
 ```
