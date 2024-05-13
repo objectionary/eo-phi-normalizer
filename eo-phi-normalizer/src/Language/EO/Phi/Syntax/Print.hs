@@ -184,7 +184,6 @@ instance Print Language.EO.Phi.Syntax.Abs.Attribute where
   prt i = \case
     Language.EO.Phi.Syntax.Abs.Phi -> prPrec i 0 (concatD [doc (showString "\966")])
     Language.EO.Phi.Syntax.Abs.Rho -> prPrec i 0 (concatD [doc (showString "\961")])
-    Language.EO.Phi.Syntax.Abs.Sigma -> prPrec i 0 (concatD [doc (showString "\963")])
     Language.EO.Phi.Syntax.Abs.Label labelid -> prPrec i 0 (concatD [prt 0 labelid])
     Language.EO.Phi.Syntax.Abs.Alpha alphaindex -> prPrec i 0 (concatD [prt 0 alphaindex])
     Language.EO.Phi.Syntax.Abs.MetaAttr metaid -> prPrec i 0 (concatD [prt 0 metaid])

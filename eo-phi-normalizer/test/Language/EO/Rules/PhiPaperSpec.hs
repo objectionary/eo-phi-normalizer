@@ -40,7 +40,6 @@ instance Arbitrary Attribute where
     oneof
       [ pure Phi
       , pure Rho
-      , pure Sigma
       , Label <$> arbitrary
       ]
 

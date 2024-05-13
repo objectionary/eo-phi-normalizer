@@ -71,7 +71,7 @@ defaultContext rules obj =
   Context
     { allRules = rules
     , outerFormations = NonEmpty.singleton obj
-    , currentAttr = Sigma
+    , currentAttr = Phi
     , insideFormation = False
     , dataizePackage = True
     }

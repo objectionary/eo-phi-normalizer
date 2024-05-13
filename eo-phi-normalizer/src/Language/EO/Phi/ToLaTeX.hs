@@ -29,7 +29,6 @@ instance ToLatex Program where
 instance ToLatex Attribute where
   toLatex Phi = "@"
   toLatex Rho = "^"
-  toLatex Sigma = "&"
   toLatex (Alpha (AlphaIndex a)) = LaTeX ("\\alpha_" ++ tail a)
   toLatex (Label (LabelId l)) = LaTeX l
   toLatex (MetaAttr _) = error "rendering MetaBindings in LaTex format"

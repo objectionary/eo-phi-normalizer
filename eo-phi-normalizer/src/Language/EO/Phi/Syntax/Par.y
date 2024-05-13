@@ -54,14 +54,13 @@ import Language.EO.Phi.Syntax.Lex
   'λ'                { PT _ (TS _ 11)               }
   'ξ'                { PT _ (TS _ 12)               }
   'ρ'                { PT _ (TS _ 13)               }
-  'σ'                { PT _ (TS _ 14)               }
-  'φ'                { PT _ (TS _ 15)               }
-  '↦'                { PT _ (TS _ 16)               }
-  '∅'                { PT _ (TS _ 17)               }
-  '⊥'                { PT _ (TS _ 18)               }
-  '⟦'                { PT _ (TS _ 19)               }
-  '⟧'                { PT _ (TS _ 20)               }
-  '⤍'                { PT _ (TS _ 21)               }
+  'φ'                { PT _ (TS _ 14)               }
+  '↦'                { PT _ (TS _ 15)               }
+  '∅'                { PT _ (TS _ 16)               }
+  '⊥'                { PT _ (TS _ 17)               }
+  '⟦'                { PT _ (TS _ 18)               }
+  '⟧'                { PT _ (TS _ 19)               }
+  '⤍'                { PT _ (TS _ 20)               }
   L_Bytes            { PT _ (T_Bytes $$)            }
   L_Function         { PT _ (T_Function $$)         }
   L_LabelId          { PT _ (T_LabelId $$)          }
@@ -125,7 +124,6 @@ Attribute :: { Language.EO.Phi.Syntax.Abs.Attribute }
 Attribute
   : 'φ' { Language.EO.Phi.Syntax.Abs.Phi }
   | 'ρ' { Language.EO.Phi.Syntax.Abs.Rho }
-  | 'σ' { Language.EO.Phi.Syntax.Abs.Sigma }
   | LabelId { Language.EO.Phi.Syntax.Abs.Label $1 }
   | AlphaIndex { Language.EO.Phi.Syntax.Abs.Alpha $1 }
   | MetaId { Language.EO.Phi.Syntax.Abs.MetaAttr $1 }

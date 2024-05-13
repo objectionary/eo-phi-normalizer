@@ -3,7 +3,6 @@ tests:
   - name: "Celsius example"
     input: |
       {⟦
-        σ ↦ Φ,
         c ↦ Φ.org.eolang.float(Δ ⤍ 19-),
         φ ↦ ξ.c.times(α0 ↦ ⟦ Δ ⤍ 02- ⟧).plus(α0 ↦ ⟦ Δ ⤍ 20- ⟧),
         org ↦ ⟦

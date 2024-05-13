@@ -149,7 +149,6 @@ bindingHasMetavars (MetaDeltaBinding _) = True
 attrHasMetavars :: Attribute -> Bool
 attrHasMetavars Phi = False
 attrHasMetavars Rho = False
-attrHasMetavars Sigma = False
 attrHasMetavars (Label _) = False
 attrHasMetavars (Alpha _) = False
 attrHasMetavars (MetaAttr _) = True
