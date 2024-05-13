@@ -45,6 +45,7 @@ data DataizeTest = DataizeTest
   { name :: String
   , input :: Phi.Program
   , output :: DataizationResult
+  , dependencies :: [FilePath]
   }
   deriving (Generic, FromJSON)
 data DataizationResult
