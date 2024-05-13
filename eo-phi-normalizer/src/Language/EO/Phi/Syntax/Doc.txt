@@ -45,8 +45,8 @@ MetaFunctionName literals are recognized by the regular expression
 The set of reserved words is the set of terminals appearing in the grammar. Those reserved words that consist of non-letter characters are called symbols, and they are treated in a different way from those that are similar to identifiers. The lexer follows rules familiar from languages like Haskell, C, and Java, including longest match and spacing conventions.
 
 The reserved words used in Syntax are the following:
-  | ``Δ`` | ``Φ`` | ``λ`` | ``ν``
-  | ``ξ`` | ``ρ`` | ``σ`` | ``φ``
+  | ``Δ`` | ``Φ`` | ``λ`` | ``ξ``
+  | ``ρ`` | ``σ`` | ``φ`` |
 
 The symbols used in Syntax are the following:
   | { | ⟦ | ⟧ | }
@@ -86,7 +86,6 @@ All other symbols are terminals.
   | //Attribute// | -> | ``φ``
   |  |  **|**  | ``ρ``
   |  |  **|**  | ``σ``
-  |  |  **|**  | ``ν``
   |  |  **|**  | //LabelId//
   |  |  **|**  | //AlphaIndex//
   |  |  **|**  | //MetaId//

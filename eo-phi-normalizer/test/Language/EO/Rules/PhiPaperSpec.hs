@@ -41,7 +41,6 @@ instance Arbitrary Attribute where
       [ pure Phi
       , pure Rho
       , pure Sigma
-      , pure VTX
       , Label <$> arbitrary
       ]
 
@@ -66,19 +65,12 @@ instance Arbitrary Binding where
         ( n
         , do
             attr <- arbitrary
-            obj <- case attr of
-              VTX ->
-                Formation <$> do
-                  bytes <- arbitrary
-                  return [DeltaBinding bytes]
-              _ -> arbitrary
-            return (AlphaBinding attr obj)
+            AlphaBinding attr <$> arbitrary
         )
       , (1, DeltaBinding <$> arbitrary)
       , (1, LambdaBinding <$> arbitrary)
       , (1, pure DeltaEmptyBinding)
       ]
-  shrink (AlphaBinding VTX _) = [] -- do not shrink vertex bindings
   shrink (AlphaBinding attr obj) = AlphaBinding attr <$> shrink obj
   shrink _ = [] -- do not shrink deltas and lambdas
 
@@ -258,7 +250,6 @@ intersectByLevelBy eq xs ys =
 
 confluentCriticalPairN :: SearchLimits -> [NamedRule] -> CriticalPair -> Bool
 confluentCriticalPairN limits rules CriticalPair{..} =
-  -- should normalize the VTXs before checking
   -- NOTE: we are using intersectByLevelBy to ensure that we first check
   -- terms generated after one rule application, then include terms after two rules applications, etc.
   -- This helps find the confluence points without having to compute all terms up to depth N,

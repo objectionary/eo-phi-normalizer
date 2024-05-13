@@ -1,43 +1,5 @@
 title: "Rule set based on Yegor's draft"
 rules:
-  # - name: Rule 1
-  #   description: 'Initialization of vertex attribute'
-  #   context:
-  #     global_object: '!Phi'
-  #     current_attribute: '!a'
-  #   pattern: |
-  #     ⟦ !B ⟧
-  #   result: |
-  #     ⟦ !B, ν ↦ @T(!Phi) ⟧
-  #   when:
-  #     - absent_attrs:
-  #         attrs: ['ν']
-  #         bindings: ['!B']
-  #     - not_equal: ['!a', 'ν']
-  #   tests:
-  #     - name: Adds vertex attribute
-  #       input: '⟦ a ↦ ⟦ ⟧ ⟧'
-  #       output:
-  #         - '⟦ a ↦ ⟦ ⟧, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧'
-  #         - '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧'
-  #     - name: Adds vertices in all non-top-level formations
-  #       input: '⟦ a ↦ ⟦ ⟧, b ↦ ⟦ ⟧ ⟧'
-  #       output:
-  #         - '⟦ a ↦ ⟦ ⟧, b ↦ ⟦ ⟧, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧'
-  #         - '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, b ↦ ⟦ ⟧ ⟧'
-  #         - '⟦ a ↦ ⟦ ⟧, b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧'
-  #     - name: Added vertices are incremental (1)
-  #       input: '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧ ⟧, b ↦ ⟦ ⟧ ⟧'
-  #       output:
-  #         - '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧ ⟧, b ↦ ⟦ ⟧, ν ↦ ⟦ Δ ⤍ 04- ⟧ ⟧'
-  #         - '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧ ⟧, b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 04- ⟧ ⟧ ⟧'
-  #     - name: Added vertices are incremental (2)
-  #       input: '⟦ a ↦ ⟦ ⟧(ν ↦ ⟦ Δ ⤍ 06- ⟧), b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 05- ⟧ ⟧, c ↦ ⟦ ⟧ ⟧'
-  #       output:
-  #         - '⟦ a ↦ ⟦ ⟧(ν ↦ ⟦ Δ ⤍ 06- ⟧), b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 05- ⟧ ⟧, c ↦ ⟦ ⟧, ν ↦ ⟦ Δ ⤍ 07- ⟧ ⟧'
-  #         - '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 07- ⟧ ⟧(ν ↦ ⟦ Δ ⤍ 06- ⟧), b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 05- ⟧ ⟧, c ↦ ⟦ ⟧ ⟧'
-  #         - '⟦ a ↦ ⟦ ⟧(ν ↦ ⟦ Δ ⤍ 06- ⟧), b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 05- ⟧ ⟧, c ↦ ⟦ ν ↦ ⟦ Δ ⤍ 07- ⟧ ⟧ ⟧'
-
   # - name: Rule 2
   #   description: ''
   #   context:
@@ -107,11 +69,11 @@ rules:
     when:
       - apply_in_subformations: false
       # - present_attrs:
-      #     attrs: ['ν', 'σ', 'ρ']
+      #     attrs: ['σ', 'ρ']
       #     bindings: ['!B']
     tests:
       - name: Does not replace ξ inside a subformation
-        input: '⟦ a ↦ ⟦ ⟧, x ↦ ξ.a, ν ↦ ⟦ ⟧, σ ↦ ⟦ ⟧, ρ ↦ ⟦ ⟧ ⟧'
+        input: '⟦ a ↦ ⟦ ⟧, x ↦ ξ.a, σ ↦ ⟦ ⟧, ρ ↦ ⟦ ⟧ ⟧'
         output: []
       # How to test replacing without already having context?
 

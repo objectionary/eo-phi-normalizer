@@ -234,7 +234,6 @@ equalBindings bindings1 bindings2 = and (zipWith equalBinding (sortOn attr bindi
   attr (MetaBindings metaId) = MetaAttr metaId
 
 equalBinding :: Binding -> Binding -> Bool
-equalBinding (AlphaBinding VTX _) (AlphaBinding VTX _) = True -- TODO #166:15min Renumerate vertices uniformly instead of ignoring them
 equalBinding (AlphaBinding attr1 obj1) (AlphaBinding attr2 obj2) = attr1 == attr2 && equalObject obj1 obj2
 -- Ignore deltas for now while comparing since different normalization paths can lead to different vertex data
 -- TODO #120:30m normalize the deltas instead of ignoring since this actually suppresses problems
@@ -353,41 +352,3 @@ bytesToInt :: Bytes -> Int
 bytesToInt (Bytes (filter (/= '-') . dropWhile (== '0') -> bytes))
   | null bytes = 0
   | otherwise = fst $ head $ readHex bytes
-
-minNu :: Int
-minNu = -1
-
-class HasMaxNu a where
-  -- | get maximum vertex index
-  --
-  -- >>> getMaxNu @Object "⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧ ⟧, b ↦ ⟦ ⟧ ⟧"
-  -- 3
-  getMaxNu :: a -> Int
-
-instance HasMaxNu Program where
-  getMaxNu :: Program -> Int
-  getMaxNu (Program bindings) = getMaxNu (Formation bindings)
-
-instance HasMaxNu Object where
-  getMaxNu :: Object -> Int
-  getMaxNu = \case
-    Formation bindings -> maximum (minNu : (getMaxNu <$> bindings))
-    Application obj bindings -> maximum (minNu : getMaxNu obj : (getMaxNu <$> bindings))
-    ObjectDispatch obj _ -> getMaxNu obj
-    _ -> minNu
-
-instance HasMaxNu Binding where
-  getMaxNu :: Binding -> Int
-  getMaxNu = \case
-    AlphaBinding VTX (Formation [DeltaBinding (Bytes bs)]) ->
-      case readHex [x | x <- bs, x /= '-'] of
-        [(val, "")] -> val
-        _ -> error "Vertex number is incorrect"
-    AlphaBinding _ obj -> getMaxNu obj
-    _ -> minNu
-
-intToBytesObject :: Int -> Object
-intToBytesObject n = Formation [DeltaBinding $ intToBytes n]
-
-nuCountAsDataObj :: Object -> Object
-nuCountAsDataObj = intToBytesObject . getMaxNu

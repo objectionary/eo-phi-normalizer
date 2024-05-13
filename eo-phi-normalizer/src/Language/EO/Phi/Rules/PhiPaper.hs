@@ -1,5 +1,3 @@
-{-# LANGUAGE LambdaCase #-}
-
 module Language.EO.Phi.Rules.PhiPaper where
 
 import Control.Monad (guard)
@@ -7,14 +5,6 @@ import Language.EO.Phi
 import Language.EO.Phi.Rules.Common
 
 -- * Yegor's Rules
-
--- | Rule 1.
-rule1 :: Rule
-rule1 _ = \case
-  Formation bindings ->
-    let Program bindings' = normalize (Program bindings)
-     in [Formation bindings']
-  _ -> []
 
 -- | Rule 6.
 rule6 :: Rule
