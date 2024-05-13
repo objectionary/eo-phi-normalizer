@@ -226,8 +226,6 @@ evaluateFloatFloatFloatFunChain = evaluateBinaryDataizationFunChain floatToBytes
 -- | Like `evaluateDataizationFunChain` but specifically for the built-in functions.
 -- This function is not safe. It returns undefined for unknown functions
 evaluateBuiltinFunChain :: String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
-evaluateBuiltinFunChain "Plus" obj = evaluateBinaryDataizationFunChain intToBytes bytesToInt wrapBytesInInt extractRho extractAlpha0 (+) obj -- FIXME: change to float variant
-evaluateBuiltinFunChain "Times" obj = evaluateBinaryDataizationFunChain intToBytes bytesToInt wrapBytesInInt extractRho extractAlpha0 (*) obj -- FIXME: change to float variant
 -- int
 evaluateBuiltinFunChain "Lorg_eolang_int_gt" obj = evaluateIntIntBoolFunChain (>) obj
 evaluateBuiltinFunChain "Lorg_eolang_int_plus" obj = evaluateIntIntIntFunChain (+) obj
