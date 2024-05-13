@@ -322,7 +322,9 @@ applyRulesChainWith limits@ApplicationLimits{..} obj
           logStep ruleName obj'
           if objectSize obj' < maxTermSize
             then applyRulesChainWith limits{maxDepth = maxDepth - 1} obj'
-            else return obj'
+            else do
+              logStep "Max term size hit" obj'
+              return obj'
 
 -- * Helpers
 
