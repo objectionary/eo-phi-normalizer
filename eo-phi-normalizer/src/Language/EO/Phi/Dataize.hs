@@ -12,6 +12,7 @@ module Language.EO.Phi.Dataize where
 import Control.Arrow (left)
 import Data.Bits
 import Data.List (singleton)
+import Data.List.NonEmpty qualified as NonEmpty
 import Data.Maybe (listToMaybe)
 import Language.EO.Phi.Rules.Common
 import Language.EO.Phi.Syntax.Abs
@@ -90,7 +91,9 @@ dataizeRecursivelyChain :: Object -> DataizeChain (Either Object Bytes)
 dataizeRecursivelyChain obj = do
   logStep "Dataizing" (Left obj)
   ctx <- getContext
-  msplit (transformNormLogs (applyRulesChain obj)) >>= \case
+  let globalObject = NonEmpty.last (outerFormations ctx)
+      limits = defaultApplicationLimits (objectSize globalObject)
+  msplit (transformNormLogs (applyRulesChainWith limits obj)) >>= \case
     Nothing -> do
       logStep "No rules applied" (Left obj)
       return (Left obj)
