@@ -12,6 +12,9 @@ module Language.EO.Phi.Rules.Common where
 import Control.Applicative (Alternative ((<|>)), asum)
 import Control.Arrow (Arrow (first))
 import Control.Monad
+import Data.Binary qualified as Binary
+import Data.ByteString.Lazy qualified as ByteString
+import Data.Char (toUpper)
 import Data.List (nubBy, sortOn)
 import Data.List.NonEmpty (NonEmpty (..), (<|))
 import Data.List.NonEmpty qualified as NonEmpty
@@ -261,6 +264,9 @@ instance Monad (Chain a) where
     , (steps', y) <- runChain (f x) ctx
     ]
 
+instance MonadFail (Chain a) where
+  fail _msg = Chain (const [])
+
 logStep :: String -> info -> Chain info ()
 logStep msg info = Chain $ const [([(msg, info)], ())]
 
@@ -315,7 +321,9 @@ applyRulesChainWith limits@ApplicationLimits{..} obj
           logStep ruleName obj'
           if objectSize obj' < maxTermSize
             then applyRulesChainWith limits{maxDepth = maxDepth - 1} obj'
-            else return obj'
+            else do
+              logStep "Max term size hit" obj'
+              return obj'
 
 -- * Helpers
 
@@ -333,22 +341,54 @@ objectBindings (Application obj bs) = objectBindings obj ++ bs
 objectBindings (ObjectDispatch obj _attr) = objectBindings obj
 objectBindings _ = []
 
-intToBytes :: Int -> Bytes
-intToBytes n = Bytes $ insertDashes $ pad $ showHex n ""
+padLeft :: Int -> [Char] -> [Char]
+padLeft n s = replicate (n - length s) '0' ++ s
+
+normalizeBytes :: String -> String
+normalizeBytes = map toUpper . insertDashes . padLeft 2
  where
-  pad s = (if even (length s) then "" else "0") ++ s
   insertDashes s
     | length s <= 2 = s ++ "-"
     | otherwise =
         let go = \case
               [] -> []
               [x] -> [x]
-              [x, y] -> [x, y, '-']
+              [x, y] -> [x, y]
               (x : y : xs) -> x : y : '-' : go xs
          in go s
+
+intToBytes :: Int -> Bytes
+intToBytes n = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "")) $ ByteString.unpack $ Binary.encode n
 
 -- | Assuming the bytes are well-formed (otherwise crashes)
 bytesToInt :: Bytes -> Int
 bytesToInt (Bytes (filter (/= '-') . dropWhile (== '0') -> bytes))
   | null bytes = 0
   | otherwise = fst $ head $ readHex bytes
+
+boolToBytes :: Bool -> Bytes
+boolToBytes True = intToBytes 1
+boolToBytes False = intToBytes 0
+
+bytesToBool :: Bytes -> Bool
+bytesToBool (Bytes "00-") = False
+bytesToBool _ = True -- TODO: verify that anything (not just 01-) can be interpreted as true
+
+stringToBytes :: String -> Bytes
+stringToBytes s = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "") . fromEnum) s
+
+bytesToString :: Bytes -> String
+bytesToString (Bytes bytes) = map (toEnum . fst . head . readHex) $ words (map dashToSpace bytes)
+ where
+  dashToSpace '-' = ' '
+  dashToSpace c = c
+
+-- It is called "float" in EO, but it actually occupies 8 bytes so it's a double
+floatToBytes :: Double -> Bytes
+floatToBytes f = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "")) $ ByteString.unpack $ Binary.encode f
+
+bytesToFloat :: Bytes -> Double
+bytesToFloat (Bytes bytes) = Binary.decode $ ByteString.pack $ map (fst . head . readHex) $ words (map dashToSpace bytes)
+ where
+  dashToSpace '-' = ' '
+  dashToSpace c = c

@@ -10,11 +10,14 @@
 module Language.EO.Phi.Dataize where
 
 import Control.Arrow (left)
+import Data.Bits
 import Data.List (singleton)
+import Data.List.NonEmpty qualified as NonEmpty
 import Data.Maybe (listToMaybe)
 import Language.EO.Phi.Rules.Common
 import Language.EO.Phi.Syntax.Abs
 import PyF (fmt)
+import System.IO.Unsafe (unsafePerformIO)
 
 -- | Perform one step of dataization to the object (if possible).
 dataizeStep :: Context -> Object -> (Context, Either Object Bytes)
@@ -88,7 +91,9 @@ dataizeRecursivelyChain :: Object -> DataizeChain (Either Object Bytes)
 dataizeRecursivelyChain obj = do
   logStep "Dataizing" (Left obj)
   ctx <- getContext
-  msplit (transformNormLogs (applyRulesChain obj)) >>= \case
+  let globalObject = NonEmpty.last (outerFormations ctx)
+      limits = defaultApplicationLimits (objectSize globalObject)
+  msplit (transformNormLogs (applyRulesChainWith limits obj)) >>= \case
     Nothing -> do
       logStep "No rules applied" (Left obj)
       return (Left obj)
@@ -101,10 +106,21 @@ dataizeRecursivelyChain obj = do
           | otherwise -> withContext ctx' $ dataizeRecursivelyChain stillObj -- partially dataized
         bytes -> return bytes
 
--- | Given normalization context, a function on data (bytes interpreted as integers), an object,
+-- | Given converters between Bytes and some data type, a binary function on this data type, an object,
 -- and the current state of evaluation, returns the new object and a possibly modified state along with intermediate steps.
-evaluateDataizationFunChain :: (Int -> Int -> Int) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
-evaluateDataizationFunChain func obj _state = do
+evaluateDataizationFunChain ::
+  -- | How to convert the result back to bytes
+  (res -> Bytes) ->
+  -- | How to interpret the bytes in terms of the given data type
+  (Bytes -> a) ->
+  -- | How to wrap the bytes in an object
+  (Bytes -> Object) ->
+  -- | A binary function on the data
+  (a -> a -> res) ->
+  Object ->
+  EvaluationState ->
+  DataizeChain (Object, EvaluationState)
+evaluateDataizationFunChain resultToBytes bytesToParam wrapBytes func obj _state = do
   let o_rho = ObjectDispatch obj Rho
   let o_a0 = ObjectDispatch obj (Alpha (AlphaIndex "α0"))
   logStep "Evaluating LHS" (Left o_rho)
@@ -113,8 +129,8 @@ evaluateDataizationFunChain func obj _state = do
   rhs <- dataizeRecursivelyChain o_a0
   result <- case (lhs, rhs) of
     (Right l, Right r) -> do
-      let (Bytes bytes) = intToBytes (bytesToInt r `func` bytesToInt l)
-          resultObj = [fmt|Φ.org.eolang.float(Δ ⤍ {bytes})|]
+      let bytes = resultToBytes (bytesToParam r `func` bytesToParam l)
+          resultObj = wrapBytes bytes
       logStep "Evaluated function" (Left resultObj)
       return resultObj
     _ -> do
@@ -122,11 +138,153 @@ evaluateDataizationFunChain func obj _state = do
       return Termination
   return (result, ())
 
+evaluateBinaryDataizationFunChain ::
+  -- | How to convert the result back to bytes
+  (res -> Bytes) ->
+  -- | How to interpret the bytes in terms of the given data type
+  (Bytes -> a) ->
+  -- | How to wrap the bytes in an object
+  (Bytes -> Object) ->
+  -- | Extract the 1st argument to be dataized
+  (Object -> Object) ->
+  -- | Extract the 2nd argument to be dataized
+  (Object -> Object) ->
+  -- | A binary function on the argument
+  (a -> a -> res) ->
+  Object ->
+  EvaluationState ->
+  DataizeChain (Object, EvaluationState)
+evaluateBinaryDataizationFunChain resultToBytes bytesToParam wrapBytes arg1 arg2 func obj _state = do
+  let lhsArg = arg1 obj
+  let rhsArg = arg2 obj
+  logStep "Evaluating LHS" (Left lhsArg)
+  lhs <- dataizeRecursivelyChain lhsArg
+  logStep "Evaluating RHS" (Left rhsArg)
+  rhs <- dataizeRecursivelyChain rhsArg
+  result <- case (lhs, rhs) of
+    (Right l, Right r) -> do
+      let bytes = resultToBytes (bytesToParam l `func` bytesToParam r)
+          resultObj = wrapBytes bytes
+      logStep "Evaluated function" (Left resultObj)
+      return resultObj
+    _ -> do
+      logStep "Couldn't find bytes in one or both of LHS and RHS" (Left Termination)
+      return Termination
+  return (result, ())
+
+-- | Unary functions operate on the given object without any additional parameters
+evaluateUnaryDataizationFunChain ::
+  -- | How to convert the result back to bytes
+  (res -> Bytes) ->
+  -- | How to interpret the bytes in terms of the given data type
+  (Bytes -> a) ->
+  -- | How to wrap the bytes in an object
+  (Bytes -> Object) ->
+  -- | Extract the argument to be dataized
+  (Object -> Object) ->
+  -- | A unary function on the argument
+  (a -> res) ->
+  Object ->
+  EvaluationState ->
+  DataizeChain (Object, EvaluationState)
+evaluateUnaryDataizationFunChain resultToBytes bytesToParam wrapBytes extractArg func =
+  evaluateBinaryDataizationFunChain resultToBytes bytesToParam wrapBytes extractArg extractArg (const . func)
+
+evaluateIODataizationFunChain :: IO String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
+evaluateIODataizationFunChain action _obj state =
+  return (Formation [DeltaBinding (stringToBytes (unsafePerformIO action))], state)
+
+extractRho :: Object -> Object
+extractRho = (`ObjectDispatch` Rho)
+extractAlpha0 :: Object -> Object
+extractAlpha0 = (`ObjectDispatch` Alpha (AlphaIndex "α0"))
+extractLabel :: String -> Object -> Object
+extractLabel attrName = (`ObjectDispatch` Label (LabelId attrName))
+wrapBytesInInt :: Bytes -> Object
+wrapBytesInInt (Bytes bytes) = [fmt|Φ.org.eolang.int(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes}))|]
+wrapBytesInFloat :: Bytes -> Object
+wrapBytesInFloat (Bytes bytes) = [fmt|Φ.org.eolang.float(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes}))|]
+wrapBytesInString :: Bytes -> Object
+wrapBytesInString (Bytes bytes) = [fmt|Φ.org.eolang.string(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes}))|]
+wrapBytesInBytes :: Bytes -> Object
+wrapBytesInBytes (Bytes bytes) = [fmt|Φ.org.eolang.bytes(Δ ⤍ {bytes})|]
+
+-- This should maybe get converted to a type class and some instances?
+evaluateIntIntIntFunChain :: (Int -> Int -> Int) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
+evaluateIntIntIntFunChain = evaluateBinaryDataizationFunChain intToBytes bytesToInt wrapBytesInInt extractRho (extractLabel "x")
+
+evaluateIntIntBoolFunChain :: (Int -> Int -> Bool) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
+evaluateIntIntBoolFunChain = evaluateBinaryDataizationFunChain boolToBytes bytesToInt wrapBytesInBytes extractRho (extractLabel "x")
+
+-- Int because Bytes are just a string, but Int has a Bits instance
+evaluateBytesBytesBytesFunChain :: (Int -> Int -> Int) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
+evaluateBytesBytesBytesFunChain = evaluateBinaryDataizationFunChain intToBytes bytesToInt wrapBytesInBytes extractRho (extractLabel "b")
+
+evaluateBytesBytesFunChain :: (Int -> Int) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
+evaluateBytesBytesFunChain = evaluateUnaryDataizationFunChain intToBytes bytesToInt wrapBytesInBytes extractRho
+
+evaluateFloatFloatFloatFunChain :: (Double -> Double -> Double) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
+evaluateFloatFloatFloatFunChain = evaluateBinaryDataizationFunChain floatToBytes bytesToFloat wrapBytesInFloat extractRho (extractLabel "x")
+
 -- | Like `evaluateDataizationFunChain` but specifically for the built-in functions.
 -- This function is not safe. It returns undefined for unknown functions
 evaluateBuiltinFunChain :: String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
-evaluateBuiltinFunChain "Plus" obj = evaluateDataizationFunChain (+) obj
-evaluateBuiltinFunChain "Times" obj = evaluateDataizationFunChain (*) obj
+-- int
+evaluateBuiltinFunChain "Lorg_eolang_int_gt" obj = evaluateIntIntBoolFunChain (>) obj
+evaluateBuiltinFunChain "Lorg_eolang_int_plus" obj = evaluateIntIntIntFunChain (+) obj
+evaluateBuiltinFunChain "Lorg_eolang_int_times" obj = evaluateIntIntIntFunChain (*) obj
+evaluateBuiltinFunChain "Lorg_eolang_int_div" obj = evaluateIntIntIntFunChain div obj
+-- bytes
+evaluateBuiltinFunChain "Lorg_eolang_bytes_eq" obj = evaluateBinaryDataizationFunChain boolToBytes bytesToInt wrapBytesInBytes extractRho (extractLabel "x") (==) obj
+evaluateBuiltinFunChain "Lorg_eolang_bytes_size" obj = evaluateUnaryDataizationFunChain intToBytes id wrapBytesInBytes extractRho (\(Bytes bytes) -> length (words (map dashToSpace bytes))) obj
+ where
+  dashToSpace '-' = ' '
+  dashToSpace c = c
+evaluateBuiltinFunChain "Lorg_eolang_bytes_slice" obj = \state -> do
+  thisStr <- dataizeRecursivelyChain (extractRho obj)
+  (Bytes bytes) <- case thisStr of
+    Right bytes -> pure bytes
+    Left _ -> fail "Couldn't find bytes"
+  evaluateBinaryDataizationFunChain id bytesToInt wrapBytesInBytes (extractLabel "start") (extractLabel "len") (\start len -> Bytes $ normalizeBytes $ take len (drop start (filter (/= '-') bytes))) obj state
+evaluateBuiltinFunChain "Lorg_eolang_bytes_and" obj = evaluateBytesBytesBytesFunChain (.&.) obj
+evaluateBuiltinFunChain "Lorg_eolang_bytes_or" obj = evaluateBytesBytesBytesFunChain (.|.) obj
+evaluateBuiltinFunChain "Lorg_eolang_bytes_xor" obj = evaluateBytesBytesBytesFunChain (.^.) obj
+evaluateBuiltinFunChain "Lorg_eolang_bytes_not" obj = evaluateBytesBytesFunChain complement obj
+evaluateBuiltinFunChain "Lorg_eolang_bytes_right" obj = evaluateBinaryDataizationFunChain intToBytes bytesToInt wrapBytesInBytes extractRho (extractLabel "x") shiftR obj
+evaluateBuiltinFunChain "Lorg_eolang_bytes_concat" obj = evaluateBinaryDataizationFunChain id id wrapBytesInBytes extractRho (extractLabel "b") (\(Bytes b1) (Bytes b2) -> Bytes (b1 ++ b2)) obj
+-- float
+evaluateBuiltinFunChain "Lorg_eolang_float_gt" obj = evaluateBinaryDataizationFunChain boolToBytes bytesToFloat wrapBytesInBytes extractRho (extractLabel "x") (>) obj
+evaluateBuiltinFunChain "Lorg_eolang_float_times" obj = evaluateFloatFloatFloatFunChain (*) obj
+evaluateBuiltinFunChain "Lorg_eolang_float_plus" obj = evaluateFloatFloatFloatFunChain (+) obj
+evaluateBuiltinFunChain "Lorg_eolang_float_div" obj = evaluateFloatFloatFloatFunChain (/) obj
+-- string
+evaluateBuiltinFunChain "Lorg_eolang_string_length" obj = evaluateUnaryDataizationFunChain intToBytes bytesToString wrapBytesInInt extractRho length obj
+evaluateBuiltinFunChain "Lorg_eolang_string_slice" obj = \state -> do
+  thisStr <- dataizeRecursivelyChain (extractRho obj)
+  string <- case thisStr of
+    Right bytes -> pure $ bytesToString bytes
+    Left _ -> fail "Couldn't find bytes"
+  evaluateBinaryDataizationFunChain stringToBytes bytesToInt wrapBytesInString (extractLabel "start") (extractLabel "len") (\start len -> take len (drop start string)) obj state
+-- malloc
+-- evaluateBuiltinFunChain "Lorg_eolang_malloc_φ" obj = _ -- TODO
+-- evaluateBuiltinFunChain "Lorg_eolang_malloc_memory_block_pointer_read" obj = _ -- TODO
+-- evaluateBuiltinFunChain "Lorg_eolang_malloc_memory_block_pointer_write" obj = _ -- TODO
+-- evaluateBuiltinFunChain "Lorg_eolang_malloc_memory_block_pointer_free" obj = _ -- TODO
+-- cage
+-- evaluateBuiltinFunChain "Lorg_eolang_cage_φ" obj = _ -- TODO
+-- evaluateBuiltinFunChain "Lorg_eolang_cage_encaged_φ" obj = _ -- TODO
+-- evaluateBuiltinFunChain "Lorg_eolang_cage_encaged_encage" obj = _ -- TODO
+-- I/O
+evaluateBuiltinFunChain "Lorg_eolang_io_stdin_next_line" obj = evaluateIODataizationFunChain getLine obj
+evaluateBuiltinFunChain "Lorg_eolang_io_stdin_φ" obj = evaluateIODataizationFunChain getContents obj
+evaluateBuiltinFunChain "Lorg_eolang_io_stdout" obj = evaluateUnaryDataizationFunChain boolToBytes bytesToString wrapBytesInBytes (extractLabel "text") ((`seq` True) . unsafePerformIO . putStrLn) obj
+-- others
+-- evaluateBuiltinFunChain "Lorg_eolang_dataized" obj = _ -- TODO
+evaluateBuiltinFunChain "Lorg_eolang_error" obj = evaluateUnaryDataizationFunChain stringToBytes bytesToString wrapBytesInBytes (extractLabel "message") error obj
+-- evaluateBuiltinFunChain "Lorg_eolang_seq" obj = _ -- TODO
+-- evaluateBuiltinFunChain "Lorg_eolang_as_phi" obj = _ -- TODO
+-- evaluateBuiltinFunChain "Lorg_eolang_rust" obj = _ -- TODO
+-- evaluateBuiltinFunChain "Lorg_eolang_try" obj = _ -- TODO
 evaluateBuiltinFunChain "Package" obj@(Formation bindings) = do
   \state -> do
     fmap dataizePackage getContext >>= \case
