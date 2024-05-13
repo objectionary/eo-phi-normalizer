@@ -38,6 +38,7 @@ library
   exposed-modules:
       Language.EO.Phi
       Language.EO.Phi.Dataize
+      Language.EO.Phi.Dependencies
       Language.EO.Phi.Metrics.Collect
       Language.EO.Phi.Metrics.Data
       Language.EO.Phi.Normalize
@@ -132,6 +133,7 @@ test-suite doctests
   other-modules:
       Language.EO.Phi
       Language.EO.Phi.Dataize
+      Language.EO.Phi.Dependencies
       Language.EO.Phi.Metrics.Collect
       Language.EO.Phi.Metrics.Data
       Language.EO.Phi.Normalize
