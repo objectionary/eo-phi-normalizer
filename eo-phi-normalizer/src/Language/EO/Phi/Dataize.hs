@@ -15,6 +15,7 @@ import Data.List (singleton)
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.Maybe (listToMaybe)
 import Language.EO.Phi.Rules.Common
+import Language.EO.Phi.Rules.Yaml (substThis)
 import Language.EO.Phi.Syntax.Abs
 import PyF (fmt)
 import System.IO.Unsafe (unsafePerformIO)
@@ -55,7 +56,7 @@ dataizeStepChain obj@(Formation bs)
       logStep "Dataizing inside phi" (Left decoratee)
       ctx <- getContext
       let extendedContext = (extendContextWith obj ctx){currentAttr = Phi}
-      withContext extendedContext $ dataizeStepChain decoratee
+      return (extendedContext, Left (substThis obj decoratee))
   | otherwise = do
       logStep "No change to formation" (Left obj)
       ctx <- getContext
