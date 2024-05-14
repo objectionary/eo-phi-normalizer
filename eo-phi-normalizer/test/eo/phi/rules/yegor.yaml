@@ -149,7 +149,7 @@ rules:
     tests:
       - name: 'Attribute does not exist'
         input: '⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧.b'
-        output: ['⟦ ⟧.b']
+        output: ['⟦ ρ ↦ ⟦ a ↦ ⟦ ⟧ ⟧ ⟧.b']
       - name: 'Attribute exists'
         input: '⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧.a'
         output: []
