@@ -58,21 +58,6 @@ function check_configs {
         && print_message "Result: no difference"
 }
 
-function update_pipeline_lock {
-    pipeline_lock_file="pipeline/pipeline.lock"
-
-    print_message "Update pipeline lock in $pipeline_lock_file"
-
-    write_pipeline_lock "$pipeline_lock_file" "$pipeline_config"
-
-    if [[ "$pipeline_lock_changed" = "true" ]]; then
-        print_message "Result: pipeline lock updated"
-        mv "$pipeline_lock_file_new" "$pipeline_lock_file"
-    else
-        print_message "Result: pipeline lock didn't change"
-    fi
-}
-
 function generate_eo_tests {
     print_message "Generate EO test files"
 
