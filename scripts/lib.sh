@@ -18,7 +18,7 @@ EO_HEAD_HASH="$(git rev-parse HEAD:eo)"
 PIPELINE_CONFIG_HASH="$(git hash-object "$pipeline_config_file")"
 EOF
 
-    pipeline_lock_changed=false
+    pipeline_lock_changed="${pipeline_lock_changed:-false}"
 
     if ! cmp "$pipeline_lock_file" "$pipeline_lock_file_new"; then
         pipeline_lock_changed=true

@@ -96,6 +96,7 @@ jobs:
           printf "pipeline_lock_file_new=$pipeline_lock_file_new\n" >> $GITHUB_OUTPUT
 
       - name: Restore and cache pipeline files
+        id: restore-pipeline-files
         if: steps.check-pipeline-lock.outputs.pipeline_lock_changed
         uses: actions/cache@v4
         with:
@@ -104,6 +105,8 @@ jobs:
 
       - name: Run pipeline
         shell: bash
+        env:
+          pipeline_lock_changed: ${{ steps.check-pipeline-lock.outputs.pipeline_lock_changed || ! steps.restore-pipeline-files.outputs.cache-hit }}
         run: ./scripts/pipeline.sh
 
       - name: Configure git
