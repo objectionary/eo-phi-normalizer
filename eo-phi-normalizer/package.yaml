@@ -98,7 +98,7 @@ executables:
 
 tests:
   spec:
-    main: Spec.hs
+    main: Main.hs
     source-dirs: test
     ghc-options:
       - -threaded
@@ -106,6 +106,7 @@ tests:
       - -with-rtsopts=-N
     dependencies:
       - eo-phi-normalizer
+      - with-utf8
       - hspec
       - hspec-discover
       - QuickCheck
