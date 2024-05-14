@@ -76,12 +76,15 @@ jobs:
       - name: 🧰 Setup Stack
         uses: freckle/stack-action@v5
         with:
-          stack-build-arguments: --pedantic
-          stack-build-arguments-build: --copy-bins
-          stack-build-arguments-test: --force-dirty
-          # TODO #213:10m enable macos test after https://github.com/objectionary/normalizer/issues/180 is resolved
-          # TODO #98:10m enable windows tests after https://github.com/objectionary/normalizer/issues/185 is resolved
-          test: ${{ matrix.os != 'windows-latest' && matrix.os != 'macos-12'}}
+          stack-build-arguments: --pedantic --prefetch --copy-bins
+          test: false
+
+      - name: Run tests
+        shell: bash
+        run: |
+          ${{ runner.os == 'Windows' && 'chcp.com 65001' || '' }}
+          stack clean
+          stack test --reconfigure --pedantic
 
       - uses: actions/setup-node@v4
         with:

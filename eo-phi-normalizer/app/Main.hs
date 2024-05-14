@@ -48,6 +48,7 @@ import Language.EO.Phi.Report.Html qualified as ReportHtml (ReportConfig (..))
 import Language.EO.Phi.Rules.Common
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRuleNamed, parseRuleSetFromFile)
 import Language.EO.Phi.ToLaTeX
+import Main.Utf8
 import Options.Applicative hiding (metavar)
 import Options.Applicative qualified as Optparse (metavar)
 import PyF (fmt, fmtTrim)
@@ -351,7 +352,7 @@ getMetrics bindingsPath inputFile = do
 -- * Main
 
 main :: IO ()
-main = do
+main = withUtf8 do
   opts <- customExecParser pprefs cliOpts
   let printAsProgramOrAsObject = \case
         Formation bindings' -> printTree $ Program bindings'
