@@ -19,6 +19,13 @@ function eo {
     npx eoc --parser="$EO" "$@"
 }
 
+function mkdir_clean {
+    rm -rf "$1"
+    mkdir -p "$1"
+}
+
+export -f mkdir_clean
+
 function check_configs {
     # TODO #263:1h Check all fields of configs in a Haskell script
 
@@ -59,14 +66,9 @@ function check_configs {
 }
 
 function prepare_directory {
-
-    print_message "Clean the pipeline directory"
-
-    rm -rf pipeline/*/
-
     print_message "Generate EO test files"
 
-    mkdir -p pipeline/eo
+    mkdir_clean pipeline/eo
     stack run transform-eo-tests
 }
 
@@ -81,7 +83,8 @@ function convert_eo_to_phi {
 
     print_message "Convert EO to PHI"
 
-    mkdir -p phi
+    mkdir_clean phi
+
     cd eo
     eo clean
     eo phi
@@ -95,7 +98,7 @@ function update_normalizer_phi_files {
 
     cd eo
     data_directory="../../eo-phi-normalizer/data/$EO"
-    mkdir -p "$data_directory"
+    mkdir_clean "$data_directory"
     cp -r .eoc/phi/org "$data_directory"
     cd ..
 }
@@ -104,7 +107,8 @@ function convert_phi_to_eo {
 
     print_message "Convert PHI to EO without normalization"
 
-    mkdir -p eo-non-normalized
+    mkdir_clean eo-non-normalized
+
     cd phi
     cp -r ../eo/.eoc .
     eo unphi --tests
@@ -128,7 +132,8 @@ function normalize {
 
     print_message "Normalize PHI"
 
-    mkdir -p phi-normalized
+    mkdir_clean phi-normalized
+
     cd phi
     phi_files="$(find . -type f -not -path './.eoc/*')"
     dependency_files="$(find .eoc/phi/org/eolang -type f)"
@@ -137,7 +142,7 @@ function normalize {
     function normalize_file {
         local f="$1"
         destination="../phi-normalized/$f"
-        mkdir -p "$(dirname "$destination")"
+        mkdir_clean "$(dirname "$destination")"
 
         dependency_file_options="$(printf "%s" "$dependency_files" | xargs -I {} printf "%s" " --dependency-file {} ")"
 
@@ -184,7 +189,8 @@ function test_with_normalization {
 
     print_message "Test EO with normalization"
 
-    mkdir -p eo-normalized
+    mkdir_clean eo-normalized
+
     cd eo-normalized
     cp -r ../phi-normalized/.eoc/print/!(org)  .
     eo test
