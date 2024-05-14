@@ -141,6 +141,7 @@ rules:
     result: |
       !n[ ξ ↦ ⟦ !B ⟧ ].!a
     when:
+      - apply_in_subformations: false
       - nf_inside_formation: '!n'
       - not_equal: ['!a', 'φ']
       - absent_attrs:
