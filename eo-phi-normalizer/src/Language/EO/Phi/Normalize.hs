@@ -12,24 +12,16 @@ module Language.EO.Phi.Normalize (
 import Control.Monad.State
 import Data.Maybe (fromMaybe)
 
-import Control.Lens.Setter ((+=))
-import Control.Monad (forM)
 import Data.Generics.Labels ()
 import GHC.Generics (Generic)
-import Language.EO.Phi.Rules.Common (getMaxNu, intToBytesObject, lookupBinding, objectBindings)
+import Language.EO.Phi.Rules.Common (lookupBinding, objectBindings)
 import Language.EO.Phi.Syntax.Abs
 
 data Context = Context
   { globalObject :: [Binding]
   , thisObject :: [Binding]
-  , maxNu :: Int
   }
   deriving (Generic)
-
-isNu :: Binding -> Bool
-isNu (AlphaBinding VTX _) = True
-isNu (EmptyBinding VTX) = True
-isNu _ = False
 
 -- | Normalize an input 𝜑-program.
 normalize :: Program -> Program
@@ -39,36 +31,12 @@ normalize (Program bindings) = evalState (Program . objectBindings <$> normalize
     Context
       { globalObject = bindings
       , thisObject = bindings
-      , maxNu = getMaxNu (Formation bindings)
       }
-
-rule1 :: Object -> State Context Object
-rule1 (Formation bindings) = do
-  normalizedBindings <- forM bindings $ \case
-    AlphaBinding a object
-      | a /= VTX ->
-          do
-            object' <- rule1 object
-            pure (AlphaBinding a object')
-    b -> pure b
-  finalBindings <-
-    if not $ any isNu normalizedBindings
-      then do
-        #maxNu += 1
-        nus <- gets maxNu
-        let dataObject = intToBytesObject nus
-        pure (AlphaBinding VTX dataObject : normalizedBindings)
-      else do
-        pure normalizedBindings
-  pure (Formation finalBindings)
-rule1 object = pure object
 
 normalizeObject :: Object -> State Context Object
 normalizeObject object = do
   this <- gets thisObject
   case object of
-    -- Rule 1
-    obj@(Formation _) -> rule1 obj
     ObjectDispatch ThisObject a -> pure $ fromMaybe object (lookupBinding a this)
     _ -> pure object
 

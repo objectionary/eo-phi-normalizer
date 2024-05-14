@@ -12,6 +12,9 @@ module Language.EO.Phi.Rules.Common where
 import Control.Applicative (Alternative ((<|>)), asum)
 import Control.Arrow (Arrow (first))
 import Control.Monad
+import Data.Binary qualified as Binary
+import Data.ByteString.Lazy qualified as ByteString
+import Data.Char (toUpper)
 import Data.List (nubBy, sortOn)
 import Data.List.NonEmpty (NonEmpty (..), (<|))
 import Data.List.NonEmpty qualified as NonEmpty
@@ -71,7 +74,7 @@ defaultContext rules obj =
   Context
     { allRules = rules
     , outerFormations = NonEmpty.singleton obj
-    , currentAttr = Sigma
+    , currentAttr = Phi
     , insideFormation = False
     , dataizePackage = True
     }
@@ -234,7 +237,6 @@ equalBindings bindings1 bindings2 = and (zipWith equalBinding (sortOn attr bindi
   attr (MetaBindings metaId) = MetaAttr metaId
 
 equalBinding :: Binding -> Binding -> Bool
-equalBinding (AlphaBinding VTX _) (AlphaBinding VTX _) = True -- TODO #166:15min Renumerate vertices uniformly instead of ignoring them
 equalBinding (AlphaBinding attr1 obj1) (AlphaBinding attr2 obj2) = attr1 == attr2 && equalObject obj1 obj2
 -- Ignore deltas for now while comparing since different normalization paths can lead to different vertex data
 -- TODO #120:30m normalize the deltas instead of ignoring since this actually suppresses problems
@@ -261,6 +263,9 @@ instance Monad (Chain a) where
     | (steps, x) <- dx ctx
     , (steps', y) <- runChain (f x) ctx
     ]
+
+instance MonadFail (Chain a) where
+  fail _msg = Chain (const [])
 
 logStep :: String -> info -> Chain info ()
 logStep msg info = Chain $ const [([(msg, info)], ())]
@@ -316,7 +321,9 @@ applyRulesChainWith limits@ApplicationLimits{..} obj
           logStep ruleName obj'
           if objectSize obj' < maxTermSize
             then applyRulesChainWith limits{maxDepth = maxDepth - 1} obj'
-            else return obj'
+            else do
+              logStep "Max term size hit" obj'
+              return obj'
 
 -- * Helpers
 
@@ -334,19 +341,24 @@ objectBindings (Application obj bs) = objectBindings obj ++ bs
 objectBindings (ObjectDispatch obj _attr) = objectBindings obj
 objectBindings _ = []
 
-intToBytes :: Int -> Bytes
-intToBytes n = Bytes $ insertDashes $ pad $ showHex n ""
+padLeft :: Int -> [Char] -> [Char]
+padLeft n s = replicate (n - length s) '0' ++ s
+
+normalizeBytes :: String -> String
+normalizeBytes = map toUpper . insertDashes . padLeft 2
  where
-  pad s = (if even (length s) then "" else "0") ++ s
   insertDashes s
     | length s <= 2 = s ++ "-"
     | otherwise =
         let go = \case
               [] -> []
               [x] -> [x]
-              [x, y] -> [x, y, '-']
+              [x, y] -> [x, y]
               (x : y : xs) -> x : y : '-' : go xs
          in go s
+
+intToBytes :: Int -> Bytes
+intToBytes n = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "")) $ ByteString.unpack $ Binary.encode n
 
 -- | Assuming the bytes are well-formed (otherwise crashes)
 bytesToInt :: Bytes -> Int
@@ -354,40 +366,29 @@ bytesToInt (Bytes (filter (/= '-') . dropWhile (== '0') -> bytes))
   | null bytes = 0
   | otherwise = fst $ head $ readHex bytes
 
-minNu :: Int
-minNu = -1
+boolToBytes :: Bool -> Bytes
+boolToBytes True = intToBytes 1
+boolToBytes False = intToBytes 0
 
-class HasMaxNu a where
-  -- | get maximum vertex index
-  --
-  -- >>> getMaxNu @Object "⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧ ⟧, b ↦ ⟦ ⟧ ⟧"
-  -- 3
-  getMaxNu :: a -> Int
+bytesToBool :: Bytes -> Bool
+bytesToBool (Bytes "00-") = False
+bytesToBool _ = True -- TODO: verify that anything (not just 01-) can be interpreted as true
 
-instance HasMaxNu Program where
-  getMaxNu :: Program -> Int
-  getMaxNu (Program bindings) = getMaxNu (Formation bindings)
+stringToBytes :: String -> Bytes
+stringToBytes s = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "") . fromEnum) s
 
-instance HasMaxNu Object where
-  getMaxNu :: Object -> Int
-  getMaxNu = \case
-    Formation bindings -> maximum (minNu : (getMaxNu <$> bindings))
-    Application obj bindings -> maximum (minNu : getMaxNu obj : (getMaxNu <$> bindings))
-    ObjectDispatch obj _ -> getMaxNu obj
-    _ -> minNu
+bytesToString :: Bytes -> String
+bytesToString (Bytes bytes) = map (toEnum . fst . head . readHex) $ words (map dashToSpace bytes)
+ where
+  dashToSpace '-' = ' '
+  dashToSpace c = c
 
-instance HasMaxNu Binding where
-  getMaxNu :: Binding -> Int
-  getMaxNu = \case
-    AlphaBinding VTX (Formation [DeltaBinding (Bytes bs)]) ->
-      case readHex [x | x <- bs, x /= '-'] of
-        [(val, "")] -> val
-        _ -> error "Vertex number is incorrect"
-    AlphaBinding _ obj -> getMaxNu obj
-    _ -> minNu
+-- It is called "float" in EO, but it actually occupies 8 bytes so it's a double
+floatToBytes :: Double -> Bytes
+floatToBytes f = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "")) $ ByteString.unpack $ Binary.encode f
 
-intToBytesObject :: Int -> Object
-intToBytesObject n = Formation [DeltaBinding $ intToBytes n]
-
-nuCountAsDataObj :: Object -> Object
-nuCountAsDataObj = intToBytesObject . getMaxNu
+bytesToFloat :: Bytes -> Double
+bytesToFloat (Bytes bytes) = Binary.decode $ ByteString.pack $ map (fst . head . readHex) $ words (map dashToSpace bytes)
+ where
+  dashToSpace '-' = ' '
+  dashToSpace c = c

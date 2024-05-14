@@ -41,13 +41,7 @@ data Binding
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data Attribute
-    = Phi
-    | Rho
-    | Sigma
-    | VTX
-    | Label LabelId
-    | Alpha AlphaIndex
-    | MetaAttr MetaId
+    = Phi | Rho | Label LabelId | Alpha AlphaIndex | MetaAttr MetaId
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data RuleAttribute = ObjectAttr Attribute | DeltaAttr | LambdaAttr

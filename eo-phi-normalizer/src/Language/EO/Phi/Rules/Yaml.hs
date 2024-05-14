@@ -13,9 +13,8 @@
 
 module Language.EO.Phi.Rules.Yaml where
 
-import Control.Lens ((+=))
 import Control.Monad (guard)
-import Control.Monad.State (State, evalState, gets)
+import Control.Monad.State (State, evalState)
 import Data.Aeson (FromJSON (..), Options (sumEncoding), SumEncoding (UntaggedValue), genericParseJSON)
 import Data.Aeson.Types (defaultOptions)
 import Data.Coerce (coerce)
@@ -150,8 +149,6 @@ bindingHasMetavars (MetaDeltaBinding _) = True
 attrHasMetavars :: Attribute -> Bool
 attrHasMetavars Phi = False
 attrHasMetavars Rho = False
-attrHasMetavars Sigma = False
-attrHasMetavars VTX = False
 attrHasMetavars (Label _) = False
 attrHasMetavars (Alpha _) = False
 attrHasMetavars (MetaAttr _) = True
@@ -334,25 +331,18 @@ matchObject _ _ = [] -- ? emptySubst ?
 -- | Evaluate meta functions
 -- given top-level context as an object
 -- and an object
---
--- >>> evaluateMetaFuncs "⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧ ⟧, b ↦ ⟦ ⟧ ⟧" "⟦ a ↦ ⟦ ν ↦ @T(⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧ ⟧, b ↦ ⟦ ⟧ ⟧)  ⟧, b ↦ ⟦ ⟧ ⟧"
--- Formation [AlphaBinding (Label (LabelId "a")) (Formation [AlphaBinding VTX (Formation [DeltaBinding (Bytes "04-")])]),AlphaBinding (Label (LabelId "b")) (Formation [])]
 evaluateMetaFuncs :: Object -> Object -> Object
-evaluateMetaFuncs obj' obj =
+evaluateMetaFuncs _obj' obj =
   evalState
     (evaluateMetaFuncs' obj)
-    MetaState{nuCount = Common.getMaxNu obj' + 1}
+    MetaState{}
 
-newtype MetaState = MetaState
-  { nuCount :: Int
+data MetaState = MetaState
+  {
   }
   deriving (Generic)
 
 evaluateMetaFuncs' :: Object -> State MetaState Object
-evaluateMetaFuncs' (MetaFunction (MetaFunctionName "@T") _) = do
-  nuCount' <- gets (Common.intToBytesObject . nuCount)
-  #nuCount += 1
-  pure nuCount'
 evaluateMetaFuncs' (Formation bindings) = Formation <$> mapM evaluateMetaFuncsBinding bindings
 evaluateMetaFuncs' (Application obj bindings) = Application <$> evaluateMetaFuncs' obj <*> mapM evaluateMetaFuncsBinding bindings
 evaluateMetaFuncs' (ObjectDispatch obj a) = ObjectDispatch <$> evaluateMetaFuncs' obj <*> pure a
