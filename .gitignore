@@ -45,6 +45,7 @@ __pycache__
 *.log
 pipeline/*
 !pipeline/config.yaml
+!pipeline/pipeline.lock
 node_modules
 
 try-unphi
