@@ -7,11 +7,12 @@ if ! [ -d node_modules ]; then npm i; fi
 export LC_ALL=C.UTF-8
 shopt -s extglob
 
-function print_message {
-    printf "\n\n\n[[[%s]]]\n\n\n" "$1"
-}
+# import scripts - https://stackoverflow.com/a/12694189
+DIR="${BASH_SOURCE%/*}"
+if [[ ! -d "$DIR" ]]; then DIR="$PWD/pipeline"; fi
+source "$DIR/lib.sh"
 
-EO="${EO:-$(yq '.project.parent.version' -p xml < eo/eo-runtime/pom.xml)}"
+EO="$(get_eo_version)"
 
 print_message "EO version: $EO"
 
@@ -19,19 +20,12 @@ function eo {
     npx eoc --parser="$EO" "$@"
 }
 
-function mkdir_clean {
-    rm -rf "$1"
-    mkdir -p "$1"
-}
-
-export -f mkdir_clean
-
 function check_configs {
     # TODO #263:1h Check all fields of configs in a Haskell script
 
-    pipeline_config=pipeline/config.yaml
-    report_config=report/config.yaml
-    eo_tests=eo/eo-runtime/src/test/eo/org/eolang
+    pipeline_config="pipeline/config.yaml"
+    report_config="report/config.yaml"
+    eo_tests="eo/eo-runtime/src/test/eo/org/eolang"
 
     eo_files="$(mktemp)"
     (
@@ -61,17 +55,31 @@ function check_configs {
         > "$report_eo_files"
 
     diff -U 10 "$report_eo_files" "$eo_files" \
-        && print_message "No difference"
+        && print_message "Result: no difference"
 }
 
-function prepare_directory {
+function update_pipeline_lock {
+    pipeline_lock_file="pipeline/pipeline.lock"
+
+    print_message "Update pipeline lock in $pipeline_lock_file"
+
+    write_pipeline_lock "$pipeline_lock_file" "$pipeline_config"
+
+    if [[ "$pipeline_lock_changed" = "true" ]]; then
+        print_message "Result: pipeline lock updated"
+        mv "$pipeline_lock_file_new" "$pipeline_lock_file"
+    else
+        print_message "Result: pipeline lock didn't change"
+    fi
+}
+
+function generate_eo_tests {
     print_message "Generate EO test files"
 
-    mkdir_clean pipeline/eo
     stack run transform-eo-tests
 }
 
-function enter_directory {
+function enter_pipeline_directory {
 
     print_message "Enter the pipeline directory"
 
@@ -134,8 +142,8 @@ function normalize {
     mkdir_clean phi-normalized
 
     cd phi
-    phi_files="$(find -- * -type f -not -path './.eoc/*')"
-    dependency_files="$(find .eoc/phi/org/eolang -type f)"
+    phi_files="$(find -- * -type f)"
+    dependency_files="$(find ../eo/.eoc/phi/org/eolang -type f)"
     export dependency_files
 
     stack install --ghc-options -O2
@@ -143,7 +151,7 @@ function normalize {
     function normalize_file {
         local f="$1"
         destination="../phi-normalized/$f"
-        mkdir_clean "$(dirname "$destination")"
+        mkdir -p "$(dirname "$destination")"
 
         dependency_file_options="$(printf "%s" "$dependency_files" | xargs -I {} printf "%s" " --dependency-file {} ")"
 
@@ -198,12 +206,17 @@ function test_with_normalization {
 }
 
 check_configs
-prepare_directory
-enter_directory
-convert_eo_to_phi
-update_normalizer_phi_files
-convert_phi_to_eo
-test_without_normalization
+update_pipeline_lock
+generate_eo_tests
+enter_pipeline_directory
+
+if [[ "$pipeline_lock_changed" = true ]]; then
+    convert_eo_to_phi
+    update_normalizer_phi_files
+    convert_phi_to_eo
+    test_without_normalization
+fi
+
 normalize
 generate_report
 convert_normalized_phi_to_eo
