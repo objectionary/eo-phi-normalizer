@@ -84,8 +84,7 @@ jobs:
         run: |
           ${{ runner.os == 'Windows' && 'chcp.com 65001' || '' }}
           stack clean
-          stack build --reconfigure
-          stack test --pedantic
+          stack test --reconfigure --pedantic
 
       - uses: actions/setup-node@v4
         with:
