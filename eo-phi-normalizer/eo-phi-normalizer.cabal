@@ -119,6 +119,7 @@ executable normalizer
     , scientific
     , template-haskell
     , text
+    , with-utf8
     , yaml
   default-language: Haskell2010
 

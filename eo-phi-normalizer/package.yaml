@@ -91,6 +91,7 @@ executables:
       - -rtsopts
       - -with-rtsopts=-N
     dependencies:
+      - with-utf8
       - eo-phi-normalizer
       - optparse-applicative
       - aeson-pretty
