@@ -55,3 +55,17 @@ function get_eo_version {
 }
 
 export -f get_eo_version
+
+function commit_and_push_if_changed {
+    files="$1"
+    updated_message="$2"
+    if [ -n "$(git status --porcelain "$files")" ]; then
+        git add "$files"
+        git commit -m "Update $updated_message"
+        git push
+    else
+        echo "Nothing to commit.";
+    fi
+}
+
+export -f commit_and_push_if_changed
