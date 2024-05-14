@@ -82,9 +82,9 @@ jobs:
       - name: Run tests
         shell: bash
         run: |
+          ${{ runner.os == 'Windows' && 'chcp.com 65001' || '' }}
           stack clean
           stack build --reconfigure
-          ${{ runner.os == 'Windows' && 'chcp.com 65001' || '' }}
           stack test --pedantic
 
       - uses: actions/setup-node@v4
