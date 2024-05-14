@@ -23,7 +23,7 @@ tests:
     input: |
       {⟦ φ ↦ Φ.org.eolang.true.eq(α0 ↦ Φ.org.eolang.true) ⟧}
     output:
-      bytes: "00-00-00-00-00-00-00-01"
+      bytes: "01-"
 
   - name: "Program with ξ.ρ.ρ"
     dependencies: []
@@ -243,6 +243,8 @@ tests:
     dependencies:
       - ./data/0.38.0/org/eolang/int.phi
       - ./data/0.38.0/org/eolang/bytes.phi
+      - ./data/0.38.0/org/eolang/false.phi
+      - ./data/0.38.0/org/eolang/true.phi
     input: |
       {⟦
         φ ↦ ⟦
@@ -252,7 +254,7 @@ tests:
         ⟧
       ⟧}
     output:
-      bytes: "00-00-00-00-00-00-00-00"
+      bytes: "00-"
 
   # Missing int tests: div
 
@@ -300,11 +302,13 @@ tests:
   - name: "bytes shift and equal"
     dependencies:
       - ./data/0.38.0/org/eolang/bytes.phi
+      - ./data/0.38.0/org/eolang/true.phi
+      - ./data/0.38.0/org/eolang/false.phi
     input: |
       {⟦
         φ ↦ ⟦
           ρ ↦ ⟦ Δ ⤍ 02-24-46-68-8A-AC-CE-F1 ⟧,
-          x ↦ ⟦
+          b ↦ ⟦
             ρ ↦ ⟦ Δ ⤍ 11-22-33-44-55-66-77-88 ⟧,
             x ↦ ⟦ Δ ⤍ 03- ⟧,
             λ ⤍ Lorg_eolang_bytes_right
@@ -313,7 +317,7 @@ tests:
         ⟧
       ⟧}
     output:
-      bytes: "00-00-00-00-00-00-00-01"
+      bytes: "01-"
 
   # Missing bytes tests: or, xor, slice, concat
 
