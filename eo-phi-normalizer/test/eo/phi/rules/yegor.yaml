@@ -1,64 +1,5 @@
 title: "Rule set based on Yegor's draft"
 rules:
-  # - name: Rule 1
-  #   description: 'Initialization of vertex attribute'
-  #   context:
-  #     global_object: '!Phi'
-  #     current_attribute: '!a'
-  #   pattern: |
-  #     ⟦ !B ⟧
-  #   result: |
-  #     ⟦ !B, ν ↦ @T(!Phi) ⟧
-  #   when:
-  #     - absent_attrs:
-  #         attrs: ['ν']
-  #         bindings: ['!B']
-  #     - not_equal: ['!a', 'ν']
-  #   tests:
-  #     - name: Adds vertex attribute
-  #       input: '⟦ a ↦ ⟦ ⟧ ⟧'
-  #       output:
-  #         - '⟦ a ↦ ⟦ ⟧, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧'
-  #         - '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧'
-  #     - name: Adds vertices in all non-top-level formations
-  #       input: '⟦ a ↦ ⟦ ⟧, b ↦ ⟦ ⟧ ⟧'
-  #       output:
-  #         - '⟦ a ↦ ⟦ ⟧, b ↦ ⟦ ⟧, ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧'
-  #         - '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧, b ↦ ⟦ ⟧ ⟧'
-  #         - '⟦ a ↦ ⟦ ⟧, b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 00- ⟧ ⟧ ⟧'
-  #     - name: Added vertices are incremental (1)
-  #       input: '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧ ⟧, b ↦ ⟦ ⟧ ⟧'
-  #       output:
-  #         - '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧ ⟧, b ↦ ⟦ ⟧, ν ↦ ⟦ Δ ⤍ 04- ⟧ ⟧'
-  #         - '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 03- ⟧ ⟧, b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 04- ⟧ ⟧ ⟧'
-  #     - name: Added vertices are incremental (2)
-  #       input: '⟦ a ↦ ⟦ ⟧(ν ↦ ⟦ Δ ⤍ 06- ⟧), b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 05- ⟧ ⟧, c ↦ ⟦ ⟧ ⟧'
-  #       output:
-  #         - '⟦ a ↦ ⟦ ⟧(ν ↦ ⟦ Δ ⤍ 06- ⟧), b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 05- ⟧ ⟧, c ↦ ⟦ ⟧, ν ↦ ⟦ Δ ⤍ 07- ⟧ ⟧'
-  #         - '⟦ a ↦ ⟦ ν ↦ ⟦ Δ ⤍ 07- ⟧ ⟧(ν ↦ ⟦ Δ ⤍ 06- ⟧), b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 05- ⟧ ⟧, c ↦ ⟦ ⟧ ⟧'
-  #         - '⟦ a ↦ ⟦ ⟧(ν ↦ ⟦ Δ ⤍ 06- ⟧), b ↦ ⟦ ν ↦ ⟦ Δ ⤍ 05- ⟧ ⟧, c ↦ ⟦ ν ↦ ⟦ Δ ⤍ 07- ⟧ ⟧ ⟧'
-
-  # - name: Rule 2
-  #   description: ''
-  #   context:
-  #     current_object: ⟦ σ ↦ !obj, !B2 ⟧
-  #     current_attribute: '!a'
-  #   pattern: |
-  #     ⟦ !B1 ⟧
-  #   result: |
-  #     ⟦ σ ↦ !obj.!a, !B1 ⟧
-  #   when:
-  #     - absent_attrs:
-  #         attrs: ['σ']
-  #         bindings: ['!B1']
-  #   tests:
-  #     - name: 'Adds home attribute'
-  #       input: '⟦ a ↦ ⟦ b ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧ ⟧'
-  #       output: ['⟦ a ↦ ⟦ b ↦ ⟦ σ ↦ ⟦ ⟧.a ⟧, σ ↦ ⟦ ⟧ ⟧ ⟧']
-  #     - name: 'Leaves the object unchanged'
-  #       input: '⟦ a ↦ ⟦ b ↦ ⟦ σ ↦ ⟦ ⟧ ⟧ ⟧ ⟧'
-  #       output: []
-
   # - name: Rule 3
   #   description: 'Initialization of parent attribute'
   #   pattern: |
@@ -107,11 +48,11 @@ rules:
     when:
       - apply_in_subformations: false
       # - present_attrs:
-      #     attrs: ['ν', 'σ', 'ρ']
+      #     attrs: ['ρ']
       #     bindings: ['!B']
     tests:
       - name: Does not replace ξ inside a subformation
-        input: '⟦ a ↦ ⟦ ⟧, x ↦ ξ.a, ν ↦ ⟦ ⟧, σ ↦ ⟦ ⟧, ρ ↦ ⟦ ⟧ ⟧'
+        input: '⟦ a ↦ ⟦ ⟧, x ↦ ξ.a, ρ ↦ ⟦ ⟧ ⟧'
         output: []
       # How to test replacing without already having context?
 
@@ -240,12 +181,12 @@ rules:
           attrs: ['!a', 'φ', 'λ']
           bindings: ['!B']
       - present_attrs:
-          attrs: ['ρ', 'σ']
+          attrs: ['ρ']
           bindings: ['!B']
       - nf: '⟦ !B ⟧'
     tests:
       - name: 'Accessing nonexistent attribute'
-        input: '⟦ ρ ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧.x'
+        input: '⟦ ρ ↦ ⟦ ⟧ ⟧.x'
         output: ['⊥']
 
   - name: Rule 12

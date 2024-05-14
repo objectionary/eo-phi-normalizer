@@ -18,7 +18,7 @@ import Language.EO.Phi
 import Language.EO.Phi.Metrics.Collect (getProgramMetrics)
 import Language.EO.Phi.Metrics.Data (BindingsByPathMetrics (..), ProgramMetrics (..))
 import Language.EO.Phi.Rules.Common (Rule, defaultContext, equalProgram)
-import Language.EO.Phi.Rules.PhiPaper (rule1, rule6)
+import Language.EO.Phi.Rules.PhiPaper (rule6)
 import PyF (fmt)
 import Test.EO.Phi
 import Test.Hspec
@@ -34,7 +34,7 @@ applyRule rule = \case
 spec :: Spec
 spec = do
   describe "Pre-defined rules" $
-    forM_ ([(1, rule1), (6, rule6)] :: [(Int, Rule)]) $
+    forM_ ([(6, rule6)] :: [(Int, Rule)]) $
       \(idx, rule) -> do
         PhiTestGroup{..} <- runIO (fileTests [fmt|test/eo/phi/rule-{idx}.yaml|])
         describe title $
