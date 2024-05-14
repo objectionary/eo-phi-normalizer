@@ -138,6 +138,8 @@ function normalize {
     dependency_files="$(find .eoc/phi/org/eolang -type f)"
     export dependency_files
 
+    stack install --ghc-options -O2
+
     function normalize_file {
         local f="$1"
         destination="../phi-normalized/$f"
@@ -147,8 +149,7 @@ function normalize {
 
         set -x
         # shellcheck disable=SC2086
-        stack run -- \
-            dataize \
+        normalizer dataize \
             --recursive \
             --rules \
             ../../eo-phi-normalizer/test/eo/phi/rules/yegor.yaml \
