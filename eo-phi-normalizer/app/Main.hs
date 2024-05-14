@@ -37,7 +37,7 @@ import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy as TL (unpack)
 import Data.Yaml (decodeFileThrow)
 import GHC.Generics (Generic)
-import Language.EO.Phi (Bytes (Bytes), Object (Formation), Program (Program), parseProgram, printTree)
+import Language.EO.Phi (Binding (LambdaBinding), Bytes (Bytes), Object (Formation), Program (Program), parseProgram, printTree)
 import Language.EO.Phi.Dataize
 import Language.EO.Phi.Dependencies
 import Language.EO.Phi.Metrics.Collect as Metrics (getProgramMetrics)
@@ -78,6 +78,7 @@ data CLI'DataizePhi = CLI'DataizePhi
   , recursive :: Bool
   , chain :: Bool
   , latex :: Bool
+  , asPackage :: Bool
   }
   deriving (Show)
 
@@ -155,6 +156,9 @@ jsonSwitch = switch (long "json" <> short 'j' <> help "Output JSON.")
 latexSwitch :: Parser Bool
 latexSwitch = switch (long "tex" <> help "Output LaTeX.")
 
+asPackageSwitch :: Parser Bool
+asPackageSwitch = switch (long "as-package" <> help "Automatically inject (λ → Package) in the program if necessary, to dataize all fields.")
+
 bindingsPathOption :: Parser (Maybe String)
 bindingsPathOption =
   optional $
@@ -212,6 +216,7 @@ commandParser =
     recursive <- switch (long "recursive" <> help "Apply dataization + normalization recursively.")
     chain <- switch (long "chain" <> help "Display all the intermediate steps.")
     latex <- latexSwitch
+    asPackage <- asPackageSwitch
     pure CLI'DataizePhi{..}
   report = do
     configFile <- strOption (long "config" <> short 'c' <> metavar.file <> help [fmt|A report configuration {metavarName.file}.|])
@@ -349,6 +354,11 @@ getMetrics bindingsPath inputFile = do
   program <- getProgram inputFile
   either throw pure (getMetrics' program bindingsPath)
 
+injectLamdbaPackage :: [Binding] -> [Binding]
+injectLamdbaPackage bs
+  | any isPackageBinding bs = bs
+  | otherwise = bs ++ [LambdaBinding "Package"]
+
 -- * Main
 
 main :: IO ()
@@ -360,12 +370,14 @@ main = withUtf8 do
   case opts of
     CLI'MetricsPhi' CLI'MetricsPhi{..} -> do
       (logStrLn, _) <- getLoggers outputFile
+      logStrLn "Computing metrics"
       metrics <- getMetrics bindingsPath inputFile
       logStrLn $ encodeToJSONString metrics
     CLI'TransformPhi' CLI'TransformPhi{..} -> do
       program' <- getProgram inputFile
       deps <- mapM (getProgram . Just) dependencies
       (logStrLn, logStr) <- getLoggers outputFile
+      logStrLn "Running transform"
       ruleSet <- parseRuleSetFromFile rulesPath
       unless (single || json) $ logStrLn ruleSet.title
       bindingsWithDeps <- case deepMergePrograms (program' : deps) of
@@ -419,6 +431,7 @@ main = withUtf8 do
               logStrLn "----------------------------------------------------"
     CLI'DataizePhi' CLI'DataizePhi{..} -> do
       (logStrLn, _logStr) <- getLoggers outputFile
+      logStrLn "Running dataize"
       program' <- getProgram inputFile
       deps <- mapM (getProgram . Just) dependencies
       bindingsWithDeps <- case deepMergePrograms (program' : deps) of
@@ -426,7 +439,9 @@ main = withUtf8 do
         Right (Program bindingsWithDeps) -> return bindingsWithDeps
       ruleSet <- parseRuleSetFromFile rulesPath
       let (Program bindings) = program'
-      let inputObject = Formation bindings
+      let inputObject
+            | asPackage = Formation (injectLamdbaPackage bindings)
+            | otherwise = Formation bindings
       let ctx = defaultContext (convertRuleNamed <$> ruleSet.rules) (Formation bindingsWithDeps) -- IMPORTANT: context contains dependencies!
       ( if chain
           then do
