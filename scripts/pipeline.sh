@@ -23,7 +23,6 @@ function eo {
 function check_configs {
     # TODO #263:1h Check all fields of configs in a Haskell script
 
-    pipeline_config="pipeline/config.yaml"
     report_config="report/config.yaml"
     eo_tests="eo/eo-runtime/src/test/eo/org/eolang"
 
@@ -36,10 +35,10 @@ function check_configs {
             > "$eo_files"
     )
 
-    print_message "Check diff between $pipeline_config and EO tests in $eo_tests"
+    print_message "Check diff between $pipeline_config_file and EO tests in $eo_tests"
 
     pipeline_eo_files="$(mktemp)"
-    grep source "$pipeline_config" \
+    grep source "$pipeline_config_file" \
         | sed -r 's|.*/eolang/(.*\.eo)|\1|g' \
         > "$pipeline_eo_files"
 
@@ -68,7 +67,7 @@ function enter_pipeline_directory {
 
     print_message "Enter the pipeline directory"
 
-    cd pipeline
+    cd "$pipeline_dir"
 }
 
 function convert_eo_to_phi {

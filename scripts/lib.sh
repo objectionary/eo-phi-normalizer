@@ -6,12 +6,13 @@ function print_message {
 
 export -f print_message
 
+pipeline_dir="pipeline"
+
+pipeline_config_file="$pipeline_dir/config.yaml"
+pipeline_lock_file="$pipeline_dir/pipeline.lock"
+pipeline_lock_file_new="$pipeline_dir/pipeline_new.lock"
+
 function write_pipeline_lock {
-
-    pipeline_lock_file="$1"
-    pipeline_lock_file_new="$2"
-    pipeline_config_file="$3"
-
         cat > "$pipeline_lock_file_new" <<EOF
 EO_HEAD_HASH="$(git rev-parse HEAD:eo)"
 PIPELINE_CONFIG_HASH="$(git hash-object "$pipeline_config_file")"
@@ -25,13 +26,9 @@ EOF
 }
 
 function update_pipeline_lock {
-    pipeline_config="pipeline/config.yaml"
-    pipeline_lock_file="pipeline/pipeline.lock"
-    pipeline_lock_file_new="pipeline/pipeline_new.lock"
-
     print_message "Update pipeline lock in $pipeline_lock_file"
 
-    write_pipeline_lock "$pipeline_lock_file" "$pipeline_lock_file_new" "$pipeline_config"
+    write_pipeline_lock
 
     if [[ "$pipeline_lock_changed" = "true" ]]; then
         print_message "Result: pipeline lock updated"
