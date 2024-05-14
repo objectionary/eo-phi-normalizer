@@ -168,8 +168,8 @@ data ApplicationLimits = ApplicationLimits
 defaultApplicationLimits :: Int -> ApplicationLimits
 defaultApplicationLimits sourceTermSize =
   ApplicationLimits
-    { maxDepth = 13
-    , maxTermSize = sourceTermSize * 10
+    { maxDepth = 130
+    , maxTermSize = sourceTermSize * 10000
     }
 
 objectSize :: Object -> Int
