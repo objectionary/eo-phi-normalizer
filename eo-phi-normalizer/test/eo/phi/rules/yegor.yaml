@@ -88,6 +88,20 @@ rules:
         input: ⟦ ⟧.hello
         output: []
 
+  - name: Rule 7 α0 α1
+    description: 'Application of α-binding'
+    # Warning: this is not correct for the chain variant because it only matches the first two bindings
+    # i.e., doesn't match an empty binding after an attached one.
+    # We should instead match the first two empty bindings.
+    pattern: |
+      ⟦ !a ↦ ∅, !b ↦ ∅, !B ⟧(α0 ↦ !n0, α1 ↦ !n1)
+    result: |
+      ⟦ !a ↦ !n0, !b ↦ !n1, !B ⟧
+    when:
+      - nf: '!n0'
+      - nf: '!n1'
+    tests: []
+
   - name: Rule 7 α0
     description: 'Application of α-binding'
     # Warning: this is not correct for the chain variant because it only matches the first binding
@@ -125,7 +139,7 @@ rules:
     pattern: |
       ⟦ φ ↦ !n, !B ⟧.!a
     result: |
-      !n.!a
+      !n[ ξ ↦ ⟦ !B ⟧ ].!a
     when:
       - nf_inside_formation: '!n'
       - not_equal: ['!a', 'φ']
