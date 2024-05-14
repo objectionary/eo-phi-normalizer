@@ -127,14 +127,9 @@ jobs:
       - name: Commit and push changes in normalizer data files
         if: always() && runner.os == 'Linux'
         run: |
+          source scripts/lib.sh
           data_directory="eo-phi-normalizer/data"
-          if [ -n "$(git status --porcelain $data_directory)" ]; then
-            git add $data_directory
-            git commit -m "Update normalizer data files"
-            git push
-          else
-            echo "Nothing to commit.";
-          fi
+          commit_and_push_if_changed "$data_directory" "normalizer data files"
 
       - name: Install mdsh
         if: always() && runner.os == 'Linux'
@@ -151,15 +146,9 @@ jobs:
       - name: Commit and push changes in Markdown files
         if: always() && runner.os == 'Linux'
         run: |
+          source scripts/lib.sh
           files="site proposals README.md"
-
-          if [ -n "$(git status --porcelain $files)" ]; then
-            git add $files
-            git commit -m "Update Markdown files"
-            git push
-          else
-            printf "Nothing to commit."
-          fi
+          commit_and_push_if_changed "$files" "Markdown files"
 
       - name: Upload pipeline artifact
         id: pipeline-artifact
