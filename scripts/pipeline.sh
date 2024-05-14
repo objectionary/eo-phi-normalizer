@@ -36,8 +36,7 @@ function check_configs {
     eo_files="$(mktemp)"
     (
         cd "$eo_tests"
-        # shellcheck disable=SC2035
-        find * -type f \
+        find -- * -type f \
             | sort \
             | uniq \
             > "$eo_files"
@@ -135,7 +134,7 @@ function normalize {
     mkdir_clean phi-normalized
 
     cd phi
-    phi_files="$(find . -type f -not -path './.eoc/*')"
+    phi_files="$(find -- * -type f -not -path './.eoc/*')"
     dependency_files="$(find .eoc/phi/org/eolang -type f)"
     export dependency_files
 
