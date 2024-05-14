@@ -117,6 +117,13 @@ jobs:
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git config --global user.name "github-actions[bot]"
 
+      - name: Commit and push changes in pipeline lock
+        if: always() && runner.os == 'Linux' && steps.check-pipeline-lock.outputs.pipeline_lock_changed
+        run: |
+          source scripts/lib.sh
+          pipeline_lock="${{ steps.check-pipeline-lock.outputs.pipeline_lock_file }}"
+          commit_and_push_if_changed "$pipeline_lock" "$pipeline_lock"
+
       - name: Commit and push changes in normalizer data files
         if: always() && runner.os == 'Linux'
         run: |
