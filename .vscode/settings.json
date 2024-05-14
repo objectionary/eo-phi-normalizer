@@ -19,5 +19,6 @@
       ["⟦", "⟧"]
     ],
     "editor.language.colorizedBracketPairs": [["⟦", "⟧"]]
-  }
+  },
+  "shellcheck.customArgs": ["-x"]
 }
