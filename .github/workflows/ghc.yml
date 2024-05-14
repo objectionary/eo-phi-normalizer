@@ -106,7 +106,7 @@ jobs:
       - name: Run pipeline
         shell: bash
         env:
-          pipeline_lock_changed: ${{ steps.check-pipeline-lock.outputs.pipeline_lock_changed || steps.restore-pipeline-files.outputs.cache-hit != 'true' }}
+          pipeline_lock_changed: ${{ (steps.check-pipeline-lock.outputs.pipeline_lock_changed == 'true') || (steps.restore-pipeline-files.outputs.cache-hit != 'true') }}
         run: ./scripts/pipeline.sh
 
       - name: Configure git
