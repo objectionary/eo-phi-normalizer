@@ -15,6 +15,16 @@ tests:
     output:
       bytes: "01-01-00-00-00-00-00-00-00-07-00-00-00-00-00-40-13-FF-FF-FF-FF-FF-FF-FF-D2"
 
+  - name: "Equality of booleans (via equality of bytes)"
+    dependencies:
+      - ./data/0.38.0/org/eolang/bytes.phi
+      - ./data/0.38.0/org/eolang/true.phi
+      - ./data/0.38.0/org/eolang/false.phi
+    input: |
+      {⟦ φ ↦ Φ.org.eolang.true.eq(α0 ↦ Φ.org.eolang.true) ⟧}
+    output:
+      bytes: "00-00-00-00-00-00-00-01"
+
   - name: "Program with ξ.ρ.ρ"
     dependencies: []
     input: |
