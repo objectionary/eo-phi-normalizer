@@ -1,7 +1,5 @@
 # shellcheck disable=SC2148
 
-set -euo pipefail
-
 PWD_DIR="$PWD"
 PIPELINE_DIR_RELATIVE="pipeline"
 PIPELINE_DIR="$PWD/$PIPELINE_DIR_RELATIVE"
@@ -45,7 +43,7 @@ EOF
     PIPELINE_LOCK_CHANGED="${PIPELINE_LOCK_CHANGED:-false}"
 
     if ! cmp "$PIPELINE_LOCK_FILE" "$PIPELINE_LOCK_FILE_NEW"; then
-        PIPELINE_LOCK_CHANGED=true
+        PIPELINE_LOCK_CHANGED="true"
     fi
 }
 
