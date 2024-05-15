@@ -12,13 +12,7 @@ IMPORT_DIR="${BASH_SOURCE%/*}"
 if [[ ! -d "$IMPORT_DIR" ]]; then IMPORT_DIR="$PWD/scripts"; fi
 source "$IMPORT_DIR/lib.sh"
 
-EO="$(get_eo_version)"
-
 print_message "EO version: $EO"
-
-function eo {
-    npx eoc --parser="$EO" "$@"
-}
 
 function check_configs {
     # TODO #263:1h Check all fields of configs in a Haskell script
