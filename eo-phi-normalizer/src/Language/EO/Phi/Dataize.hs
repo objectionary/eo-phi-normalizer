@@ -287,7 +287,8 @@ evaluateBuiltinFunChain "Lorg_eolang_io_stdin_next_line" obj = evaluateIODataiza
 evaluateBuiltinFunChain "Lorg_eolang_io_stdin_φ" obj = evaluateIODataizationFunChain getContents obj
 evaluateBuiltinFunChain "Lorg_eolang_io_stdout" obj = evaluateUnaryDataizationFunChain boolToBytes bytesToString wrapBytesInBytes (extractLabel "text") ((`seq` True) . unsafePerformIO . putStrLn) obj
 -- others
--- evaluateBuiltinFunChain "Lorg_eolang_dataized" obj = _ -- TODO
+evaluateBuiltinFunChain "Lorg_eolang_dataized" obj =
+  evaluateUnaryDataizationFunChain id id wrapBytesInBytes (extractLabel "target") id obj
 evaluateBuiltinFunChain "Lorg_eolang_error" obj = evaluateUnaryDataizationFunChain stringToBytes bytesToString wrapBytesInBytes (extractLabel "message") error obj
 -- evaluateBuiltinFunChain "Lorg_eolang_seq" obj = _ -- TODO
 -- evaluateBuiltinFunChain "Lorg_eolang_as_phi" obj = _ -- TODO
@@ -312,7 +313,9 @@ evaluateBuiltinFunChain "Package" obj@(Formation bindings) = do
     dataizationResult <- withContext extendedContext $ dataizeRecursivelyChain False o
     return (AlphaBinding attr (either id (Formation . singleton . DeltaBinding) dataizationResult))
   dataizeBindingChain b = return b
-evaluateBuiltinFunChain _ obj = \state -> return (obj, state)
+evaluateBuiltinFunChain atomName obj = \state -> do
+  logStep ("[WARNING]: unknown atom (" <> atomName <> ")") (Left obj)
+  return (obj, state)
 
 -- | Like `evaluateDataizationFun` but specifically for the built-in functions.
 -- This function is not safe. It returns undefined for unknown functions
