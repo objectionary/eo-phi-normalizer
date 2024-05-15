@@ -12,12 +12,14 @@ module Language.EO.Phi.Rules.Common where
 import Control.Applicative (Alternative ((<|>)), asum)
 import Control.Arrow (Arrow (first))
 import Control.Monad
-import Data.Binary qualified as Binary
+import Data.ByteString qualified as ByteString.Strict
+import Data.ByteString.Builder qualified as ByteString
 import Data.ByteString.Lazy qualified as ByteString
 import Data.Char (toUpper)
-import Data.List (nubBy, sortOn)
+import Data.List (intercalate, nubBy, sortOn)
 import Data.List.NonEmpty (NonEmpty (..), (<|))
 import Data.List.NonEmpty qualified as NonEmpty
+import Data.Serialize qualified as Serialize
 import Data.String (IsString (..))
 import Language.EO.Phi.Syntax.Abs
 import Language.EO.Phi.Syntax.Lex (Token)
@@ -47,7 +49,7 @@ parseWith parser input = parser tokens
 unsafeParseWith :: ([Token] -> Either String a) -> String -> a
 unsafeParseWith parser input =
   case parseWith parser input of
-    Left parseError -> error parseError
+    Left parseError -> error (parseError <> "\non input\n" <> input <> "\n")
     Right object -> object
 
 type NamedRule = (String, Rule)
@@ -344,51 +346,172 @@ objectBindings _ = []
 padLeft :: Int -> [Char] -> [Char]
 padLeft n s = replicate (n - length s) '0' ++ s
 
-normalizeBytes :: String -> String
-normalizeBytes = map toUpper . insertDashes . padLeft 2
+-- | Split a list into chunks of given size.
+-- All lists in the result are guaranteed to have length less than or equal to the given size.
+--
+-- >>> chunksOf 2 "012345678"
+-- ["01","23","45","67","8"]
+--
+-- See 'paddedLeftChunksOf' for a version with padding to guarantee exact chunk size.
+chunksOf :: Int -> [a] -> [[a]]
+chunksOf _ [] = []
+chunksOf n xs = chunk : chunksOf n leftover
  where
-  insertDashes s
-    | length s <= 2 = s ++ "-"
-    | otherwise =
-        let go = \case
-              [] -> []
-              [x] -> [x]
-              [x, y] -> [x, y]
-              (x : y : xs) -> x : y : '-' : go xs
-         in go s
+  (chunk, leftover) = splitAt n xs
 
+-- | Split a list into chunks of given size,
+-- padding on the left if necessary.
+-- All lists in the result are guaranteed to have given size.
+--
+-- >>> paddedLeftChunksOf '0' 2 "1234567"
+-- ["01","23","45","67"]
+-- >>> paddedLeftChunksOf '0' 2 "123456"
+-- ["12","34","56"]
+--
+-- prop> n > 0  ==>  all (\chunk -> length chunk == n) (paddedLeftChunksOf c n s)
+paddedLeftChunksOf :: a -> Int -> [a] -> [[a]]
+paddedLeftChunksOf padSymbol n xs
+  | padSize == n = chunksOf n xs
+  | otherwise = chunksOf n (replicate padSize padSymbol ++ xs)
+ where
+  len = length xs
+  padSize = n - len `mod` n
+
+-- | Normalize the bytestring representation to fit valid 'Bytes' token.
+--
+-- >>> normalizeBytes "238714ABCDEF"
+-- "23-87-14-AB-CD-EF"
+--
+-- >>> normalizeBytes "0238714ABCDEF"
+-- "00-23-87-14-AB-CD-EF"
+--
+-- >>> normalizeBytes "4"
+-- "04-"
+normalizeBytes :: String -> String
+normalizeBytes = withDashes . paddedLeftChunksOf '0' 2 . map toUpper
+ where
+  withDashes = \case
+    [] -> "00-"
+    [byte] -> byte <> "-"
+    bytes -> intercalate "-" bytes
+
+-- | Convert an 'Int' into 'Bytes' representation.
+--
+-- >>> intToBytes 7
+-- Bytes "00-00-00-00-00-00-00-07"
+-- >>> intToBytes (3^33)
+-- Bytes "00-13-BF-EF-A6-5A-BB-83"
+-- >>> intToBytes (-1)
+-- Bytes "FF-FF-FF-FF-FF-FF-FF-FF"
 intToBytes :: Int -> Bytes
-intToBytes n = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "")) $ ByteString.unpack $ Binary.encode n
+intToBytes n = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "")) $ ByteString.Strict.unpack $ Serialize.encode n
 
--- | Assuming the bytes are well-formed (otherwise crashes)
+-- | Parse 'Bytes' as 'Int'.
+--
+-- >>> bytesToInt "00-13-BF-EF-A6-5A-BB-83"
+-- 5559060566555523
+-- >>> bytesToInt "AB-"
+-- 171
+--
+-- May error on invalid 'Bytes':
+--
+-- >>> bytesToInt "s"
+-- Prelude.head: empty list
 bytesToInt :: Bytes -> Int
-bytesToInt (Bytes (filter (/= '-') . dropWhile (== '0') -> bytes))
+bytesToInt (Bytes (dropWhile (== '0') . filter (/= '-') -> bytes))
   | null bytes = 0
   | otherwise = fst $ head $ readHex bytes
 
+-- | Convert 'Bool' to 'Bytes'.
+--
+-- >>> boolToBytes False
+-- Bytes "00-00-00-00-00-00-00-00"
+-- >>> boolToBytes True
+-- Bytes "00-00-00-00-00-00-00-01"
 boolToBytes :: Bool -> Bytes
 boolToBytes True = intToBytes 1
 boolToBytes False = intToBytes 0
 
+-- | Interpret 'Bytes' as 'Bool'.
+--
+-- Zero is interpreted as 'False'.
+--
+-- >>> bytesToBool "00-"
+-- False
+--
+-- >>> bytesToBool "00-00"
+-- False
+--
+-- Everything else is interpreted as 'True'.
+--
+-- >>> bytesToBool "01-"
+-- True
+--
+-- >>> bytesToBool "00-01"
+-- True
+--
+-- >>> bytesToBool "AB-CD"
+-- True
 bytesToBool :: Bytes -> Bool
-bytesToBool (Bytes "00-") = False
-bytesToBool _ = True -- TODO: verify that anything (not just 01-) can be interpreted as true
+bytesToBool (Bytes (dropWhile (== '0') . filter (/= '-') -> [])) = False
+bytesToBool _ = True
 
+-- | Encode 'String' as 'Bytes'.
+--
+-- >>> stringToBytes "Hello, world!"
+-- Bytes "48-65-6C-6C-6F-2C-20-77-6F-72-6C-64-21"
+--
+-- >>> stringToBytes "Привет, мир!"
+-- Bytes "04-1F-44-04-38-43-24-35-44-22-C2-04-3C-43-84-40-21"
 stringToBytes :: String -> Bytes
 stringToBytes s = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "") . fromEnum) s
 
+-- | Decode 'String' from 'Bytes'.
+--
+-- >>> bytesToString "48-65-6C-6C-6F-2C-20-77-6F-72-6C-64-21"
+-- "Hello, world!"
 bytesToString :: Bytes -> String
 bytesToString (Bytes bytes) = map (toEnum . fst . head . readHex) $ words (map dashToSpace bytes)
  where
   dashToSpace '-' = ' '
   dashToSpace c = c
 
--- It is called "float" in EO, but it actually occupies 8 bytes so it's a double
+-- | Encode 'Double' as 'Bytes' following IEEE754.
+--
+-- Note: it is called "float" in EO, but it actually occupies 8 bytes so it corresponds to 'Double'.
+--
+-- >>> floatToBytes 0
+-- Bytes "00-00-00-00-00-00-00-00"
+--
+-- >>> floatToBytes (-0.1)
+-- Bytes "BF-B9-99-99-99-99-99-9A"
+--
+-- >>> floatToBytes (1/0)       -- Infinity
+-- Bytes "7F-F0-00-00-00-00-00-00"
+--
+-- >>> floatToBytes (asin 2)    -- NaN
+-- Bytes "FF-F8-00-00-00-00-00-00"
 floatToBytes :: Double -> Bytes
-floatToBytes f = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "")) $ ByteString.unpack $ Binary.encode f
+floatToBytes f = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "")) $ ByteString.Strict.unpack $ Serialize.encode f
 
+-- | Decode 'Double' from 'Bytes' following IEEE754.
+--
+-- >>> bytesToFloat "00-00-00-00-00-00-00-00"
+-- 0.0
+--
+-- >>> bytesToFloat "BF-B9-99-99-99-99-99-9A"
+-- -0.1
+--
+-- >>> bytesToFloat "7F-F0-00-00-00-00-00-00"
+-- Infinity
+--
+-- >>> bytesToFloat "FF-F8-00-00-00-00-00-00"
+-- NaN
 bytesToFloat :: Bytes -> Double
-bytesToFloat (Bytes bytes) = Binary.decode $ ByteString.pack $ map (fst . head . readHex) $ words (map dashToSpace bytes)
+bytesToFloat (Bytes bytes) =
+  case Serialize.decode $ ByteString.Strict.pack $ map (fst . head . readHex) $ words (map dashToSpace bytes) of
+    Left msg -> error msg
+    Right x -> x
  where
   dashToSpace '-' = ' '
   dashToSpace c = c
