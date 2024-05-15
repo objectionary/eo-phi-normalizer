@@ -8,9 +8,9 @@ export LC_ALL=C.UTF-8
 shopt -s extglob
 
 # import scripts - https://stackoverflow.com/a/12694189
-DIR="${BASH_SOURCE%/*}"
-if [[ ! -d "$DIR" ]]; then DIR="$PWD/pipeline"; fi
-source "$DIR/lib.sh"
+IMPORT_DIR="${BASH_SOURCE%/*}"
+if [[ ! -d "$IMPORT_DIR" ]]; then IMPORT_DIR="$PWD/scripts"; fi
+source "$IMPORT_DIR/lib.sh"
 
 EO="$(get_eo_version)"
 
