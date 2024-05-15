@@ -1,5 +1,7 @@
 # shellcheck disable=SC2148
 
+set -euo pipefail
+
 function print_message {
     printf "\n\n\n[[[%s]]]\n\n\n" "$1"
 }
