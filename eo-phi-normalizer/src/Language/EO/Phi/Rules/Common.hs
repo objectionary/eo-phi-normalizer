@@ -414,6 +414,19 @@ concatBytes l (Bytes (x : y : "-")) = concatBytes l (Bytes [x, y])
 concatBytes (Bytes (x : y : "-")) (Bytes zs) = Bytes (x : y : '-' : zs)
 concatBytes (Bytes xs) (Bytes zs) = Bytes (xs <> "-" <> zs)
 
+-- | Select a slice (section) of 'Bytes'.
+--
+-- >>> sliceBytes "12-34-56" 2 2
+-- Bytes "34-"
+--
+-- >>> sliceBytes "12-34-56" 2 0
+-- Bytes "00-"
+--
+-- >>> sliceBytes "12-34-56" 2 1
+-- Bytes "03-"
+sliceBytes :: Bytes -> Int -> Int -> Bytes
+sliceBytes (Bytes bytes) start len = Bytes $ normalizeBytes $ take len (drop start (filter (/= '-') bytes))
+
 -- | Convert an 'Int' into 'Bytes' representation.
 --
 -- >>> intToBytes 7

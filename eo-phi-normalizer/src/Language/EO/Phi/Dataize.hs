@@ -250,10 +250,10 @@ evaluateBuiltinFunChain "Lorg_eolang_bytes_size" obj = evaluateUnaryDataizationF
   dashToSpace c = c
 evaluateBuiltinFunChain "Lorg_eolang_bytes_slice" obj = \state -> do
   thisStr <- dataizeRecursivelyChain True (extractRho obj)
-  (Bytes bytes) <- case thisStr of
+  bytes <- case thisStr of
     Right bytes -> pure bytes
     Left _ -> fail "Couldn't find bytes"
-  evaluateBinaryDataizationFunChain id bytesToInt wrapBytesInBytes (extractLabel "start") (extractLabel "len") (\start len -> Bytes $ normalizeBytes $ take len (drop start (filter (/= '-') bytes))) obj state
+  evaluateBinaryDataizationFunChain id bytesToInt wrapBytesInBytes (extractLabel "start") (extractLabel "len") (sliceBytes bytes) obj state
 evaluateBuiltinFunChain "Lorg_eolang_bytes_and" obj = evaluateBytesBytesBytesFunChain (.&.) obj
 evaluateBuiltinFunChain "Lorg_eolang_bytes_or" obj = evaluateBytesBytesBytesFunChain (.|.) obj
 evaluateBuiltinFunChain "Lorg_eolang_bytes_xor" obj = evaluateBytesBytesBytesFunChain (.^.) obj
