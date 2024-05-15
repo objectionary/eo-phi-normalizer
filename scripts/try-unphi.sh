@@ -5,7 +5,14 @@ set -euo pipefail
 if ! [ -d node_modules ]; then npm i; fi
 
 shopt -s extglob
-EO="${EO:-$(yq '.project.parent.version' -p xml < eo/eo-runtime/pom.xml)}"
+
+# import scripts - https://stackoverflow.com/a/12694189
+IMPORT_DIR="${BASH_SOURCE%/*}"
+if [[ ! -d "$IMPORT_DIR" ]]; then IMPORT_DIR="$PWD/scripts"; fi
+source "$IMPORT_DIR/lib.sh"
+
+EO="$(get_eo_version)"
+
 DIR=try-unphi
 
 function print_message {
@@ -22,11 +29,9 @@ function prepare_directory {
     mkdir -p $DIR/phi
     mkdir -p $DIR/init
 
-    rm -rf $DIR/tmp
-    mkdir -p $DIR/tmp
+    mkdir_clean $DIR/tmp
 
-    rm -rf $DIR/unphi
-    mkdir -p $DIR/unphi
+    mkdir_clean $DIR/unphi
 }
 
 function enter_directory {
