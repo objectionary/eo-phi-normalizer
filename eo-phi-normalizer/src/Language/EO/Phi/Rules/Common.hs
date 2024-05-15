@@ -395,6 +395,25 @@ normalizeBytes = withDashes . paddedLeftChunksOf '0' 2 . map toUpper
     [byte] -> byte <> "-"
     bytes -> intercalate "-" bytes
 
+-- | Concatenate 'Bytes'.
+-- FIXME: we should really use 'ByteString' instead of the underlying 'String' representation.
+--
+-- >>> concatBytes "00-" "01-02"
+-- Bytes "00-01-02"
+--
+-- >>> concatBytes "00-" "01-02"
+-- Bytes "00-01-02"
+--
+-- >>> concatBytes "03-04" "01-02"
+-- Bytes "03-04-01-02"
+--
+-- >>> concatBytes "03-04" "01-"
+-- Bytes "03-04-01"
+concatBytes :: Bytes -> Bytes -> Bytes
+concatBytes l (Bytes (x : y : "-")) = concatBytes l (Bytes [x, y])
+concatBytes (Bytes (x : y : "-")) (Bytes zs) = Bytes (x : y : '-' : zs)
+concatBytes (Bytes xs) (Bytes zs) = Bytes (xs <> "-" <> zs)
+
 -- | Convert an 'Int' into 'Bytes' representation.
 --
 -- >>> intToBytes 7

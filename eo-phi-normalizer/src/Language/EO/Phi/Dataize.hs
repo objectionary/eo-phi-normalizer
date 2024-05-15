@@ -259,7 +259,7 @@ evaluateBuiltinFunChain "Lorg_eolang_bytes_or" obj = evaluateBytesBytesBytesFunC
 evaluateBuiltinFunChain "Lorg_eolang_bytes_xor" obj = evaluateBytesBytesBytesFunChain (.^.) obj
 evaluateBuiltinFunChain "Lorg_eolang_bytes_not" obj = evaluateBytesBytesFunChain complement obj
 evaluateBuiltinFunChain "Lorg_eolang_bytes_right" obj = evaluateBinaryDataizationFunChain intToBytes bytesToInt wrapBytesInBytes extractRho (extractLabel "x") shiftR obj
-evaluateBuiltinFunChain "Lorg_eolang_bytes_concat" obj = evaluateBinaryDataizationFunChain id id wrapBytesInBytes extractRho (extractLabel "b") (\(Bytes b1) (Bytes b2) -> Bytes (b1 ++ b2)) obj
+evaluateBuiltinFunChain "Lorg_eolang_bytes_concat" obj = evaluateBinaryDataizationFunChain id id wrapBytesInBytes extractRho (extractLabel "b") concatBytes obj
 -- float
 evaluateBuiltinFunChain "Lorg_eolang_float_gt" obj = evaluateBinaryDataizationFunChain boolToBytes bytesToFloat wrapBytesInBytes extractRho (extractLabel "x") (>) obj
 evaluateBuiltinFunChain "Lorg_eolang_float_times" obj = evaluateFloatFloatFloatFunChain (*) obj
