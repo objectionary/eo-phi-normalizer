@@ -61,7 +61,7 @@ function convert_eo_to_phi {
 
     mkdir_clean "$PIPELINE_PHI_DIR"
 
-    cd eo
+    cd "$PIPELINE_EO_DIR"
     eo clean
     eo phi
     cp -r .eoc/phi/!(org) "$PIPELINE_PHI_DIR"
