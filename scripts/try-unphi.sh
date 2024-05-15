@@ -6,9 +6,7 @@ if ! [ -d node_modules ]; then npm i; fi
 
 shopt -s extglob
 
-# import scripts - https://stackoverflow.com/a/12694189
-IMPORT_DIR="${BASH_SOURCE%/*}"
-if [[ ! -d "$IMPORT_DIR" ]]; then IMPORT_DIR="$PWD/scripts"; fi
+IMPORT_DIR="$PWD/scripts"
 source "$IMPORT_DIR/lib.sh"
 
 EO="$(get_eo_version)"

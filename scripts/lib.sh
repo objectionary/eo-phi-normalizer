@@ -6,33 +6,41 @@ function print_message {
 
 export -f print_message
 
-pipeline_dir="pipeline"
+PWD_DIR="$PWD"
+PIPELINE_DIR="$PWD/pipeline"
+PIPELINE_PHI_DIR="$PIPELINE_DIR/phi"
+PIPELINE_EO_DIR="$PIPELINE_DIR/eo"
+PIPELINE_EO_NON_NORMALIZED_DIR="$PIPELINE_DIR/eo-non-normalized"
+PIPELINE_EO_NORMALIZED_DIR="$PIPELINE_DIR/eo-normalized"
+PIPELINE_PHI_NORMALIZED_DIR="$PIPELINE_DIR/phi-normalized"
+PIPELINE_NORMALIZER_DIR="$PWD/eo-phi-normalizer"
+PIPELINE_REPORT_DIR="$PWD/report"
 
-pipeline_config_file="$pipeline_dir/config.yaml"
-pipeline_lock_file="$pipeline_dir/pipeline.lock"
-pipeline_lock_file_new="$pipeline_dir/pipeline_new.lock"
+PIPELINE_CONFIG_FILE="$PIPELINE_DIR/config.yaml"
+PIPELINE_LOCK_FILE="$PIPELINE_DIR/pipeline.lock"
+PIPELINE_LOCK_FILE_NEW="$PIPELINE_DIR/pipeline_new.lock"
 
 function write_pipeline_lock {
-        cat > "$pipeline_lock_file_new" <<EOF
+        cat > "$PIPELINE_LOCK_FILE_NEW" <<EOF
 EO_HEAD_HASH="$(git rev-parse HEAD:eo)"
-PIPELINE_CONFIG_HASH="$(git hash-object "$pipeline_config_file")"
+PIPELINE_CONFIG_HASH="$(git hash-object "$PIPELINE_CONFIG_FILE")"
 EOF
 
-    pipeline_lock_changed="${pipeline_lock_changed:-false}"
+    PIPELINE_LOCK_CHANGED="${PIPELINE_LOCK_CHANGED:-false}"
 
-    if ! cmp "$pipeline_lock_file" "$pipeline_lock_file_new"; then
-        pipeline_lock_changed=true
+    if ! cmp "$PIPELINE_LOCK_FILE" "$PIPELINE_LOCK_FILE_NEW"; then
+        PIPELINE_LOCK_CHANGED=true
     fi
 }
 
 function update_pipeline_lock {
-    print_message "Update pipeline lock in $pipeline_lock_file"
+    print_message "Update pipeline lock in $PIPELINE_LOCK_FILE"
 
     write_pipeline_lock
 
-    if [[ "$pipeline_lock_changed" = "true" ]]; then
+    if [[ "$PIPELINE_LOCK_CHANGED" = "true" ]]; then
         print_message "Result: pipeline lock updated"
-        mv "$pipeline_lock_file_new" "$pipeline_lock_file"
+        mv "$PIPELINE_LOCK_FILE_NEW" "$PIPELINE_LOCK_FILE"
     else
         print_message "Result: pipeline lock didn't change"
     fi

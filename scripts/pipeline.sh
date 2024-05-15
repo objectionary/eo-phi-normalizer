@@ -7,9 +7,7 @@ if ! [ -d node_modules ]; then npm i; fi
 export LC_ALL=C.UTF-8
 shopt -s extglob
 
-# import scripts - https://stackoverflow.com/a/12694189
-IMPORT_DIR="${BASH_SOURCE%/*}"
-if [[ ! -d "$IMPORT_DIR" ]]; then IMPORT_DIR="$PWD/scripts"; fi
+IMPORT_DIR="$PWD/scripts"
 source "$IMPORT_DIR/lib.sh"
 
 print_message "EO version: $EO"
@@ -29,10 +27,10 @@ function check_configs {
             > "$eo_files"
     )
 
-    print_message "Check diff between $pipeline_config_file and EO tests in $eo_tests"
+    print_message "Check diff between $PIPELINE_CONFIG_FILE and EO tests in $eo_tests"
 
     pipeline_eo_files="$(mktemp)"
-    grep source "$pipeline_config_file" \
+    grep source "$PIPELINE_CONFIG_FILE" \
         | sed -r 's|.*/eolang/(.*\.eo)|\1|g' \
         > "$pipeline_eo_files"
 
@@ -57,35 +55,28 @@ function generate_eo_tests {
     stack run transform-eo-tests
 }
 
-function enter_pipeline_directory {
-
-    print_message "Enter the pipeline directory"
-
-    cd "$pipeline_dir"
-}
-
 function convert_eo_to_phi {
 
     print_message "Convert EO to PHI"
 
-    mkdir_clean phi
+    mkdir_clean "$PIPELINE_PHI_DIR"
 
     cd eo
     eo clean
     eo phi
-    cp -r .eoc/phi/!(org) ../phi
-    cd ..
+    cp -r .eoc/phi/!(org) "$PIPELINE_PHI_DIR"
+    cd "$PIPELINE_DIR"
 }
 
 function update_normalizer_phi_files {
 
     print_message "Update .phi data files in eo-phi-normalizer"
 
-    cd eo
-    data_directory="../../eo-phi-normalizer/data/$EO"
+    cd "$PIPELINE_EO_DIR"
+    data_directory="$PIPELINE_NORMALIZER_DIR/data/$EO"
     mkdir_clean "$data_directory"
     cp -r .eoc/phi/org "$data_directory"
-    cd ..
+    cd "$PIPELINE_DIR"
 }
 
 function convert_phi_to_eo {
@@ -94,13 +85,13 @@ function convert_phi_to_eo {
 
     mkdir_clean eo-non-normalized
 
-    cd phi
+    cd "$PIPELINE_PHI_DIR"
     cp -r ../eo/.eoc .
     eo unphi --tests
     cp -r .eoc/unphi/!(org) .eoc/2-optimize
     eo print
     cp -r .eoc/print/!(org) ../eo-non-normalized
-    cd ..
+    cd "$PIPELINE_DIR"
 
 }
 
@@ -108,9 +99,9 @@ function test_without_normalization {
 
     print_message "Test EO without normalization"
 
-    cd eo-non-normalized
+    cd "$PIPELINE_EO_NON_NORMALIZED_DIR"
     eo test
-    cd ..
+    cd "$PIPELINE_DIR"
 }
 
 function normalize {
@@ -119,16 +110,19 @@ function normalize {
 
     mkdir_clean phi-normalized
 
-    cd phi
+    cd "$PIPELINE_PHI_DIR"
     phi_files="$(find -- * -type f)"
-    dependency_files="$(find ../eo/.eoc/phi/org/eolang -type f)"
+    dependency_files="$(find "$PIPELINE_EO_DIR"/.eoc/phi/org/eolang -type f)"
     export dependency_files
 
     stack install --ghc-options -O2
 
+    export PIPELINE_PHI_NORMALIZED_DIR
+    export PIPELINE_NORMALIZER_DIR
+
     function normalize_file {
         local f="$1"
-        destination="../phi-normalized/$f"
+        destination="$PIPELINE_PHI_NORMALIZED_DIR/$f"
         mkdir -p "$(dirname "$destination")"
 
         dependency_file_options="$(printf "%s" "$dependency_files" | xargs -I {} printf "%s" " --dependency-file {} ")"
@@ -138,7 +132,7 @@ function normalize {
         normalizer dataize \
             --recursive \
             --rules \
-            ../../eo-phi-normalizer/test/eo/phi/rules/yegor.yaml \
+            "$PIPELINE_NORMALIZER_DIR/test/eo/phi/rules/yegor.yaml" \
             $dependency_file_options \
             "$f" \
             > "$destination" \
@@ -150,25 +144,27 @@ function normalize {
 
     time printf "%s" "$phi_files" \
         | xargs -I {} bash -c 'normalize_file {}'
-    cd ..
+    cd "$PIPELINE_DIR"
 }
 
 function generate_report {
 
     print_message "Generate a report"
 
-    stack run --cwd .. -- report --config report/config.yaml
+    cd "$PWD_DIR"
+
+    stack run -- report --config "$PIPELINE_REPORT_DIR/config.yaml"
 }
 
 function convert_normalized_phi_to_eo {
     print_message "Convert normalized PHI to EO"
 
-    cd phi-normalized
-    cp -r ../eo/.eoc .
+    cd "$PIPELINE_PHI_NORMALIZED_DIR"
+    cp -r "$PIPELINE_EO_DIR/.eoc" .
     eo unphi --tests
     cp -r .eoc/unphi/!(org) .eoc/2-optimize
     eo print
-    cd ..
+    cd "$PIPELINE_DIR"
 }
 
 function test_with_normalization {
@@ -177,18 +173,17 @@ function test_with_normalization {
 
     mkdir_clean eo-normalized
 
-    cd eo-normalized
-    cp -r ../phi-normalized/.eoc/print/!(org)  .
+    cd "$PIPELINE_EO_NORMALIZED_DIR"
+    cp -r "$PIPELINE_PHI_NORMALIZED_DIR"/.eoc/print/!(org)  .
     eo test
-    cd ..
+    cd "$PIPELINE_DIR"
 }
 
 check_configs
 update_pipeline_lock
 generate_eo_tests
-enter_pipeline_directory
 
-if [[ "$pipeline_lock_changed" = true ]]; then
+if [[ "$PIPELINE_LOCK_CHANGED" = true ]]; then
     convert_eo_to_phi
     update_normalizer_phi_files
     convert_phi_to_eo

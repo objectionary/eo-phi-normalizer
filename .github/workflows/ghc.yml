@@ -91,22 +91,22 @@ jobs:
         run: |
           source scripts/lib.sh
           write_pipeline_lock
-          printf "pipeline_lock_changed=$pipeline_lock_changed\n" >> $GITHUB_OUTPUT
-          printf "pipeline_lock_file=$pipeline_lock_file\n" >> $GITHUB_OUTPUT
-          printf "pipeline_lock_file_new=$pipeline_lock_file_new\n" >> $GITHUB_OUTPUT
+          printf "PIPELINE_LOCK_CHANGED=$PIPELINE_LOCK_CHANGED\n" >> $GITHUB_OUTPUT
+          printf "PIPELINE_LOCK_FILE=$PIPELINE_LOCK_FILE\n" >> $GITHUB_OUTPUT
+          printf "PIPELINE_LOCK_FILE_NEW=$PIPELINE_LOCK_FILE_NEW\n" >> $GITHUB_OUTPUT
 
       - name: Restore and cache pipeline files
         id: restore-pipeline-files
-        if: steps.check-pipeline-lock.outputs.pipeline_lock_changed
+        if: steps.check-pipeline-lock.outputs.PIPELINE_LOCK_CHANGED
         uses: actions/cache@v4
         with:
-          key: ${{ runner.os }}-${{ hashFiles(steps.check-pipeline-lock.outputs.pipeline_lock_file_new) }}
+          key: ${{ runner.os }}-${{ hashFiles(steps.check-pipeline-lock.outputs.PIPELINE_LOCK_FILE_NEW) }}
           path: pipeline
 
       - name: Run pipeline
         shell: bash
         env:
-          pipeline_lock_changed: ${{ (steps.check-pipeline-lock.outputs.pipeline_lock_changed == 'true') || (steps.restore-pipeline-files.outputs.cache-hit != 'true') }}
+          PIPELINE_LOCK_CHANGED: ${{ (steps.check-pipeline-lock.outputs.PIPELINE_LOCK_CHANGED == 'true') || (steps.restore-pipeline-files.outputs.cache-hit != 'true') }}
         run: |
           PATH="${{ runner.os == 'macOS' && '/Users/runner/.local/bin:' || '' }}$PATH"
           export PATH
@@ -124,10 +124,10 @@ jobs:
           git config --global user.name "github-actions[bot]"
 
       - name: Commit and push changes in pipeline lock
-        if: always() && runner.os == 'Linux' && steps.check-pipeline-lock.outputs.pipeline_lock_changed
+        if: always() && runner.os == 'Linux' && steps.check-pipeline-lock.outputs.PIPELINE_LOCK_CHANGED
         run: |
           source scripts/lib.sh
-          pipeline_lock="${{ steps.check-pipeline-lock.outputs.pipeline_lock_file }}"
+          pipeline_lock="${{ steps.check-pipeline-lock.outputs.PIPELINE_LOCK_FILE }}"
           commit_and_push_if_changed "$pipeline_lock" "$pipeline_lock"
 
       - name: Commit and push changes in normalizer data files
