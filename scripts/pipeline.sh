@@ -168,7 +168,7 @@ function generate_report {
 
     cd "$PWD_DIR"
 
-    stack run -- report --config "$PIPELINE_REPORT_DIR/config.yaml"
+    normalizer report --config "$PIPELINE_REPORT_DIR/config.yaml"
 }
 
 function convert_normalized_phi_to_eo {
