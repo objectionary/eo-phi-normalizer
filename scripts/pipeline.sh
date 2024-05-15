@@ -113,7 +113,7 @@ function install_normalizer {
     else
         # ci
         NORMALIZER_DEST="$INSTALLATION_PATH/normalizer"
-        NORMALIZER_SOURCE="$(find "$INSTALLATION_PATH/normalizer" -name "normalizer*")"
+        NORMALIZER_SOURCE="$(find "$INSTALLATION_PATH" -name "normalizer*")"
 
         if ! [[ "$NORMALIZER_SOURCE" = "$NORMALIZER_DEST" ]]; then
             mv "$NORMALIZER_SOURCE" "$NORMALIZER_DEST"
