@@ -2,14 +2,9 @@
 
 set -euo pipefail
 
-function print_message {
-    printf "\n\n\n[[[%s]]]\n\n\n" "$1"
-}
-
-export -f print_message
-
 PWD_DIR="$PWD"
-PIPELINE_DIR="$PWD/pipeline"
+PIPELINE_DIR_RELATIVE="pipeline"
+PIPELINE_DIR="$PWD/$PIPELINE_DIR_RELATIVE"
 PIPELINE_PHI_DIR="$PIPELINE_DIR/phi"
 PIPELINE_EO_DIR="$PIPELINE_DIR/eo"
 PIPELINE_EO_NON_NORMALIZED_DIR="$PIPELINE_DIR/eo-non-normalized"
@@ -19,8 +14,21 @@ PIPELINE_NORMALIZER_DIR="$PWD/eo-phi-normalizer"
 PIPELINE_REPORT_DIR="$PWD/report"
 
 PIPELINE_CONFIG_FILE="$PIPELINE_DIR/config.yaml"
-PIPELINE_LOCK_FILE="$PIPELINE_DIR/pipeline.lock"
-PIPELINE_LOCK_FILE_NEW="$PIPELINE_DIR/pipeline_new.lock"
+
+PIPELINE_LOCK_FILE_NAME="pipeline.lock"
+PIPELINE_LOCK_FILE="$PIPELINE_DIR/$PIPELINE_LOCK_FILE_NAME"
+
+PIPELINE_LOCK_FILE_NEW_NAME="pipeline_new.lock"
+PIPELINE_LOCK_FILE_NEW="$PIPELINE_DIR/$PIPELINE_LOCK_FILE_NEW_NAME"
+
+PIPELINE_LOCK_FILE_RELATIVE="$PIPELINE_DIR_RELATIVE/$PIPELINE_LOCK_FILE_NAME"
+PIPELINE_LOCK_FILE_NEW_RELATIVE="$PIPELINE_DIR_RELATIVE/$PIPELINE_LOCK_FILE_NEW_NAME"
+
+function print_message {
+    printf "\n\n\n[[[%s]]]\n\n\n" "$1"
+}
+
+export -f print_message
 
 function write_pipeline_lock {
         cat > "$PIPELINE_LOCK_FILE_NEW" <<EOF
