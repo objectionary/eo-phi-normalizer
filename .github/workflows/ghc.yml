@@ -62,10 +62,21 @@ jobs:
           submodules: true
           ref: ${{ github.ref }}
 
+      - name: Set constants
+        id: set-constants
+        shell: bash
+        run: |
+          source scripts/lib.sh
+          write_pipeline_lock
+          printf "PIPELINE_LOCK_CHANGED=$PIPELINE_LOCK_CHANGED\n" >> $GITHUB_OUTPUT
+          printf "PIPELINE_LOCK_FILE_RELATIVE=$PIPELINE_LOCK_FILE_RELATIVE\n" >> $GITHUB_OUTPUT
+          printf "PIPELINE_LOCK_FILE_NEW_RELATIVE=$PIPELINE_LOCK_FILE_NEW_RELATIVE\n" >> $GITHUB_OUTPUT
+          printf "INSTALLATION_PATH=$INSTALLATION_PATH\n" >> $GITHUB_OUTPUT
+
       - name: 🧰 Setup Stack
         uses: freckle/stack-action@v5
         with:
-          stack-build-arguments: --pedantic --prefetch --copy-bins
+          stack-build-arguments: --pedantic --prefetch --copy-bins --ghc-options -O2 --local-bin-path ${{ steps.set-constants.outputs.INSTALLATION_PATH }}
           test: false
 
       - name: Run tests
@@ -91,28 +102,19 @@ jobs:
           yq-version: v4.44.1
           yq-url: ${{ format('https://github.com/mikefarah/yq/releases/download/{{version}}/yq_{{platform}}_{{arch}}{0}', runner.os == 'Windows' && '.exe' || '') }}
 
-      - name: Check pipeline lock
-        id: check-pipeline-lock
-        shell: bash
-        run: |
-          source scripts/lib.sh
-          write_pipeline_lock
-          printf "PIPELINE_LOCK_CHANGED=$PIPELINE_LOCK_CHANGED\n" >> $GITHUB_OUTPUT
-          printf "PIPELINE_LOCK_FILE_RELATIVE=$PIPELINE_LOCK_FILE_RELATIVE\n" >> $GITHUB_OUTPUT
-          printf "PIPELINE_LOCK_FILE_NEW_RELATIVE=$PIPELINE_LOCK_FILE_NEW_RELATIVE\n" >> $GITHUB_OUTPUT
-
       - name: Restore and cache pipeline files
         id: restore-pipeline-files
-        if: steps.check-pipeline-lock.outputs.PIPELINE_LOCK_CHANGED
+        if: steps.set-constants.outputs.PIPELINE_LOCK_CHANGED
         uses: actions/cache@v4
         with:
-          key: ${{ runner.os }}-${{ hashFiles(steps.check-pipeline-lock.outputs.PIPELINE_LOCK_FILE_NEW_RELATIVE) }}
+          key: ${{ runner.os }}-${{ hashFiles(steps.set-constants.outputs.PIPELINE_LOCK_FILE_NEW_RELATIVE) }}
           path: pipeline
 
       - name: Run pipeline
         shell: bash
         env:
-          PIPELINE_LOCK_CHANGED: ${{ (steps.check-pipeline-lock.outputs.PIPELINE_LOCK_CHANGED == 'true') || (steps.restore-pipeline-files.outputs.cache-hit != 'true') }}
+          PIPELINE_LOCK_CHANGED: ${{ (steps.set-constants.outputs.PIPELINE_LOCK_CHANGED == 'true') || (steps.restore-pipeline-files.outputs.cache-hit != 'true') }}
+          NORMALIZER_INSTALLED: "true"
         run: ./scripts/pipeline.sh
 
       - name: Configure git
@@ -127,10 +129,10 @@ jobs:
           git config --global user.name "github-actions[bot]"
 
       - name: Commit and push changes in pipeline lock
-        if: always() && runner.os == 'Linux' && steps.check-pipeline-lock.outputs.PIPELINE_LOCK_CHANGED
+        if: always() && runner.os == 'Linux' && steps.set-constants.outputs.PIPELINE_LOCK_CHANGED
         run: |
           source scripts/lib.sh
-          pipeline_lock="${{ steps.check-pipeline-lock.outputs.PIPELINE_LOCK_FILE_RELATIVE }}"
+          pipeline_lock="${{ steps.set-constants.outputs.PIPELINE_LOCK_FILE_RELATIVE }}"
           commit_and_push_if_changed "$pipeline_lock" "$pipeline_lock"
 
       - name: Commit and push changes in normalizer data files
