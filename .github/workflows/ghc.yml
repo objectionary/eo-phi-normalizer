@@ -85,6 +85,12 @@ jobs:
           distribution: "zulu"
           java-version: 21
 
+      # TODO #340:10m switch to chrisdickinson/setup-yq after https://github.com/chrisdickinson/setup-yq/pull/14 is merged
+      - uses: deemp/setup-yq@latest
+        with:
+          yq-version: v4.44.1
+          yq-url: ${{ format('https://github.com/mikefarah/yq/releases/download/{{version}}/yq_{{platform}}_{{arch}}{0}', runner.os == 'Windows' && '.exe' || '') }}
+
       - name: Check pipeline lock
         id: check-pipeline-lock
         shell: bash
