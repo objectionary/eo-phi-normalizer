@@ -92,8 +92,6 @@ When `<binding>` is given, the `<binding>` equals to the full binding - includes
       value: "hello"
     - metavar: "?Bindings"
       value: [and ↦ you]
-    - metavar: "?PathHead"
-      value: ["org"]
     - metavar: "?FullBinding"
       value: [org ↦ ⟦ eolang ↦ ⟦ main ↦ hello.world(and ↦ you) ⟧ ⟧]
 - pattern: '(\?FullBinding ?Name ↦ ?DispatchPath..?DispatchName.world)'
