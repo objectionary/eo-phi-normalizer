@@ -98,15 +98,15 @@ jobs:
           source scripts/lib.sh
           write_pipeline_lock
           printf "PIPELINE_LOCK_CHANGED=$PIPELINE_LOCK_CHANGED\n" >> $GITHUB_OUTPUT
-          printf "PIPELINE_LOCK_FILE=$PIPELINE_LOCK_FILE\n" >> $GITHUB_OUTPUT
-          printf "PIPELINE_LOCK_FILE_NEW=$PIPELINE_LOCK_FILE_NEW\n" >> $GITHUB_OUTPUT
+          printf "PIPELINE_LOCK_FILE_RELATIVE=$PIPELINE_LOCK_FILE_RELATIVE\n" >> $GITHUB_OUTPUT
+          printf "PIPELINE_LOCK_FILE_NEW_RELATIVE=$PIPELINE_LOCK_FILE_NEW_RELATIVE\n" >> $GITHUB_OUTPUT
 
       - name: Restore and cache pipeline files
         id: restore-pipeline-files
         if: steps.check-pipeline-lock.outputs.PIPELINE_LOCK_CHANGED
         uses: actions/cache@v4
         with:
-          key: ${{ runner.os }}-${{ hashFiles(steps.check-pipeline-lock.outputs.PIPELINE_LOCK_FILE_NEW) }}
+          key: ${{ runner.os }}-${{ hashFiles(steps.check-pipeline-lock.outputs.PIPELINE_LOCK_FILE_NEW_RELATIVE) }}
           path: pipeline
 
       - name: Run pipeline
@@ -136,7 +136,7 @@ jobs:
         if: always() && runner.os == 'Linux' && steps.check-pipeline-lock.outputs.PIPELINE_LOCK_CHANGED
         run: |
           source scripts/lib.sh
-          pipeline_lock="${{ steps.check-pipeline-lock.outputs.PIPELINE_LOCK_FILE }}"
+          pipeline_lock="${{ steps.check-pipeline-lock.outputs.PIPELINE_LOCK_FILE_RELATIVE }}"
           commit_and_push_if_changed "$pipeline_lock" "$pipeline_lock"
 
       - name: Commit and push changes in normalizer data files
