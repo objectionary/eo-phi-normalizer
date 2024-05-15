@@ -20,7 +20,7 @@ function print_message {
 }
 
 function eo {
-    npx eoc --parser="${EO}"
+    npx eoc --parser="${EO}" "$@"
 }
 
 function prepare_directory {
