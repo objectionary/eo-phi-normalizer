@@ -104,6 +104,23 @@ function test_without_normalization {
     cd "$PIPELINE_DIR"
 }
 
+function install_normalizer {
+    print_message "Install normalizer"
+
+    INSTALLATION_PATH="$(dirname "$PWD")/installation"
+    mkdir -p "$INSTALLATION_PATH"
+
+    export PATH="$INSTALLATION_PATH:$PATH"
+
+    stack install --ghc-options -O2 --local-bin-path "$INSTALLATION_PATH"
+    NORMALIZER_DEST="$INSTALLATION_PATH/normalizer"
+    NORMALIZER_SOURCE="$(ls "$NORMALIZER_DEST"*)"
+
+    if ! [[ "$NORMALIZER_SOURCE" = "$NORMALIZER_DEST" ]]; then
+        mv "$NORMALIZER_SOURCE" "$NORMALIZER_DEST"
+    fi
+}
+
 function normalize {
 
     print_message "Normalize PHI"
@@ -114,8 +131,6 @@ function normalize {
     phi_files="$(find -- * -type f)"
     dependency_files="$(find "$PIPELINE_EO_DIR"/.eoc/phi/org/eolang -type f)"
     export dependency_files
-
-    stack install --ghc-options -O2
 
     export PIPELINE_PHI_NORMALIZED_DIR
     export PIPELINE_NORMALIZER_DIR
@@ -190,6 +205,7 @@ if [[ "$PIPELINE_LOCK_CHANGED" = true ]]; then
     test_without_normalization
 fi
 
+install_normalizer
 normalize
 generate_report
 convert_normalized_phi_to_eo
