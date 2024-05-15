@@ -107,7 +107,10 @@ jobs:
         shell: bash
         env:
           pipeline_lock_changed: ${{ (steps.check-pipeline-lock.outputs.pipeline_lock_changed == 'true') || (steps.restore-pipeline-files.outputs.cache-hit != 'true') }}
-        run: ./scripts/pipeline.sh
+        run: |
+          PATH="${{ runner.os == 'macOS' && '/Users/runner/.local/bin:' || '' }}$PATH"
+          export PATH
+          ./scripts/pipeline.sh
 
       - name: Configure git
         if: always() && runner.os == 'Linux'
