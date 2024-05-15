@@ -100,7 +100,7 @@ jobs:
         if: steps.check-pipeline-lock.outputs.pipeline_lock_changed
         uses: actions/cache@v4
         with:
-          key: ${{ hashFiles(steps.check-pipeline-lock.outputs.pipeline_lock_file_new) }}
+          key: ${{ runner.os }}-${{ hashFiles(steps.check-pipeline-lock.outputs.pipeline_lock_file_new) }}
           path: pipeline
 
       - name: Run pipeline
