@@ -112,7 +112,10 @@ function install_normalizer {
 
     export PATH="$INSTALLATION_PATH:$PATH"
 
-    stack install --ghc-options -O2 --local-bin-path "$INSTALLATION_PATH"
+    if ! [[ "$NORMALIZER_INSTALLED" = "true" ]]; then
+        stack install --ghc-options -O2 --local-bin-path "$INSTALLATION_PATH"
+    fi
+
     NORMALIZER_DEST="$INSTALLATION_PATH/normalizer"
     NORMALIZER_SOURCE="$(ls "$NORMALIZER_DEST"*)"
 
