@@ -108,15 +108,18 @@ function install_normalizer {
     print_message "Install normalizer"
 
     if ! [[ "$NORMALIZER_INSTALLED" = "true" ]]; then
-        stack install --ghc-options -O2 --local-bin-path "$INSTALLATION_PATH"
+        # local development
+        stack install eo-phi-normalizer:exe:normalizer --ghc-options -O2
+    else
+        # ci
+        NORMALIZER_DEST="$INSTALLATION_PATH/normalizer"
+        NORMALIZER_SOURCE="$(find "$INSTALLATION_PATH/normalizer" -name "normalizer*")"
+
+        if ! [[ "$NORMALIZER_SOURCE" = "$NORMALIZER_DEST" ]]; then
+            mv "$NORMALIZER_SOURCE" "$NORMALIZER_DEST"
+        fi
     fi
 
-    NORMALIZER_DEST="$INSTALLATION_PATH/normalizer"
-    NORMALIZER_SOURCE="$(ls "$NORMALIZER_DEST"*)"
-
-    if ! [[ "$NORMALIZER_SOURCE" = "$NORMALIZER_DEST" ]]; then
-        mv "$NORMALIZER_SOURCE" "$NORMALIZER_DEST"
-    fi
 }
 
 function normalize {
