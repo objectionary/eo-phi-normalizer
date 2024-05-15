@@ -107,11 +107,6 @@ function test_without_normalization {
 function install_normalizer {
     print_message "Install normalizer"
 
-    INSTALLATION_PATH="$(dirname "$PWD")/installation"
-    mkdir -p "$INSTALLATION_PATH"
-
-    export PATH="$INSTALLATION_PATH:$PATH"
-
     if ! [[ "$NORMALIZER_INSTALLED" = "true" ]]; then
         stack install --ghc-options -O2 --local-bin-path "$INSTALLATION_PATH"
     fi
