@@ -102,17 +102,17 @@ jobs:
           java-version: 21
 
       - name: Restore and cache pipeline files
-        id: restore-pipeline-files
+        id: pipeline-files
         if: steps.set-constants.outputs.PIPELINE_LOCK_CHANGED
         uses: actions/cache@v4
         with:
-          key: ${{ runner.os }}-${{ hashFiles(steps.set-constants.outputs.PIPELINE_LOCK_FILE_NEW_RELATIVE) }}
+          key: pipeline-files-${{ runner.os }}-${{ hashFiles(steps.set-constants.outputs.PIPELINE_LOCK_FILE_NEW_RELATIVE) }}
           path: pipeline
 
       - name: Run pipeline
         shell: bash
         env:
-          PIPELINE_LOCK_CHANGED: ${{ (steps.set-constants.outputs.PIPELINE_LOCK_CHANGED == 'true') || (steps.restore-pipeline-files.outputs.cache-hit != 'true') }}
+          PIPELINE_LOCK_CHANGED: ${{ (steps.set-constants.outputs.PIPELINE_LOCK_CHANGED == 'true') || (steps.pipeline-files.outputs.cache-hit != 'true') }}
           NORMALIZER_INSTALLED: "true"
         run: ./scripts/pipeline.sh
 
@@ -165,7 +165,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: pipeline-${{ runner.os }}-${{ hashFiles('pipeline/eo/*.eo') }}
+          name: pipeline-files-${{ runner.os }}-${{ hashFiles('pipeline/eo/*.eo') }}
           overwrite: true
           path: |
             pipeline
