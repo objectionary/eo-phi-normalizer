@@ -24,15 +24,55 @@ PIPELINE_LOCK_FILE_NEW_RELATIVE="$PIPELINE_DIR_RELATIVE/$PIPELINE_LOCK_FILE_NEW_
 
 NORMALIZER_INSTALLED="${NORMALIZER_INSTALLED:-false}"
 
-INSTALLATION_PATH="$(dirname "$PWD")/installation"
-mkdir -p "$INSTALLATION_PATH"
-export PATH="$INSTALLATION_PATH:$PATH"
-
 function print_message {
     printf "\n\n\n[[[%s]]]\n\n\n" "$1"
 }
 
 export -f print_message
+
+function set_is_windows {
+    # check whether the current platform is Windows
+    # https://stackoverflow.com/a/3466183
+    local unameOut
+    unameOut="$(uname -s)"
+
+    IS_WINDOWS=false
+
+    case "${unameOut}" in
+        Linux*)     IS_WINDOWS=false;;
+        Darwin*)    IS_WINDOWS=false;;
+        CYGWIN*)    IS_WINDOWS=true;;
+        MINGW*)     IS_WINDOWS=true;;
+        MSYS_NT*)   IS_WINDOWS=true;;
+        *)          IS_WINDOWS=false
+    esac
+
+    print_message "Platform is Windows: $IS_WINDOWS"
+}
+
+set_is_windows
+
+function set_installation_path {
+    INSTALLATION_PATH="$(stack path --local-bin)"
+
+    if [[ "$IS_WINDOWS" = "true" ]]; then
+        INSTALLATION_PATH="$(cygpath.exe "$INSTALLATION_PATH")"
+    fi
+
+    print_message "Installation path is: $INSTALLATION_PATH"
+}
+
+set_installation_path
+
+function add_installation_path_to_path {
+    if ! [[ ":$PATH:" == *":$INSTALLATION_PATH:"* ]]; then
+        export PATH="$INSTALLATION_PATH:$PATH"
+    fi
+
+    print_message "PATH is: $PATH"
+}
+
+add_installation_path_to_path
 
 function write_pipeline_lock {
         cat > "$PIPELINE_LOCK_FILE_NEW" <<EOF
@@ -48,15 +88,15 @@ EOF
 }
 
 function update_pipeline_lock {
-    print_message "Update pipeline lock in $PIPELINE_LOCK_FILE"
+    print_message "Check whether need to update the pipeline lock in $PIPELINE_LOCK_FILE"
 
     write_pipeline_lock
 
     if [[ "$PIPELINE_LOCK_CHANGED" = "true" ]]; then
-        print_message "Result: pipeline lock updated"
+        print_message "Pipeline lock updated"
         mv "$PIPELINE_LOCK_FILE_NEW" "$PIPELINE_LOCK_FILE"
     else
-        print_message "Result: pipeline lock didn't change"
+        print_message "Pipeline lock didn't change"
     fi
 }
 

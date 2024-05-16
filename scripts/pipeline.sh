@@ -107,19 +107,11 @@ function test_without_normalization {
 function install_normalizer {
     print_message "Install normalizer"
 
-    if ! [[ "$NORMALIZER_INSTALLED" = "true" ]]; then
-        # local development
-        stack install eo-phi-normalizer:exe:normalizer --ghc-options -O2
+    if [[ "$NORMALIZER_INSTALLED" = "true" && "$IS_WINDOWS" = "true" ]]; then
+        mv "$INSTALLATION_PATH/normalizer.exe" "$INSTALLATION_PATH/normalizer"
     else
-        # ci
-        NORMALIZER_DEST="$INSTALLATION_PATH/normalizer"
-        NORMALIZER_SOURCE="$(find "$INSTALLATION_PATH" -name "normalizer*")"
-
-        if ! [[ "$NORMALIZER_SOURCE" = "$NORMALIZER_DEST" ]]; then
-            mv "$NORMALIZER_SOURCE" "$NORMALIZER_DEST"
-        fi
+        stack install eo-phi-normalizer:exe:normalizer --ghc-options -O2
     fi
-
 }
 
 function normalize {
