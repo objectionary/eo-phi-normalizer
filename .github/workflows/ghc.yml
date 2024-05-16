@@ -106,7 +106,7 @@ jobs:
         if: steps.set-constants.outputs.PIPELINE_LOCK_CHANGED
         uses: actions/cache@v4
         with:
-          key: pipeline-files-${{ runner.os }}-${{ hashFiles(steps.set-constants.outputs.PIPELINE_LOCK_FILE_NEW_RELATIVE) }}
+          key: pipeline-files-${{ runner.os }}
           path: pipeline
 
       - name: Run pipeline
@@ -165,7 +165,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: pipeline-files-${{ runner.os }}-${{ hashFiles('pipeline/eo/*.eo') }}
+          name: pipeline-files-${{ runner.os }}
           overwrite: true
           path: |
             pipeline
