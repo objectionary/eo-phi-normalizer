@@ -59,7 +59,7 @@ function set_installation_path {
     INSTALLATION_PATH="$(stack path --local-bin)"
 
     if [[ "$IS_WINDOWS" = "true" ]]; then
-        INSTALLATION_PATH="$(cygpath.exe "$INSTALLATION_PATH")"
+        INSTALLATION_PATH="$(cygpath "$INSTALLATION_PATH")"
     fi
 
     print_message "Normalizer installation path: $INSTALLATION_PATH"
