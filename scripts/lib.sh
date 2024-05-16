@@ -50,6 +50,11 @@ function set_is_windows {
 
 set_is_windows
 
+# Set UTF-8
+if [[ "$IS_WINDOWS" = "true" ]]; then
+    chcp.com 65001
+fi
+
 function set_installation_path {
     INSTALLATION_PATH="$(stack path --local-bin)"
 
