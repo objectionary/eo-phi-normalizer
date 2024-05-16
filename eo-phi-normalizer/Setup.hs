@@ -10,8 +10,9 @@ module Main (main) where
 import Data.List (intercalate)
 import Distribution.Simple (defaultMainWithHooks, hookedPrograms, postConf, preBuild, simpleUserHooks)
 import Distribution.Simple.Program (Program (..), findProgramVersion, simpleProgram)
+import PyF (fmt)
 import System.Exit (ExitCode (..))
-import System.Process (system)
+import System.Process (callCommand)
 
 -- | Run BNFC, happy, and alex on the grammar before the actual build step.
 --
@@ -29,15 +30,25 @@ main =
 #else
                       False
 #endif
-            command = intercalate " && " $
-              ["chcp 65001" | isWindows] <> [
-                "bnfc --haskell -d -p Language.EO.Phi --generic -o src/ grammar/EO/Phi/Syntax.cf",
-                "cd src/Language/EO/Phi/Syntax",
-                "alex Lex.x",
-                "happy Par.y"
-              ]
-          putStrLn command
-          ExitSuccess <- system command
+            getCodePage = if isWindows then "chcp.com" else ""
+            setCodePage = if isWindows then "chcp.com 65001" else ""
+
+            command = [fmt|
+              set -e
+              {getCodePage}
+              {setCodePage}
+              bnfc --haskell -d -p Language.EO.Phi --generic -o src/ grammar/EO/Phi/Syntax.cf
+              cd src/Language/EO/Phi/Syntax
+              alex Lex.x
+              happy Par.y
+            |]
+
+            fullCommand = [fmt|bash -c '{command}'|]
+
+          putStrLn fullCommand
+
+          _ <- callCommand fullCommand
+
           postConf simpleUserHooks args flags packageDesc localBuildInfo
       }
 
