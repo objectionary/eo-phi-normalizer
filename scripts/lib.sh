@@ -59,7 +59,7 @@ function set_installation_path {
         INSTALLATION_PATH="$(cygpath.exe "$INSTALLATION_PATH")"
     fi
 
-    print_message "Installation path is: $INSTALLATION_PATH"
+    print_message "Normalizer installation path is: $INSTALLATION_PATH"
 }
 
 set_installation_path
@@ -67,14 +67,17 @@ set_installation_path
 function add_installation_path_to_path {
     if ! [[ ":$PATH:" == *":$INSTALLATION_PATH:"* ]]; then
         export PATH="$INSTALLATION_PATH:$PATH"
+        print_message "Added Normalizer installation path to PATH"
+    else
+        print_message "PATH already contains the Normalizer installation path"
     fi
-
-    print_message "PATH is: $PATH"
 }
 
 add_installation_path_to_path
 
 function write_pipeline_lock {
+    print_message "Checking the pipeline lock in $PIPELINE_LOCK_FILE"
+
         cat > "$PIPELINE_LOCK_FILE_NEW" <<EOF
 EO_HEAD_HASH="$(git rev-parse HEAD:eo)"
 PIPELINE_CONFIG_HASH="$(git hash-object "$PIPELINE_CONFIG_FILE")"
@@ -88,8 +91,6 @@ EOF
 }
 
 function update_pipeline_lock {
-    print_message "Check whether need to update the pipeline lock in $PIPELINE_LOCK_FILE"
-
     write_pipeline_lock
 
     if [[ "$PIPELINE_LOCK_CHANGED" = "true" ]]; then
