@@ -142,7 +142,7 @@ jobs:
           commit_and_push_if_changed "$data_directory" "normalizer data files"
 
       - name: Install mdsh
-        if: always() && runner.os == 'Linux'
+        if: runner.os == 'Linux'
         uses: baptiste0928/cargo-install@v3.1.0
         with:
           crate: mdsh
@@ -150,11 +150,11 @@ jobs:
           branch: main
 
       - name: Update Markdown files
-        if: always() && runner.os == 'Linux'
+        if: runner.os == 'Linux'
         run: ./scripts/update-markdown.sh
 
       - name: Commit and push changes in Markdown files
-        if: always() && runner.os == 'Linux'
+        if: runner.os == 'Linux'
         run: |
           source scripts/lib.sh
           files="site proposals README.md"
@@ -195,7 +195,6 @@ jobs:
           EOF
 
       - name: Write the report in the job summary
-        if: success()
         shell: bash
         run: |
           cat << EOF >> $GITHUB_STEP_SUMMARY
