@@ -71,12 +71,11 @@ jobs:
           printf "PIPELINE_LOCK_CHANGED=$PIPELINE_LOCK_CHANGED\n" >> $GITHUB_OUTPUT
           printf "PIPELINE_LOCK_FILE_RELATIVE=$PIPELINE_LOCK_FILE_RELATIVE\n" >> $GITHUB_OUTPUT
           printf "PIPELINE_LOCK_FILE_NEW_RELATIVE=$PIPELINE_LOCK_FILE_NEW_RELATIVE\n" >> $GITHUB_OUTPUT
-          printf "INSTALLATION_PATH=$INSTALLATION_PATH\n" >> $GITHUB_OUTPUT
 
       - name: 🧰 Setup Stack
         uses: freckle/stack-action@v5
         with:
-          stack-build-arguments: --pedantic --prefetch --copy-bins --ghc-options -O2 --local-bin-path ${{ steps.set-constants.outputs.INSTALLATION_PATH }}
+          stack-build-arguments: --pedantic --prefetch --copy-bins --ghc-options -O2
           test: false
 
       - name: Run tests
