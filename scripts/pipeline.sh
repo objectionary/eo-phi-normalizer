@@ -15,10 +15,12 @@ print_message "EO version: $EO"
 function check_configs {
     # TODO #263:1h Check all fields of configs in a Haskell script
 
-    report_config="report/config.yaml"
-    eo_tests="eo/eo-runtime/src/test/eo/org/eolang"
+    local report_config="report/config.yaml"
+    local eo_tests="eo/eo-runtime/src/test/eo/org/eolang"
 
+    local eo_files
     eo_files="$(mktemp)"
+
     (
         cd "$eo_tests"
         find -- * -type f \
@@ -29,7 +31,9 @@ function check_configs {
 
     print_message "Check diff between $PIPELINE_CONFIG_FILE and EO tests in $eo_tests"
 
+    local pipeline_eo_files
     pipeline_eo_files="$(mktemp)"
+
     grep source "$PIPELINE_CONFIG_FILE" \
         | sed -r 's|.*/eolang/(.*\.eo)|\1|g' \
         > "$pipeline_eo_files"
@@ -39,7 +43,9 @@ function check_configs {
 
     print_message "Check diff between $report_config and EO tests in $eo_tests"
 
+    local report_eo_files
     report_eo_files="$(mktemp)"
+
     grep '\- phi:' "$report_config" \
         | sed -r 's|.*/phi/(.*).phi|\1|g' \
         | xargs -I {} printf "%s.eo\n" {} \
@@ -73,7 +79,7 @@ function update_normalizer_phi_files {
     print_message "Update .phi data files in eo-phi-normalizer"
 
     cd "$PIPELINE_EO_DIR"
-    data_directory="$PIPELINE_NORMALIZER_DIR/data/$EO"
+    local data_directory="$PIPELINE_NORMALIZER_DIR/data/$EO"
     mkdir_clean "$data_directory"
     cp -r .eoc/phi/org "$data_directory"
     cd "$PIPELINE_DIR"
@@ -121,10 +127,14 @@ function normalize {
     mkdir_clean phi-normalized
 
     cd "$PIPELINE_PHI_DIR"
-    phi_files="$(find -- * -type f)"
-    dependency_files="$(find "$PIPELINE_EO_DIR"/.eoc/phi/org/eolang -type f)"
-    export dependency_files
 
+    local phi_files
+    phi_files="$(find -- * -type f)"
+
+    local dependency_files
+    dependency_files="$(find "$PIPELINE_EO_DIR"/.eoc/phi/org/eolang -type f)"
+
+    export dependency_files
     export PIPELINE_PHI_NORMALIZED_DIR
     export PIPELINE_NORMALIZER_DIR
 
