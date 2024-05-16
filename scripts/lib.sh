@@ -135,8 +135,6 @@ function commit_and_push_if_changed {
 
 export -f commit_and_push_if_changed
 
-EO="$(get_eo_version)"
-
 function eo {
     npx eoc --parser="$EO" "$@"
 }

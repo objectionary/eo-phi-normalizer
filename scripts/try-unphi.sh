@@ -13,10 +13,6 @@ EO="$(get_eo_version)"
 
 DIR="$PWD/try-unphi"
 
-function eo {
-    npx eoc --parser="${EO}" "$@"
-}
-
 function prepare_directory {
     print_message "Prepare the $DIR directory"
 

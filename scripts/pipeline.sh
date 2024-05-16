@@ -10,6 +10,7 @@ shopt -s extglob
 IMPORT_DIR="$PWD/scripts"
 source "$IMPORT_DIR/lib.sh"
 
+EO="$(get_eo_version)"
 print_message "EO version: $EO"
 
 function check_configs {
