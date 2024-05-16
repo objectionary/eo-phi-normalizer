@@ -74,8 +74,6 @@ function add_installation_path_to_path {
 export -f add_installation_path_to_path
 
 function write_pipeline_lock {
-    print_message "Check the pipeline lock in $PIPELINE_LOCK_FILE"
-
         cat > "$PIPELINE_LOCK_FILE_NEW" <<EOF
 EO_HEAD_HASH="$(git rev-parse HEAD:eo)"
 PIPELINE_CONFIG_HASH="$(git hash-object "$PIPELINE_CONFIG_FILE")"
@@ -88,7 +86,11 @@ EOF
     fi
 }
 
+export -f write_pipeline_lock
+
 function update_pipeline_lock {
+    print_message "Check the pipeline lock in $PIPELINE_LOCK_FILE"
+
     write_pipeline_lock
 
     if [[ "$PIPELINE_LOCK_CHANGED" = "true" ]]; then
