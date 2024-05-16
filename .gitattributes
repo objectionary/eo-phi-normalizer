@@ -1,2 +1,3 @@
 eo-phi-normalizer/src/Language/EO/Phi/Syntax/* linguist-generated=true
 eo-phi-normalizer/test/eo/phi/org/eolang/* linguist-generated=true
+pipeline/pipeline.lock eol=lf
