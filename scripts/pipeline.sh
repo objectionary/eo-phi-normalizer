@@ -110,18 +110,6 @@ function test_without_normalization {
     cd "$PIPELINE_DIR"
 }
 
-function install_normalizer {
-    print_message "Installing the Normalizer"
-
-    if [[ "$NORMALIZER_INSTALLED" = "true" && "$IS_WINDOWS" = "true" ]]; then
-        mv "$INSTALLATION_PATH/normalizer.exe" "$INSTALLATION_PATH/normalizer"
-    else
-        stack install eo-phi-normalizer:exe:normalizer --ghc-options -O2
-    fi
-
-    print_message "The Normalizer is installed"
-}
-
 function normalize {
 
     print_message "Normalize PHI"
@@ -201,6 +189,8 @@ function test_with_normalization {
 
 check_configs
 update_pipeline_lock
+install_normalizer
+
 generate_eo_tests
 
 if [[ "$PIPELINE_LOCK_CHANGED" = true ]]; then
@@ -210,9 +200,6 @@ if [[ "$PIPELINE_LOCK_CHANGED" = true ]]; then
     test_without_normalization
 fi
 
-set_installation_path
-add_installation_path_to_path
-install_normalizer
 normalize
 generate_report
 convert_normalized_phi_to_eo

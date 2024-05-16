@@ -46,8 +46,6 @@ function set_is_windows {
         MSYS_NT*)   IS_WINDOWS=true;;
         *)          IS_WINDOWS=false
     esac
-
-    print_message "Platform is Windows: $IS_WINDOWS"
 }
 
 set_is_windows
@@ -59,8 +57,10 @@ function set_installation_path {
         INSTALLATION_PATH="$(cygpath.exe "$INSTALLATION_PATH")"
     fi
 
-    print_message "Normalizer installation path is: $INSTALLATION_PATH"
+    print_message "Normalizer installation path: $INSTALLATION_PATH"
 }
+
+export -f set_installation_path
 
 function add_installation_path_to_path {
     if ! [[ ":$PATH:" == *":$INSTALLATION_PATH:"* ]]; then
@@ -71,8 +71,10 @@ function add_installation_path_to_path {
     fi
 }
 
+export -f add_installation_path_to_path
+
 function write_pipeline_lock {
-    print_message "Checking the pipeline lock in $PIPELINE_LOCK_FILE"
+    print_message "Check the pipeline lock in $PIPELINE_LOCK_FILE"
 
         cat > "$PIPELINE_LOCK_FILE_NEW" <<EOF
 EO_HEAD_HASH="$(git rev-parse HEAD:eo)"
@@ -133,3 +135,20 @@ function eo {
 }
 
 export -f eo
+
+function install_normalizer {
+    set_installation_path
+    add_installation_path_to_path
+
+    print_message "Install the Normalizer"
+
+    if [[ "$NORMALIZER_INSTALLED" = "true" && "$IS_WINDOWS" = "true" ]]; then
+        mv "$INSTALLATION_PATH/normalizer.exe" "$INSTALLATION_PATH/normalizer"
+    else
+        stack install eo-phi-normalizer:exe:normalizer --ghc-options -O2
+    fi
+
+    print_message "The Normalizer is installed"
+}
+
+export -f install_normalizer
