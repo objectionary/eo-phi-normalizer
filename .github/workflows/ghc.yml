@@ -62,23 +62,6 @@ jobs:
           submodules: true
           ref: ${{ github.ref }}
 
-      # TODO #340:10m switch to chrisdickinson/setup-yq after https://github.com/chrisdickinson/setup-yq/pull/14 is merged
-      - uses: deemp/setup-yq@latest
-        with:
-          yq-version: v4.44.1
-          yq-url: ${{ format('https://github.com/mikefarah/yq/releases/download/{{version}}/yq_{{platform}}_{{arch}}{0}', runner.os == 'Windows' && '.exe' || '') }}
-
-      - name: Check pipeline lock
-        id: check-pipeline-lock
-        shell: bash
-        run: |
-          source scripts/lib.sh
-          write_pipeline_lock
-
-          printf "Pipeline lock changed: $PIPELINE_LOCK_CHANGED\n"
-
-          printf "PIPELINE_LOCK_CHANGED=$PIPELINE_LOCK_CHANGED\n" >> $GITHUB_OUTPUT
-
       - name: 🧰 Setup Stack
         uses: freckle/stack-action@v5
         with:
@@ -101,6 +84,23 @@ jobs:
         with:
           distribution: "zulu"
           java-version: 21
+
+      # TODO #340:10m switch to chrisdickinson/setup-yq after https://github.com/chrisdickinson/setup-yq/pull/14 is merged
+      - uses: deemp/setup-yq@latest
+        with:
+          yq-version: v4.44.1
+          yq-url: ${{ format('https://github.com/mikefarah/yq/releases/download/{{version}}/yq_{{platform}}_{{arch}}{0}', runner.os == 'Windows' && '.exe' || '') }}
+
+      - name: Check pipeline lock
+        id: check-pipeline-lock
+        shell: bash
+        run: |
+          source scripts/lib.sh
+          write_pipeline_lock
+
+          printf "Pipeline lock changed: $PIPELINE_LOCK_CHANGED\n"
+
+          printf "PIPELINE_LOCK_CHANGED=$PIPELINE_LOCK_CHANGED\n" >> $GITHUB_OUTPUT
 
       - name: Restore and cache pipeline files
         id: pipeline-files
