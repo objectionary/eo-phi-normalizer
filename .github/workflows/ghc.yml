@@ -59,6 +59,10 @@ jobs:
           submodules: true
           ref: ${{ github.ref }}
 
+      - name: Set codepage on Windows
+        if: ${{ runner.os == 'Windows' }}
+        run: chcp 65001
+
       - name: 🧰 Setup Stack
         uses: freckle/stack-action@v5
         with:
@@ -89,6 +93,10 @@ jobs:
         with:
           submodules: true
           ref: ${{ github.ref }}
+
+      - name: Set codepage on Windows
+        if: ${{ runner.os == 'Windows' }}
+        run: chcp 65001
 
       - name: 🧰 Setup Stack
         uses: freckle/stack-action@v5
