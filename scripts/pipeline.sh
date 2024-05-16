@@ -210,6 +210,8 @@ if [[ "$PIPELINE_LOCK_CHANGED" = true ]]; then
     test_without_normalization
 fi
 
+set_installation_path
+add_installation_path_to_path
 install_normalizer
 normalize
 generate_report

@@ -62,8 +62,6 @@ function set_installation_path {
     print_message "Normalizer installation path is: $INSTALLATION_PATH"
 }
 
-set_installation_path
-
 function add_installation_path_to_path {
     if ! [[ ":$PATH:" == *":$INSTALLATION_PATH:"* ]]; then
         export PATH="$INSTALLATION_PATH:$PATH"
@@ -72,8 +70,6 @@ function add_installation_path_to_path {
         print_message "PATH already contains the Normalizer installation path"
     fi
 }
-
-add_installation_path_to_path
 
 function write_pipeline_lock {
     print_message "Checking the pipeline lock in $PIPELINE_LOCK_FILE"
