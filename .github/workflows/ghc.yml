@@ -187,6 +187,10 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
+          # we can't have multiple artifact versions
+          # because we need to restore the most recent version in the docs job
+          #
+          # we can't use caches because we can't overwrite them
           name: pipeline-files-${{ runner.os }}
           overwrite: true
           path: |
@@ -205,9 +209,9 @@ jobs:
           cat << EOF >> $GITHUB_STEP_SUMMARY
           <h2>Artifact</h2>
           <p>
-            The artifact
+            The
             <a href="${{ steps.pipeline-artifact.outputs.artifact-url }}">
-              pipeline-${{ runner.os }}-${{ hashFiles('pipeline/eo/*.eo') }}
+              artifact
             </a> contains files used or produced during the pipeline run:
           </p>
           <ul>
@@ -248,7 +252,7 @@ jobs:
       - name: Download pipeline artifact
         uses: actions/download-artifact@v4
         with:
-          pattern: pipeline-${{ runner.os }}-*
+          pattern: pipeline-files-${{ runner.os }}
           merge-multiple: true
 
       - name: Setup mdBook
