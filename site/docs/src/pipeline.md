@@ -24,6 +24,11 @@ Install [Java](https://www.java.com/en/download/help/download_options.html).
 java --version
 ```
 
+### Windows
+
+Make `cygpath` available on `PATH`.
+You may need to install [Cygwin](https://www.cygwin.com/install.html).
+
 ## Run pipeline
 
 ### Pipeline stages
