@@ -192,9 +192,8 @@ check_configs
 update_pipeline_lock
 install_normalizer
 
-generate_eo_tests
-
 if [[ "$PIPELINE_LOCK_CHANGED" = true ]]; then
+    generate_eo_tests
     convert_eo_to_phi
     update_normalizer_phi_files
     convert_phi_to_eo
