@@ -5,40 +5,39 @@ set -euo pipefail
 if ! [ -d node_modules ]; then npm i; fi
 
 shopt -s extglob
-EO="${EO:-$(yq '.project.parent.version' -p xml < eo/eo-runtime/pom.xml)}"
-DIR=try-unphi
 
-function print_message {
-    printf "\n\n\n[[[%s]]]\n\n\n" "$1"
-}
+IMPORT_DIR="$PWD/scripts"
+source "$IMPORT_DIR/lib.sh"
 
-function eo {
-    npx eoc --parser="${EO}"
-}
+EO="$(get_eo_version)"
+
+DIR="$PWD/try-unphi"
 
 function prepare_directory {
     print_message "Prepare the $DIR directory"
 
-    mkdir -p $DIR/phi
-    mkdir -p $DIR/init
+    INPUT_DIR="$DIR/input-phi-programs"
+    OUTPUT_DIR="$DIR/output-eo-programs"
+    TMP_DIR="$DIR/tmp"
+    INIT_DIR="$DIR/init"
 
-    rm -rf $DIR/tmp
-    mkdir -p $DIR/tmp
+    mkdir -p "$INPUT_DIR"
+    mkdir -p "$INIT_DIR"
 
-    rm -rf $DIR/unphi
-    mkdir -p $DIR/unphi
+    mkdir_clean "$TMP_DIR"
+    mkdir_clean "$OUTPUT_DIR"
 }
 
 function enter_directory {
     print_message "Enter the $DIR directory"
 
-    cd $DIR
+    cd "$DIR"
 }
 
 function init_eoc {
     print_message "Generate an initial .eoc directory"
 
-    cd init
+    cd "$INIT_DIR"
 
     if [ ! -d .eoc ]; then
         cat <<EOM > test.eo
@@ -62,16 +61,16 @@ EOM
     rm -f .eoc/phi/test.phi
     rm -f .eoc/2-optimize/test.xmir
 
-    cd ..
+    cd "$DIR"
 }
 
 function unphi {
     print_message "Unphi"
 
-    cd tmp
+    cd "$TMP_DIR"
 
-    cp -r ../init/.eoc .
-    cp -r ../phi/* .eoc/phi
+    cp -r "$INIT_DIR/.eoc" .
+    cp -r "$INPUT_DIR/*" .eoc/phi
 
     eo unphi
 
@@ -79,9 +78,9 @@ function unphi {
 
     eo print
 
-    cp -r .eoc/print/!(org) ../unphi
+    cp -r .eoc/print/!(org) "$OUTPUT_DIR"
 
-    cd ..
+    cd "$DIR"
 }
 
 prepare_directory
