@@ -87,7 +87,7 @@ jobs:
         uses: freckle/stack-action@v5
         with:
           stack-build-arguments-build: --dry-run
-          stack-build-arguments-test: --prefetch --ghc-options -O2 ${{ steps.check-syntax-files.outputs.SYNTAX_FILES_EXIST == 'true' && ' ' || '--reconfigure --force-dirty --ghc-options -fforce-recomp' }}
+          stack-build-arguments-test: --ghc-options -O2 ${{ steps.check-syntax-files.outputs.SYNTAX_FILES_EXIST == 'true' && ' ' || '--reconfigure --force-dirty --ghc-options -fforce-recomp' }}
 
       - name: Save Syntax files
         uses: actions/cache/save@v4
@@ -143,7 +143,7 @@ jobs:
       - name: 🧰 Setup Stack
         uses: freckle/stack-action@v5
         with:
-          stack-build-arguments: --prefetch --ghc-options -O2 --copy-bins ${{ steps.check-syntax-files.outputs.SYNTAX_FILES_EXIST == 'true' && ' ' || '--reconfigure --force-dirty --ghc-options -fforce-recomp' }}
+          stack-build-arguments: --ghc-options -O2 --copy-bins ${{ steps.check-syntax-files.outputs.SYNTAX_FILES_EXIST == 'true' && ' ' || '--reconfigure --force-dirty --ghc-options -fforce-recomp' }}
           test: false
 
       - name: Save Syntax files
