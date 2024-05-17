@@ -86,8 +86,8 @@ jobs:
       - name: 🧰 Setup Stack
         uses: freckle/stack-action@v5
         with:
-          stack-build-arguments: --pedantic --prefetch --ghc-options -O2
-          test: false
+          stack-build-arguments-build: --dry-run
+          stack-build-arguments-test: --prefetch --ghc-options -O2 ${{ steps.check-syntax-files.outputs.SYNTAX_FILES_EXIST == 'true' && ' ' || '--reconfigure --force-dirty --ghc-options -fforce-recomp' }}
 
       - name: Save Syntax files
         uses: actions/cache/save@v4
@@ -97,13 +97,6 @@ jobs:
           path: |
             ${{ env.syntax-path }}/Lex.hs
             ${{ env.syntax-path }}/Par.hs
-
-      - name: Run tests
-        shell: bash
-        run: |
-          source scripts/lib.sh
-          ${{ steps.check-syntax-files.outputs.SYNTAX_FILES_EXIST == 'true' && ' ' || 'stack clean' }}
-          stack test ${{ steps.check-syntax-files.outputs.SYNTAX_FILES_EXIST == 'true' && ' ' || '--reconfigure --force-dirty --ghc-options -fforce-recomp' }} --pedantic
 
   pipeline:
     name: Run pipeline
