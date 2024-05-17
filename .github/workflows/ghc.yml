@@ -74,14 +74,12 @@ jobs:
             ${{ env.syntax-path }}/Lex.hs
             ${{ env.syntax-path }}/Par.hs
 
-      - name: Check Syntax files were restored
+      - name: Check Syntax files exist
         if: steps.cache-restore-syntax-files.outputs.cache-hit == 'true'
         id: check-syntax-files
+        shell: bash
         run: |
-          if [[ \
-              "$(test -f ${{ env.syntax-path }}/Lex.hs)" && \
-              "$(test -f ${{ env.syntax-path }}/Par.hs)" \
-          ]]; then
+          if [[ -f ${{ env.syntax-path }}/Lex.hs && -f ${{ env.syntax-path }}/Par.hs ]]; then
             printf "SYNTAX_FILES_EXIST=true\n" >> $GITHUB_OUTPUT
           fi
 
@@ -124,14 +122,12 @@ jobs:
             ${{ env.syntax-path }}/Lex.hs
             ${{ env.syntax-path }}/Par.hs
 
-      - name: Check Syntax files were restored
+      - name: Check Syntax files exist
         if: steps.cache-restore-syntax-files.outputs.cache-hit == 'true'
+        shell: bash
         id: check-syntax-files
         run: |
-          if [[ \
-              "$(test -f ${{ env.syntax-path }}/Lex.hs)" && \
-              "$(test -f ${{ env.syntax-path }}/Par.hs)" \
-          ]]; then
+          if [[ -f ${{ env.syntax-path }}/Lex.hs && -f ${{ env.syntax-path }}/Par.hs ]]; then
             printf "SYNTAX_FILES_EXIST=true\n" >> $GITHUB_OUTPUT
           fi
 
