@@ -87,7 +87,14 @@ jobs:
         uses: freckle/stack-action@v5
         with:
           stack-build-arguments: --pedantic --prefetch --ghc-options -O2
-          stack-build-arguments-build: ${{ steps.check-syntax-files.outputs.SYNTAX_FILES_EXIST == 'true' && ' ' || '--reconfigure --force-dirty --ghc-options -fforce-recomp' }}
+          test: false
+
+      - name: Run tests
+        shell: bash
+        run: |
+          source scripts/lib.sh
+          ${{ steps.check-syntax-files.outputs.SYNTAX_FILES_EXIST == 'true' && ' ' || 'stack clean' }}
+          stack test ${{ steps.check-syntax-files.outputs.SYNTAX_FILES_EXIST == 'true' && ' ' || '--reconfigure --force-dirty --ghc-options -fforce-recomp' }} --pedantic
 
   pipeline:
     name: Run pipeline
