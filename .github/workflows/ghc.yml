@@ -143,8 +143,7 @@ jobs:
       - name: 🧰 Setup Stack
         uses: freckle/stack-action@v5
         with:
-          stack-build-arguments: --pedantic --prefetch --ghc-options -O2
-          stack-build-arguments-build: --copy-bins ${{ steps.check-syntax-files.outputs.SYNTAX_FILES_EXIST == 'true' && ' ' || '--reconfigure --force-dirty --ghc-options -fforce-recomp' }}
+          stack-build-arguments: --prefetch --ghc-options -O2 --copy-bins ${{ steps.check-syntax-files.outputs.SYNTAX_FILES_EXIST == 'true' && ' ' || '--reconfigure --force-dirty --ghc-options -fforce-recomp' }}
           test: false
 
       - name: Save Syntax files
