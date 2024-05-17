@@ -65,9 +65,9 @@ jobs:
         if: ${{ runner.os == 'Windows' }}
         run: chcp 65001
 
-      - name: Cache and restore Syntax files
-        id: cache-restore-syntax-files
-        uses: actions/cache@v4
+      - name: Restore Syntax files
+        id: restore-syntax-files
+        uses: actions/cache/restore@v4
         with:
           key: syntax-files-${{ runner.os }}-${{ hashFiles(format('{0}.cf', env.syntax-path), 'stack.yaml.lock') }}
           path: |
@@ -75,9 +75,9 @@ jobs:
             ${{ env.syntax-path }}/Par.hs
 
       - name: Check Syntax files exist
-        if: steps.cache-restore-syntax-files.outputs.cache-hit == 'true'
-        id: check-syntax-files
+        if: steps.restore-syntax-files.outputs.cache-hit == 'true'
         shell: bash
+        id: check-syntax-files
         run: |
           if [[ -f ${{ env.syntax-path }}/Lex.hs && -f ${{ env.syntax-path }}/Par.hs ]]; then
             printf "SYNTAX_FILES_EXIST=true\n" >> $GITHUB_OUTPUT
@@ -88,6 +88,15 @@ jobs:
         with:
           stack-build-arguments: --pedantic --prefetch --ghc-options -O2
           test: false
+
+      - name: Save Syntax files
+        uses: actions/cache/save@v4
+        if: steps.restore-syntax-files.outputs.cache-hit != 'true'
+        with:
+          key: syntax-files-${{ runner.os }}-${{ hashFiles(format('{0}.cf', env.syntax-path), 'stack.yaml.lock') }}
+          path: |
+            ${{ env.syntax-path }}/Lex.hs
+            ${{ env.syntax-path }}/Par.hs
 
       - name: Run tests
         shell: bash
@@ -120,9 +129,9 @@ jobs:
         if: ${{ runner.os == 'Windows' }}
         run: chcp 65001
 
-      - name: Cache and restore Syntax files
-        id: cache-restore-syntax-files
-        uses: actions/cache@v4
+      - name: Restore Syntax files
+        id: restore-syntax-files
+        uses: actions/cache/restore@v4
         with:
           key: syntax-files-${{ runner.os }}-${{ hashFiles(format('{0}.cf', env.syntax-path), 'stack.yaml.lock') }}
           path: |
@@ -130,7 +139,7 @@ jobs:
             ${{ env.syntax-path }}/Par.hs
 
       - name: Check Syntax files exist
-        if: steps.cache-restore-syntax-files.outputs.cache-hit == 'true'
+        if: steps.restore-syntax-files.outputs.cache-hit == 'true'
         shell: bash
         id: check-syntax-files
         run: |
@@ -144,6 +153,15 @@ jobs:
           stack-build-arguments: --pedantic --prefetch --ghc-options -O2
           stack-build-arguments-build: --copy-bins ${{ steps.check-syntax-files.outputs.SYNTAX_FILES_EXIST == 'true' && ' ' || '--reconfigure --force-dirty --ghc-options -fforce-recomp' }}
           test: false
+
+      - name: Save Syntax files
+        uses: actions/cache/save@v4
+        if: steps.restore-syntax-files.outputs.cache-hit != 'true'
+        with:
+          key: syntax-files-${{ runner.os }}-${{ hashFiles(format('{0}.cf', env.syntax-path), 'stack.yaml.lock') }}
+          path: |
+            ${{ env.syntax-path }}/Lex.hs
+            ${{ env.syntax-path }}/Par.hs
 
       - uses: actions/setup-node@v4
         with:
