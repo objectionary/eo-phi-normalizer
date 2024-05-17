@@ -7,18 +7,19 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
+{-# HLINT ignore "Redundant fmap" #-}
+
 module Language.EO.Phi.Rules.Common where
 
 import Control.Applicative (Alternative ((<|>)), asum)
 import Control.Arrow (Arrow (first))
 import Control.Monad
 import Data.ByteString qualified as ByteString.Strict
-import Data.ByteString.Builder qualified as ByteString
-import Data.ByteString.Lazy qualified as ByteString
 import Data.Char (toUpper)
-import Data.List (intercalate, nubBy, sortOn)
+import Data.List (intercalate, minimumBy, nubBy, sortOn)
 import Data.List.NonEmpty (NonEmpty (..), (<|))
 import Data.List.NonEmpty qualified as NonEmpty
+import Data.Ord (comparing)
 import Data.Serialize qualified as Serialize
 import Data.String (IsString (..))
 import Language.EO.Phi.Syntax.Abs
@@ -62,6 +63,7 @@ data Context = Context
   -- ^ Temporary hack for applying Ksi and Phi rules when dataizing
   , dataizePackage :: Bool
   -- ^ Temporary flag to only dataize Package attributes for the top-level formation.
+  , minimizeTerms :: Bool
   }
 
 sameContext :: Context -> Context -> Bool
@@ -79,6 +81,7 @@ defaultContext rules obj =
     , currentAttr = Phi
     , insideFormation = False
     , dataizePackage = True
+    , minimizeTerms = False
     }
 
 -- | A rule tries to apply a transformation to the root object, if possible.
@@ -247,13 +250,19 @@ equalBinding b1 b2 = b1 == b2
 
 -- * Chain variants
 
+data LogEntry log = LogEntry
+  { logEntryMessage :: String
+  , logEntryLog :: log
+  , logEntryLevel :: Int
+  }
+  deriving (Show, Functor)
+
 newtype Chain log result = Chain
-  {runChain :: Context -> [([(String, log)], result)]}
+  {runChain :: Context -> [([LogEntry log], result)]}
   deriving (Functor)
 
 type NormalizeChain = Chain Object
 type DataizeChain = Chain (Either Object Bytes)
-
 instance Applicative (Chain a) where
   pure x = Chain (const [([], x)])
   (<*>) = ap
@@ -270,7 +279,13 @@ instance MonadFail (Chain a) where
   fail _msg = Chain (const [])
 
 logStep :: String -> info -> Chain info ()
-logStep msg info = Chain $ const [([(msg, info)], ())]
+logStep msg info = Chain $ const [([LogEntry msg info 0], ())]
+
+incLogLevel :: Chain info a -> Chain info a
+incLogLevel (Chain k) =
+  Chain $
+    map (first (map (\LogEntry{..} -> LogEntry{logEntryLevel = logEntryLevel + 1, ..})))
+      . k
 
 choose :: [a] -> Chain log a
 choose xs = Chain $ \_ctx -> [(mempty, x) | x <- xs]
@@ -287,6 +302,32 @@ transformLogs f (Chain normChain) = Chain $ map (first (map (fmap f))) . normCha
 transformNormLogs :: NormalizeChain a -> DataizeChain a
 transformNormLogs = transformLogs Left
 
+listen :: Chain log a -> Chain log (a, [LogEntry log])
+listen (Chain k) = Chain (map (\(logs, result) -> (logs, (result, logs))) . k)
+
+minimizeObject' :: DataizeChain (Either Object Bytes) -> DataizeChain (Either Object Bytes)
+minimizeObject' m = do
+  fmap minimizeTerms getContext >>= \case
+    True -> minimizeObject m
+    False -> m
+
+minimizeObject :: DataizeChain (Either Object Bytes) -> DataizeChain (Either Object Bytes)
+minimizeObject m = do
+  (x, entries) <- listen m
+  case x of
+    Left obj' -> do
+      let objectsOnCurrentLevel =
+            [logEntryLog | LogEntry{..} <- entries, logEntryLevel == 0]
+      return (Left (smallestObject objectsOnCurrentLevel obj'))
+    Right _ -> return x
+
+smallestObject :: [Either Object bytes] -> Object -> Object
+smallestObject objs obj = minimumBy (comparing objectSize) (obj : lefts objs)
+ where
+  lefts [] = []
+  lefts (Left x : xs) = x : lefts xs
+  lefts (Right{} : xs) = lefts xs
+
 getContext :: Chain a Context
 getContext = Chain $ \ctx -> [([], ctx)]
 
@@ -296,14 +337,14 @@ withContext = modifyContext . const
 modifyContext :: (Context -> Context) -> Chain log a -> Chain log a
 modifyContext g (Chain f) = Chain (f . g)
 
-applyRulesChain' :: Context -> Object -> [([(String, Object)], Object)]
+applyRulesChain' :: Context -> Object -> [([LogEntry Object], Object)]
 applyRulesChain' ctx obj = applyRulesChainWith' (defaultApplicationLimits (objectSize obj)) ctx obj
 
 -- | Apply the rules until the object is normalized, preserving the history (chain) of applications.
 applyRulesChain :: Object -> NormalizeChain Object
 applyRulesChain obj = applyRulesChainWith (defaultApplicationLimits (objectSize obj)) obj
 
-applyRulesChainWith' :: ApplicationLimits -> Context -> Object -> [([(String, Object)], Object)]
+applyRulesChainWith' :: ApplicationLimits -> Context -> Object -> [([LogEntry Object], Object)]
 applyRulesChainWith' limits ctx obj = runChain (applyRulesChainWith limits obj) ctx
 
 -- | A variant of `applyRulesChain` with a maximum application depth.

@@ -79,6 +79,7 @@ data CLI'DataizePhi = CLI'DataizePhi
   , chain :: Bool
   , latex :: Bool
   , asPackage :: Bool
+  , minimizeStuckTerms :: Bool
   }
   deriving (Show)
 
@@ -159,6 +160,9 @@ latexSwitch = switch (long "tex" <> help "Output LaTeX.")
 asPackageSwitch :: Parser Bool
 asPackageSwitch = switch (long "as-package" <> help "Automatically inject (λ → Package) in the program if necessary, to dataize all fields.")
 
+minimizeStuckTermsSwitch :: Parser Bool
+minimizeStuckTermsSwitch = switch (long "minimize-stuck-terms" <> help "If a dataized (sub)term is stuck (cannot be fully dataized), use the minimal (by size) intermediate result.")
+
 bindingsPathOption :: Parser (Maybe String)
 bindingsPathOption =
   optional $
@@ -217,6 +221,7 @@ commandParser =
     chain <- switch (long "chain" <> help "Display all the intermediate steps.")
     latex <- latexSwitch
     asPackage <- asPackageSwitch
+    minimizeStuckTerms <- minimizeStuckTermsSwitch
     pure CLI'DataizePhi{..}
   report = do
     configFile <- strOption (long "config" <> short 'c' <> metavar.file <> help [fmt|A report configuration {metavarName.file}.|])
@@ -274,6 +279,9 @@ data StructuredJSON = StructuredJSON
   , output :: [[(String, String)]]
   }
   deriving (Generic, ToJSON)
+
+logEntryToPair :: LogEntry a -> (String, a)
+logEntryToPair LogEntry{..} = (logEntryMessage, logEntryLog)
 
 encodeToJSONString :: (ToJSON a) => a -> String
 encodeToJSONString = TL.unpack . toLazyText . encodePrettyToTextBuilder' defConfig{confIndent = Spaces 2}
@@ -387,7 +395,7 @@ main = withUtf8 do
           uniqueResults
             -- Something here seems incorrect
             | chain = map fst $ applyRulesChainWith' limits ctx (Formation bindings)
-            | otherwise = pure . ("",) <$> applyRulesWith limits ctx (Formation bindings)
+            | otherwise = (\x -> [LogEntry "" x 0]) <$> applyRulesWith limits ctx (Formation bindings)
            where
             limits = ApplicationLimits maxDepth (maxGrowthFactor * objectSize (Formation bindings))
             ctx = defaultContext (convertRuleNamed <$> ruleSet.rules) (Formation bindingsWithDeps) -- IMPORTANT: context contains dependencies!
@@ -398,24 +406,24 @@ main = withUtf8 do
             logStrLn
               . encodeToJSONString
               . printAsProgramOrAsObject
-              $ snd (head (head uniqueResults))
+              $ logEntryLog (head (head uniqueResults))
         | single ->
             logStrLn
               . printAsProgramOrAsObject
-              $ snd (head (head uniqueResults))
+              $ logEntryLog (head (head uniqueResults))
         | json ->
             logStrLn . encodeToJSONString $
               StructuredJSON
                 { input = printTree program'
-                , output = (propagateName1 printAsProgramOrAsObject <$>) <$> uniqueResults
+                , output = (logEntryToPair . fmap printAsProgramOrAsObject <$>) <$> uniqueResults
                 }
         | chain && latex -> do
             logStrLn . toLatexString $ Formation bindings
             forM_ uniqueResults $ \steps -> do
-              forM_ (init steps) $ \(_, step) -> do
-                logStrLn . toLatexString $ step
+              forM_ (init steps) $ \LogEntry{..} -> do
+                logStrLn . toLatexString $ logEntryLog
         | latex ->
-            logStrLn . toLatexString $ snd (head (head uniqueResults))
+            logStrLn . toLatexString $ logEntryLog (head (head uniqueResults))
         | otherwise -> do
             logStrLn "Input:"
             logStrLn (printTree program')
@@ -424,10 +432,10 @@ main = withUtf8 do
               logStrLn $
                 "Result " <> show index <> " out of " <> show totalResults <> ":"
               let n = length steps
-              forM_ (zip [1 ..] steps) $ \(k, (appliedRuleName, step)) -> do
+              forM_ (zip [1 ..] steps) $ \(k, LogEntry{..}) -> do
                 when chain $
-                  logStr ("[ " <> show k <> " / " <> show n <> " ] " <> appliedRuleName <> ": ")
-                logStrLn . printAsProgramOrAsObject $ step
+                  logStr ("[ " <> show k <> " / " <> show n <> " ] " <> logEntryMessage <> ": ")
+                logStrLn . printAsProgramOrAsObject $ logEntryLog
               logStrLn "----------------------------------------------------"
     CLI'DataizePhi' CLI'DataizePhi{..} -> do
       (logStrLn, _logStr) <- getLoggers outputFile
@@ -442,7 +450,10 @@ main = withUtf8 do
       let inputObject
             | asPackage = Formation (injectLamdbaPackage bindings)
             | otherwise = Formation bindings
-      let ctx = defaultContext (convertRuleNamed <$> ruleSet.rules) (Formation bindingsWithDeps) -- IMPORTANT: context contains dependencies!
+      let ctx =
+            (defaultContext (convertRuleNamed <$> ruleSet.rules) (Formation bindingsWithDeps)) -- IMPORTANT: context contains dependencies!
+              { minimizeTerms = minimizeStuckTerms
+              }
       ( if chain
           then do
             let dataizeChain
@@ -451,14 +462,18 @@ main = withUtf8 do
             if latex
               then do
                 logStrLn . toLatexString $ Formation bindings
-                forM_ (fst (dataizeChain ctx inputObject)) $ \case
-                  (msg, Left obj) ->
-                    (when ("Rule" `isPrefixOf` msg) $ logStrLn . toLatexString $ obj)
-                  (_, Right (Bytes bytes)) -> logStrLn bytes
+                forM_ (fst (dataizeChain ctx inputObject)) $ \LogEntry{..} ->
+                  case logEntryLog of
+                    Left obj ->
+                      when ("Rule" `isPrefixOf` logEntryMessage) $
+                        logStrLn . toLatexString $
+                          obj
+                    Right (Bytes bytes) -> logStrLn bytes
               else do
-                forM_ (fst (dataizeChain ctx inputObject)) $ \case
-                  (msg, Left obj) -> logStrLn (msg ++ ": " ++ printTree obj)
-                  (msg, Right (Bytes bytes)) -> logStrLn (msg ++ ": " ++ bytes)
+                forM_ (fst (dataizeChain ctx inputObject)) $ \LogEntry{..} ->
+                  case logEntryLog of
+                    Left obj -> logStrLn (replicate logEntryLevel ' ' ++ logEntryMessage ++ ": " ++ printTree obj)
+                    Right (Bytes bytes) -> logStrLn (replicate logEntryLevel ' ' ++ logEntryMessage ++ ": " ++ bytes)
           else do
             let dataize
                   -- This should be moved to a separate subcommand
