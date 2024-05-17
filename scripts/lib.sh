@@ -100,7 +100,7 @@ function update_pipeline_lock {
 
     if [[ "$PIPELINE_LOCK_CHANGED" = "true" ]]; then
         print_message "Pipeline lock updated"
-        mv "$PIPELINE_LOCK_FILE_NEW" "$PIPELINE_LOCK_FILE"
+        cp "$PIPELINE_LOCK_FILE_NEW" "$PIPELINE_LOCK_FILE"
     else
         print_message "Pipeline lock didn't change"
     fi
