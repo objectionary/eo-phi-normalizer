@@ -52,6 +52,8 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-12]
       fail-fast: false
+    env:
+      syntax-path: "eo-phi-normalizer/src/Language/EO/Phi/Syntax"
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
@@ -63,18 +65,31 @@ jobs:
         if: ${{ runner.os == 'Windows' }}
         run: chcp 65001
 
+      - name: Cache and restore Syntax files
+        id: cache-restore-syntax-files
+        uses: actions/cache@v4
+        with:
+          key: syntax-files-${{ runner.os }}-${{ hashFiles(format('{0}.cf', env.syntax-path), 'stack.yaml.lock') }}
+          path: |
+            ${{ env.syntax-path }}/Lex.hs
+            ${{ env.syntax-path }}/Par.hs
+
+      - name: Check Syntax files were restored
+        if: steps.cache-restore-syntax-files.outputs.cache-hit == 'true'
+        id: check-syntax-files
+        run: |
+          if [[ \
+              "$(test -f ${{ env.syntax-path }}/Lex.hs)" && \
+              "$(test -f ${{ env.syntax-path }}/Par.hs)" \
+          ]]; then
+            printf "SYNTAX_FILES_EXIST=true\n" >> $GITHUB_OUTPUT
+          fi
+
       - name: 🧰 Setup Stack
         uses: freckle/stack-action@v5
         with:
-          stack-build-arguments: --pedantic --prefetch --copy-bins --ghc-options -O2
-          test: false
-
-      - name: Run tests
-        shell: bash
-        run: |
-          source scripts/lib.sh
-          stack clean
-          stack test --reconfigure --pedantic
+          stack-build-arguments: --pedantic --prefetch --ghc-options -O2
+          stack-build-arguments-build: ${{ steps.check-syntax-files.outputs.SYNTAX_FILES_EXIST == 'true' && '' || '--reconfigure --force-dirty --ghc-options -fforce-recomp' }}
 
   pipeline:
     name: Run pipeline
@@ -84,6 +99,8 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-12]
       fail-fast: false
+    env:
+      syntax-path: "eo-phi-normalizer/src/Language/EO/Phi/Syntax"
     permissions:
       contents: write
       pull-requests: write
@@ -98,10 +115,31 @@ jobs:
         if: ${{ runner.os == 'Windows' }}
         run: chcp 65001
 
+      - name: Cache and restore Syntax files
+        id: cache-restore-syntax-files
+        uses: actions/cache@v4
+        with:
+          key: syntax-files-${{ runner.os }}-${{ hashFiles(format('{0}.cf', env.syntax-path), 'stack.yaml.lock') }}
+          path: |
+            ${{ env.syntax-path }}/Lex.hs
+            ${{ env.syntax-path }}/Par.hs
+
+      - name: Check Syntax files were restored
+        if: steps.cache-restore-syntax-files.outputs.cache-hit == 'true'
+        id: check-syntax-files
+        run: |
+          if [[ \
+              "$(test -f ${{ env.syntax-path }}/Lex.hs)" && \
+              "$(test -f ${{ env.syntax-path }}/Par.hs)" \
+          ]]; then
+            printf "SYNTAX_FILES_EXIST=true\n" >> $GITHUB_OUTPUT
+          fi
+
       - name: 🧰 Setup Stack
         uses: freckle/stack-action@v5
         with:
-          stack-build-arguments: --pedantic --prefetch --copy-bins --ghc-options -O2
+          stack-build-arguments: --pedantic --prefetch --ghc-options -O2
+          stack-build-arguments-build: --copy-bins ${{ steps.check-syntax-files.outputs.SYNTAX_FILES_EXIST == 'true' && '' || '--reconfigure --force-dirty --ghc-options -fforce-recomp' }}
           test: false
 
       - uses: actions/setup-node@v4
