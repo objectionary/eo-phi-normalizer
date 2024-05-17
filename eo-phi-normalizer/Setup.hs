@@ -30,20 +30,19 @@ main =
 #else
                       False
 #endif
-            getCodePage = if isWindows then "chcp.com" else ""
-            setCodePage = if isWindows then "chcp.com 65001" else ""
+            -- See the details on the command form in https://github.com/objectionary/normalizer/issues/347#issuecomment-2117097070
+            command = intercalate "; " $
+                [ "set -ex" ] <>
+                [ "chcp.com" | isWindows ] <>
+                [ "chcp.com 65001" | isWindows ] <>
+                [ "bnfc --haskell -d -p Language.EO.Phi --generic -o src/ grammar/EO/Phi/Syntax.cf"
+                , "cd src/Language/EO/Phi/Syntax"
+                , "alex Lex.x"
+                , "happy Par.y"
+                , "true"
+                ]
 
-            command = [fmt|
-              set -e
-              {getCodePage}
-              {setCodePage}
-              bnfc --haskell -d -p Language.EO.Phi --generic -o src/ grammar/EO/Phi/Syntax.cf
-              cd src/Language/EO/Phi/Syntax
-              alex Lex.x
-              happy Par.y
-            |]
-
-            fullCommand = [fmt|bash -c '{command}'|]
+            fullCommand = [fmt|bash -c ' {command} '|]
 
           putStrLn fullCommand
 
