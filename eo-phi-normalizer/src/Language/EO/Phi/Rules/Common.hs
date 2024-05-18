@@ -563,8 +563,8 @@ bytesToString (Bytes bytes) = map (toEnum . fst . head . readHex) $ words (map d
 -- >>> floatToBytes (1/0)       -- Infinity
 -- Bytes "7F-F0-00-00-00-00-00-00"
 --
--- >>> floatToBytes (asin 2)    -- NaN
--- Bytes "FF-F8-00-00-00-00-00-00"
+-- >>> floatToBytes (asin 2) `elem` ["FF-F8-00-00-00-00-00-00", "7F-F8-00-00-00-00-00-00"]  -- sNaN or qNaN
+-- True
 floatToBytes :: Double -> Bytes
 floatToBytes f = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "")) $ ByteString.Strict.unpack $ Serialize.encode f
 
