@@ -56,7 +56,7 @@ import System.Directory (createDirectoryIfMissing, doesFileExist)
 import System.FilePath (takeDirectory)
 import System.IO (IOMode (WriteMode), getContents', hFlush, hPutStr, hPutStrLn, openFile, stdout)
 
-data CLI'TransformPhi = CLI'TransformPhi
+data CLI'RewritePhi = CLI'RewritePhi
   { chain :: Bool
   , rulesPath :: String
   , outputFile :: Maybe String
@@ -94,7 +94,7 @@ newtype CLI'ReportPhi = CLI'ReportPhi
   deriving (Show)
 
 data CLI
-  = CLI'TransformPhi' CLI'TransformPhi
+  = CLI'RewritePhi' CLI'RewritePhi
   | CLI'DataizePhi' CLI'DataizePhi
   | CLI'MetricsPhi' CLI'MetricsPhi
   | CLI'ReportPhi' CLI'ReportPhi
@@ -173,7 +173,7 @@ bindingsPathOption =
 
 data CommandParser = CommandParser
   { metrics :: Parser CLI'MetricsPhi
-  , transform :: Parser CLI'TransformPhi
+  , rewrite :: Parser CLI'RewritePhi
   , dataize :: Parser CLI'DataizePhi
   , report :: Parser CLI'ReportPhi
   }
@@ -188,9 +188,9 @@ commandParser =
     bindingsPath <- bindingsPathOption
     pure CLI'MetricsPhi{..}
 
-  transform = do
+  rewrite = do
     rulesPath <- strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. Must be specified.|])
-    chain <- switch (long "chain" <> short 'c' <> help "Output transformation steps.")
+    chain <- switch (long "chain" <> short 'c' <> help "Output rewriteation steps.")
     json <- jsonSwitch
     latex <- latexSwitch
     outputFile <- outputFileOption
@@ -203,7 +203,7 @@ commandParser =
        in option auto (long "max-growth-factor" <> metavar.int <> value maxValue <> help [fmt|The factor by which to allow the input term to grow before stopping. Defaults to {maxValue}.|])
     inputFile <- inputFileArg
     dependencies <- dependenciesArg
-    pure CLI'TransformPhi{..}
+    pure CLI'RewritePhi{..}
   dataize = do
     rulesPath <- strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. Must be specified.|])
     inputFile <- inputFileArg
@@ -219,7 +219,7 @@ commandParser =
 
 data CommandParserInfo = CommandParserInfo
   { metrics :: ParserInfo CLI
-  , transform :: ParserInfo CLI
+  , rewrite :: ParserInfo CLI
   , dataize :: ParserInfo CLI
   , report :: ParserInfo CLI
   }
@@ -228,13 +228,13 @@ commandParserInfo :: CommandParserInfo
 commandParserInfo =
   CommandParserInfo
     { metrics = info (CLI'MetricsPhi' <$> commandParser.metrics) (progDesc "Collect metrics for a PHI program.")
-    , transform = info (CLI'TransformPhi' <$> commandParser.transform) (progDesc "Transform a PHI program.")
+    , rewrite = info (CLI'RewritePhi' <$> commandParser.rewrite) (progDesc "Rewrite a PHI program.")
     , dataize = info (CLI'DataizePhi' <$> commandParser.dataize) (progDesc "Dataize a PHI program.")
     , report = info (CLI'ReportPhi' <$> commandParser.report) (progDesc "Generate reports about initial and normalized PHI programs.")
     }
 
 data CommandNames = CommandNames
-  { transform :: String
+  { rewrite :: String
   , metrics :: String
   , dataize :: String
   , report :: String
@@ -243,7 +243,7 @@ data CommandNames = CommandNames
 commandNames :: CommandNames
 commandNames =
   CommandNames
-    { transform = "transform"
+    { rewrite = "rewrite"
     , metrics = "metrics"
     , dataize = "dataize"
     , report = "report"
@@ -252,7 +252,7 @@ commandNames =
 cli :: Parser CLI
 cli =
   hsubparser
-    ( command commandNames.transform commandParserInfo.transform
+    ( command commandNames.rewrite commandParserInfo.rewrite
         <> command commandNames.metrics commandParserInfo.metrics
         <> command commandNames.dataize commandParserInfo.dataize
         <> command commandNames.report commandParserInfo.report
@@ -362,7 +362,7 @@ main = withUtf8 do
       (logStrLn, _) <- getLoggers outputFile
       metrics <- getMetrics bindingsPath inputFile
       logStrLn $ encodeToJSONString metrics
-    CLI'TransformPhi' CLI'TransformPhi{..} -> do
+    CLI'RewritePhi' CLI'RewritePhi{..} -> do
       program' <- getProgram inputFile
       deps <- mapM (getProgram . Just) dependencies
       (logStrLn, logStr) <- getLoggers outputFile
