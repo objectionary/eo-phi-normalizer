@@ -35,7 +35,7 @@ You may need to install [Cygwin](https://www.cygwin.com/install.html).
 
 The pipeline has several stages:
 
-- Transform original `EO` programs into initial `EO` programs
+- Rewrite original `EO` programs into initial `EO` programs
 - Translate initial `EO` programs to initial `PHI` programs
 - Translate initial `PHI` programs to non-normalized `EO` programs
 - Test `EO` programs
@@ -46,11 +46,11 @@ The pipeline has several stages:
 
 ### Modify pipeline configuration
 
-The `pipeline/config.yaml` file specifies how original `EO` programs are transformed into initial `EO` programs.
-Transformation is necessary because some objects in original `EO` programs don't work.
+The `pipeline/config.yaml` file specifies how original `EO` programs are rewriteed into initial `EO` programs.
+Rewriteation is necessary because some objects in original `EO` programs don't work.
 An initial `EO` program is an original `EO` program with some top-level objects excluded.
 
-- `yamlDirectory` - a directory with transformed programs in `YAML` format
+- `yamlDirectory` - a directory with rewriteed programs in `YAML` format
 - `sets`
   - `source` - a file with an original `EO` program
   - `yaml` - a file for the initial `EO` program in `YAML` format

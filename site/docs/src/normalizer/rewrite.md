@@ -1,4 +1,4 @@
-# `normalizer transform`
+# `normalizer rewrite`
 
 ## `MetaPHI`
 
@@ -66,20 +66,20 @@ cd normalizer
 ### `--help`
 
 ```$ as console
-normalizer transform --help
+normalizer rewrite --help
 ```
 
 ```console
-Usage: normalizer transform (-r|--rules FILE) [-c|--chain] [-j|--json] [--tex]
+Usage: normalizer rewrite (-r|--rules FILE) [-c|--chain] [-j|--json] [--tex]
                             [-o|--output-file FILE] [-s|--single]
                             [--max-depth INT] [--max-growth-factor INT] [FILE]
                             [-d|--dependency-file FILE]
 
-  Transform a PHI program.
+  Rewrite a PHI program.
 
 Available options:
   -r,--rules FILE          FILE with user-defined rules. Must be specified.
-  -c,--chain               Output transformation steps.
+  -c,--chain               Output rewriteation steps.
   -j,--json                Output JSON.
   --tex                    Output LaTeX.
   -o,--output-file FILE    Output to FILE. When this option is not specified,
@@ -104,7 +104,7 @@ The output may contain multiple numbered results that correspond to different po
 (even if the final result is the same).
 
 ```$ as console
-normalizer transform --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+normalizer rewrite --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
 ```
 
 ```console
@@ -122,7 +122,7 @@ Result 1 out of 1:
 Use `--chain` to see numbered normalization steps for each normalization result.
 
 ```$ as console
-normalizer transform --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+normalizer rewrite --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
 ```
 
 ```console
@@ -138,7 +138,7 @@ Result 1 out of 1:
 ### `--json`
 
 ```$ as json
-normalizer transform --json --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+normalizer rewrite --json --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
 ```
 
 ```json
@@ -158,7 +158,7 @@ normalizer transform --json --chain --rules ./eo-phi-normalizer/test/eo/phi/rule
 ### `--single`
 
 ```$ as console
-normalizer transform --single --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+normalizer rewrite --single --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
 ```
 
 ```console
@@ -168,7 +168,7 @@ normalizer transform --single --rules ./eo-phi-normalizer/test/eo/phi/rules/yego
 ### `--single` `--json`
 
 ```$ as console
-normalizer transform --single --json --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+normalizer rewrite --single --json --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
 ```
 
 ```console
@@ -181,13 +181,13 @@ Redirects the output to file of the given path instead of `stdout`.
 
 ### `--dependency-file FILE`
 
-Injects package dependencies from a given file into the context when transforming the input.
+Injects package dependencies from a given file into the context when rewriteing the input.
 Can be used multiple times to inject multiple dependencies.
 
 ### `FILE` not specified (read from stdin)
 
 ```$ as console
-cat celsius.phi | normalizer transform --single --json --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml
+cat celsius.phi | normalizer rewrite --single --json --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml
 ```
 
 ```console
