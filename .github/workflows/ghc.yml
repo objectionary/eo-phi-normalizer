@@ -32,7 +32,7 @@ jobs:
           version: "0.14.0.0"
           pattern: |
             eo-phi-normalizer/**/*.hs
-            !eo-phi-normalizer/src/Language/EO/Phi/Syntax/**/*.hs
+            !${{ env.syntax-path }}/**/*.hs
             !eo-phi-normalizer/Setup.hs
 
       - uses: haskell-actions/hlint-setup@v2
