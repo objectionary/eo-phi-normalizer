@@ -187,12 +187,12 @@ function get_failing_tests {
     local logs="$1"
     local stage="$2"
 
-    failed=$(
+    failed="$(
         grep -a '<<< FAILURE' < "$logs" \
         | sed -n -e 's/^.*EOorg.EOeolang.EO//p' \
         | sed -e 's/_/-/g' \
         | sed -e 's/Test$//g'
-    )
+    )"
 
     if [[ "$failed" = "" ]]; then
         print_message "No tests failed $stage normalization"
