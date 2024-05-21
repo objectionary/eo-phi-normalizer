@@ -59,6 +59,9 @@ function check_configs {
 function generate_eo_tests {
     print_message "Generate EO test files"
 
+    mkdir_clean "$PIPELINE_YAML_DIR"
+    mkdir_clean "$PIPELINE_EO_DIR"
+
     stack run transform-eo-tests
 }
 
