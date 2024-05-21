@@ -200,6 +200,14 @@ jobs:
           NORMALIZER_INSTALLED: "true"
         run: ./scripts/pipeline.sh
 
+      - name: Check failing tests
+        shell: bash
+        if: always()
+        run: |
+          source scripts/lib.sh
+          get_failing_tests_non_normalized
+          get_failing_tests_normalized
+
       - name: Save pipeline files
         if: steps.check-pipeline-lock.outputs.PIPELINE_LOCK_CHANGED
         uses: actions/cache/save@v4
