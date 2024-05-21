@@ -191,11 +191,12 @@ function get_failing_tests {
     local logs="$1"
     local stage="$2"
 
+    export logs
+
     failed="$(
-        grep -a '<<< FAILURE' < "$logs" \
-        | sed -n -e 's/^.*EOorg.EOeolang.EO//p' \
-        | sed -e 's/_/-/g' \
-        | sed -e 's/Test$//g'
+        perl -ne 'print if /<<< FAILURE/' "$logs" \
+        | perl -pe 's/^.*EOorg.EOeolang.EO(.*)Test$/$1/p' \
+        | perl -pe 's/_/-/g'
     )"
 
     if [[ "$failed" = "" ]]; then
