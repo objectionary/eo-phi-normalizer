@@ -13,6 +13,9 @@ on:
 permissions:
   contents: write # to submit Haddock documentation to GitHub Pages
 
+env:
+  syntax-path: "eo-phi-normalizer/src/Language/EO/Phi/Syntax"
+
 jobs:
   check:
     name: "Run static checks"
@@ -52,8 +55,6 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-12]
       fail-fast: false
-    env:
-      syntax-path: "eo-phi-normalizer/src/Language/EO/Phi/Syntax"
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
@@ -107,8 +108,6 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-12]
       fail-fast: false
-    env:
-      syntax-path: "eo-phi-normalizer/src/Language/EO/Phi/Syntax"
     permissions:
       contents: write
       pull-requests: write
