@@ -168,8 +168,10 @@ function install_normalizer {
 
     print_message "Install the Normalizer"
 
-    if [[ "$NORMALIZER_INSTALLED" = "true" && "$IS_WINDOWS" = "true" ]]; then
-        mv "$INSTALLATION_PATH/normalizer.exe" "$INSTALLATION_PATH/normalizer"
+    if [[ "$NORMALIZER_INSTALLED" = "true" ]]; then
+        if [[ "$IS_WINDOWS" = "true" ]]; then
+            mv "$INSTALLATION_PATH/normalizer.exe" "$INSTALLATION_PATH/normalizer"
+        fi
     else
         stack install eo-phi-normalizer:exe:normalizer --ghc-options -O2
     fi
