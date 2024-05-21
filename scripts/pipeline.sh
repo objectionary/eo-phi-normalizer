@@ -102,12 +102,27 @@ function convert_phi_to_eo {
 
 }
 
+function test_with_logs {
+    local logs="$1"
+
+    local fail=false
+
+    eo test | tee "$logs" || fail=true
+
+    if [[ "$fail" = true ]]; then
+        perl -i -pe 's/\x1b\[[0-9;]*[mGKHF]//g' "$logs"
+        perl -i -pe 's/\x0//g' "$logs"
+
+        exit 1
+    fi
+}
+
 function test_without_normalization {
 
     print_message "Test EO without normalization"
 
     cd "$PIPELINE_EO_NON_NORMALIZED_DIR"
-    eo test | tee "$PIPELINE_LOGS_NON_NORMALIZED"
+    test_with_logs "$PIPELINE_LOGS_NON_NORMALIZED"
     cd "$PIPELINE_DIR"
 }
 
@@ -184,7 +199,7 @@ function test_with_normalization {
 
     cd "$PIPELINE_EO_NORMALIZED_DIR"
     cp -r "$PIPELINE_PHI_NORMALIZED_DIR"/.eoc/print/!(org)  .
-    eo test | tee "$PIPELINE_LOGS_NORMALIZED"
+    test_with_logs "$PIPELINE_LOGS_NORMALIZED"
     cd "$PIPELINE_DIR"
 }
 
