@@ -107,7 +107,7 @@ function test_without_normalization {
     print_message "Test EO without normalization"
 
     cd "$PIPELINE_EO_NON_NORMALIZED_DIR"
-    eo test
+    eo test | tee "$PIPELINE_LOGS_NON_NORMALIZED"
     cd "$PIPELINE_DIR"
 }
 
@@ -184,7 +184,7 @@ function test_with_normalization {
 
     cd "$PIPELINE_EO_NORMALIZED_DIR"
     cp -r "$PIPELINE_PHI_NORMALIZED_DIR"/.eoc/print/!(org)  .
-    eo test
+    eo test | tee "$PIPELINE_LOGS_NORMALIZED"
     cd "$PIPELINE_DIR"
 }
 
