@@ -14,7 +14,7 @@ permissions:
   contents: write # to submit Haddock documentation to GitHub Pages
 
 env:
-  syntax-path: "eo-phi-normalizer/src/Language/EO/Phi/Syntax"
+  syntax-dir: "eo-phi-normalizer/src/Language/EO/Phi/Syntax"
 
 jobs:
   check:
@@ -32,7 +32,7 @@ jobs:
           version: "0.14.0.0"
           pattern: |
             eo-phi-normalizer/**/*.hs
-            !${{ env.syntax-path }}/**/*.hs
+            !${{ env.syntax-dir }}/**/*.hs
             !eo-phi-normalizer/Setup.hs
 
       - uses: haskell-actions/hlint-setup@v2
@@ -70,10 +70,10 @@ jobs:
         id: restore-syntax-files
         uses: actions/cache/restore@v4
         with:
-          key: syntax-files-${{ runner.os }}-${{ hashFiles(format('{0}.cf', env.syntax-path), 'stack.yaml.lock') }}
+          key: syntax-files-${{ runner.os }}-${{ hashFiles(format('{0}.cf', env.syntax-dir), 'stack.yaml.lock') }}
           path: |
-            ${{ env.syntax-path }}/Lex.hs
-            ${{ env.syntax-path }}/Par.hs
+            ${{ env.syntax-dir }}/Lex.hs
+            ${{ env.syntax-dir }}/Par.hs
 
       - name: Check Syntax files exist
         if: steps.restore-syntax-files.outputs.cache-hit == 'true'
@@ -95,10 +95,10 @@ jobs:
         uses: actions/cache/save@v4
         if: steps.restore-syntax-files.outputs.cache-hit != 'true'
         with:
-          key: syntax-files-${{ runner.os }}-${{ hashFiles(format('{0}.cf', env.syntax-path), 'stack.yaml.lock') }}
+          key: syntax-files-${{ runner.os }}-${{ hashFiles(format('{0}.cf', env.syntax-dir), 'stack.yaml.lock') }}
           path: |
-            ${{ env.syntax-path }}/Lex.hs
-            ${{ env.syntax-path }}/Par.hs
+            ${{ env.syntax-dir }}/Lex.hs
+            ${{ env.syntax-dir }}/Par.hs
 
   pipeline:
     name: Run pipeline
@@ -126,10 +126,10 @@ jobs:
         id: restore-syntax-files
         uses: actions/cache/restore@v4
         with:
-          key: syntax-files-${{ runner.os }}-${{ hashFiles(format('{0}.cf', env.syntax-path), 'stack.yaml.lock') }}
+          key: syntax-files-${{ runner.os }}-${{ hashFiles(format('{0}.cf', env.syntax-dir), 'stack.yaml.lock') }}
           path: |
-            ${{ env.syntax-path }}/Lex.hs
-            ${{ env.syntax-path }}/Par.hs
+            ${{ env.syntax-dir }}/Lex.hs
+            ${{ env.syntax-dir }}/Par.hs
 
       - name: Check Syntax files exist
         if: steps.restore-syntax-files.outputs.cache-hit == 'true'
@@ -150,10 +150,10 @@ jobs:
         uses: actions/cache/save@v4
         if: steps.restore-syntax-files.outputs.cache-hit != 'true'
         with:
-          key: syntax-files-${{ runner.os }}-${{ hashFiles(format('{0}.cf', env.syntax-path), 'stack.yaml.lock') }}
+          key: syntax-files-${{ runner.os }}-${{ hashFiles(format('{0}.cf', env.syntax-dir), 'stack.yaml.lock') }}
           path: |
-            ${{ env.syntax-path }}/Lex.hs
-            ${{ env.syntax-path }}/Par.hs
+            ${{ env.syntax-dir }}/Lex.hs
+            ${{ env.syntax-dir }}/Par.hs
 
       - uses: actions/setup-node@v4
         with:
