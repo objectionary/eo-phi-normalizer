@@ -90,7 +90,7 @@ function convert_phi_to_eo {
 
     print_message "Convert PHI to EO without normalization"
 
-    mkdir_clean eo-non-normalized
+    mkdir_clean "$PIPELINE_EO_NON_NORMALIZED_DIR"
 
     cd "$PIPELINE_PHI_DIR"
     cp -r ../eo/.eoc .
@@ -130,7 +130,7 @@ function normalize {
 
     print_message "Normalize PHI"
 
-    mkdir_clean phi-normalized
+    mkdir_clean "$PIPELINE_PHI_NORMALIZED_DIR"
 
     cd "$PIPELINE_PHI_DIR"
 
@@ -195,7 +195,7 @@ function test_with_normalization {
 
     print_message "Test EO with normalization"
 
-    mkdir_clean eo-normalized
+    mkdir_clean "$PIPELINE_EO_NORMALIZED_DIR"
 
     cd "$PIPELINE_EO_NORMALIZED_DIR"
     cp -r "$PIPELINE_PHI_NORMALIZED_DIR"/.eoc/print/!(org)  .
