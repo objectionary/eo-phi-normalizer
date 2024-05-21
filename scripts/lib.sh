@@ -33,6 +33,8 @@ PIPELINE_LOGS_DIR="$PIPELINE_DIR/logs"
 PIPELINE_LOGS_NON_NORMALIZED="$PIPELINE_LOGS_DIR/test-non-normalized-logs.txt"
 PIPELINE_LOGS_NORMALIZED="$PIPELINE_LOGS_DIR/test-normalized-logs.txt"
 
+SYNTAX_DIR="eo-phi-normalizer/src/Language/EO/Phi/Syntax"
+
 function init_logs {
     mkdir -p "$PIPELINE_LOGS_DIR"
     touch "$PIPELINE_LOGS_NON_NORMALIZED"
@@ -216,3 +218,15 @@ function get_failing_tests_normalized {
 }
 
 export -f get_failing_tests_normalized
+
+function check_syntax_files_exist {
+    SYNTAX_FILES_EXIST=false
+
+    if [[ -f "$SYNTAX_DIR/Lex.hs" && -f "$SYNTAX_DIR/Par.hs" ]]; then
+        SYNTAX_FILES_EXIST=true
+    fi
+
+    print_message "Syntax files exist: $SYNTAX_FILES_EXIST"
+}
+
+export -f check_syntax_files_exist
