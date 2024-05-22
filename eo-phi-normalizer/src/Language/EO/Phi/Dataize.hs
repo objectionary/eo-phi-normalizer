@@ -287,9 +287,9 @@ evaluateBuiltinFunChain "Lorg_eolang_string_slice" obj = \state -> do
 -- evaluateBuiltinFunChain "Lorg_eolang_cage_encaged_φ" obj = _ -- TODO
 -- evaluateBuiltinFunChain "Lorg_eolang_cage_encaged_encage" obj = _ -- TODO
 -- I/O
-evaluateBuiltinFunChain "Lorg_eolang_io_stdin_next_line" obj = evaluateIODataizationFunChain getLine obj
-evaluateBuiltinFunChain "Lorg_eolang_io_stdin_φ" obj = evaluateIODataizationFunChain getContents obj
-evaluateBuiltinFunChain "Lorg_eolang_io_stdout" obj = evaluateUnaryDataizationFunChain boolToBytes bytesToString wrapBytesInBytes (extractLabel "text") ((`seq` True) . unsafePerformIO . putStrLn) obj
+-- evaluateBuiltinFunChain "Lorg_eolang_io_stdin_next_line" obj = evaluateIODataizationFunChain getLine obj
+-- evaluateBuiltinFunChain "Lorg_eolang_io_stdin_φ" obj = evaluateIODataizationFunChain getContents obj
+-- evaluateBuiltinFunChain "Lorg_eolang_io_stdout" obj = evaluateUnaryDataizationFunChain boolToBytes bytesToString wrapBytesInBytes (extractLabel "text") ((`seq` True) . unsafePerformIO . putStrLn) obj
 -- others
 evaluateBuiltinFunChain "Lorg_eolang_dataized" obj =
   evaluateUnaryDataizationFunChain id id wrapBytesInBytes (extractLabel "target") id obj
