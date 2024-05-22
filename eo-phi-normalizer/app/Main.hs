@@ -455,8 +455,11 @@ main = withUtf8 do
     CLI'ReportPhi' CLI'ReportPhi{..} -> do
       reportConfig <- decodeFileThrow configFile
 
-      programReports <- forM reportConfig.items $ \item -> do
+      programReports <- forM (zip [1..] reportConfig.items) $ \(idx :: Int, item) -> do
+        let progress = [fmt|({idx}/{length reportConfig.items})|] :: String
+        putStrLn [fmt|Processing {progress}: {item.phi}|]
         metricsPhi <- getMetrics item.bindingsPathPhi (Just item.phi)
+        putStrLn [fmt|Processing {progress}: {item.phiNormalized}|]
         metricsPhiNormalized <- getMetrics item.bindingsPathPhiNormalized (Just item.phiNormalized)
         pure $ makeProgramReport reportConfig item metricsPhi metricsPhiNormalized
 
