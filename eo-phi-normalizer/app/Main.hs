@@ -27,15 +27,15 @@
 
 module Main (main) where
 
-import Control.Monad (forM, unless, when)
-import Data.Foldable (forM_)
-import Data.Maybe (fromMaybe)
 import Control.Exception (Exception (..), SomeException, catch, throw)
 import Control.Lens.Lens ((&))
 import Control.Lens.Operators ((?~))
+import Control.Monad (forM, unless, when)
 import Data.Aeson (ToJSON)
 import Data.Aeson.Encode.Pretty (Config (..), Indent (..), defConfig, encodePrettyToTextBuilder')
+import Data.Foldable (forM_)
 import Data.List (intercalate, isPrefixOf)
+import Data.Maybe (fromMaybe)
 import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy as TL (unpack)
 import Data.Yaml (decodeFileThrow)
