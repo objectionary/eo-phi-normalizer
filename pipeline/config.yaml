@@ -9,7 +9,7 @@ report:
     formations: 0.1
     dispatches: 0.2
   expected-improved-programs-percentage: 0.9
-items:
+test-sets:
 - eo:
     source: eo/eo-runtime/src/test/eo/org/eolang/as-phi-tests.eo
     yaml: pipeline/yaml/as-phi-tests.yaml

@@ -42,6 +42,9 @@ library
       Language.EO.Phi.Metrics.Collect
       Language.EO.Phi.Metrics.Data
       Language.EO.Phi.Normalize
+      Language.EO.Phi.Pipeline.Config
+      Language.EO.Phi.Pipeline.EOTests.Data
+      Language.EO.Phi.Pipeline.EOTests.PrepareTests
       Language.EO.Phi.Report.Data
       Language.EO.Phi.Report.Html
       Language.EO.Phi.Rules.Common
@@ -138,6 +141,9 @@ test-suite doctests
       Language.EO.Phi.Metrics.Collect
       Language.EO.Phi.Metrics.Data
       Language.EO.Phi.Normalize
+      Language.EO.Phi.Pipeline.Config
+      Language.EO.Phi.Pipeline.EOTests.Data
+      Language.EO.Phi.Pipeline.EOTests.PrepareTests
       Language.EO.Phi.Report.Data
       Language.EO.Phi.Report.Html
       Language.EO.Phi.Rules.Common

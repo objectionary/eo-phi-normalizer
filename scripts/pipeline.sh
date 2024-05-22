@@ -13,56 +13,13 @@ source "$IMPORT_DIR/lib.sh"
 EO="$(get_eo_version)"
 print_message "EO version: $EO"
 
-function check_configs {
-    # TODO #263:1h Check all fields of configs in a Haskell script
-
-    local report_config="report/config.yaml"
-    local eo_tests="eo/eo-runtime/src/test/eo/org/eolang"
-
-    local eo_files
-    eo_files="$(mktemp)"
-
-    (
-        cd "$eo_tests"
-        find -- * -type f \
-            | sort \
-            | uniq \
-            > "$eo_files"
-    )
-
-    print_message "Check diff between $PIPELINE_CONFIG_FILE and EO tests in $eo_tests"
-
-    local pipeline_eo_files
-    pipeline_eo_files="$(mktemp)"
-
-    grep source "$PIPELINE_CONFIG_FILE" \
-        | sed -r 's|.*/eolang/(.*\.eo)|\1|g' \
-        > "$pipeline_eo_files"
-
-    diff -U 10 "$pipeline_eo_files" "$eo_files" \
-        && print_message "No difference"
-
-    print_message "Check diff between $report_config and EO tests in $eo_tests"
-
-    local report_eo_files
-    report_eo_files="$(mktemp)"
-
-    grep '\- phi:' "$report_config" \
-        | sed -r 's|.*/phi/(.*).phi|\1|g' \
-        | xargs -I {} printf "%s.eo\n" {} \
-        > "$report_eo_files"
-
-    diff -U 10 "$report_eo_files" "$eo_files" \
-        && print_message "Result: no difference"
-}
-
 function generate_eo_tests {
     print_message "Generate EO test files"
 
     mkdir_clean "$PIPELINE_YAML_DIR"
     mkdir_clean "$PIPELINE_EO_DIR"
 
-    stack run transform-eo-tests
+    normalizer prepare-pipeline-tests --config "$PIPELINE_CONFIG_FILE"
 }
 
 function convert_eo_to_phi {
@@ -180,7 +137,7 @@ function generate_report {
 
     cd "$PWD_DIR"
 
-    normalizer report --config "$PIPELINE_REPORT_DIR/config.yaml"
+    normalizer report --config "$PIPELINE_CONFIG_FILE"
 }
 
 function convert_normalized_phi_to_eo {
@@ -206,7 +163,6 @@ function test_with_normalization {
     cd "$PIPELINE_DIR"
 }
 
-check_configs
 update_pipeline_lock
 install_normalizer
 

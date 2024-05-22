@@ -8,6 +8,7 @@
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE NoImplicitPrelude #-}
@@ -18,11 +19,12 @@ module Language.EO.Phi.Report.Html where
 
 import Data.FileEmbed (embedFileRelative)
 import Data.List (intercalate)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (catMaybes, fromMaybe)
 import Data.Text qualified as T
 import Data.Text.Encoding qualified as T
 import Language.EO.Phi.Metrics.Data (Metrics (..), MetricsCount, toListMetrics)
-import Language.EO.Phi.Report.Data (MetricsChange, MetricsChangeCategorized, MetricsChangeCategory (..), Percent (..), ProgramReport (..), Report (..), ReportRow (..))
+import Language.EO.Phi.Pipeline.Config
+import Language.EO.Phi.Report.Data
 import PyF (fmt)
 import Text.Blaze.Html.Renderer.String (renderHtml)
 import Text.Blaze.Html5 hiding (i)
@@ -82,44 +84,29 @@ toHtmlReportTableHeader =
                  ]
       ]
 
-data ReportFormat
-  = ReportFormat'Html
-      { css :: String
-      , js :: String
-      }
-  | -- | GitHub Flavored Markdown
-    ReportFormat'Markdown
-  deriving stock (Eq)
-
-data ReportConfig = ReportConfig
-  { expectedMetricsChange :: MetricsChange
-  , expectedImprovedProgramsPercentage :: Percent
-  , format :: ReportFormat
-  }
-
 instance ToMarkup Percent where
   toMarkup :: Percent -> Markup
   toMarkup = toMarkup . show
 
--- >>> reportConfig = ReportConfig { expectedMetricsChange = 0, format = ReportFormat'Markdown }
+-- >>> pipelineConfig = ReportConfig { general = ReportGeneralConfig { expectedMetricsChange = 0, format = ReportFormat'Markdown } }
 --
--- >>> renderHtml $ toHtmlChange reportConfig (MetricsChange'Bad 0.2)
+-- >>> renderHtml $ toHtmlChange pipelineConfig (MetricsChange'Bad 0.2)
 -- "<td class=\"number bad\">0.2\128308</td>"
 --
--- >>> renderHtml $ toHtmlChange reportConfig (MetricsChange'Good 0.5)
+-- >>> renderHtml $ toHtmlChange pipelineConfig (MetricsChange'Good 0.5)
 -- "<td class=\"number good\">0.5\128994</td>"
--- >>> renderHtml $ toHtmlChange reportConfig (MetricsChange'NA :: MetricsChangeCategory Double)
+-- >>> renderHtml $ toHtmlChange pipelineConfig (MetricsChange'NA :: MetricsChangeCategory Double)
 -- "<td class=\"number not-applicable\">N/A\128995</td>"
-toHtmlChange :: (ToMarkup a) => ReportConfig -> MetricsChangeCategory a -> Html
-toHtmlChange reportConfig = \case
+toHtmlChange :: (ToMarkup a) => ReportFormat -> MetricsChangeCategory a -> Html
+toHtmlChange reportFormat = \case
   MetricsChange'NA -> td ! class_ "number not-applicable" $ toHtml ("N/A" :: String) <> toHtml ['🟣' | isMarkdown]
   MetricsChange'Bad{..} -> td ! class_ "number bad" $ toHtml change <> toHtml ['🔴' | isMarkdown]
   MetricsChange'Good{..} -> td ! class_ "number good" $ toHtml change <> toHtml ['🟢' | isMarkdown]
  where
-  isMarkdown = reportConfig.format == ReportFormat'Markdown
+  isMarkdown = reportFormat == ReportFormat'Markdown
 
-toHtmlMetricsChange :: ReportConfig -> MetricsChangeCategorized -> [Html]
-toHtmlMetricsChange reportConfig change = toHtmlChange reportConfig <$> toListMetrics change
+toHtmlMetricsChange :: ReportFormat -> MetricsChangeCategorized -> [Html]
+toHtmlMetricsChange reportFormat change = toHtmlChange reportFormat <$> toListMetrics change
 
 toHtmlMetrics :: MetricsCount -> [Html]
 toHtmlMetrics metrics =
@@ -127,8 +114,8 @@ toHtmlMetrics metrics =
     . toHtml
     <$> toListMetrics metrics
 
-toHtmlReportRow :: ReportConfig -> Int -> ReportRow -> Html
-toHtmlReportRow reportConfig index reportRow =
+toHtmlReportRow :: ReportFormat -> Int -> ReportRow -> Html
+toHtmlReportRow reportFormat index reportRow =
   tr . toHtml $
     ( td
         . toHtml
@@ -137,7 +124,7 @@ toHtmlReportRow reportConfig index reportRow =
             , fromMaybe "[N/A]" reportRow.attributeNormalized
             ]
     )
-      <> toHtmlMetricsChange reportConfig reportRow.metricsChange
+      <> toHtmlMetricsChange reportFormat reportRow.metricsChange
       <> toHtmlMetrics reportRow.metricsInitial
       <> toHtmlMetrics reportRow.metricsNormalized
       <> ( td
@@ -149,11 +136,11 @@ toHtmlReportRow reportConfig index reportRow =
                 ]
          )
 
-toHtmlReport :: ReportConfig -> Report -> Html
-toHtmlReport reportConfig report =
+toHtmlReport :: ReportFormat -> PipelineConfig -> Report -> Html
+toHtmlReport reportFormat pipelineConfig report =
   toHtml
     [ docType
-    , html ! lang "en-US" $
+    , TBH.html ! lang "en-US" $
         toHtml
           [ TBH.head $
               toHtml $
@@ -179,11 +166,12 @@ toHtmlReport reportConfig report =
                       }}
                     |]
                 ]
-                  <> case reportConfig.format of
-                    ReportFormat'Html{..} ->
-                      [ script $ toHtml js
-                      , style ! type_ "text/css" $ toHtml css
-                      ]
+                  <> case reportFormat of
+                    ReportFormat'Html ->
+                      catMaybes
+                        [ pipelineConfig.report.input >>= (.js) >>= \js -> pure (script $ toHtml js)
+                        , pipelineConfig.report.input >>= (.css) >>= \css -> pure (style ! type_ "text/css" $ toHtml css)
+                        ]
                     ReportFormat'Markdown -> []
           , body $
               toHtml $
@@ -221,10 +209,10 @@ toHtmlReport reportConfig report =
                       ( toHtml . toListMetrics $
                           mkPercentItem
                             <$> metricsNames
-                            <*> reportConfig.expectedMetricsChange
+                            <*> pipelineConfig.report.expectedMetricsChange
                       )
                     <> p
-                      ( let expectedImprovedProgramsPercentage = reportConfig.expectedImprovedProgramsPercentage
+                      ( let expectedImprovedProgramsPercentage = pipelineConfig.report.expectedImprovedProgramsPercentage
                          in [fmt|We expect such changes for at least {expectedImprovedProgramsPercentage:s} of tests.|]
                       )
                     <> h3 "Actual"
@@ -240,7 +228,7 @@ toHtmlReport reportConfig report =
                     <> h2 "Table"
                     <> p [fmt|The table below provides detailed information about tests.|]
                 ]
-                  <> [ (input ! type_ "button" ! value "Copy to Clipboard" ! onclick "copytable('table')")
+                  <> [ (TBH.input ! type_ "button" ! value "Copy to Clipboard" ! onclick "copytable('table')")
                       <> h3 "Columns"
                       <> p "Columns in this table are sortable."
                       <> p "Hover over a header cell from the second row of header cells (Attribute Initial, etc.) to see a triangle demonstrating the sorting order."
@@ -258,14 +246,14 @@ toHtmlReport reportConfig report =
                         toHtml
                           [ toHtmlReportTableHeader
                           , tbody . toHtml $
-                              uncurry (toHtmlReportRow reportConfig)
+                              uncurry (toHtmlReportRow reportFormat)
                                 <$> zip [1 ..] (concat [programReport.bindingsRows | programReport <- report.programReports])
                           ]
                      ]
           ]
     ]
  where
-  isMarkdown = reportConfig.format == ReportFormat'Markdown
+  isMarkdown = reportFormat == ReportFormat'Markdown
 
   tests = concatMap (.bindingsRows) report.programReports
 
@@ -303,5 +291,5 @@ mkPercentage part total = Percent $ fromIntegral part / fromIntegral total
 mkNumber :: Int -> Int -> String
 mkNumber part total = [fmt|{part} ({mkPercentage part total:s})|]
 
-toStringReport :: ReportConfig -> Report -> String
-toStringReport reportConfig report = renderHtml $ toHtmlReport reportConfig report
+toStringReport :: ReportFormat -> PipelineConfig -> Report -> String
+toStringReport reportFormat pipelineConfig report = renderHtml $ toHtmlReport reportFormat pipelineConfig report
