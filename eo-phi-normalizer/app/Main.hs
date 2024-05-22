@@ -426,33 +426,32 @@ main = withUtf8 do
         Right (Program bindingsWithDeps) -> return bindingsWithDeps
       ruleSet <- parseRuleSetFromFile rulesPath
       let (Program bindings) = program'
-      let inputObject = Formation bindings
-      let ctx = defaultContext (convertRuleNamed <$> ruleSet.rules) (Formation bindingsWithDeps) -- IMPORTANT: context contains dependencies!
-      ( if chain
-          then do
-            let dataizeChain
-                  | recursive = dataizeRecursivelyChain'
-                  | otherwise = dataizeStepChain'
-            if latex
-              then do
-                logStrLn . toLatexString $ Formation bindings
-                forM_ (fst (dataizeChain ctx inputObject)) $ \case
-                  (msg, Left obj) ->
-                    (when ("Rule" `isPrefixOf` msg) $ logStrLn . toLatexString $ obj)
-                  (_, Right (Bytes bytes)) -> logStrLn bytes
-              else do
-                forM_ (fst (dataizeChain ctx inputObject)) $ \case
-                  (msg, Left obj) -> logStrLn (msg ++ ": " ++ printTree obj)
-                  (msg, Right (Bytes bytes)) -> logStrLn (msg ++ ": " ++ bytes)
-          else do
-            let dataize
-                  -- This should be moved to a separate subcommand
-                  | recursive = dataizeRecursively
-                  | otherwise = dataizeStep'
-            case dataize ctx inputObject of
-              Left obj -> logStrLn (printAsProgramOrAsObject obj)
-              Right (Bytes bytes) -> logStrLn bytes
-        )
+          inputObject = Formation bindings
+          ctx = defaultContext (convertRuleNamed <$> ruleSet.rules) (Formation bindingsWithDeps) -- IMPORTANT: context contains dependencies!
+      if chain
+        then do
+          let dataizeChain
+                | recursive = dataizeRecursivelyChain'
+                | otherwise = dataizeStepChain'
+          if latex
+            then do
+              logStrLn . toLatexString $ Formation bindings
+              forM_ (fst (dataizeChain ctx inputObject)) $ \case
+                (msg, Left obj) ->
+                  (when ("Rule" `isPrefixOf` msg) $ logStrLn . toLatexString $ obj)
+                (_, Right (Bytes bytes)) -> logStrLn bytes
+            else do
+              forM_ (fst (dataizeChain ctx inputObject)) $ \case
+                (msg, Left obj) -> logStrLn (msg ++ ": " ++ printTree obj)
+                (msg, Right (Bytes bytes)) -> logStrLn (msg ++ ": " ++ bytes)
+        else do
+          let dataize
+                -- This should be moved to a separate subcommand
+                | recursive = dataizeRecursively
+                | otherwise = dataizeStep'
+          case dataize ctx inputObject of
+            Left obj -> logStrLn (printAsProgramOrAsObject obj)
+            Right (Bytes bytes) -> logStrLn bytes
     CLI'ReportPhi' CLI'ReportPhi{..} -> do
       reportConfig <- decodeFileThrow configFile
 
