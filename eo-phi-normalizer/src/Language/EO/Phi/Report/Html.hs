@@ -57,7 +57,8 @@ toHtmlReportTableHeader =
     toHtml
       [ tr $
           toHtml
-            [ th ! colspan "2" ! class_ "no-sort" $ "Attribute"
+            [ th ! colspan "1" ! class_ "no-sort" $ ""
+            , th ! colspan "2" ! class_ "no-sort" $ "Attribute"
             , th ! colspan "4" ! class_ "no-sort" $ "Change"
             , th ! colspan "4" ! class_ "no-sort" $ "Initial"
             , th ! colspan "4" ! class_ "no-sort" $ "Normalized"
@@ -65,7 +66,8 @@ toHtmlReportTableHeader =
             ]
       , tr . toHtml $
           th
-            <$> [ "Attribute Initial"
+            <$> [ "Test #"
+                , "Attribute Initial"
                 , "Attribute Normalized"
                 ]
               <> ( concat
@@ -125,12 +127,13 @@ toHtmlMetrics metrics =
     . toHtml
     <$> toListMetrics metrics
 
-toHtmlReportRow :: ReportConfig -> ReportRow -> Html
-toHtmlReportRow reportConfig reportRow =
+toHtmlReportRow :: ReportConfig -> Int -> ReportRow -> Html
+toHtmlReportRow reportConfig index reportRow =
   tr . toHtml $
     ( td
         . toHtml
-        <$> [ fromMaybe "[N/A]" reportRow.attributeInitial
+        <$> [ [fmt|{index}|]
+            , fromMaybe "[N/A]" reportRow.attributeInitial
             , fromMaybe "[N/A]" reportRow.attributeNormalized
             ]
     )
@@ -255,8 +258,8 @@ toHtmlReport reportConfig report =
                         toHtml
                           [ toHtmlReportTableHeader
                           , tbody . toHtml $
-                              toHtmlReportRow reportConfig
-                                <$> concat [programReport.bindingsRows | programReport <- report.programReports]
+                              uncurry (toHtmlReportRow reportConfig)
+                                <$> zip [1 ..] (concat [programReport.bindingsRows | programReport <- report.programReports])
                           ]
                      ]
           ]
