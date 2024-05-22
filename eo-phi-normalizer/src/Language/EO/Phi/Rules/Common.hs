@@ -1,6 +1,5 @@
 {-# HLINT ignore "Use &&" #-}
 {-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ViewPatterns #-}

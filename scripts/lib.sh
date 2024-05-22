@@ -1,5 +1,7 @@
 # shellcheck disable=SC2148
 
+set -uo pipefail
+
 PWD_DIR="$PWD"
 PIPELINE_DIR_RELATIVE="pipeline"
 PIPELINE_DIR="$PWD/$PIPELINE_DIR_RELATIVE"
@@ -10,6 +12,10 @@ PIPELINE_EO_NORMALIZED_DIR="$PIPELINE_DIR/eo-normalized"
 PIPELINE_PHI_NORMALIZED_DIR="$PIPELINE_DIR/phi-normalized"
 PIPELINE_NORMALIZER_DIR="$PWD/eo-phi-normalizer"
 PIPELINE_REPORT_DIR="$PWD/report"
+PIPELINE_YAML_DIR="$PIPELINE_DIR/yaml"
+
+SCRIPTS_DIR="$PWD_DIR/scripts"
+PIPELINE_SCRIPT="$SCRIPTS_DIR/pipeline.sh"
 
 PIPELINE_CONFIG_FILE="$PIPELINE_DIR/config.yaml"
 
@@ -23,6 +29,22 @@ PIPELINE_LOCK_FILE_RELATIVE="$PIPELINE_DIR_RELATIVE/$PIPELINE_LOCK_FILE_NAME"
 PIPELINE_LOCK_FILE_NEW_RELATIVE="$PIPELINE_DIR_RELATIVE/$PIPELINE_LOCK_FILE_NEW_NAME"
 
 NORMALIZER_INSTALLED="${NORMALIZER_INSTALLED:-false}"
+
+PIPELINE_LOGS_DIR="$PIPELINE_DIR/logs"
+PIPELINE_LOGS_NON_NORMALIZED="$PIPELINE_LOGS_DIR/test-non-normalized-logs.txt"
+PIPELINE_LOGS_NORMALIZED="$PIPELINE_LOGS_DIR/test-normalized-logs.txt"
+
+SYNTAX_DIR="eo-phi-normalizer/src/Language/EO/Phi/Syntax"
+
+function init_logs {
+    mkdir -p "$PIPELINE_LOGS_DIR"
+    touch "$PIPELINE_LOGS_NON_NORMALIZED"
+    touch "$PIPELINE_LOGS_NORMALIZED"
+}
+
+export -f init_logs
+
+init_logs
 
 function print_message {
     printf "\n\n\n[[[%s]]]\n\n\n" "$1"
@@ -147,8 +169,10 @@ function install_normalizer {
 
     print_message "Install the Normalizer"
 
-    if [[ "$NORMALIZER_INSTALLED" = "true" && "$IS_WINDOWS" = "true" ]]; then
-        mv "$INSTALLATION_PATH/normalizer.exe" "$INSTALLATION_PATH/normalizer"
+    if [[ "$NORMALIZER_INSTALLED" = "true" ]]; then
+        if [[ "$IS_WINDOWS" = "true" ]]; then
+            mv "$INSTALLATION_PATH/normalizer.exe" "$INSTALLATION_PATH/normalizer"
+        fi
     else
         stack install eo-phi-normalizer:exe:normalizer --ghc-options -O2
     fi
@@ -157,3 +181,56 @@ function install_normalizer {
 }
 
 export -f install_normalizer
+
+function run_pipeline {
+    bash "$PIPELINE_SCRIPT"
+}
+
+export -f run_pipeline
+
+function get_failing_tests {
+    local logs="$1"
+    local stage="$2"
+
+    export logs
+
+    failed="$(
+        perl -ne 'print if /<<< FAILURE/' "$logs" \
+        | perl -pe 's/^.*EOorg.EOeolang.EO(.*)Test$/$1/p' \
+        | perl -pe 's/_/-/g'
+    )"
+
+    if [[ "$failed" = "" ]]; then
+        print_message "No tests failed $stage normalization"
+    else
+        print_message "Some tests failed $stage normalization"
+
+        printf "%s\n" "$failed"
+    fi
+}
+
+export -f get_failing_tests
+
+function get_failing_tests_non_normalized {
+    get_failing_tests "$PIPELINE_LOGS_NON_NORMALIZED" "before"
+}
+
+export -f get_failing_tests_non_normalized
+
+function get_failing_tests_normalized {
+    get_failing_tests "$PIPELINE_LOGS_NORMALIZED" "after"
+}
+
+export -f get_failing_tests_normalized
+
+function check_syntax_files_exist {
+    SYNTAX_FILES_EXIST=false
+
+    if [[ -f "$SYNTAX_DIR/Lex.hs" && -f "$SYNTAX_DIR/Par.hs" ]]; then
+        SYNTAX_FILES_EXIST=true
+    fi
+
+    print_message "Syntax files exist: $SYNTAX_FILES_EXIST"
+}
+
+export -f check_syntax_files_exist

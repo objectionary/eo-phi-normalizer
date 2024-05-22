@@ -59,6 +59,9 @@ function check_configs {
 function generate_eo_tests {
     print_message "Generate EO test files"
 
+    mkdir_clean "$PIPELINE_YAML_DIR"
+    mkdir_clean "$PIPELINE_EO_DIR"
+
     stack run transform-eo-tests
 }
 
@@ -90,7 +93,7 @@ function convert_phi_to_eo {
 
     print_message "Convert PHI to EO without normalization"
 
-    mkdir_clean eo-non-normalized
+    mkdir_clean "$PIPELINE_EO_NON_NORMALIZED_DIR"
 
     cd "$PIPELINE_PHI_DIR"
     cp -r ../eo/.eoc .
@@ -102,12 +105,27 @@ function convert_phi_to_eo {
 
 }
 
+function test_with_logs {
+    local logs="$1"
+
+    local fail=false
+
+    eo test | tee "$logs" || fail=true
+
+    if [[ "$fail" = true ]]; then
+        perl -i -pe 's/\x1b\[[0-9;]*[mGKHF]//g' "$logs"
+        perl -i -pe 's/\x0//g' "$logs"
+
+        exit 1
+    fi
+}
+
 function test_without_normalization {
 
     print_message "Test EO without normalization"
 
     cd "$PIPELINE_EO_NON_NORMALIZED_DIR"
-    eo test
+    test_with_logs "$PIPELINE_LOGS_NON_NORMALIZED"
     cd "$PIPELINE_DIR"
 }
 
@@ -115,7 +133,7 @@ function normalize {
 
     print_message "Normalize PHI"
 
-    mkdir_clean phi-normalized
+    mkdir_clean "$PIPELINE_PHI_NORMALIZED_DIR"
 
     cd "$PIPELINE_PHI_DIR"
 
@@ -180,11 +198,11 @@ function test_with_normalization {
 
     print_message "Test EO with normalization"
 
-    mkdir_clean eo-normalized
+    mkdir_clean "$PIPELINE_EO_NORMALIZED_DIR"
 
     cd "$PIPELINE_EO_NORMALIZED_DIR"
     cp -r "$PIPELINE_PHI_NORMALIZED_DIR"/.eoc/print/!(org)  .
-    eo test
+    test_with_logs "$PIPELINE_LOGS_NORMALIZED"
     cd "$PIPELINE_DIR"
 }
 

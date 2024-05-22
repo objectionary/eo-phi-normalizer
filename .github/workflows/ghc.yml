@@ -13,6 +13,9 @@ on:
 permissions:
   contents: write # to submit Haddock documentation to GitHub Pages
 
+env:
+  syntax-dir: "eo-phi-normalizer/src/Language/EO/Phi/Syntax"
+
 jobs:
   check:
     name: "Run static checks"
@@ -29,7 +32,7 @@ jobs:
           version: "0.14.0.0"
           pattern: |
             eo-phi-normalizer/**/*.hs
-            !eo-phi-normalizer/src/Language/EO/Phi/Syntax/**/*.hs
+            !${{ env.syntax-dir }}/**/*.hs
             !eo-phi-normalizer/Setup.hs
 
       - uses: haskell-actions/hlint-setup@v2
@@ -52,8 +55,6 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-12]
       fail-fast: false
-    env:
-      syntax-path: "eo-phi-normalizer/src/Language/EO/Phi/Syntax"
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
@@ -69,19 +70,19 @@ jobs:
         id: restore-syntax-files
         uses: actions/cache/restore@v4
         with:
-          key: syntax-files-${{ runner.os }}-${{ hashFiles(format('{0}.cf', env.syntax-path), 'stack.yaml.lock') }}
+          key: syntax-files-${{ runner.os }}-${{ hashFiles(format('{0}.cf', env.syntax-dir), 'stack.yaml.lock') }}
           path: |
-            ${{ env.syntax-path }}/Lex.hs
-            ${{ env.syntax-path }}/Par.hs
+            ${{ env.syntax-dir }}/Lex.hs
+            ${{ env.syntax-dir }}/Par.hs
 
       - name: Check Syntax files exist
         if: steps.restore-syntax-files.outputs.cache-hit == 'true'
         shell: bash
         id: check-syntax-files
         run: |
-          if [[ -f ${{ env.syntax-path }}/Lex.hs && -f ${{ env.syntax-path }}/Par.hs ]]; then
-            printf "SYNTAX_FILES_EXIST=true\n" >> $GITHUB_OUTPUT
-          fi
+          source scripts/lib.sh
+          check_syntax_files_exist
+          printf "SYNTAX_FILES_EXIST=$SYNTAX_FILES_EXIST\n" >> $GITHUB_OUTPUT
 
       - name: 🧰 Setup Stack
         uses: freckle/stack-action@v5
@@ -94,10 +95,10 @@ jobs:
         uses: actions/cache/save@v4
         if: steps.restore-syntax-files.outputs.cache-hit != 'true'
         with:
-          key: syntax-files-${{ runner.os }}-${{ hashFiles(format('{0}.cf', env.syntax-path), 'stack.yaml.lock') }}
+          key: syntax-files-${{ runner.os }}-${{ hashFiles(format('{0}.cf', env.syntax-dir), 'stack.yaml.lock') }}
           path: |
-            ${{ env.syntax-path }}/Lex.hs
-            ${{ env.syntax-path }}/Par.hs
+            ${{ env.syntax-dir }}/Lex.hs
+            ${{ env.syntax-dir }}/Par.hs
 
   pipeline:
     name: Run pipeline
@@ -107,8 +108,6 @@ jobs:
       matrix:
         os: [ubuntu-latest, windows-latest, macos-12]
       fail-fast: false
-    env:
-      syntax-path: "eo-phi-normalizer/src/Language/EO/Phi/Syntax"
     permissions:
       contents: write
       pull-requests: write
@@ -127,19 +126,19 @@ jobs:
         id: restore-syntax-files
         uses: actions/cache/restore@v4
         with:
-          key: syntax-files-${{ runner.os }}-${{ hashFiles(format('{0}.cf', env.syntax-path), 'stack.yaml.lock') }}
+          key: syntax-files-${{ runner.os }}-${{ hashFiles(format('{0}.cf', env.syntax-dir), 'stack.yaml.lock') }}
           path: |
-            ${{ env.syntax-path }}/Lex.hs
-            ${{ env.syntax-path }}/Par.hs
+            ${{ env.syntax-dir }}/Lex.hs
+            ${{ env.syntax-dir }}/Par.hs
 
       - name: Check Syntax files exist
         if: steps.restore-syntax-files.outputs.cache-hit == 'true'
         shell: bash
         id: check-syntax-files
         run: |
-          if [[ -f ${{ env.syntax-path }}/Lex.hs && -f ${{ env.syntax-path }}/Par.hs ]]; then
-            printf "SYNTAX_FILES_EXIST=true\n" >> $GITHUB_OUTPUT
-          fi
+          source scripts/lib.sh
+          check_syntax_files_exist
+          printf "SYNTAX_FILES_EXIST=$SYNTAX_FILES_EXIST\n" >> $GITHUB_OUTPUT
 
       - name: 🧰 Setup Stack
         uses: freckle/stack-action@v5
@@ -151,10 +150,10 @@ jobs:
         uses: actions/cache/save@v4
         if: steps.restore-syntax-files.outputs.cache-hit != 'true'
         with:
-          key: syntax-files-${{ runner.os }}-${{ hashFiles(format('{0}.cf', env.syntax-path), 'stack.yaml.lock') }}
+          key: syntax-files-${{ runner.os }}-${{ hashFiles(format('{0}.cf', env.syntax-dir), 'stack.yaml.lock') }}
           path: |
-            ${{ env.syntax-path }}/Lex.hs
-            ${{ env.syntax-path }}/Par.hs
+            ${{ env.syntax-dir }}/Lex.hs
+            ${{ env.syntax-dir }}/Par.hs
 
       - uses: actions/setup-node@v4
         with:
@@ -199,6 +198,14 @@ jobs:
           PIPELINE_LOCK_CHANGED: ${{ (steps.check-pipeline-lock.outputs.PIPELINE_LOCK_CHANGED == 'true') || (steps.pipeline-files.outputs.cache-hit != 'true') }}
           NORMALIZER_INSTALLED: "true"
         run: ./scripts/pipeline.sh
+
+      - name: Check failing tests
+        shell: bash
+        if: always()
+        run: |
+          source scripts/lib.sh
+          get_failing_tests_non_normalized
+          get_failing_tests_normalized
 
       - name: Save pipeline files
         if: steps.check-pipeline-lock.outputs.PIPELINE_LOCK_CHANGED
