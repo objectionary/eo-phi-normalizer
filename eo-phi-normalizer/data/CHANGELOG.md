@@ -1,32 +1,18 @@
 # Changelog for eo atoms' signature
 
 ## v0.38.0
+    - change `σ` to `ρ`
+
     - `bytes.phi`
         - simplifies `as-bytes` attribute
-    - `float.phi`
-        - change `σ` to `ρ`
-            - eq
-            - neg
-            - lt
     - `go.phi`
         - add `auto-named-attr-at-64-9`
-    - `int.phi`
-        - change `σ` to `ρ`
-            - neg
-            - lt
     - `malloc.phi`
-        - change `σ` to `ρ`
         - add `auto-named-attr-at-64-9`
-    - `nan.phi`
-        - change `σ` to `ρ`
     - `negative-infinity.phi`
         - add auto-named-attr-at-64-9 to `is-num-gte-zero` attribute
-        - change `σ` to `ρ`
     - `positive-infinity.phi`
-        - change `σ` to `ρ`
         - add auto-named-attr-at-64-9 to `is-num-gte-zero` and `is-num-gt-zero` attributes
-    - `tuple.phi`
-        - change `σ` to `ρ`
     - `while.phi`
         - remove `start` atrribute
 
