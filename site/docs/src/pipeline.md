@@ -77,7 +77,7 @@ The configuration file specifies the following:
     - `include` - A list of names of tests in the original `EO` program that should be included into the filtered `EO` program.
     - `exclude` - A list of names of tests in the original `EO` program that shouldn't be included into the filtered `EO` program.
     - `filtered` - The file path of the filtered original `EO` program.
-    - `yaml` - The file path of the original `EO` program in `YAML` format.
+    - `yaml` - The file path of the original `EO` program in the `YAML` format.
   - `phi`
     - `initial`: The file path of the initial `PHI` program.
     - `normalized`: The file path of the normalized `PHI` program.
@@ -98,12 +98,12 @@ The script will run for several minutes and write the following entries to the `
 - `eo-initial` - Initial `EO` programs.
   - `.eoc/4-pull/org/eolang` - `org.eolang` objects ([link](https://github.com/objectionary/eo/tree/master/eo-runtime/src/main/eo/org/eolang)).
 - `eo-normalized` - Normalized `EO` programs.
-- `eo-yaml` - Filtered `EO` programs in `YAML` format.
+- `eo-yaml` - Filtered `EO` programs in the `YAML` format.
 - `logs` - Logs of some pipeline stages.
 - `phi-initial` - Initial `PHI` programs.
   - `.eoc/phi/org/eolang` - `org.eolang` objects translated to `PHI`.
 - `phi-normalized` - Normalized `PHI` programs.
 - `report` - Pipeline reports.
-  - `report.html` - The report in `HTML` format.
-  - `report.json` - The report in `JSON` format.
-  - `report.md` - The report in `GitHub Flavored Markdown` format.
+  - `report.html` - The report in the `HTML` format.
+  - `report.json` - The report in the `JSON` format.
+  - `report.md` - The report in the `GitHub Flavored Markdown` format.
