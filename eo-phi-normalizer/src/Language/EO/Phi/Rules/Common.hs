@@ -452,16 +452,16 @@ concatBytes (Bytes xs) (Bytes zs) = Bytes (normalizeBytes (filter (/= '-') (xs <
 
 -- | Select a slice (section) of 'Bytes'.
 --
--- >>> sliceBytes "12-34-56" 2 2
+-- >>> sliceBytes "12-34-56" 1 1
 -- Bytes "34-"
 --
--- >>> sliceBytes "12-34-56" 2 0
+-- >>> sliceBytes "12-34-56" 1 0
 -- Bytes "00-"
 --
--- >>> sliceBytes "12-34-56" 2 1
--- Bytes "03-"
+-- >>> sliceBytes "12-34-56" 0 2
+-- Bytes "12-34"
 sliceBytes :: Bytes -> Int -> Int -> Bytes
-sliceBytes (Bytes bytes) start len = Bytes $ normalizeBytes $ take len (drop start (filter (/= '-') bytes))
+sliceBytes (Bytes bytes) start len = Bytes $ normalizeBytes $ take (2 * len) (drop (2 * start) (filter (/= '-') bytes))
 
 -- | Convert an 'Int' into 'Bytes' representation.
 --
