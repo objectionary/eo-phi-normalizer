@@ -44,7 +44,7 @@ rules:
     pattern: |
       ξ
     result: |
-      ⟦ !B ⟧
+      ⟦ !a ↦ !obj, !B ⟧
     when:
       - apply_in_subformations: false
       # - present_attrs:
@@ -61,14 +61,14 @@ rules:
     pattern: |
       ⟦ !a ↦ !n, !B ⟧.!a
     result: |
-      !n[ ξ ↦ ⟦ !B ⟧ ]
+      !n[ ξ ↦ ⟦ !a ↦ !n, !B ⟧ ]
     when:
       - nf_inside_formation: '!n'
       - nf: '⟦ !B ⟧'
     tests:
       - name: Should match
         input: ⟦ hello ↦ ⟦⟧ ⟧.hello
-        output: ['⟦ ρ ↦ ⟦⟧ ⟧']
+        output: ['⟦ ρ ↦ ⟦ hello ↦ ⟦⟧ ⟧ ⟧']
       - name: Shouldn't match
         input: ⟦ ⟧.hello
         output: []
@@ -78,12 +78,12 @@ rules:
     pattern: |
       ⟦ !a ↦ !n, ρ ↦ ∅, !B ⟧.!a
     result: |
-      !n[ ξ ↦ ⟦ !B ⟧ ]
+      !n[ ξ ↦ ⟦ !a ↦ !n, ρ ↦ ∅, !B ⟧ ]
     when: []
     tests:
       - name: Should match
         input: ⟦ hello ↦ ⟦⟧, ρ ↦ ∅ ⟧.hello
-        output: ['⟦ ρ ↦ ⟦⟧ ⟧']
+        output: ['⟦ ρ ↦ ⟦ hello ↦ ⟦⟧, ρ ↦ ∅ ⟧ ⟧']
       - name: Shouldn't match
         input: ⟦ ⟧.hello
         output: []
@@ -139,7 +139,7 @@ rules:
     pattern: |
       ⟦ φ ↦ !n, !B ⟧.!a
     result: |
-      !n[ ξ ↦ ⟦ !B ⟧ ].!a
+      !n[ ξ ↦ ⟦ φ ↦ !n, !B ⟧ ].!a
     when:
       - apply_in_subformations: false
       - nf_inside_formation: '!n'
@@ -150,7 +150,7 @@ rules:
     tests:
       - name: 'Attribute does not exist'
         input: '⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧.b'
-        output: ['⟦ ρ ↦ ⟦ a ↦ ⟦ ⟧ ⟧ ⟧.b']
+        output: ['⟦ ρ ↦ ⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧ ⟧.b']
       - name: 'Attribute exists'
         input: '⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧.a'
         output: []
