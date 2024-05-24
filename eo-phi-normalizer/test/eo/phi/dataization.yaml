@@ -79,7 +79,7 @@ tests:
       {⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ξ.ρ ⟧.c ⟧.b ⟧.a , λ ⤍ Package ⟧}
     output:
       object: |
-        ⟦ x ↦ ⟦ ρ ↦ ⟦ ⟧ ⟧, λ ⤍ Package ⟧
+        ⟦ x ↦ ⟦ b ↦ ⟦ c ↦ ξ.ρ ⟧.ρ, ρ ↦ ⟦ ρ ↦ ⟦ b ↦ ⟦ c ↦ ξ.ρ ⟧.ρ ⟧, c ↦ ξ.ρ ⟧ ⟧, λ ⤍ Package ⟧
 
   - name: "usage of Φ with a loop"
     dependencies: []
@@ -95,7 +95,7 @@ tests:
       {⟦ x ↦ ⟦ c ↦ ⟦ a ↦ ∅ ⟧ (a ↦ ⟦ d ↦ ξ.ρ ⟧) ⟧.c , λ ⤍ Package ⟧}
     output:
       object: |
-        ⟦ x ↦ ⟦ a ↦ ⟦ d ↦ ξ.ρ ⟧, ρ ↦ ⟦ ⟧ ⟧, λ ⤍ Package ⟧
+        ⟦ x ↦ ⟦ a ↦ ⟦ d ↦ ξ.ρ ⟧, ρ ↦ ⟦ c ↦ ⟦ a ↦ ⟦ d ↦ ξ.ρ ⟧ ⟧ ⟧ ⟧, λ ⤍ Package ⟧
 
   # FIXME: fails because nf condition for ξ.b succeeds though it shouldn't
   # - name: "ξ in application"
