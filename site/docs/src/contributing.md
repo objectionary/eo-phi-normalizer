@@ -1,5 +1,17 @@
 # Contributing
 
+## Issues
+
+Check open issues ([link](https://github.com/objectionary/normalizer/issues)).
+
+### Issue labels
+
+- `priority N` - an issue with the priority `N`.
+  - `1` - The highest priority (the most important issues).
+  - `5` - The lowest priority (the least important issues).
+- `(scope)` - An issue concerning a particular part of the project. Note the parentheses.
+- `[non-functional requirement]` - An issue concerning a non-functional requirement. Note the square brackets.
+
 ## Enter the repository
 
 {{#include ./common/enter-repository.md}}
