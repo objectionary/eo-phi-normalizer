@@ -271,10 +271,9 @@ jobs:
           path: |
             pipeline
             !pipeline/**/.eoc
-            !pipeline/yaml
-            pipeline/phi/.eoc/4-pull/org
-            pipeline/phi/.eoc/phi/org
-            pipeline/phi/.eoc/print/org
+            !pipeline/eo-yaml
+            pipeline/eo-initial/.eoc/4-pull/org/
+            pipeline/phi-initial/.eoc/phi/org
             report
 
       - name: Write about the artifact in the job summary
