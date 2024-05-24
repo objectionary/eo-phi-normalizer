@@ -70,13 +70,11 @@ Run all tests
 stack test
 ```
 
-## Contribute
+## Docs
 
-## Math expressions
+### Math expressions
 
 Use the syntax supported by `mdBook` - see [docs](https://rust-lang.github.io/mdBook/format/mathjax.html).
-
-## Docs
 
 ### mdsh
 
@@ -96,13 +94,19 @@ In CI, on the `master` branch, we run a [script](https://github.com/objectionary
 
 So, no worries if you haven't run `mdsh` in your PR!
 
-## pre-commit
+## Code quality
 
-We use [pre-commit](https://pre-commit.com/) to ensure code quality.
+### Checks in CI
 
-Collaborators **MUST** set them up before commiting any code to our repository.
+We run `fourmolu` and `hlint` checks in CI.
 
-Otherwise, the triggered CI jobs will fail.
+These checks are also implemented as pre-commit hooks.
+
+## pre-commit hooks
+
+We use [pre-commit](https://pre-commit.com/) hooks to ensure code quality.
+
+Collaborators **MUST** set up the hooks before commiting any code to our repository.
 
 ### Set up pre-commit
 
