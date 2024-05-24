@@ -1,6 +1,10 @@
 # Pipeline
 
-## Enter the repository and install `normalizer`
+## Enter the repository
+
+{{ #include ./common/enter-repository.md }}
+
+## Install `normalizer`
 
 {{ #include ./common/install.md }}
 
@@ -26,56 +30,78 @@ java --version
 
 ### Windows
 
+Install [Cygwin](https://www.cygwin.com/install.html).
+
 Make `cygpath` available on `PATH`.
-You may need to install [Cygwin](https://www.cygwin.com/install.html).
 
-## Run pipeline
+## Learn about the pipeline
 
-### Pipeline stages
+## Pipeline stages
 
-The pipeline has several stages:
+The pipeline has several important stages:
 
-- Transform original `EO` programs into initial `EO` programs
-- Translate initial `EO` programs to initial `PHI` programs
-- Translate initial `PHI` programs to non-normalized `EO` programs
-- Test `EO` programs
-- Normalize initial `PHI` programs and get normalized `PHI` programs
-- Translate normalized `PHI` programs to normalized `EO` programs
-- Test normalized `EO` programs
-- Report metrics on initial `PHI` programs and normalized `PHI` programs
+- Transform original `EO` programs into filtered `EO` programs, leaving only the specified top-level objects (tests).
+- Translate filtered `EO` programs to initial `PHI` programs.
+- Translate initial `PHI` programs to initial `EO` programs.
+- Test initial `EO` programs.
+- Normalize initial `PHI` programs and get normalized `PHI` programs.
+- Report metrics on initial `PHI` programs and normalized `PHI` programs.
+- Translate normalized `PHI` programs to normalized `EO` programs.
+- Test normalized `EO` programs.
 
-### Modify pipeline configuration
+## Pipeline configuration
 
-The `pipeline/config.yaml` file specifies how original `EO` programs are transformed into initial `EO` programs.
-Transformation is necessary because some objects in original `EO` programs don't work.
-An initial `EO` program is an original `EO` program with some top-level objects excluded.
+The pipeline is configured via the [pipeline/config.yaml](https://github.com/objectionary/normalizer/blob/master/pipeline/config.yaml) file.
 
-- `yamlDirectory` - a directory with transformed programs in `YAML` format
-- `sets`
-  - `source` - a file with an original `EO` program
-  - `yaml` - a file for the initial `EO` program in `YAML` format
-  - `destination` - a file for the initial `EO` program
-  - `enable` - whether to process this entry of `sets`
-  - `include` - a list of names of top-level object in the original `EO` program that should be included into the initial `EO` program
-  - `exclude` - a list of names of top-level objects in the original `EO` program that shouldn't be included into the initial `EO` program
+The configuration file specifies the following:
 
-### Run script
+- `report` - Pipeline report configuration.
+  - `js` - Optional path to a `JavaScript` file that should be inlined into the `HTML` report.
+    - If no path is specified, `normalizer` will use [report/main.js](https://github.com/objectionary/normalizer/blob/master/eo-phi-normalizer/report/main.js).
+  - `css` - Optional path to a `CSS` file that should be inlined into the `HTML` report.
+    - If no path is specified, `normalizer` will use [report/styles.css](https://github.com/objectionary/normalizer/blob/master/eo-phi-normalizer/report/styles.css).
+  - `output` - Where to write report versions.
+    - `html` - The file path of the `HTML` version.
+    - `json` - The file path of the `JSON` version.
+    - `markdown` - The file path of the `GitHub Flavored Markdown` version.
+  - `expected-metrics-change` - The expected relative change in metrics w.r.t the initial metrics.
+    - `dataless` - For dataless formations.
+    - `applications` - For applications.
+    - `formations` - For formations.
+    - `dispatches` - For dispatches.
+  - `expected-improved-programs-percentage` - Expected percentage of programs where all metrics changed as expected.
+- `test-sets` - A list of configurations for sets of test objects (tests).
+  - `eo` - The configuration of an `EO` test set.
+    - `original` - The file path of the original `EO` program.
+    - `enable` - A flag to enable tests in the original `EO` program.
+    - `include` - A list of names of tests in the original `EO` program that should be included into the filtered `EO` program.
+    - `exclude` - A list of names of tests in the original `EO` program that shouldn't be included into the filtered `EO` program.
+    - `filtered` - The file path of the filtered original `EO` program.
+    - `yaml` - The file path of the original `EO` program in `YAML` format.
+  - `phi`
+    - `initial`: The file path of the initial `PHI` program.
+    - `normalized`: The file path of the normalized `PHI` program.
+    - `bindings-path-initial`: The path to tests via bindings in the initial `PHI` program.
+    - `bindings-path-normalized`: The path to tests via bindings in the normalized `PHI` program.
+
+## Run the pipeline script
 
 ```sh
 bash ./scripts/pipeline.sh
 ```
 
-The script will run for several minutes and write the following entries to the `pipeline` directory:.
+## Explore the pipeline directory
 
-- `yaml` - . `EO` programs in `YAML` format
-- `eo` - non-normalized `EO` programs
-- `phi` - initial `PHI` programs
-- `eo-non-normalized` - non-normalized `EO` programs
-- `phi-normalized` - normalized `PHI` programs
-- `eo-normalized` - normalized `EO` programs
+The script will run for several minutes and write the following entries to the `pipeline` directory:
 
-The script will also produce reports in the `report` directory:
-
-- `report.html` - `HTML` version of report hosted on our site
-- `report.json` - `JSON` version of report that can be used for programmatic analysis of metrics
-- `report.md` - `Markdown` version of report that's used in Job summaries in our GitHub Actions
+- `eo-filtered` - Filtered `EO` programs.
+- `eo-initial` - Initial `EO` programs.
+- `eo-normalized` - Normalized `EO` programs.
+- `eo-yaml` - Filtered `EO` programs in `YAML` format.
+- `logs` - Logs of some pipeline stages.
+- `phi-initial` - Initial `PHI` programs.
+- `phi-normalized` - Normalized `PHI` programs.
+- `report` - Pipeline reports.
+  - `report.html` - The report in `HTML` format.
+  - `report.json` - The report in `JSON` format.
+  - `report.md` - The report in `GitHub Flavored Markdown` format.
