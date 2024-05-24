@@ -378,14 +378,14 @@ main = withUtf8 do
   case opts of
     CLI'MetricsPhi' CLI'MetricsPhi{..} -> do
       (logStrLn, _) <- getLoggers outputFile
-      logStrLn "Computing metrics"
+      -- logStrLn "Computing metrics"
       metrics <- getMetrics bindingsPath inputFile
       logStrLn $ encodeToJSONString metrics
     CLI'TransformPhi' CLI'TransformPhi{..} -> do
       program' <- getProgram inputFile
       deps <- mapM (getProgram . Just) dependencies
       (logStrLn, logStr) <- getLoggers outputFile
-      logStrLn "Running transform"
+      -- logStrLn "Running transform"
       ruleSet <- parseRuleSetFromFile rulesPath
       unless (single || json) $ logStrLn ruleSet.title
       bindingsWithDeps <- case deepMergePrograms (program' : deps) of
@@ -439,7 +439,7 @@ main = withUtf8 do
               logStrLn "----------------------------------------------------"
     CLI'DataizePhi' CLI'DataizePhi{..} -> do
       (logStrLn, _logStr) <- getLoggers outputFile
-      logStrLn "Running dataize"
+      -- logStrLn "Running dataize"
       program' <- getProgram inputFile
       deps <- mapM (getProgram . Just) dependencies
       bindingsWithDeps <- case deepMergePrograms (program' : deps) of
