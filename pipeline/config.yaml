@@ -13,7 +13,7 @@ test-sets:
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/as-phi-tests.eo
     yaml: pipeline/yaml/as-phi-tests.yaml
-    filtered: pipeline/eo/as-phi-tests.eo
+    filtered: pipeline/eo-filtered/as-phi-tests.eo
   phi:
     initial: pipeline/phi/as-phi-tests.phi
     normalized: pipeline/phi-normalized/as-phi-tests.phi
@@ -22,7 +22,7 @@ test-sets:
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/bool-tests.eo
     yaml: pipeline/yaml/bool-tests.yaml
-    filtered: pipeline/eo/bool-tests.eo
+    filtered: pipeline/eo-filtered/bool-tests.eo
   phi:
     initial: pipeline/phi/bool-tests.phi
     normalized: pipeline/phi-normalized/bool-tests.phi
@@ -31,7 +31,7 @@ test-sets:
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/bytes-tests.eo
     yaml: pipeline/yaml/bytes-tests.yaml
-    filtered: pipeline/eo/bytes-tests.eo
+    filtered: pipeline/eo-filtered/bytes-tests.eo
   phi:
     initial: pipeline/phi/bytes-tests.phi
     normalized: pipeline/phi-normalized/bytes-tests.phi
@@ -40,7 +40,7 @@ test-sets:
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/cage-tests.eo
     yaml: pipeline/yaml/cage-tests.yaml
-    filtered: pipeline/eo/cage-tests.eo
+    filtered: pipeline/eo-filtered/cage-tests.eo
   phi:
     initial: pipeline/phi/cage-tests.phi
     normalized: pipeline/phi-normalized/cage-tests.phi
@@ -49,7 +49,7 @@ test-sets:
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/cti-test.eo
     yaml: pipeline/yaml/cti-test.yaml
-    filtered: pipeline/eo/cti-test.eo
+    filtered: pipeline/eo-filtered/cti-test.eo
   phi:
     initial: pipeline/phi/cti-test.phi
     normalized: pipeline/phi-normalized/cti-test.phi
@@ -58,7 +58,7 @@ test-sets:
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/dataized-tests.eo
     yaml: pipeline/yaml/dataized-tests.yaml
-    filtered: pipeline/eo/dataized-tests.eo
+    filtered: pipeline/eo-filtered/dataized-tests.eo
   phi:
     initial: pipeline/phi/dataized-tests.phi
     normalized: pipeline/phi-normalized/dataized-tests.phi
@@ -67,7 +67,7 @@ test-sets:
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/float-tests.eo
     yaml: pipeline/yaml/float-tests.yaml
-    filtered: pipeline/eo/float-tests.eo
+    filtered: pipeline/eo-filtered/float-tests.eo
   phi:
     initial: pipeline/phi/float-tests.phi
     normalized: pipeline/phi-normalized/float-tests.phi
@@ -76,7 +76,7 @@ test-sets:
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/goto-tests.eo
     yaml: pipeline/yaml/goto-tests.yaml
-    filtered: pipeline/eo/goto-tests.eo
+    filtered: pipeline/eo-filtered/goto-tests.eo
   phi:
     initial: pipeline/phi/goto-tests.phi
     normalized: pipeline/phi-normalized/goto-tests.phi
@@ -85,7 +85,7 @@ test-sets:
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/int-tests.eo
     yaml: pipeline/yaml/int-tests.yaml
-    filtered: pipeline/eo/int-tests.eo
+    filtered: pipeline/eo-filtered/int-tests.eo
   phi:
     initial: pipeline/phi/int-tests.phi
     normalized: pipeline/phi-normalized/int-tests.phi
@@ -94,7 +94,7 @@ test-sets:
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/io/stdout-tests.eo
     yaml: pipeline/yaml/io/stdout-tests.yaml
-    filtered: pipeline/eo/io/stdout-tests.eo
+    filtered: pipeline/eo-filtered/io/stdout-tests.eo
   phi:
     initial: pipeline/phi/io/stdout-tests.phi
     normalized: pipeline/phi-normalized/io/stdout-tests.phi
@@ -103,7 +103,7 @@ test-sets:
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/malloc-tests.eo
     yaml: pipeline/yaml/malloc-tests.yaml
-    filtered: pipeline/eo/malloc-tests.eo
+    filtered: pipeline/eo-filtered/malloc-tests.eo
   phi:
     initial: pipeline/phi/malloc-tests.phi
     normalized: pipeline/phi-normalized/malloc-tests.phi
@@ -112,7 +112,7 @@ test-sets:
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/nan-tests.eo
     yaml: pipeline/yaml/nan-tests.yaml
-    filtered: pipeline/eo/nan-tests.eo
+    filtered: pipeline/eo-filtered/nan-tests.eo
   phi:
     initial: pipeline/phi/nan-tests.phi
     normalized: pipeline/phi-normalized/nan-tests.phi
@@ -121,7 +121,7 @@ test-sets:
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/negative-infinity-tests.eo
     yaml: pipeline/yaml/negative-infinity-tests.yaml
-    filtered: pipeline/eo/negative-infinity-tests.eo
+    filtered: pipeline/eo-filtered/negative-infinity-tests.eo
   phi:
     initial: pipeline/phi/negative-infinity-tests.phi
     normalized: pipeline/phi-normalized/negative-infinity-tests.phi
@@ -130,7 +130,7 @@ test-sets:
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/positive-infinity-tests.eo
     yaml: pipeline/yaml/positive-infinity-tests.yaml
-    filtered: pipeline/eo/positive-infinity-tests.eo
+    filtered: pipeline/eo-filtered/positive-infinity-tests.eo
   phi:
     initial: pipeline/phi/positive-infinity-tests.phi
     normalized: pipeline/phi-normalized/positive-infinity-tests.phi
@@ -139,7 +139,7 @@ test-sets:
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/runtime-tests.eo
     yaml: pipeline/yaml/runtime-tests.yaml
-    filtered: pipeline/eo/runtime-tests.eo
+    filtered: pipeline/eo-filtered/runtime-tests.eo
   phi:
     initial: pipeline/phi/runtime-tests.phi
     normalized: pipeline/phi-normalized/runtime-tests.phi
@@ -148,7 +148,7 @@ test-sets:
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/rust-tests.eo
     yaml: pipeline/yaml/rust-tests.yaml
-    filtered: pipeline/eo/rust-tests.eo
+    filtered: pipeline/eo-filtered/rust-tests.eo
   phi:
     initial: pipeline/phi/rust-tests.phi
     normalized: pipeline/phi-normalized/rust-tests.phi
@@ -158,7 +158,7 @@ test-sets:
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/seq-tests.eo
     yaml: pipeline/yaml/seq-tests.yaml
-    filtered: pipeline/eo/seq-tests.eo
+    filtered: pipeline/eo-filtered/seq-tests.eo
   phi:
     initial: pipeline/phi/seq-tests.phi
     normalized: pipeline/phi-normalized/seq-tests.phi
@@ -167,7 +167,7 @@ test-sets:
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/string-tests.eo
     yaml: pipeline/yaml/string-tests.yaml
-    filtered: pipeline/eo/string-tests.eo
+    filtered: pipeline/eo-filtered/string-tests.eo
   phi:
     initial: pipeline/phi/string-tests.phi
     normalized: pipeline/phi-normalized/string-tests.phi
@@ -176,7 +176,7 @@ test-sets:
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/switch-tests.eo
     yaml: pipeline/yaml/switch-tests.yaml
-    filtered: pipeline/eo/switch-tests.eo
+    filtered: pipeline/eo-filtered/switch-tests.eo
   phi:
     initial: pipeline/phi/switch-tests.phi
     normalized: pipeline/phi-normalized/switch-tests.phi
@@ -185,7 +185,7 @@ test-sets:
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/try-tests.eo
     yaml: pipeline/yaml/try-tests.yaml
-    filtered: pipeline/eo/try-tests.eo
+    filtered: pipeline/eo-filtered/try-tests.eo
   phi:
     initial: pipeline/phi/try-tests.phi
     normalized: pipeline/phi-normalized/try-tests.phi
@@ -194,7 +194,7 @@ test-sets:
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/tuple-tests.eo
     yaml: pipeline/yaml/tuple-tests.yaml
-    filtered: pipeline/eo/tuple-tests.eo
+    filtered: pipeline/eo-filtered/tuple-tests.eo
   phi:
     initial: pipeline/phi/tuple-tests.phi
     normalized: pipeline/phi-normalized/tuple-tests.phi
@@ -203,7 +203,7 @@ test-sets:
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/while-tests.eo
     yaml: pipeline/yaml/while-tests.yaml
-    filtered: pipeline/eo/while-tests.eo
+    filtered: pipeline/eo-filtered/while-tests.eo
   phi:
     initial: pipeline/phi/while-tests.phi
     normalized: pipeline/phi-normalized/while-tests.phi
