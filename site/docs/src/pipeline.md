@@ -46,11 +46,11 @@ The pipeline has several stages:
 
 ### Modify pipeline configuration
 
-The `pipeline/config.yaml` file specifies how original `EO` programs are rewriteed into initial `EO` programs.
-Rewriteation is necessary because some objects in original `EO` programs don't work.
+The `pipeline/config.yaml` file specifies how original `EO` programs are rewrote into initial `EO` programs.
+Rewriting is necessary because some objects in original `EO` programs don't work.
 An initial `EO` program is an original `EO` program with some top-level objects excluded.
 
-- `yamlDirectory` - a directory with rewriteed programs in `YAML` format
+- `yamlDirectory` - a directory with rewrote programs in `YAML` format
 - `sets`
   - `source` - a file with an original `EO` program
   - `yaml` - a file for the initial `EO` program in `YAML` format
