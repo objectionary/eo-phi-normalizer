@@ -477,7 +477,7 @@ main = withUtf8 do
       programReports <- forM (zip [1 ..] testSets) $ \(index :: Int, (.phi) -> testSet) -> do
         let progress = [fmt|({index}/{length testSets})|] :: String
         putStrLn [fmt|Processing {progress}: {testSet.initial}|]
-        metricsPhi <- getMetrics testSet.bindingsPath (Just testSet.initial)
+        metricsPhi <- getMetrics testSet.bindingsPathInitial (Just testSet.initial)
         putStrLn [fmt|Processing {progress}: {testSet.normalized}|]
         metricsPhiNormalized <- getMetrics testSet.bindingsPathNormalized (Just testSet.normalized)
         pure $ makeProgramReport pipelineConfig testSet metricsPhi metricsPhiNormalized

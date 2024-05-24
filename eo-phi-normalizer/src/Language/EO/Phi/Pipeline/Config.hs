@@ -20,7 +20,7 @@ import Text.Printf (printf)
 data TestSetPhi = TestSetPhi
   { initial :: FilePath
   , normalized :: FilePath
-  , bindingsPath :: Maybe String
+  , bindingsPathInitial :: Maybe String
   , bindingsPathNormalized :: Maybe String
   }
   deriving stock (Show, Generic)
