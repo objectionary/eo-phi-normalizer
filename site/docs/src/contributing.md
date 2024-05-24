@@ -1,8 +1,10 @@
 # Contributing
 
+## Enter the repository
+
 {{#include ./common/enter-repository.md}}
 
-## Stack
+## Install stack
 
 We recommend using [stack](https://docs.haskellstack.org/en/stable) for quick local development and testing.
 
