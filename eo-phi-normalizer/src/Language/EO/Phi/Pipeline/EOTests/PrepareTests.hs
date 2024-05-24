@@ -19,7 +19,7 @@ import System.FilePath.Posix
 prepareTests :: PipelineConfig -> IO ()
 prepareTests config = do
   forM_ (filter (fromMaybe True . (.enable)) config.testSets) $ \((.eo) -> testSet) -> do
-    test@Test{source, meta} <- parseTest testSet.source
+    test@Test{source, meta} <- parseTest testSet.original
     let exclude = fromMaybe [] testSet.exclude
         include = fromMaybe (test.programs <&> (.name)) testSet.include & filter (`notElem` exclude)
         programs = filter (\x -> x.name `elem` include) test.programs
@@ -34,9 +34,9 @@ prepareTests config = do
     removeFile targetTmp
 
     -- write eo
-    createDirectoryIfMissing True (takeDirectory testSet.destination)
-    writeFile testSet.destination meta
-    forM_ programs (\x -> appendFile testSet.destination x.text)
+    createDirectoryIfMissing True (takeDirectory testSet.filtered)
+    writeFile testSet.filtered meta
+    forM_ programs (\x -> appendFile testSet.filtered x.text)
 
 parseProgramsRaw :: ([(Int, [String])], (Int, [[Char]]), Int) -> [[Char]] -> [(Int, String)]
 parseProgramsRaw (programs', (programStart, program), curLine) (line'@(x : _) : xs)

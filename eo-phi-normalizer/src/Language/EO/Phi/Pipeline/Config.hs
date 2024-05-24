@@ -78,9 +78,9 @@ data ReportConfig = ReportConfig
 $(deriveJSON ''ReportConfig)
 
 data TestSetEO = TestSetEO
-  { source :: FilePath
+  { original :: FilePath
   , yaml :: FilePath
-  , destination :: FilePath
+  , filtered :: FilePath
   , include :: Maybe [String]
   -- ^
   -- Program names to include.
