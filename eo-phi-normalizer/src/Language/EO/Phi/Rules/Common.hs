@@ -589,3 +589,28 @@ bytesToFloat (Bytes bytes) =
  where
   dashToSpace '-' = ' '
   dashToSpace c = c
+
+isRhoBinding :: Binding -> Bool
+isRhoBinding (AlphaBinding Rho _) = True
+isRhoBinding _ = False
+
+hideRhoInBinding :: Binding -> Binding
+hideRhoInBinding = \case
+  AlphaBinding a obj -> AlphaBinding a (hideRho obj)
+  binding -> binding
+
+hideRho :: Object -> Object
+hideRho = \case
+  Formation bindings ->
+    Formation
+      [ hideRhoInBinding binding
+      | binding <- filter (not . isRhoBinding) bindings
+      ]
+  Application obj bindings ->
+    Application
+      (hideRho obj)
+      [ hideRhoInBinding binding
+      | binding <- filter (not . isRhoBinding) bindings
+      ]
+  ObjectDispatch obj a -> ObjectDispatch (hideRho obj) a
+  obj -> obj
