@@ -1,18 +1,22 @@
 # Contributing
 
-We recommend using [stack](https://docs.haskellstack.org/en/stable/README/) for quick local development and testing.
+{{#include ./common/enter-repository.md}}
 
-Clone this project and run `stack build`.
+## Stack
+
+We recommend using [stack](https://docs.haskellstack.org/en/stable) for quick local development and testing.
+
+## Build
+
+Build the project using `stack`.
 
 ```sh
-git clone https://github.com/objectionary/normalizer --recurse-submodules
-cd normalizer
 stack build
 ```
 
 ## Run
 
-Run the executable via `stack run`.
+Run the `normalizer` executable via `stack run`.
 
 ```$ as console
 stack run normalizer -- --help
