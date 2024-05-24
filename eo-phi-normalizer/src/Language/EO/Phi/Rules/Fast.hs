@@ -59,8 +59,7 @@ withSubObjects f ctx = go
 -- 1. Apply rules in subobjects/subterms before applying a rule at root.
 -- 2. Do not apply rules under formations with at least one void (empty) binding.
 --
--- ⟦ x ↦ ⟦⟧, y ↦ ⟦ z ↦ Φ.x ⟧ ⟧.y.z
--- >>> runWithYegorRules applyRulesInsideOut "⟦ x ↦ ⟦⟧, y ↦ ⟦ z ↦ ⟦ w ↦ ξ.ρ.ρ.x ⟧ ⟧ ⟧.y.z.w"
+-- > runWithYegorRules applyRulesInsideOut "⟦ x ↦ ⟦⟧, y ↦ ⟦ z ↦ ⟦ w ↦ ξ.ρ.ρ.x ⟧ ⟧ ⟧.y.z.w"
 -- ⟦ ρ ↦ ⟦ ρ ↦ ⟦ ⟧ ⟧ ⟧
 applyRulesInsideOut :: Context -> Object -> Object
 applyRulesInsideOut ctx obj = do
