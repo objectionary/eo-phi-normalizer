@@ -11,7 +11,8 @@ extra-source-files:
   - README.md
   - CHANGELOG.md
   - grammar/EO/Phi/Syntax.cf
-  - report/*
+  - report/**/*
+  - data/**/*
 
 verbatim:
   cabal-version: 1.24
