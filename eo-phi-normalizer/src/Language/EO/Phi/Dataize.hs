@@ -91,33 +91,35 @@ dataizeRecursivelyChain' ctx obj = head (runChain (dataizeRecursivelyChain False
 -- | Recursively perform normalization and dataization until we get bytes in the end,
 -- reporting intermediate steps
 dataizeRecursivelyChain :: Bool -> Object -> DataizeChain (Either Object Bytes)
-dataizeRecursivelyChain normalizeRequired obj = minimizeObject' $ do
-  logStep "Dataizing" (Left obj)
-  ctx <- getContext
-  -- let globalObject = NonEmpty.last (outerFormations ctx)
-  -- let limits = defaultApplicationLimits (objectSize globalObject)
-  let normalizedObj = do
-        let obj' = applyRulesInsideOut ctx obj
-        logStep "Normalized" obj'
-        return obj'
-  msplit (transformNormLogs normalizedObj) >>= \case
-    Nothing -> do
-      logStep "No rules applied" (Left obj)
-      return (Left obj)
-    -- We trust that all chains lead to the same result due to confluence
-    Just (normObj, _alternatives)
-      | normObj == obj && normalizeRequired -> return (Left obj)
-      | otherwise -> do
-          (ctx', step) <- dataizeStepChain normObj
-          case step of
-            (Left stillObj)
-              | stillObj == normObj && ctx `sameContext` ctx' -> do
-                  logStep "Dataization changed nothing" (Left stillObj)
-                  return step -- dataization changed nothing
-              | otherwise -> do
-                  logStep "Dataization changed something" (Left stillObj)
-                  withContext ctx' $ dataizeRecursivelyChain False stillObj -- partially dataized
-            bytes -> return bytes
+dataizeRecursivelyChain = fmap minimizeObject' . go
+ where
+  go normalizeRequired obj = do
+    logStep "Dataizing" (Left obj)
+    ctx <- getContext
+    -- let globalObject = NonEmpty.last (outerFormations ctx)
+    -- let limits = defaultApplicationLimits (objectSize globalObject)
+    let normalizedObj = do
+          let obj' = applyRulesInsideOut ctx obj
+          logStep "Normalized" obj'
+          return obj'
+    msplit (transformNormLogs normalizedObj) >>= \case
+      Nothing -> do
+        logStep "No rules applied" (Left obj)
+        return (Left obj)
+      -- We trust that all chains lead to the same result due to confluence
+      Just (normObj, _alternatives)
+        | normObj == obj && normalizeRequired -> return (Left obj)
+        | otherwise -> do
+            (ctx', step) <- dataizeStepChain normObj
+            case step of
+              (Left stillObj)
+                | stillObj == normObj && ctx `sameContext` ctx' -> do
+                    logStep "Dataization changed nothing" (Left stillObj)
+                    return step -- dataization changed nothing
+                | otherwise -> do
+                    logStep "Dataization changed something" (Left stillObj)
+                    withContext ctx' $ go False stillObj -- partially dataized
+              bytes -> return bytes
 
 -- | Given converters between Bytes and some data type, a binary function on this data type, an object,
 -- and the current state of evaluation, returns the new object and a possibly modified state along with intermediate steps.
