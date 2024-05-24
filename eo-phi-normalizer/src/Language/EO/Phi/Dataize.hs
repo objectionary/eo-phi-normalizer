@@ -15,6 +15,7 @@ import Data.List (singleton)
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.Maybe (listToMaybe)
 import Language.EO.Phi.Rules.Common
+import Language.EO.Phi.Rules.Fast
 import Language.EO.Phi.Rules.Yaml (substThis)
 import Language.EO.Phi.Syntax.Abs
 import PyF (fmt)
@@ -94,7 +95,11 @@ dataizeRecursivelyChain normalizeRequired obj = minimizeObject' $ do
   ctx <- getContext
   let globalObject = NonEmpty.last (outerFormations ctx)
       limits = defaultApplicationLimits (objectSize globalObject)
-  msplit (transformNormLogs (applyRulesChainWith limits obj)) >>= \case
+      normalizedObj = do
+        let obj' = applyRulesInsideOut ctx obj
+        logStep "Normalized" obj'
+        return obj'
+  msplit (transformNormLogs normalizedObj) >>= \case
     Nothing -> do
       logStep "No rules applied" (Left obj)
       return (Left obj)
@@ -105,8 +110,12 @@ dataizeRecursivelyChain normalizeRequired obj = minimizeObject' $ do
           (ctx', step) <- dataizeStepChain normObj
           case step of
             (Left stillObj)
-              | stillObj == normObj && ctx `sameContext` ctx' -> return step -- dataization changed nothing
-              | otherwise -> withContext ctx' $ dataizeRecursivelyChain False stillObj -- partially dataized
+              | stillObj == normObj && ctx `sameContext` ctx' -> do
+                  logStep "Dataization changed nothing" (Left stillObj)
+                  return step -- dataization changed nothing
+              | otherwise -> do
+                  logStep "Dataization changed something" (Left stillObj)
+                  withContext ctx' $ dataizeRecursivelyChain False stillObj -- partially dataized
             bytes -> return bytes
 
 -- | Given converters between Bytes and some data type, a binary function on this data type, an object,
