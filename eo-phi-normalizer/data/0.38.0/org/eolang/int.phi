@@ -52,7 +52,7 @@
           ⟧,
           neg ↦ ⟦
             φ ↦ ξ.ρ.times(
-              α0 ↦ Φ.org.eolang.int(
+              α0 ↦ ξ.ρ.ρ.int(
                 α0 ↦ Φ.org.eolang.bytes(
                   Δ ⤍ FF-FF-FF-FF-FF-FF-FF-FF
                 )
