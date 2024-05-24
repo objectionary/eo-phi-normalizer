@@ -3,7 +3,7 @@
 
 module Language.EO.Phi.Rules.Fast where
 
-import Debug.Trace (trace)
+-- import Debug.Trace (trace)
 import Language.EO.Phi.Rules.Common
 import Language.EO.Phi.Rules.Yaml qualified as Yaml
 import Language.EO.Phi.Syntax (printTree)
@@ -68,6 +68,6 @@ applyRulesInsideOut ctx obj = do
     [] ->
       -- trace ("No rule can be applied to object\n   " <> printTree obj') $
       obj'
-    (ruleName, obj'') : _ ->
+    (_ruleName, obj'') : _ ->
       -- trace (ruleName <> ": \n   " <> printTree obj' <> "\n → " <> printTree obj'') $
       applyRulesInsideOut ctx obj''
