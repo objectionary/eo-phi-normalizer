@@ -96,10 +96,12 @@ The script will run for several minutes and write the following entries to the `
 
 - `eo-filtered` - Filtered `EO` programs.
 - `eo-initial` - Initial `EO` programs.
+  - `.eoc/4-pull/org/eolang` - `org.eolang` objects ([link](https://github.com/objectionary/eo/tree/master/eo-runtime/src/main/eo/org/eolang)).
 - `eo-normalized` - Normalized `EO` programs.
 - `eo-yaml` - Filtered `EO` programs in `YAML` format.
 - `logs` - Logs of some pipeline stages.
 - `phi-initial` - Initial `PHI` programs.
+  - `.eoc/phi/org/eolang` - `org.eolang` objects translated to `PHI`.
 - `phi-normalized` - Normalized `PHI` programs.
 - `report` - Pipeline reports.
   - `report.html` - The report in `HTML` format.
