@@ -12,7 +12,8 @@ module Language.EO.Phi.Dataize where
 import Control.Arrow (left)
 import Data.Bits
 import Data.List (singleton)
-import Data.List.NonEmpty qualified as NonEmpty
+
+-- import Data.List.NonEmpty qualified as NonEmpty
 import Data.Maybe (listToMaybe)
 import Language.EO.Phi.Rules.Common
 import Language.EO.Phi.Rules.Fast
@@ -93,9 +94,9 @@ dataizeRecursivelyChain :: Bool -> Object -> DataizeChain (Either Object Bytes)
 dataizeRecursivelyChain normalizeRequired obj = minimizeObject' $ do
   logStep "Dataizing" (Left obj)
   ctx <- getContext
-  let globalObject = NonEmpty.last (outerFormations ctx)
-      limits = defaultApplicationLimits (objectSize globalObject)
-      normalizedObj = do
+  -- let globalObject = NonEmpty.last (outerFormations ctx)
+  -- let limits = defaultApplicationLimits (objectSize globalObject)
+  let normalizedObj = do
         let obj' = applyRulesInsideOut ctx obj
         logStep "Normalized" obj'
         return obj'
