@@ -79,11 +79,7 @@ Usage: normalizer transform (-r|--rules FILE) [-c|--chain] [-j|--json] [--tex]
 
 Available options:
   -r,--rules FILE          FILE with user-defined rules. Must be specified.
-<<<<<<< HEAD:site/docs/src/normalizer/rewrite.md
   -c,--chain               Output rewriting steps.
-=======
-  -c,--chain               Output transformation steps.
->>>>>>> parent of 85a053b (change transform to rewrite in .md files):site/docs/src/normalizer/transform.md
   -j,--json                Output JSON.
   --tex                    Output LaTeX.
   -o,--output-file FILE    Output to FILE. When this option is not specified,
@@ -185,11 +181,7 @@ Redirects the output to file of the given path instead of `stdout`.
 
 ### `--dependency-file FILE`
 
-<<<<<<< HEAD:site/docs/src/normalizer/rewrite.md
 Injects package dependencies from a given file into the context when rewriting the input.
-=======
-Injects package dependencies from a given file into the context when transforming the input.
->>>>>>> parent of 85a053b (change transform to rewrite in .md files):site/docs/src/normalizer/transform.md
 Can be used multiple times to inject multiple dependencies.
 
 ### `FILE` not specified (read from stdin)
