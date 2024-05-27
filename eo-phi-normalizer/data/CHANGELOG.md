@@ -1,34 +1,55 @@
-# Changelog for eo atoms' signature
+# Changelog for $\varphi$ standard library
+
+Only changes in objects' interfaces (not implementation) are documented
 
 ## v0.38.0
-    - change `σ` to `ρ`
+### Modified
+* simplify `as-bytes` attribute in `bytes.phi`
 
-    - `bytes.phi`
-        - simplifies `as-bytes` attribute
-    - `go.phi`
-        - add `auto-named-attr-at-64-9`
-    - `malloc.phi`
-        - add `auto-named-attr-at-64-9`
-    - `negative-infinity.phi`
-        - add auto-named-attr-at-64-9 to `is-num-gte-zero` attribute
-    - `positive-infinity.phi`
-        - add auto-named-attr-at-64-9 to `is-num-gte-zero` and `is-num-gt-zero` attributes
-    - `while.phi`
-        - remove `start` atrribute
+### Added
+* `auto-named-attr-at-64-9` to:
+    * `go.phi`
+    * `malloc.phi`
+    * `negative-infinity.phi` to `is-num-gte-zero` attribute
+    * `positive-infinity.phi` to `is-num-gte-zero` and `is-num-gt-zero` attributes
+
+### Removed
+* `start` attribute in `while.phi`
+
 
 ## v0.37.0
-    - `bool.phi` file in v0.36.0 change into two separate files `false.phi` and `true.phi`
-    - `bytes.phi`
-        - add delta
-        - change `x` param name in `eq` attribute into `b`
-    - `goto.phi`, `heap.phi`, `if.phi`, `memory.phi`, `nop.phi`, and `ram.phi` files are deleted
-    - `malloc.phi`
-        - `size` and `pointer` attributes removed
-        - `for` and `of` attributes added
-        - `memory-block-pointer` is renamed to `allocated` and added to `of` as attribute
-        - `free` in `memory-block-pointer` is removed
-        - `get` and `put` added in `allocated`
+
+### Modified
+* `bytes.phi`
+    * add `Δ` as a void attribute
+    * change `x` param name in `eq` attribute into `b`
+    * replace with it's eo `φ` equivalent
+        * `λ ⤍ Lorg_eolang_bytes_as_string` in `as-string` attribute
+        * `λ ⤍ Lorg_eolang_bytes_as_int` in `as-int` attribute
+        * `λ ⤍ Lorg_eolang_bytes_as_float` in `as-float` attribute
+
+* `malloc.phi`
+    * `size` and `pointer` attributes removed
+    * `for` and `of` attributes added
+    * `φ` is moved into `of`
+    * `free` and `pointer` in `memory-block-pointer` is removed
+    * `memory-block-pointer` is renamed to `allocated` and moved inside `of`
+    * `φ`, `get`, and `put` added in `allocated` (previously `memory-block-pointer`)
+
+### Added
+* `false.phi`
+* `true.phi`
+
+### Removed
+* `bool.phi`
+* `goto.phi`
+* `heap.phi`
+* `if.phi`
+* `memory.phi`
+* `nop.phi`
+* `ram.phi`
+
 
 
 ## v0.36.0
-    Initial version
+### Initial version
