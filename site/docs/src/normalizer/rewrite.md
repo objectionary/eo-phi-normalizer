@@ -79,7 +79,7 @@ Usage: normalizer rewrite (-r|--rules FILE) [-c|--chain] [-j|--json] [--tex]
 
 Available options:
   -r,--rules FILE          FILE with user-defined rules. Must be specified.
-  -c,--chain               Output rewriting steps.
+  -c,--chain               Output rewriteation steps.
   -j,--json                Output JSON.
   --tex                    Output LaTeX.
   -o,--output-file FILE    Output to FILE. When this option is not specified,
@@ -181,7 +181,7 @@ Redirects the output to file of the given path instead of `stdout`.
 
 ### `--dependency-file FILE`
 
-Injects package dependencies from a given file into the context when rewriting the input.
+Injects package dependencies from a given file into the context when rewriteing the input.
 Can be used multiple times to inject multiple dependencies.
 
 ### `FILE` not specified (read from stdin)
