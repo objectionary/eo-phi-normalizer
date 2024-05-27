@@ -190,7 +190,7 @@ commandParser =
 
   rewrite = do
     rulesPath <- strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. Must be specified.|])
-    chain <- switch (long "chain" <> short 'c' <> help "Output rewriteation steps.")
+    chain <- switch (long "chain" <> short 'c' <> help "Output rewriting steps.")
     json <- jsonSwitch
     latex <- latexSwitch
     outputFile <- outputFileOption
