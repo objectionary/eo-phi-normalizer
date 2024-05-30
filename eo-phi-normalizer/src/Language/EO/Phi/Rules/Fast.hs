@@ -1,10 +1,11 @@
 {-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Language.EO.Phi.Rules.Fast where
 
 -- import Debug.Trace (trace)
 
+import Data.List.NonEmpty qualified as NonEmpty
 import Language.EO.Phi.Rules.Common
 import Language.EO.Phi.Rules.Yaml qualified as Yaml
 import Language.EO.Phi.Syntax (printTree)
@@ -73,3 +74,99 @@ applyRulesInsideOut ctx obj = do
     (_ruleName, obj'') : _ ->
       -- trace (ruleName <> ": \n   " <> printTree obj' <> "\n → " <> printTree obj'') $
       applyRulesInsideOut ctx obj''
+
+fastYegorInsideOut :: Context -> Object -> Object
+fastYegorInsideOut ctx = \case
+  root@GlobalObject
+    | not (insideFormation ctx) ->
+        NonEmpty.last (outerFormations ctx)
+    | otherwise -> root
+  root@ThisObject
+    | not (insideFormation ctx) ->
+        NonEmpty.head (outerFormations ctx)
+    | otherwise -> root
+  ObjectDispatch obj a ->
+    case fastYegorInsideOut ctx obj of
+      this@(Formation bindings) ->
+        case lookupBinding a bindings of
+          Just objA -> fastYegorInsideOut ctx (Yaml.substThis this objA)
+          Nothing ->
+            case lookupBinding Phi bindings of
+              Just objPhi -> fastYegorInsideOut ctx (ObjectDispatch (Yaml.substThis this objPhi) a)
+              Nothing -> ObjectDispatch this a
+      this -> ObjectDispatch this a
+  Application obj argBindings ->
+    case fastYegorInsideOut ctx obj of
+      obj'@(Formation bindings) ->
+        case argBindings of
+          [AlphaBinding (Alpha "α0") arg0, AlphaBinding (Alpha "α1") arg1] ->
+            case filter isEmptyBinding bindings of
+              EmptyBinding a0 : EmptyBinding a1 : _ -> do
+                let arg0' = fastYegorInsideOut ctx arg0
+                let arg1' = fastYegorInsideOut ctx arg1
+                Formation
+                  ( AlphaBinding a0 arg0'
+                      : AlphaBinding a1 arg1'
+                      : [ binding
+                        | binding <- bindings
+                        , case binding of
+                            EmptyBinding x | x `elem` [a0, a1] -> False
+                            _ -> True
+                        ]
+                  )
+              _ -> Application obj' argBindings
+          [AlphaBinding (Alpha "α0") arg0] ->
+            case filter isEmptyBinding bindings of
+              EmptyBinding a0 : _ -> do
+                let arg0' = fastYegorInsideOut ctx arg0
+                Formation
+                  ( AlphaBinding a0 arg0'
+                      : [ binding
+                        | binding <- bindings
+                        , case binding of
+                            EmptyBinding x | x == a0 -> False
+                            _ -> True
+                        ]
+                  )
+              _ -> Application obj' argBindings
+          [AlphaBinding a argA] -> do
+            let argA' = fastYegorInsideOut ctx argA
+            Formation
+              ( AlphaBinding a argA'
+                  : [ binding
+                    | binding <- bindings
+                    , case binding of
+                        EmptyBinding x | x == a -> False
+                        _ -> True
+                    ]
+              )
+          [DeltaBinding bytes] -> do
+            Formation
+              ( DeltaBinding bytes
+                  : [ binding
+                    | binding <- bindings
+                    , case binding of
+                        DeltaEmptyBinding -> False
+                        _ -> True
+                    ]
+              )
+          _ -> Application obj' argBindings
+      obj' -> Application obj' argBindings
+  root@(Formation bindings)
+    | any isEmptyBinding bindings || any isLambdaBinding bindings -> root
+    | otherwise ->
+        Formation
+          [ binding'
+          | binding <- bindings
+          , let binding' =
+                  case binding of
+                    AlphaBinding Rho _ -> binding
+                    AlphaBinding a objA -> do
+                      let ctx' = (extendContextWith root ctx){insideFormation = True, currentAttr = a}
+                      AlphaBinding a (fastYegorInsideOut ctx' objA)
+                    _ -> binding
+          ]
+  Termination -> Termination
+  MetaSubstThis{} -> error "impossible MetaSubstThis!"
+  MetaObject{} -> error "impossible MetaObject!"
+  MetaFunction{} -> error "impossible MetaFunction!"

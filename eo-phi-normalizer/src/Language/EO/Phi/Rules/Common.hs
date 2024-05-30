@@ -376,7 +376,7 @@ lookupBinding _ [] = Nothing
 lookupBinding a (AlphaBinding a' object : bindings)
   | a == a' = Just object
   | otherwise = lookupBinding a bindings
-lookupBinding _ _ = Nothing
+lookupBinding a (_ : bindings) = lookupBinding a bindings
 
 objectBindings :: Object -> [Binding]
 objectBindings (Formation bs) = bs
@@ -613,4 +613,25 @@ hideRho = \case
       | binding <- filter (not . isRhoBinding) bindings
       ]
   ObjectDispatch obj a -> ObjectDispatch (hideRho obj) a
+  obj -> obj
+
+hideRhoInBinding1 :: Binding -> Binding
+hideRhoInBinding1 = \case
+  AlphaBinding a obj -> AlphaBinding a (hideRho obj)
+  binding -> binding
+
+hideRho1 :: Object -> Object
+hideRho1 = \case
+  Formation bindings ->
+    Formation
+      [ hideRhoInBinding1 binding
+      | binding <- bindings
+      ]
+  Application obj bindings ->
+    Application
+      (hideRho1 obj)
+      [ hideRhoInBinding1 binding
+      | binding <- bindings
+      ]
+  ObjectDispatch obj a -> ObjectDispatch (hideRho1 obj) a
   obj -> obj

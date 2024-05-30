@@ -99,7 +99,7 @@ dataizeRecursivelyChain = fmap minimizeObject' . go
     -- let globalObject = NonEmpty.last (outerFormations ctx)
     -- let limits = defaultApplicationLimits (objectSize globalObject)
     let normalizedObj = do
-          let obj' = applyRulesInsideOut ctx obj
+          let obj' = fastYegorInsideOut ctx obj -- applyRulesInsideOut ctx obj
           logStep "Normalized" obj'
           return obj'
     msplit (transformNormLogs normalizedObj) >>= \case
@@ -186,9 +186,15 @@ evaluateBinaryDataizationFunChain resultToBytes bytesToParam wrapBytes arg1 arg2
           resultObj = wrapBytes bytes
       logStep "Evaluated function" (Left resultObj)
       return resultObj
-    _ -> do
-      logStep "Couldn't find bytes in one or both of LHS and RHS" (Left Termination)
-      return Termination
+    (Left l, Left r) -> do
+      logStep "Couldn't find bytes in both LHS and RHS" (Left Termination)
+      return Termination -- (Formation [AlphaBinding (Label "lhs") l, AlphaBinding (Label "rhs") r])
+    (Left l, _) -> do
+      logStep "Couldn't find bytes in LHS" (Left Termination)
+      return Termination -- (Formation [AlphaBinding (Label "lhs") (hideRho1 l)])
+    (_, Left r) -> do
+      logStep "Couldn't find bytes in RHS" (Left Termination)
+      return Termination -- (Formation [AlphaBinding (Label "rhs") r])
   return (result, ())
 
 -- | Unary functions operate on the given object without any additional parameters
