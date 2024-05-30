@@ -4,6 +4,7 @@
 module Language.EO.Phi.Rules.Fast where
 
 -- import Debug.Trace (trace)
+
 import Language.EO.Phi.Rules.Common
 import Language.EO.Phi.Rules.Yaml qualified as Yaml
 import Language.EO.Phi.Syntax (printTree)
@@ -27,6 +28,7 @@ yegorRules = map Yaml.convertRuleNamed (Yaml.rules yegorRuleSet)
 
 withBinding :: (Context -> Object -> Object) -> Context -> Binding -> Binding
 withBinding f ctx = \case
+  AlphaBinding Rho obj -> AlphaBinding Rho obj -- do not apply f inside ρ-bindings
   AlphaBinding a obj -> AlphaBinding a (f ctx{currentAttr = a} obj)
   binding -> binding
 
