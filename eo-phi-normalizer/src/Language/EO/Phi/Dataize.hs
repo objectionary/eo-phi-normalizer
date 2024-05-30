@@ -186,13 +186,13 @@ evaluateBinaryDataizationFunChain resultToBytes bytesToParam wrapBytes arg1 arg2
           resultObj = wrapBytes bytes
       logStep "Evaluated function" (Left resultObj)
       return resultObj
-    (Left l, Left r) -> do
+    (Left _l, Left _r) -> do
       logStep "Couldn't find bytes in both LHS and RHS" (Left Termination)
       return Termination -- (Formation [AlphaBinding (Label "lhs") l, AlphaBinding (Label "rhs") r])
-    (Left l, _) -> do
+    (Left _l, _) -> do
       logStep "Couldn't find bytes in LHS" (Left Termination)
       return Termination -- (Formation [AlphaBinding (Label "lhs") (hideRho1 l)])
-    (_, Left r) -> do
+    (_, Left _r) -> do
       logStep "Couldn't find bytes in RHS" (Left Termination)
       return Termination -- (Formation [AlphaBinding (Label "rhs") r])
   return (result, ())
