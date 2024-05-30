@@ -39,12 +39,11 @@ rules:
   - name: Rule 5
     description: 'ξ-dispatch'
     context:
-      current_object: '⟦ !a ↦ !obj, !B ⟧'
-      current_attribute: '!a'
+      current_object: '!obj'
     pattern: |
       ξ
     result: |
-      ⟦ !a ↦ !obj, !B ⟧
+      !obj
     when:
       - apply_in_subformations: false
       # - present_attrs:
