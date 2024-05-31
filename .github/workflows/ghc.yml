@@ -111,6 +111,8 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+    env:
+      branch_is_not_master: ${{ github.ref_name != 'master' }}
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
@@ -215,7 +217,7 @@ jobs:
           path: pipeline
 
       - name: Configure git
-        if: always() && runner.os == 'Linux'
+        if: always() && env.branch_is_not_master && runner.os == 'Linux'
         env:
           # required for gh
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -226,20 +228,20 @@ jobs:
           git config --global user.name "github-actions[bot]"
 
       - name: Commit and push changes in pipeline lock
-        if: always() && runner.os == 'Linux' && steps.check-pipeline-lock.outputs.PIPELINE_LOCK_CHANGED
+        if: always() && env.branch_is_not_master && runner.os == 'Linux' && steps.check-pipeline-lock.outputs.PIPELINE_LOCK_CHANGED
         run: |
           source scripts/lib.sh
           commit_and_push_if_changed "$PIPELINE_LOCK_FILE_RELATIVE" "$PIPELINE_LOCK_FILE_RELATIVE"
 
       - name: Commit and push changes in normalizer data files
-        if: always() && runner.os == 'Linux'
+        if: always() && env.branch_is_not_master && runner.os == 'Linux'
         run: |
           source scripts/lib.sh
           data_directory="eo-phi-normalizer/data"
           commit_and_push_if_changed "$data_directory" "normalizer data files"
 
       - name: Install mdsh
-        if: runner.os == 'Linux'
+        if: env.branch_is_not_master && runner.os == 'Linux'
         uses: baptiste0928/cargo-install@v3.1.0
         with:
           crate: mdsh
@@ -247,11 +249,11 @@ jobs:
           branch: main
 
       - name: Update Markdown files
-        if: runner.os == 'Linux'
+        if: env.branch_is_not_master && runner.os == 'Linux'
         run: ./scripts/update-markdown.sh
 
       - name: Commit and push changes in Markdown files
-        if: runner.os == 'Linux'
+        if: env.branch_is_not_master && runner.os == 'Linux'
         run: |
           source scripts/lib.sh
           files="site proposals README.md"
