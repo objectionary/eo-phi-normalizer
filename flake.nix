@@ -85,7 +85,6 @@
                 root = ./.;
                 fileset = lib.fileset.unions [
                   ./eo-phi-normalizer
-                  ./scripts/transform-eo-tests
                   ./cabal.project
                   ./README.md
                 ];

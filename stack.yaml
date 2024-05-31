@@ -1,7 +1,6 @@
 resolver: lts-22.16
 packages:
 - eo-phi-normalizer
-- scripts/transform-eo-tests
 extra-deps:
 - file-embed-0.0.16.0
 notify-if-nix-on-path: false

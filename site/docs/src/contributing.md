@@ -1,18 +1,36 @@
 # Contributing
 
-We recommend using [stack](https://docs.haskellstack.org/en/stable/README/) for quick local development and testing.
+## Issues
 
-Clone this project and run `stack build`.
+Check open issues ([link](https://github.com/objectionary/normalizer/issues)).
+
+### Issue labels
+
+- `priority N` - an issue with the priority `N`.
+  - `1` - The highest priority (the most important issues).
+  - `5` - The lowest priority (the least important issues).
+- `(scope)` - An issue concerning a particular part of the project. Note the parentheses.
+- `[non-functional requirement]` - An issue concerning a non-functional requirement. Note the square brackets.
+
+## Enter the repository
+
+{{#include ./common/enter-repository.md}}
+
+## Install stack
+
+We recommend using [stack](https://docs.haskellstack.org/en/stable) for quick local development and testing.
+
+## Build
+
+Build the project using `stack`.
 
 ```sh
-git clone https://github.com/objectionary/normalizer --recurse-submodules
-cd normalizer
 stack build
 ```
 
 ## Run
 
-Run the executable via `stack run`.
+Run the `normalizer` executable via `stack run`.
 
 ```$ as console
 stack run normalizer -- --help
@@ -64,13 +82,11 @@ Run all tests
 stack test
 ```
 
-## Contribute
+## Docs
 
-## Math expressions
+### Math expressions
 
 Use the syntax supported by `mdBook` - see [docs](https://rust-lang.github.io/mdBook/format/mathjax.html).
-
-## Docs
 
 ### mdsh
 
@@ -90,13 +106,19 @@ In CI, on the `master` branch, we run a [script](https://github.com/objectionary
 
 So, no worries if you haven't run `mdsh` in your PR!
 
-## pre-commit
+## Code quality
 
-We use [pre-commit](https://pre-commit.com/) to ensure code quality.
+### Checks in CI
 
-Collaborators **MUST** set them up before commiting any code to our repository.
+We run `fourmolu` and `hlint` checks in CI.
 
-Otherwise, the triggered CI jobs will fail.
+These checks are also implemented as pre-commit hooks.
+
+## pre-commit hooks
+
+We use [pre-commit](https://pre-commit.com/) hooks to ensure code quality.
+
+Collaborators **MUST** set up the hooks before commiting any code to our repository.
 
 ### Set up pre-commit
 

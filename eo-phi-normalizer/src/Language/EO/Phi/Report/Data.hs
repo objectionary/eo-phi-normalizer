@@ -16,79 +16,11 @@
 
 module Language.EO.Phi.Report.Data where
 
-import Data.Aeson (FromJSON, ToJSON)
-import GHC.Generics (Generic)
 import Language.EO.Phi.Metrics.Data (BindingMetrics (..), Metrics (..), MetricsCount, ProgramMetrics)
 import Language.EO.Phi.Metrics.Data qualified as Metrics
+import Language.EO.Phi.Pipeline.Config
 import Language.EO.Phi.TH (deriveJSON)
-import PyF (PyFToString (..))
-import Text.Printf (printf)
 import Prelude hiding (div, id, span)
-
-data ReportItem = ReportItem
-  { phi :: FilePath
-  , phiNormalized :: FilePath
-  , bindingsPathPhi :: Maybe String
-  , bindingsPathPhiNormalized :: Maybe String
-  }
-  deriving stock (Show, Generic)
-
-$(deriveJSON ''ReportItem)
-
-data MetricsChangeCategory a
-  = MetricsChange'Good {change :: a}
-  | MetricsChange'Bad {change :: a}
-  | MetricsChange'NA
-  deriving stock (Show, Generic, Eq)
-
-$(deriveJSON ''MetricsChangeCategory)
-
-type MetricsChange = Metrics Percent
-
-newtype Percent = Percent {percent :: Double}
-  deriving newtype
-    (FromJSON, ToJSON, Num, Fractional, Floating, Eq, Ord, Real, RealFrac, RealFloat)
-
-roundToStr :: Int -> Double -> String
-roundToStr = printf "%0.*f%%"
-
-instance Show Percent where
-  show :: Percent -> String
-  show Percent{..} = roundToStr 2 (percent * 100)
-
-instance PyFToString Percent where
-  pyfToString :: Percent -> String
-  pyfToString = show
-
-type MetricsChangeCategorized = Metrics (MetricsChangeCategory Percent)
-
-data Report'InputConfig = Report'InputConfig
-  { js :: Maybe FilePath
-  , css :: Maybe FilePath
-  }
-  deriving stock (Show, Generic)
-
-$(deriveJSON ''Report'InputConfig)
-
-data Report'OutputConfig = Report'OutputConfig
-  { html :: Maybe FilePath
-  , json :: Maybe FilePath
-  , markdown :: Maybe FilePath
-  }
-  deriving stock (Show, Generic)
-
-$(deriveJSON ''Report'OutputConfig)
-
-data ReportConfig = ReportConfig
-  { input :: Maybe Report'InputConfig
-  , output :: Report'OutputConfig
-  , expectedMetricsChange :: MetricsChange
-  , expectedImprovedProgramsPercentage :: Percent
-  , items :: [ReportItem]
-  }
-  deriving stock (Show, Generic)
-
-$(deriveJSON ''ReportConfig)
 
 data ReportRow = ReportRow
   { fileInitial :: Maybe FilePath
@@ -140,21 +72,21 @@ calculateMetricsChange expectedMetricsChange countInitial countNormalized =
   initial = fromIntegral <$> countInitial
   normalized = fromIntegral <$> countNormalized
 
-makeProgramReport :: ReportConfig -> ReportItem -> ProgramMetrics -> ProgramMetrics -> ProgramReport
-makeProgramReport reportConfig reportItem metricsPhi metricsPhiNormalized =
+makeProgramReport :: PipelineConfig -> TestSetPhi -> ProgramMetrics -> ProgramMetrics -> ProgramReport
+makeProgramReport pipelineConfig testSet metricsPhi metricsPhiNormalized =
   ProgramReport{..}
  where
   bindingsRows =
     case (metricsPhi.bindingsByPathMetrics, metricsPhiNormalized.bindingsByPathMetrics) of
       (Just bindingsMetricsInitial, Just bindingsMetricsNormalized) ->
         [ ReportRow
-          { fileInitial = Just reportItem.phi
-          , fileNormalized = Just reportItem.phiNormalized
+          { fileInitial = Just testSet.initial
+          , fileNormalized = Just testSet.normalized
           , bindingsPathInitial = Just bindingsMetricsInitial.path
           , bindingsPathNormalized = Just bindingsMetricsNormalized.path
           , attributeInitial = Just attributeInitial
           , attributeNormalized = Just attributeNormalized
-          , metricsChange = calculateMetricsChange reportConfig.expectedMetricsChange metricsInitial metricsNormalized
+          , metricsChange = calculateMetricsChange pipelineConfig.report.expectedMetricsChange metricsInitial metricsNormalized
           , metricsInitial = metricsInitial
           , metricsNormalized = metricsNormalized
           }
@@ -164,25 +96,25 @@ makeProgramReport reportConfig reportItem metricsPhi metricsPhiNormalized =
       _ -> []
   programRow =
     ReportRow
-      { fileInitial = Just reportItem.phi
-      , fileNormalized = Just reportItem.phiNormalized
+      { fileInitial = Just testSet.initial
+      , fileNormalized = Just testSet.normalized
       , bindingsPathInitial = Nothing
       , bindingsPathNormalized = Nothing
       , attributeInitial = Nothing
       , attributeNormalized = Nothing
-      , metricsChange = calculateMetricsChange reportConfig.expectedMetricsChange metricsPhi.programMetrics metricsPhiNormalized.programMetrics
+      , metricsChange = calculateMetricsChange pipelineConfig.report.expectedMetricsChange metricsPhi.programMetrics metricsPhiNormalized.programMetrics
       , metricsInitial = metricsPhi.programMetrics
       , metricsNormalized = metricsPhiNormalized.programMetrics
       }
 
-makeReport :: ReportConfig -> [ProgramReport] -> Report
-makeReport reportConfig programReports =
+makeReport :: PipelineConfig -> [ProgramReport] -> Report
+makeReport pipelineConfig programReports =
   Report{..}
  where
   programRows = (.programRow) <$> programReports
   metricsInitial = foldMap (.metricsInitial) programRows
   metricsNormalized = foldMap (.metricsNormalized) programRows
-  metricsChange = calculateMetricsChange reportConfig.expectedMetricsChange metricsInitial metricsNormalized
+  metricsChange = calculateMetricsChange pipelineConfig.report.expectedMetricsChange metricsInitial metricsNormalized
   totalRow =
     ReportRow
       { fileInitial = Nothing

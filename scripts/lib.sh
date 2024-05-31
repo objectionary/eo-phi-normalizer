@@ -5,14 +5,14 @@ set -uo pipefail
 PWD_DIR="$PWD"
 PIPELINE_DIR_RELATIVE="pipeline"
 PIPELINE_DIR="$PWD/$PIPELINE_DIR_RELATIVE"
-PIPELINE_PHI_DIR="$PIPELINE_DIR/phi"
-PIPELINE_EO_DIR="$PIPELINE_DIR/eo"
-PIPELINE_EO_NON_NORMALIZED_DIR="$PIPELINE_DIR/eo-non-normalized"
+PIPELINE_PHI_INITIAL_DIR="$PIPELINE_DIR/phi-initial"
+PIPELINE_EO_FILTERED_DIR="$PIPELINE_DIR/eo-filtered"
+PIPELINE_EO_INITIAL_DIR="$PIPELINE_DIR/eo-initial"
 PIPELINE_EO_NORMALIZED_DIR="$PIPELINE_DIR/eo-normalized"
 PIPELINE_PHI_NORMALIZED_DIR="$PIPELINE_DIR/phi-normalized"
 PIPELINE_NORMALIZER_DIR="$PWD/eo-phi-normalizer"
 PIPELINE_REPORT_DIR="$PWD/report"
-PIPELINE_YAML_DIR="$PIPELINE_DIR/yaml"
+PIPELINE_EO_YAML_DIR="$PIPELINE_DIR/eo-yaml"
 
 SCRIPTS_DIR="$PWD_DIR/scripts"
 PIPELINE_SCRIPT="$SCRIPTS_DIR/pipeline.sh"
@@ -31,15 +31,15 @@ PIPELINE_LOCK_FILE_NEW_RELATIVE="$PIPELINE_DIR_RELATIVE/$PIPELINE_LOCK_FILE_NEW_
 NORMALIZER_INSTALLED="${NORMALIZER_INSTALLED:-false}"
 
 PIPELINE_LOGS_DIR="$PIPELINE_DIR/logs"
-PIPELINE_LOGS_NON_NORMALIZED="$PIPELINE_LOGS_DIR/test-non-normalized-logs.txt"
-PIPELINE_LOGS_NORMALIZED="$PIPELINE_LOGS_DIR/test-normalized-logs.txt"
+PIPELINE_TEST_EO_INITIAL_LOGS="$PIPELINE_LOGS_DIR/test-initial-logs.txt"
+PIPELINE_TEST_EO_NORMALIZED_LOGS="$PIPELINE_LOGS_DIR/test-normalized-logs.txt"
 
 SYNTAX_DIR="eo-phi-normalizer/src/Language/EO/Phi/Syntax"
 
 function init_logs {
     mkdir -p "$PIPELINE_LOGS_DIR"
-    touch "$PIPELINE_LOGS_NON_NORMALIZED"
-    touch "$PIPELINE_LOGS_NORMALIZED"
+    touch "$PIPELINE_TEST_EO_INITIAL_LOGS"
+    touch "$PIPELINE_TEST_EO_NORMALIZED_LOGS"
 }
 
 export -f init_logs
@@ -212,13 +212,13 @@ function get_failing_tests {
 export -f get_failing_tests
 
 function get_failing_tests_non_normalized {
-    get_failing_tests "$PIPELINE_LOGS_NON_NORMALIZED" "before"
+    get_failing_tests "$PIPELINE_TEST_EO_INITIAL_LOGS" "before"
 }
 
 export -f get_failing_tests_non_normalized
 
 function get_failing_tests_normalized {
-    get_failing_tests "$PIPELINE_LOGS_NORMALIZED" "after"
+    get_failing_tests "$PIPELINE_TEST_EO_NORMALIZED_LOGS" "after"
 }
 
 export -f get_failing_tests_normalized
