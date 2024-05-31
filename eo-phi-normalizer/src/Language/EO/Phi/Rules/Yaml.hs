@@ -247,44 +247,6 @@ applySubst subst@Subst{..} = \case
   MetaSubstThis obj thisObj -> MetaSubstThis (applySubst subst thisObj) (applySubst subst obj)
   obj@MetaFunction{} -> obj
 
-substThis :: Object -> Object -> Object
-substThis thisObj = go
- where
-  isAttachedRho (AlphaBinding Rho _) = True
-  isAttachedRho _ = False
-
-  isEmptyRho (EmptyBinding Rho) = True
-  isEmptyRho _ = False
-
-  go = \case
-    ThisObject -> thisObj -- ξ is substituted
-    -- IMPORTANT: we are injecting a ρ-attribute in formations!
-    obj@(Formation bindings)
-      | any isAttachedRho bindings -> obj
-      | otherwise -> Formation (filter (not . isEmptyRho) bindings ++ [AlphaBinding Rho thisObj])
-    -- everywhere else we simply recursively traverse the φ-term
-    Application obj bindings -> Application (go obj) (map (substThisBinding thisObj) bindings)
-    ObjectDispatch obj a -> ObjectDispatch (go obj) a
-    GlobalObject -> GlobalObject
-    Termination -> Termination
-    obj@MetaSubstThis{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
-    obj@MetaObject{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
-    obj@MetaFunction{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
-
--- {⟦ x ↦ ⟦ b ↦ ⟦ Δ ⤍ 01- ⟧, φ ↦ ⟦ b ↦ ⟦ Δ ⤍ 02- ⟧, c ↦ ⟦ a ↦ ξ.ρ.ρ.b ⟧.a ⟧.c ⟧.φ, λ ⤍ Package ⟧}
-
--- {⟦ λ ⤍ Package, x ↦ ⟦ b ↦ ⟦⟧ ⟧ ⟧}
-
-substThisBinding :: Object -> Binding -> Binding
-substThisBinding obj = \case
-  AlphaBinding a obj' -> AlphaBinding a (substThis obj obj')
-  EmptyBinding a -> EmptyBinding a
-  DeltaBinding bytes -> DeltaBinding bytes
-  DeltaEmptyBinding -> DeltaEmptyBinding
-  LambdaBinding bytes -> LambdaBinding bytes
-  b@MetaBindings{} -> error ("impossible: trying to substitute ξ in " <> printTree b)
-  b@MetaDeltaBinding{} -> error ("impossible: trying to substitute ξ in " <> printTree b)
-
 applySubstAttr :: Subst -> Attribute -> Attribute
 applySubstAttr Subst{..} = \case
   attr@(MetaAttr x) -> fromMaybe attr $ lookup x attributeMetas
@@ -407,3 +369,41 @@ matchAttr (MetaAttr metaId) attr =
       }
   ]
 matchAttr _ _ = []
+
+substThis :: Object -> Object -> Object
+substThis thisObj = go
+ where
+  isAttachedRho (AlphaBinding Rho _) = True
+  isAttachedRho _ = False
+
+  isEmptyRho (EmptyBinding Rho) = True
+  isEmptyRho _ = False
+
+  go = \case
+    ThisObject -> thisObj -- ξ is substituted
+    -- IMPORTANT: we are injecting a ρ-attribute in formations!
+    obj@(Formation bindings)
+      | any isAttachedRho bindings -> obj
+      | otherwise -> Formation (filter (not . isEmptyRho) bindings ++ [AlphaBinding Rho thisObj])
+    -- everywhere else we simply recursively traverse the φ-term
+    Application obj bindings -> Application (go obj) (map (substThisBinding thisObj) bindings)
+    ObjectDispatch obj a -> ObjectDispatch (go obj) a
+    GlobalObject -> GlobalObject
+    Termination -> Termination
+    obj@MetaSubstThis{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
+    obj@MetaObject{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
+    obj@MetaFunction{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
+
+-- {⟦ x ↦ ⟦ b ↦ ⟦ Δ ⤍ 01- ⟧, φ ↦ ⟦ b ↦ ⟦ Δ ⤍ 02- ⟧, c ↦ ⟦ a ↦ ξ.ρ.ρ.b ⟧.a ⟧.c ⟧.φ, λ ⤍ Package ⟧}
+
+-- {⟦ λ ⤍ Package, x ↦ ⟦ b ↦ ⟦⟧ ⟧ ⟧}
+
+substThisBinding :: Object -> Binding -> Binding
+substThisBinding obj = \case
+  AlphaBinding a obj' -> AlphaBinding a (substThis obj obj')
+  EmptyBinding a -> EmptyBinding a
+  DeltaBinding bytes -> DeltaBinding bytes
+  DeltaEmptyBinding -> DeltaEmptyBinding
+  LambdaBinding bytes -> LambdaBinding bytes
+  b@MetaBindings{} -> error ("impossible: trying to substitute ξ in " <> printTree b)
+  b@MetaDeltaBinding{} -> error ("impossible: trying to substitute ξ in " <> printTree b)

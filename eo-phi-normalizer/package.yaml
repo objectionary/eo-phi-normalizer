@@ -56,7 +56,7 @@ dependencies:
   - scientific
   - file-embed >= 0.0.16.0
   - regex-compat
-  - binary
+  - cereal
   - bytestring
 
 default-extensions:

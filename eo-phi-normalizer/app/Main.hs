@@ -40,7 +40,7 @@ import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy as TL (unpack)
 import Data.Yaml (decodeFileThrow)
 import GHC.Generics (Generic)
-import Language.EO.Phi (Bytes (Bytes), Object (Formation), Program (Program), parseProgram, printTree)
+import Language.EO.Phi (Binding (LambdaBinding), Bytes (Bytes), Object (Formation), Program (Program), parseProgram, printTree)
 import Language.EO.Phi.Dataize
 import Language.EO.Phi.Dependencies
 import Language.EO.Phi.Metrics.Collect as Metrics (getProgramMetrics)
@@ -50,6 +50,7 @@ import Language.EO.Phi.Pipeline.EOTests.PrepareTests (prepareTests)
 import Language.EO.Phi.Report.Data (makeProgramReport, makeReport)
 import Language.EO.Phi.Report.Html (reportCSS, reportJS, toStringReport)
 import Language.EO.Phi.Rules.Common
+import Language.EO.Phi.Rules.Fast (fastYegorInsideOut, fastYegorInsideOutAsRule)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRuleNamed, parseRuleSetFromFile)
 import Language.EO.Phi.ToLaTeX
 import Main.Utf8
@@ -62,7 +63,7 @@ import System.IO (IOMode (WriteMode), getContents', hFlush, hPutStr, hPutStrLn, 
 
 data CLI'TransformPhi = CLI'TransformPhi
   { chain :: Bool
-  , rulesPath :: String
+  , rulesPath :: Maybe String
   , outputFile :: Maybe String
   , single :: Bool
   , json :: Bool
@@ -75,13 +76,15 @@ data CLI'TransformPhi = CLI'TransformPhi
   deriving (Show)
 
 data CLI'DataizePhi = CLI'DataizePhi
-  { rulesPath :: String
+  { rulesPath :: Maybe String
   , inputFile :: Maybe FilePath
   , dependencies :: [FilePath]
   , outputFile :: Maybe String
   , recursive :: Bool
   , chain :: Bool
   , latex :: Bool
+  , asPackage :: Bool
+  , minimizeStuckTerms :: Bool
   }
   deriving (Show)
 
@@ -165,6 +168,12 @@ jsonSwitch = switch (long "json" <> short 'j' <> help "Output JSON.")
 latexSwitch :: Parser Bool
 latexSwitch = switch (long "tex" <> help "Output LaTeX.")
 
+asPackageSwitch :: Parser Bool
+asPackageSwitch = switch (long "as-package" <> help "Automatically inject (λ → Package) in the program if necessary, to dataize all fields.")
+
+minimizeStuckTermsSwitch :: Parser Bool
+minimizeStuckTermsSwitch = switch (long "minimize-stuck-terms" <> help "If a dataized (sub)term is stuck (cannot be fully dataized), use the minimal (by size) intermediate result.")
+
 bindingsPathOption :: Parser (Maybe String)
 bindingsPathOption =
   optional $
@@ -200,7 +209,7 @@ commandParser =
     pure CLI'MetricsPhi{..}
 
   transform = do
-    rulesPath <- strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. Must be specified.|])
+    rulesPath <- optional $ strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. If unspecified, builtin set of rules is used.|])
     chain <- switch (long "chain" <> short 'c' <> help "Output transformation steps.")
     json <- jsonSwitch
     latex <- latexSwitch
@@ -216,13 +225,15 @@ commandParser =
     dependencies <- dependenciesArg
     pure CLI'TransformPhi{..}
   dataize = do
-    rulesPath <- strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. Must be specified.|])
+    rulesPath <- optional $ strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. If unspecified, builtin set of rules is used.|])
     inputFile <- inputFileArg
     dependencies <- dependenciesArg
     outputFile <- outputFileOption
     recursive <- switch (long "recursive" <> help "Apply dataization + normalization recursively.")
     chain <- switch (long "chain" <> help "Display all the intermediate steps.")
     latex <- latexSwitch
+    asPackage <- asPackageSwitch
+    minimizeStuckTerms <- minimizeStuckTermsSwitch
     pure CLI'DataizePhi{..}
   report = do
     configFile <- strOption (long "config" <> short 'c' <> metavar.file <> help [fmt|A report configuration {metavarName.file}.|])
@@ -288,6 +299,9 @@ data StructuredJSON = StructuredJSON
   , output :: [[(String, String)]]
   }
   deriving (Generic, ToJSON)
+
+logEntryToPair :: LogEntry a -> (String, a)
+logEntryToPair LogEntry{..} = (logEntryMessage, logEntryLog)
 
 encodeToJSONString :: (ToJSON a) => a -> String
 encodeToJSONString = TL.unpack . toLazyText . encodePrettyToTextBuilder' defConfig{confIndent = Spaces 2}
@@ -368,6 +382,11 @@ getMetrics bindingsPath inputFile = do
   program <- getProgram inputFile
   either throw pure (getMetrics' program bindingsPath)
 
+injectLamdbaPackage :: [Binding] -> [Binding]
+injectLamdbaPackage bs
+  | any isPackageBinding bs = bs
+  | otherwise = bs ++ [LambdaBinding "Package"]
+
 -- * Main
 
 main :: IO ()
@@ -379,14 +398,21 @@ main = withUtf8 do
   case opts of
     CLI'MetricsPhi' CLI'MetricsPhi{..} -> do
       (logStrLn, _) <- getLoggers outputFile
+      -- logStrLn "Computing metrics"
       metrics <- getMetrics bindingsPath inputFile
       logStrLn $ encodeToJSONString metrics
     CLI'TransformPhi' CLI'TransformPhi{..} -> do
       program' <- getProgram inputFile
       deps <- mapM (getProgram . Just) dependencies
       (logStrLn, logStr) <- getLoggers outputFile
-      ruleSet <- parseRuleSetFromFile rulesPath
-      unless (single || json) $ logStrLn ruleSet.title
+      -- logStrLn "Running transform"
+      (builtin, ruleSetTitle, rules) <-
+        case rulesPath of
+          Just path -> do
+            ruleSet <- parseRuleSetFromFile path
+            return (False, ruleSet.title, convertRuleNamed <$> ruleSet.rules)
+          Nothing -> return (True, "Yegor's rules (builtin)", [fastYegorInsideOutAsRule])
+      unless (single || json) $ logStrLn ruleSetTitle
       bindingsWithDeps <- case deepMergePrograms (program' : deps) of
         Left err -> throw (CouldNotMergeDependencies err)
         Right (Program bindingsWithDeps) -> return bindingsWithDeps
@@ -394,10 +420,11 @@ main = withUtf8 do
           uniqueResults
             -- Something here seems incorrect
             | chain = map fst $ applyRulesChainWith' limits ctx (Formation bindings)
-            | otherwise = pure . ("",) <$> applyRulesWith limits ctx (Formation bindings)
+            | builtin = return [LogEntry "" (fastYegorInsideOut ctx (Formation bindings)) 0]
+            | otherwise = (\x -> [LogEntry "" x 0]) <$> applyRulesWith limits ctx (Formation bindings)
            where
             limits = ApplicationLimits maxDepth (maxGrowthFactor * objectSize (Formation bindings))
-            ctx = defaultContext (convertRuleNamed <$> ruleSet.rules) (Formation bindingsWithDeps) -- IMPORTANT: context contains dependencies!
+            ctx = (defaultContext rules (Formation bindingsWithDeps)){builtinRules = builtin} -- IMPORTANT: context contains dependencies!
           totalResults = length uniqueResults
       when (null uniqueResults || null (head uniqueResults)) (throw CouldNotNormalize)
       if
@@ -405,24 +432,24 @@ main = withUtf8 do
             logStrLn
               . encodeToJSONString
               . printAsProgramOrAsObject
-              $ snd (head (head uniqueResults))
+              $ logEntryLog (head (head uniqueResults))
         | single ->
             logStrLn
               . printAsProgramOrAsObject
-              $ snd (head (head uniqueResults))
+              $ logEntryLog (head (head uniqueResults))
         | json ->
             logStrLn . encodeToJSONString $
               StructuredJSON
                 { input = printTree program'
-                , output = (propagateName1 printAsProgramOrAsObject <$>) <$> uniqueResults
+                , output = (logEntryToPair . fmap printAsProgramOrAsObject <$>) <$> uniqueResults
                 }
         | chain && latex -> do
             logStrLn . toLatexString $ Formation bindings
             forM_ uniqueResults $ \steps -> do
-              forM_ (init steps) $ \(_, step) -> do
-                logStrLn . toLatexString $ step
+              forM_ (init steps) $ \LogEntry{..} -> do
+                logStrLn . toLatexString $ logEntryLog
         | latex ->
-            logStrLn . toLatexString $ snd (head (head uniqueResults))
+            logStrLn . toLatexString $ logEntryLog (head (head uniqueResults))
         | otherwise -> do
             logStrLn "Input:"
             logStrLn (printTree program')
@@ -431,22 +458,34 @@ main = withUtf8 do
               logStrLn $
                 "Result " <> show index <> " out of " <> show totalResults <> ":"
               let n = length steps
-              forM_ (zip [1 ..] steps) $ \(k, (appliedRuleName, step)) -> do
+              forM_ (zip [1 ..] steps) $ \(k, LogEntry{..}) -> do
                 when chain $
-                  logStr ("[ " <> show k <> " / " <> show n <> " ] " <> appliedRuleName <> ": ")
-                logStrLn . printAsProgramOrAsObject $ step
+                  logStr ("[ " <> show k <> " / " <> show n <> " ] " <> logEntryMessage <> ": ")
+                logStrLn . printAsProgramOrAsObject $ logEntryLog
               logStrLn "----------------------------------------------------"
     CLI'DataizePhi' CLI'DataizePhi{..} -> do
       (logStrLn, _logStr) <- getLoggers outputFile
+      -- logStrLn "Running dataize"
       program' <- getProgram inputFile
       deps <- mapM (getProgram . Just) dependencies
       bindingsWithDeps <- case deepMergePrograms (program' : deps) of
         Left err -> throw (CouldNotMergeDependencies err)
         Right (Program bindingsWithDeps) -> return bindingsWithDeps
-      ruleSet <- parseRuleSetFromFile rulesPath
+      (builtin, _ruleSetTitle, rules) <-
+        case rulesPath of
+          Just path -> do
+            ruleSet <- parseRuleSetFromFile path
+            return (False, ruleSet.title, convertRuleNamed <$> ruleSet.rules)
+          Nothing -> return (True, "Yegor's rules (builtin)", [fastYegorInsideOutAsRule])
       let (Program bindings) = program'
-          inputObject = Formation bindings
-          ctx = defaultContext (convertRuleNamed <$> ruleSet.rules) (Formation bindingsWithDeps) -- IMPORTANT: context contains dependencies!
+          inputObject
+            | asPackage = Formation (injectLamdbaPackage bindings)
+            | otherwise = Formation bindings
+          ctx =
+            (defaultContext rules (Formation bindingsWithDeps)) -- IMPORTANT: context contains dependencies!
+              { minimizeTerms = minimizeStuckTerms
+              , builtinRules = builtin
+              }
       if chain
         then do
           let dataizeChain
@@ -455,14 +494,18 @@ main = withUtf8 do
           if latex
             then do
               logStrLn . toLatexString $ Formation bindings
-              forM_ (fst (dataizeChain ctx inputObject)) $ \case
-                (msg, Left obj) ->
-                  (when ("Rule" `isPrefixOf` msg) $ logStrLn . toLatexString $ obj)
-                (_, Right (Bytes bytes)) -> logStrLn bytes
+              forM_ (fst (dataizeChain ctx inputObject)) $ \LogEntry{..} ->
+                case logEntryLog of
+                  Left obj ->
+                    when ("Rule" `isPrefixOf` logEntryMessage) $
+                      logStrLn . toLatexString $
+                        obj
+                  Right (Bytes bytes) -> logStrLn bytes
             else do
-              forM_ (fst (dataizeChain ctx inputObject)) $ \case
-                (msg, Left obj) -> logStrLn (msg ++ ": " ++ printTree obj)
-                (msg, Right (Bytes bytes)) -> logStrLn (msg ++ ": " ++ bytes)
+              forM_ (fst (dataizeChain ctx inputObject)) $ \LogEntry{..} ->
+                case logEntryLog of
+                  Left obj -> logStrLn (replicate logEntryLevel ' ' ++ logEntryMessage ++ ": " ++ printTree obj)
+                  Right (Bytes bytes) -> logStrLn (replicate logEntryLevel ' ' ++ logEntryMessage ++ ": " ++ bytes)
         else do
           let dataize
                 -- This should be moved to a separate subcommand

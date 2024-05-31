@@ -13,8 +13,12 @@ import Control.Arrow (left)
 import Data.Bits
 import Data.List (singleton)
 import Data.List.NonEmpty qualified as NonEmpty
+
+-- import Data.List.NonEmpty qualified as NonEmpty
 import Data.Maybe (listToMaybe)
 import Language.EO.Phi.Rules.Common
+import Language.EO.Phi.Rules.Fast (fastYegorInsideOut)
+import Language.EO.Phi.Rules.Yaml (substThis)
 import Language.EO.Phi.Syntax.Abs
 import PyF (fmt)
 import System.IO.Unsafe (unsafePerformIO)
@@ -33,7 +37,7 @@ type EvaluationState = ()
 dataizeRecursively :: Context -> Object -> Either Object Bytes
 dataizeRecursively ctx obj = snd $ dataizeRecursivelyChain' ctx obj
 
-dataizeStepChain' :: Context -> Object -> ([(String, Either Object Bytes)], Either Object Bytes)
+dataizeStepChain' :: Context -> Object -> ([LogEntry (Either Object Bytes)], Either Object Bytes)
 dataizeStepChain' ctx obj = snd <$> head (runChain (dataizeStepChain obj) ctx) -- FIXME: head is bad
 
 -- | Perform one step of dataization to the object (if possible), reporting back individiual steps.
@@ -55,7 +59,7 @@ dataizeStepChain obj@(Formation bs)
       logStep "Dataizing inside phi" (Left decoratee)
       ctx <- getContext
       let extendedContext = (extendContextWith obj ctx){currentAttr = Phi}
-      withContext extendedContext $ dataizeStepChain decoratee
+      return (extendedContext, Left (substThis obj decoratee))
   | otherwise = do
       logStep "No change to formation" (Left obj)
       ctx <- getContext
@@ -66,13 +70,13 @@ dataizeStepChain obj@(Formation bs)
   isEmpty _ = False
   hasEmpty = any isEmpty bs
 -- IMPORTANT: dataize the object being copied IF normalization is stuck on it!
-dataizeStepChain (Application obj bindings) = do
+dataizeStepChain (Application obj bindings) = incLogLevel $ do
   logStep "Dataizing inside application" (Left obj)
   modifyContext (\c -> c{dataizePackage = False}) $ do
     (ctx, obj') <- dataizeStepChain obj
     return (ctx, left (`Application` bindings) obj')
 -- IMPORTANT: dataize the object being dispatched IF normalization is stuck on it!
-dataizeStepChain (ObjectDispatch obj attr) = do
+dataizeStepChain (ObjectDispatch obj attr) = incLogLevel $ do
   logStep "Dataizing inside dispatch" (Left obj)
   modifyContext (\c -> c{dataizePackage = False}) $ do
     (ctx, obj') <- dataizeStepChain obj
@@ -82,29 +86,43 @@ dataizeStepChain obj = do
   ctx <- getContext
   return (ctx, Left obj)
 
-dataizeRecursivelyChain' :: Context -> Object -> ([(String, Either Object Bytes)], Either Object Bytes)
-dataizeRecursivelyChain' ctx obj = head (runChain (dataizeRecursivelyChain obj) ctx)
+dataizeRecursivelyChain' :: Context -> Object -> ([LogEntry (Either Object Bytes)], Either Object Bytes)
+dataizeRecursivelyChain' ctx obj = head (runChain (dataizeRecursivelyChain False obj) ctx)
 
 -- | Recursively perform normalization and dataization until we get bytes in the end,
 -- reporting intermediate steps
-dataizeRecursivelyChain :: Object -> DataizeChain (Either Object Bytes)
-dataizeRecursivelyChain obj = do
-  logStep "Dataizing" (Left obj)
-  ctx <- getContext
-  let globalObject = NonEmpty.last (outerFormations ctx)
-      limits = defaultApplicationLimits (objectSize globalObject)
-  msplit (transformNormLogs (applyRulesChainWith limits obj)) >>= \case
-    Nothing -> do
-      logStep "No rules applied" (Left obj)
-      return (Left obj)
-    -- We trust that all chains lead to the same result due to confluence
-    Just (normObj, _alternatives) -> do
-      (ctx', step) <- dataizeStepChain normObj
-      case step of
-        (Left stillObj)
-          | stillObj == normObj && ctx `sameContext` ctx' -> return step -- dataization changed nothing
-          | otherwise -> withContext ctx' $ dataizeRecursivelyChain stillObj -- partially dataized
-        bytes -> return bytes
+dataizeRecursivelyChain :: Bool -> Object -> DataizeChain (Either Object Bytes)
+dataizeRecursivelyChain = fmap minimizeObject' . go
+ where
+  go normalizeRequired obj = do
+    logStep "Dataizing" (Left obj)
+    ctx <- getContext
+    let globalObject = NonEmpty.last (outerFormations ctx)
+    let limits = defaultApplicationLimits (objectSize globalObject)
+    let normalizedObj
+          | builtinRules ctx = do
+              let obj' = fastYegorInsideOut ctx obj
+              logStep "Normalized" obj'
+              return obj'
+          | otherwise = applyRulesChainWith limits obj
+    msplit (transformNormLogs normalizedObj) >>= \case
+      Nothing -> do
+        logStep "No rules applied" (Left obj)
+        return (Left obj)
+      -- We trust that all chains lead to the same result due to confluence
+      Just (normObj, _alternatives)
+        | normObj == obj && normalizeRequired -> return (Left obj)
+        | otherwise -> do
+            (ctx', step) <- dataizeStepChain normObj
+            case step of
+              (Left stillObj)
+                | stillObj == normObj && ctx `sameContext` ctx' -> do
+                    logStep "Dataization changed nothing" (Left stillObj)
+                    return step -- dataization changed nothing
+                | otherwise -> do
+                    logStep "Dataization changed something" (Left stillObj)
+                    withContext ctx' $ go False stillObj -- partially dataized
+              bytes -> return bytes
 
 -- | Given converters between Bytes and some data type, a binary function on this data type, an object,
 -- and the current state of evaluation, returns the new object and a possibly modified state along with intermediate steps.
@@ -123,10 +141,12 @@ evaluateDataizationFunChain ::
 evaluateDataizationFunChain resultToBytes bytesToParam wrapBytes func obj _state = do
   let o_rho = ObjectDispatch obj Rho
   let o_a0 = ObjectDispatch obj (Alpha (AlphaIndex "α0"))
-  logStep "Evaluating LHS" (Left o_rho)
-  lhs <- dataizeRecursivelyChain o_rho
-  logStep "Evaluating RHS" (Left o_a0)
-  rhs <- dataizeRecursivelyChain o_a0
+  lhs <- incLogLevel $ do
+    logStep "Evaluating LHS" (Left o_rho)
+    dataizeRecursivelyChain True o_rho
+  rhs <- incLogLevel $ do
+    logStep "Evaluating RHS" (Left o_a0)
+    dataizeRecursivelyChain True o_a0
   result <- case (lhs, rhs) of
     (Right l, Right r) -> do
       let bytes = resultToBytes (bytesToParam r `func` bytesToParam l)
@@ -157,19 +177,27 @@ evaluateBinaryDataizationFunChain ::
 evaluateBinaryDataizationFunChain resultToBytes bytesToParam wrapBytes arg1 arg2 func obj _state = do
   let lhsArg = arg1 obj
   let rhsArg = arg2 obj
-  logStep "Evaluating LHS" (Left lhsArg)
-  lhs <- dataizeRecursivelyChain lhsArg
-  logStep "Evaluating RHS" (Left rhsArg)
-  rhs <- dataizeRecursivelyChain rhsArg
+  lhs <- incLogLevel $ do
+    logStep "Evaluating LHS" (Left lhsArg)
+    dataizeRecursivelyChain True lhsArg
+  rhs <- incLogLevel $ do
+    logStep "Evaluating RHS" (Left rhsArg)
+    dataizeRecursivelyChain True rhsArg
   result <- case (lhs, rhs) of
     (Right l, Right r) -> do
       let bytes = resultToBytes (bytesToParam l `func` bytesToParam r)
           resultObj = wrapBytes bytes
       logStep "Evaluated function" (Left resultObj)
       return resultObj
-    _ -> do
-      logStep "Couldn't find bytes in one or both of LHS and RHS" (Left Termination)
-      return Termination
+    (Left _l, Left _r) -> do
+      logStep "Couldn't find bytes in both LHS and RHS" (Left Termination)
+      return Termination -- (Formation [AlphaBinding (Label "lhs") l, AlphaBinding (Label "rhs") r])
+    (Left _l, _) -> do
+      logStep "Couldn't find bytes in LHS" (Left Termination)
+      return Termination -- (Formation [AlphaBinding (Label "lhs") (hideRho1 l)])
+    (_, Left _r) -> do
+      logStep "Couldn't find bytes in RHS" (Left Termination)
+      return Termination -- (Formation [AlphaBinding (Label "rhs") r])
   return (result, ())
 
 -- | Unary functions operate on the given object without any additional parameters
@@ -209,12 +237,17 @@ wrapBytesInString (Bytes bytes) = [fmt|Φ.org.eolang.string(as-bytes ↦ Φ.org.
 wrapBytesInBytes :: Bytes -> Object
 wrapBytesInBytes (Bytes bytes) = [fmt|Φ.org.eolang.bytes(Δ ⤍ {bytes})|]
 
+wrapBytesAsBool :: Bytes -> Object
+wrapBytesAsBool bytes
+  | bytesToInt bytes == 0 = [fmt|Φ.org.eolang.false|]
+  | otherwise = [fmt|Φ.org.eolang.true|]
+
 -- This should maybe get converted to a type class and some instances?
 evaluateIntIntIntFunChain :: (Int -> Int -> Int) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
 evaluateIntIntIntFunChain = evaluateBinaryDataizationFunChain intToBytes bytesToInt wrapBytesInInt extractRho (extractLabel "x")
 
 evaluateIntIntBoolFunChain :: (Int -> Int -> Bool) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
-evaluateIntIntBoolFunChain = evaluateBinaryDataizationFunChain boolToBytes bytesToInt wrapBytesInBytes extractRho (extractLabel "x")
+evaluateIntIntBoolFunChain = evaluateBinaryDataizationFunChain boolToBytes bytesToInt wrapBytesAsBool extractRho (extractLabel "x")
 
 -- Int because Bytes are just a string, but Int has a Bits instance
 evaluateBytesBytesBytesFunChain :: (Int -> Int -> Int) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
@@ -235,23 +268,23 @@ evaluateBuiltinFunChain "Lorg_eolang_int_plus" obj = evaluateIntIntIntFunChain (
 evaluateBuiltinFunChain "Lorg_eolang_int_times" obj = evaluateIntIntIntFunChain (*) obj
 evaluateBuiltinFunChain "Lorg_eolang_int_div" obj = evaluateIntIntIntFunChain div obj
 -- bytes
-evaluateBuiltinFunChain "Lorg_eolang_bytes_eq" obj = evaluateBinaryDataizationFunChain boolToBytes bytesToInt wrapBytesInBytes extractRho (extractLabel "x") (==) obj
+evaluateBuiltinFunChain "Lorg_eolang_bytes_eq" obj = evaluateBinaryDataizationFunChain boolToBytes bytesToInt wrapBytesAsBool extractRho (extractLabel "b") (==) obj
 evaluateBuiltinFunChain "Lorg_eolang_bytes_size" obj = evaluateUnaryDataizationFunChain intToBytes id wrapBytesInBytes extractRho (\(Bytes bytes) -> length (words (map dashToSpace bytes))) obj
  where
   dashToSpace '-' = ' '
   dashToSpace c = c
 evaluateBuiltinFunChain "Lorg_eolang_bytes_slice" obj = \state -> do
-  thisStr <- dataizeRecursivelyChain (extractRho obj)
-  (Bytes bytes) <- case thisStr of
+  thisStr <- incLogLevel $ dataizeRecursivelyChain True (extractRho obj)
+  bytes <- case thisStr of
     Right bytes -> pure bytes
     Left _ -> fail "Couldn't find bytes"
-  evaluateBinaryDataizationFunChain id bytesToInt wrapBytesInBytes (extractLabel "start") (extractLabel "len") (\start len -> Bytes $ normalizeBytes $ take len (drop start (filter (/= '-') bytes))) obj state
+  evaluateBinaryDataizationFunChain id bytesToInt wrapBytesInBytes (extractLabel "start") (extractLabel "len") (sliceBytes bytes) obj state
 evaluateBuiltinFunChain "Lorg_eolang_bytes_and" obj = evaluateBytesBytesBytesFunChain (.&.) obj
 evaluateBuiltinFunChain "Lorg_eolang_bytes_or" obj = evaluateBytesBytesBytesFunChain (.|.) obj
 evaluateBuiltinFunChain "Lorg_eolang_bytes_xor" obj = evaluateBytesBytesBytesFunChain (.^.) obj
 evaluateBuiltinFunChain "Lorg_eolang_bytes_not" obj = evaluateBytesBytesFunChain complement obj
-evaluateBuiltinFunChain "Lorg_eolang_bytes_right" obj = evaluateBinaryDataizationFunChain intToBytes bytesToInt wrapBytesInBytes extractRho (extractLabel "x") shiftR obj
-evaluateBuiltinFunChain "Lorg_eolang_bytes_concat" obj = evaluateBinaryDataizationFunChain id id wrapBytesInBytes extractRho (extractLabel "b") (\(Bytes b1) (Bytes b2) -> Bytes (b1 ++ b2)) obj
+evaluateBuiltinFunChain "Lorg_eolang_bytes_right" obj = evaluateBinaryDataizationFunChain intToBytes bytesToInt wrapBytesInBytes extractRho (extractLabel "x") (\x i -> shift x (-i)) obj
+evaluateBuiltinFunChain "Lorg_eolang_bytes_concat" obj = evaluateBinaryDataizationFunChain id id wrapBytesInBytes extractRho (extractLabel "b") concatBytes obj
 -- float
 evaluateBuiltinFunChain "Lorg_eolang_float_gt" obj = evaluateBinaryDataizationFunChain boolToBytes bytesToFloat wrapBytesInBytes extractRho (extractLabel "x") (>) obj
 evaluateBuiltinFunChain "Lorg_eolang_float_times" obj = evaluateFloatFloatFloatFunChain (*) obj
@@ -260,7 +293,7 @@ evaluateBuiltinFunChain "Lorg_eolang_float_div" obj = evaluateFloatFloatFloatFun
 -- string
 evaluateBuiltinFunChain "Lorg_eolang_string_length" obj = evaluateUnaryDataizationFunChain intToBytes bytesToString wrapBytesInInt extractRho length obj
 evaluateBuiltinFunChain "Lorg_eolang_string_slice" obj = \state -> do
-  thisStr <- dataizeRecursivelyChain (extractRho obj)
+  thisStr <- incLogLevel $ dataizeRecursivelyChain True (extractRho obj)
   string <- case thisStr of
     Right bytes -> pure $ bytesToString bytes
     Left _ -> fail "Couldn't find bytes"
@@ -275,11 +308,12 @@ evaluateBuiltinFunChain "Lorg_eolang_string_slice" obj = \state -> do
 -- evaluateBuiltinFunChain "Lorg_eolang_cage_encaged_φ" obj = _ -- TODO
 -- evaluateBuiltinFunChain "Lorg_eolang_cage_encaged_encage" obj = _ -- TODO
 -- I/O
-evaluateBuiltinFunChain "Lorg_eolang_io_stdin_next_line" obj = evaluateIODataizationFunChain getLine obj
-evaluateBuiltinFunChain "Lorg_eolang_io_stdin_φ" obj = evaluateIODataizationFunChain getContents obj
-evaluateBuiltinFunChain "Lorg_eolang_io_stdout" obj = evaluateUnaryDataizationFunChain boolToBytes bytesToString wrapBytesInBytes (extractLabel "text") ((`seq` True) . unsafePerformIO . putStrLn) obj
+-- evaluateBuiltinFunChain "Lorg_eolang_io_stdin_next_line" obj = evaluateIODataizationFunChain getLine obj
+-- evaluateBuiltinFunChain "Lorg_eolang_io_stdin_φ" obj = evaluateIODataizationFunChain getContents obj
+-- evaluateBuiltinFunChain "Lorg_eolang_io_stdout" obj = evaluateUnaryDataizationFunChain boolToBytes bytesToString wrapBytesInBytes (extractLabel "text") ((`seq` True) . unsafePerformIO . putStrLn) obj
 -- others
--- evaluateBuiltinFunChain "Lorg_eolang_dataized" obj = _ -- TODO
+evaluateBuiltinFunChain "Lorg_eolang_dataized" obj =
+  evaluateUnaryDataizationFunChain id id wrapBytesInBytes (extractLabel "target") id obj
 evaluateBuiltinFunChain "Lorg_eolang_error" obj = evaluateUnaryDataizationFunChain stringToBytes bytesToString wrapBytesInBytes (extractLabel "message") error obj
 -- evaluateBuiltinFunChain "Lorg_eolang_seq" obj = _ -- TODO
 -- evaluateBuiltinFunChain "Lorg_eolang_as_phi" obj = _ -- TODO
@@ -301,10 +335,12 @@ evaluateBuiltinFunChain "Package" obj@(Formation bindings) = do
   dataizeBindingChain (AlphaBinding attr o) = do
     ctx <- getContext
     let extendedContext = (extendContextWith obj ctx){currentAttr = attr}
-    dataizationResult <- withContext extendedContext $ dataizeRecursivelyChain o
+    dataizationResult <- incLogLevel $ withContext extendedContext $ dataizeRecursivelyChain False o
     return (AlphaBinding attr (either id (Formation . singleton . DeltaBinding) dataizationResult))
   dataizeBindingChain b = return b
-evaluateBuiltinFunChain _ obj = \state -> return (obj, state)
+evaluateBuiltinFunChain atomName obj = \state -> do
+  logStep ("[WARNING]: unknown atom (" <> atomName <> ")") (Left obj)
+  return (obj, state)
 
 -- | Like `evaluateDataizationFun` but specifically for the built-in functions.
 -- This function is not safe. It returns undefined for unknown functions

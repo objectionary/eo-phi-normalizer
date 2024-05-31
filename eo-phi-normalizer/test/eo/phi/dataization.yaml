@@ -7,13 +7,23 @@ tests:
     input: |
       {⟦
         c ↦ Φ.org.eolang.float(
-          as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ 01-01-00-00-00-00-00-00-00-07-00-00-00-00-00-00-19-FF-FF-FF-FF-FF-FF-FF-D0)
+          as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ 40-39-00-00-00-00-00-00)
         ), // 25.0
-        φ ↦ ξ.c.times(x ↦ ⟦ Δ ⤍ 01-01-00-00-00-00-00-00-00-07-CD-CC-CC-CC-CC-CC-1C-FF-FF-FF-FF-FF-FF-FF-CC ⟧)  // 1.8
-              .plus(x ↦ ⟦ Δ ⤍ 01-01-00-00-00-00-00-00-00-07-00-00-00-00-00-00-10-FF-FF-FF-FF-FF-FF-FF-D1 ⟧), // 32.0
+        φ ↦ ξ.c.times(x ↦ ⟦ Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD ⟧)  // 1.8
+              .plus(x ↦ ⟦ Δ ⤍ 40-40-00-00-00-00-00-00 ⟧), // 32.0
       ⟧}
     output:
-      bytes: "01-01-00-00-00-00-00-00-00-07-00-00-00-00-00-40-13-FF-FF-FF-FF-FF-FF-FF-D2"
+      bytes: "40-53-40-00-00-00-00-00" # 77.0
+
+  - name: "Equality of booleans (via equality of bytes)"
+    dependencies:
+      - ./data/0.38.0/org/eolang/bytes.phi
+      - ./data/0.38.0/org/eolang/true.phi
+      - ./data/0.38.0/org/eolang/false.phi
+    input: |
+      {⟦ φ ↦ Φ.org.eolang.true.eq(α0 ↦ Φ.org.eolang.true) ⟧}
+    output:
+      bytes: "01-"
 
   - name: "Program with ξ.ρ.ρ"
     dependencies: []
@@ -69,7 +79,7 @@ tests:
       {⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ξ.ρ ⟧.c ⟧.b ⟧.a , λ ⤍ Package ⟧}
     output:
       object: |
-        ⟦ x ↦ ⟦ ρ ↦ ⟦ ⟧ ⟧, λ ⤍ Package ⟧
+        ⟦ x ↦ ⟦ b ↦ ⟦ c ↦ ξ.ρ ⟧.ρ, ρ ↦ ⟦ ρ ↦ ⟦ b ↦ ⟦ c ↦ ξ.ρ ⟧.ρ ⟧, c ↦ ξ.ρ ⟧ ⟧, λ ⤍ Package ⟧
 
   - name: "usage of Φ with a loop"
     dependencies: []
@@ -85,7 +95,7 @@ tests:
       {⟦ x ↦ ⟦ c ↦ ⟦ a ↦ ∅ ⟧ (a ↦ ⟦ d ↦ ξ.ρ ⟧) ⟧.c , λ ⤍ Package ⟧}
     output:
       object: |
-        ⟦ x ↦ ⟦ a ↦ ⟦ d ↦ ξ.ρ ⟧, ρ ↦ ⟦ ⟧ ⟧, λ ⤍ Package ⟧
+        ⟦ x ↦ ⟦ a ↦ ⟦ d ↦ ξ.ρ ⟧, ρ ↦ ⟦ c ↦ ⟦ a ↦ ⟦ d ↦ ξ.ρ ⟧ ⟧ ⟧ ⟧, λ ⤍ Package ⟧
 
   # FIXME: fails because nf condition for ξ.b succeeds though it shouldn't
   # - name: "ξ in application"
@@ -233,6 +243,8 @@ tests:
     dependencies:
       - ./data/0.38.0/org/eolang/int.phi
       - ./data/0.38.0/org/eolang/bytes.phi
+      - ./data/0.38.0/org/eolang/false.phi
+      - ./data/0.38.0/org/eolang/true.phi
     input: |
       {⟦
         φ ↦ ⟦
@@ -242,7 +254,7 @@ tests:
         ⟧
       ⟧}
     output:
-      bytes: "00-00-00-00-00-00-00-00"
+      bytes: "00-"
 
   # Missing int tests: div
 
@@ -290,11 +302,13 @@ tests:
   - name: "bytes shift and equal"
     dependencies:
       - ./data/0.38.0/org/eolang/bytes.phi
+      - ./data/0.38.0/org/eolang/true.phi
+      - ./data/0.38.0/org/eolang/false.phi
     input: |
       {⟦
         φ ↦ ⟦
           ρ ↦ ⟦ Δ ⤍ 02-24-46-68-8A-AC-CE-F1 ⟧,
-          x ↦ ⟦
+          b ↦ ⟦
             ρ ↦ ⟦ Δ ⤍ 11-22-33-44-55-66-77-88 ⟧,
             x ↦ ⟦ Δ ⤍ 03- ⟧,
             λ ⤍ Lorg_eolang_bytes_right
@@ -303,7 +317,7 @@ tests:
         ⟧
       ⟧}
     output:
-      bytes: "00-00-00-00-00-00-00-01"
+      bytes: "01-"
 
   # Missing bytes tests: or, xor, slice, concat
 
@@ -315,16 +329,16 @@ tests:
       {⟦
         φ ↦ ⟦
           x ↦ ⟦
-            x ↦ ⟦ Δ ⤍ 01-01-00-00-00-00-00-00-00-07-00-00-00-00-00-00-14-FF-FF-FF-FF-FF-FF-FF-CE ⟧, // == 5.0
-            ρ ↦ ⟦ Δ ⤍ 01-01-00-00-00-00-00-00-00-07-66-66-66-66-66-66-1A-FF-FF-FF-FF-FF-FF-FF-CF ⟧, // == 13.2
+            x ↦ ⟦ Δ ⤍ 40-14-00-00-00-00-00-00 ⟧, // == 5.0
+            ρ ↦ ⟦ Δ ⤍ 40-2A-66-66-66-66-66-66 ⟧, // == 13.2
             λ ⤍ Lorg_eolang_float_times
           ⟧,
-          ρ ↦ ⟦ Δ ⤍ 01-01-00-00-00-00-00-00-00-07-5C-8F-C2-F5-28-5C-1B-FF-FF-FF-FF-FF-FF-FF-CD ⟧, // == 3.42
+          ρ ↦ ⟦ Δ ⤍ 40-0B-5C-28-F5-C2-8F-5C ⟧, // == 3.42
           λ ⤍ Lorg_eolang_float_plus
         ⟧
       ⟧}
     output:
-      bytes: "01-01-00-00-00-00-00-00-00-07-7B-14-AE-47-E1-5A-11-FF-FF-FF-FF-FF-FF-FF-D2" # == 69.42
+      bytes: "40-51-5A-E1-47-AE-14-7B" # == 69.42
 
   # Missing float tests: gt, div
 
