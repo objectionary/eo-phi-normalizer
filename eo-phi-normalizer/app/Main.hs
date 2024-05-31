@@ -46,6 +46,7 @@ import Language.EO.Phi.Report.Data (Report'InputConfig (..), Report'OutputConfig
 import Language.EO.Phi.Report.Html (ReportFormat (..), reportCSS, reportJS, toStringReport)
 import Language.EO.Phi.Report.Html qualified as ReportHtml (ReportConfig (..))
 import Language.EO.Phi.Rules.Common
+import Language.EO.Phi.Rules.Fast (fastYegorInsideOutAsRule)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRuleNamed, parseRuleSetFromFile)
 import Language.EO.Phi.ToLaTeX
 import Main.Utf8
@@ -58,7 +59,7 @@ import System.IO (IOMode (WriteMode), getContents', hFlush, hPutStr, hPutStrLn, 
 
 data CLI'TransformPhi = CLI'TransformPhi
   { chain :: Bool
-  , rulesPath :: String
+  , rulesPath :: Maybe String
   , outputFile :: Maybe String
   , single :: Bool
   , json :: Bool
@@ -71,7 +72,7 @@ data CLI'TransformPhi = CLI'TransformPhi
   deriving (Show)
 
 data CLI'DataizePhi = CLI'DataizePhi
-  { rulesPath :: String
+  { rulesPath :: Maybe String
   , inputFile :: Maybe FilePath
   , dependencies :: [FilePath]
   , outputFile :: Maybe String
@@ -197,7 +198,7 @@ commandParser =
     pure CLI'MetricsPhi{..}
 
   transform = do
-    rulesPath <- strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. Must be specified.|])
+    rulesPath <- optional $ strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. If unspecified, builtin set of rules is used.|])
     chain <- switch (long "chain" <> short 'c' <> help "Output transformation steps.")
     json <- jsonSwitch
     latex <- latexSwitch
@@ -213,7 +214,7 @@ commandParser =
     dependencies <- dependenciesArg
     pure CLI'TransformPhi{..}
   dataize = do
-    rulesPath <- strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. Must be specified.|])
+    rulesPath <- optional $ strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. If unspecified, builtin set of rules is used.|])
     inputFile <- inputFileArg
     dependencies <- dependenciesArg
     outputFile <- outputFileOption
@@ -386,8 +387,13 @@ main = withUtf8 do
       deps <- mapM (getProgram . Just) dependencies
       (logStrLn, logStr) <- getLoggers outputFile
       -- logStrLn "Running transform"
-      ruleSet <- parseRuleSetFromFile rulesPath
-      unless (single || json) $ logStrLn ruleSet.title
+      (ruleSetTitle, rules) <-
+        case rulesPath of
+          Just path -> do
+            ruleSet <- parseRuleSetFromFile path
+            return (ruleSet.title, convertRuleNamed <$> ruleSet.rules)
+          Nothing -> return ("Yegor's rules (builtin)", [fastYegorInsideOutAsRule])
+      unless (single || json) $ logStrLn ruleSetTitle
       bindingsWithDeps <- case deepMergePrograms (program' : deps) of
         Left err -> throw (CouldNotMergeDependencies err)
         Right (Program bindingsWithDeps) -> return bindingsWithDeps
@@ -398,7 +404,7 @@ main = withUtf8 do
             | otherwise = (\x -> [LogEntry "" x 0]) <$> applyRulesWith limits ctx (Formation bindings)
            where
             limits = ApplicationLimits maxDepth (maxGrowthFactor * objectSize (Formation bindings))
-            ctx = defaultContext (convertRuleNamed <$> ruleSet.rules) (Formation bindingsWithDeps) -- IMPORTANT: context contains dependencies!
+            ctx = defaultContext rules (Formation bindingsWithDeps) -- IMPORTANT: context contains dependencies!
           totalResults = length uniqueResults
       when (null uniqueResults || null (head uniqueResults)) (throw CouldNotNormalize)
       if
@@ -445,13 +451,18 @@ main = withUtf8 do
       bindingsWithDeps <- case deepMergePrograms (program' : deps) of
         Left err -> throw (CouldNotMergeDependencies err)
         Right (Program bindingsWithDeps) -> return bindingsWithDeps
-      ruleSet <- parseRuleSetFromFile rulesPath
+      (_ruleSetTitle, rules) <-
+        case rulesPath of
+          Just path -> do
+            ruleSet <- parseRuleSetFromFile path
+            return (ruleSet.title, convertRuleNamed <$> ruleSet.rules)
+          Nothing -> return ("Yegor's rules (builtin)", [fastYegorInsideOutAsRule])
       let (Program bindings) = program'
       let inputObject
             | asPackage = Formation (injectLamdbaPackage bindings)
             | otherwise = Formation bindings
       let ctx =
-            (defaultContext (convertRuleNamed <$> ruleSet.rules) (Formation bindingsWithDeps)) -- IMPORTANT: context contains dependencies!
+            (defaultContext rules (Formation bindingsWithDeps)) -- IMPORTANT: context contains dependencies!
               { minimizeTerms = minimizeStuckTerms
               }
       ( if chain

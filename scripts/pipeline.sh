@@ -142,8 +142,6 @@ function normalize {
             --minimize-stuck-terms \
             --as-package \
             --recursive \
-            --rules \
-            "$PIPELINE_NORMALIZER_DIR/test/eo/phi/rules/yegor.yaml" \
             $dependency_file_options \
             "$f" \
             > "$destination" \

@@ -12,11 +12,11 @@ module Language.EO.Phi.Dataize where
 import Control.Arrow (left)
 import Data.Bits
 import Data.List (singleton)
+import Data.List.NonEmpty qualified as NonEmpty
 
 -- import Data.List.NonEmpty qualified as NonEmpty
 import Data.Maybe (listToMaybe)
 import Language.EO.Phi.Rules.Common
-import Language.EO.Phi.Rules.Fast
 import Language.EO.Phi.Rules.Yaml (substThis)
 import Language.EO.Phi.Syntax.Abs
 import PyF (fmt)
@@ -96,12 +96,9 @@ dataizeRecursivelyChain = fmap minimizeObject' . go
   go normalizeRequired obj = do
     logStep "Dataizing" (Left obj)
     ctx <- getContext
-    -- let globalObject = NonEmpty.last (outerFormations ctx)
-    -- let limits = defaultApplicationLimits (objectSize globalObject)
-    let normalizedObj = do
-          let obj' = fastYegorInsideOut ctx obj -- applyRulesInsideOut ctx obj
-          logStep "Normalized" obj'
-          return obj'
+    let globalObject = NonEmpty.last (outerFormations ctx)
+    let limits = defaultApplicationLimits (objectSize globalObject)
+    let normalizedObj = applyRulesChainWith limits obj
     msplit (transformNormLogs normalizedObj) >>= \case
       Nothing -> do
         logStep "No rules applied" (Left obj)

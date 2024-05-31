@@ -75,6 +75,9 @@ applyRulesInsideOut ctx obj = do
       -- trace (ruleName <> ": \n   " <> printTree obj' <> "\n → " <> printTree obj'') $
       applyRulesInsideOut ctx obj''
 
+fastYegorInsideOutAsRule :: NamedRule
+fastYegorInsideOutAsRule = ("Yegor's rules (hardcoded)", \ctx obj -> [fastYegorInsideOut ctx obj])
+
 fastYegorInsideOut :: Context -> Object -> Object
 fastYegorInsideOut ctx = \case
   root@GlobalObject
