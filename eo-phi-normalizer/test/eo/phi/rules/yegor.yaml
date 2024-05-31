@@ -39,12 +39,11 @@ rules:
   - name: Rule 5
     description: 'ξ-dispatch'
     context:
-      current_object: '⟦ !a ↦ !obj, !B ⟧'
-      current_attribute: '!a'
+      current_object: '!obj'
     pattern: |
       ξ
     result: |
-      ⟦ !B ⟧
+      !obj
     when:
       - apply_in_subformations: false
       # - present_attrs:
@@ -61,14 +60,14 @@ rules:
     pattern: |
       ⟦ !a ↦ !n, !B ⟧.!a
     result: |
-      !n[ ξ ↦ ⟦ !B ⟧ ]
+      !n[ ξ ↦ ⟦ !a ↦ !n, !B ⟧ ]
     when:
       - nf_inside_formation: '!n'
       - nf: '⟦ !B ⟧'
     tests:
       - name: Should match
         input: ⟦ hello ↦ ⟦⟧ ⟧.hello
-        output: ['⟦ ρ ↦ ⟦⟧ ⟧']
+        output: ['⟦ ρ ↦ ⟦ hello ↦ ⟦⟧ ⟧ ⟧']
       - name: Shouldn't match
         input: ⟦ ⟧.hello
         output: []
@@ -78,15 +77,29 @@ rules:
     pattern: |
       ⟦ !a ↦ !n, ρ ↦ ∅, !B ⟧.!a
     result: |
-      !n[ ξ ↦ ⟦ !B ⟧ ]
+      !n[ ξ ↦ ⟦ !a ↦ !n, ρ ↦ ∅, !B ⟧ ]
     when: []
     tests:
       - name: Should match
         input: ⟦ hello ↦ ⟦⟧, ρ ↦ ∅ ⟧.hello
-        output: ['⟦ ρ ↦ ⟦⟧ ⟧']
+        output: ['⟦ ρ ↦ ⟦ hello ↦ ⟦⟧, ρ ↦ ∅ ⟧ ⟧']
       - name: Shouldn't match
         input: ⟦ ⟧.hello
         output: []
+
+  - name: Rule 7 α0 α1
+    description: 'Application of α-binding'
+    # Warning: this is not correct for the chain variant because it only matches the first two bindings
+    # i.e., doesn't match an empty binding after an attached one.
+    # We should instead match the first two empty bindings.
+    pattern: |
+      ⟦ !a ↦ ∅, !b ↦ ∅, !B ⟧(α0 ↦ !n0, α1 ↦ !n1)
+    result: |
+      ⟦ !a ↦ !n0, !b ↦ !n1, !B ⟧
+    when:
+      - nf: '!n0'
+      - nf: '!n1'
+    tests: []
 
   - name: Rule 7 α0
     description: 'Application of α-binding'
@@ -125,8 +138,9 @@ rules:
     pattern: |
       ⟦ φ ↦ !n, !B ⟧.!a
     result: |
-      !n.!a
+      !n[ ξ ↦ ⟦ φ ↦ !n, !B ⟧ ].!a
     when:
+      - apply_in_subformations: false
       - nf_inside_formation: '!n'
       - not_equal: ['!a', 'φ']
       - absent_attrs:
@@ -135,7 +149,7 @@ rules:
     tests:
       - name: 'Attribute does not exist'
         input: '⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧.b'
-        output: ['⟦ ⟧.b']
+        output: ['⟦ ρ ↦ ⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧ ⟧.b']
       - name: 'Attribute exists'
         input: '⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧.a'
         output: []

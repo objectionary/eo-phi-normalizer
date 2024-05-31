@@ -9,9 +9,12 @@ Install `normalizer` - see [Installation](./installation.md).
 Dataize the program recursively.
 
 ```$ as console
-normalizer dataize --recursive --rules eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+normalizer dataize --recursive --rules eo-phi-normalizer/test/eo/phi/rules/yegor.yaml \
+  --dependency-file 'eo-phi-normalizer/data/0.38.0/org/eolang/float.phi' \
+  --dependency-file 'eo-phi-normalizer/data/0.38.0/org/eolang/bytes.phi' \
+  celcius.phi
 ```
 
 ```console
-Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 01-01-00-00-00-00-00-00-00-07-00-00-00-00-00-00-19-FF-FF-FF-FF-FF-FF-FF-D0)).times (x ↦ ⟦ Δ ⤍ 01-01-00-00-00-00-00-00-00-07-CD-CC-CC-CC-CC-CC-1C-FF-FF-FF-FF-FF-FF-FF-CC ⟧).plus (x ↦ ⟦ Δ ⤍ 01-01-00-00-00-00-00-00-00-07-00-00-00-00-00-00-10-FF-FF-FF-FF-FF-FF-FF-D1 ⟧)
+{ ⟦ c ↦ ⟦ Δ ⤍ 40-39-00-00-00-00-00-00 ⟧, result ↦ ⟦ Δ ⤍ 40-53-40-00-00-00-00-00 ⟧, λ ⤍ Package ⟧ }
 ```

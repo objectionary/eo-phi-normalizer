@@ -157,9 +157,9 @@ function normalize {
         set -x
         # shellcheck disable=SC2086
         normalizer dataize \
+            --minimize-stuck-terms \
+            --as-package \
             --recursive \
-            --rules \
-            "$PIPELINE_NORMALIZER_DIR/test/eo/phi/rules/yegor.yaml" \
             $dependency_file_options \
             "$f" \
             > "$destination" \
