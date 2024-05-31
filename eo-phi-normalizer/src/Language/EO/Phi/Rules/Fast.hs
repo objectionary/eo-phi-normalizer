@@ -80,6 +80,7 @@ fastYegorInsideOutAsRule = ("Yegor's rules (hardcoded)", \ctx obj -> [fastYegorI
 
 fastYegorInsideOut :: Context -> Object -> Object
 fastYegorInsideOut ctx = \case
+  root | insideSubObject ctx -> root -- this rule is only applied at root
   root@GlobalObject
     | not (insideFormation ctx) ->
         NonEmpty.last (outerFormations ctx)

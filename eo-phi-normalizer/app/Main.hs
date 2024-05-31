@@ -46,7 +46,7 @@ import Language.EO.Phi.Report.Data (Report'InputConfig (..), Report'OutputConfig
 import Language.EO.Phi.Report.Html (ReportFormat (..), reportCSS, reportJS, toStringReport)
 import Language.EO.Phi.Report.Html qualified as ReportHtml (ReportConfig (..))
 import Language.EO.Phi.Rules.Common
-import Language.EO.Phi.Rules.Fast (fastYegorInsideOutAsRule)
+import Language.EO.Phi.Rules.Fast (fastYegorInsideOut, fastYegorInsideOutAsRule)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRuleNamed, parseRuleSetFromFile)
 import Language.EO.Phi.ToLaTeX
 import Main.Utf8
@@ -387,12 +387,12 @@ main = withUtf8 do
       deps <- mapM (getProgram . Just) dependencies
       (logStrLn, logStr) <- getLoggers outputFile
       -- logStrLn "Running transform"
-      (ruleSetTitle, rules) <-
+      (builtin, ruleSetTitle, rules) <-
         case rulesPath of
           Just path -> do
             ruleSet <- parseRuleSetFromFile path
-            return (ruleSet.title, convertRuleNamed <$> ruleSet.rules)
-          Nothing -> return ("Yegor's rules (builtin)", [fastYegorInsideOutAsRule])
+            return (False, ruleSet.title, convertRuleNamed <$> ruleSet.rules)
+          Nothing -> return (True, "Yegor's rules (builtin)", [fastYegorInsideOutAsRule])
       unless (single || json) $ logStrLn ruleSetTitle
       bindingsWithDeps <- case deepMergePrograms (program' : deps) of
         Left err -> throw (CouldNotMergeDependencies err)
@@ -401,10 +401,11 @@ main = withUtf8 do
           uniqueResults
             -- Something here seems incorrect
             | chain = map fst $ applyRulesChainWith' limits ctx (Formation bindings)
+            | builtin = return [LogEntry "" (fastYegorInsideOut ctx (Formation bindings)) 0]
             | otherwise = (\x -> [LogEntry "" x 0]) <$> applyRulesWith limits ctx (Formation bindings)
            where
             limits = ApplicationLimits maxDepth (maxGrowthFactor * objectSize (Formation bindings))
-            ctx = defaultContext rules (Formation bindingsWithDeps) -- IMPORTANT: context contains dependencies!
+            ctx = (defaultContext rules (Formation bindingsWithDeps)){builtinRules = builtin} -- IMPORTANT: context contains dependencies!
           totalResults = length uniqueResults
       when (null uniqueResults || null (head uniqueResults)) (throw CouldNotNormalize)
       if
@@ -451,12 +452,12 @@ main = withUtf8 do
       bindingsWithDeps <- case deepMergePrograms (program' : deps) of
         Left err -> throw (CouldNotMergeDependencies err)
         Right (Program bindingsWithDeps) -> return bindingsWithDeps
-      (_ruleSetTitle, rules) <-
+      (builtin, _ruleSetTitle, rules) <-
         case rulesPath of
           Just path -> do
             ruleSet <- parseRuleSetFromFile path
-            return (ruleSet.title, convertRuleNamed <$> ruleSet.rules)
-          Nothing -> return ("Yegor's rules (builtin)", [fastYegorInsideOutAsRule])
+            return (False, ruleSet.title, convertRuleNamed <$> ruleSet.rules)
+          Nothing -> return (True, "Yegor's rules (builtin)", [fastYegorInsideOutAsRule])
       let (Program bindings) = program'
       let inputObject
             | asPackage = Formation (injectLamdbaPackage bindings)
@@ -464,6 +465,7 @@ main = withUtf8 do
       let ctx =
             (defaultContext rules (Formation bindingsWithDeps)) -- IMPORTANT: context contains dependencies!
               { minimizeTerms = minimizeStuckTerms
+              , builtinRules = builtin
               }
       ( if chain
           then do

@@ -17,6 +17,7 @@ import Data.List.NonEmpty qualified as NonEmpty
 -- import Data.List.NonEmpty qualified as NonEmpty
 import Data.Maybe (listToMaybe)
 import Language.EO.Phi.Rules.Common
+import Language.EO.Phi.Rules.Fast (fastYegorInsideOut)
 import Language.EO.Phi.Rules.Yaml (substThis)
 import Language.EO.Phi.Syntax.Abs
 import PyF (fmt)
@@ -98,7 +99,12 @@ dataizeRecursivelyChain = fmap minimizeObject' . go
     ctx <- getContext
     let globalObject = NonEmpty.last (outerFormations ctx)
     let limits = defaultApplicationLimits (objectSize globalObject)
-    let normalizedObj = applyRulesChainWith limits obj
+    let normalizedObj
+          | builtinRules ctx = do
+              let obj' = fastYegorInsideOut ctx obj
+              logStep "Normalized" obj'
+              return obj'
+          | otherwise = applyRulesChainWith limits obj
     msplit (transformNormLogs normalizedObj) >>= \case
       Nothing -> do
         logStep "No rules applied" (Left obj)

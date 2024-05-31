@@ -56,7 +56,8 @@ unsafeParseWith parser input =
 type NamedRule = (String, Rule)
 
 data Context = Context
-  { allRules :: [NamedRule]
+  { builtinRules :: Bool
+  , allRules :: [NamedRule]
   , outerFormations :: NonEmpty Object
   , currentAttr :: Attribute
   , insideFormation :: Bool
@@ -64,6 +65,7 @@ data Context = Context
   , dataizePackage :: Bool
   -- ^ Temporary flag to only dataize Package attributes for the top-level formation.
   , minimizeTerms :: Bool
+  , insideSubObject :: Bool
   }
 
 sameContext :: Context -> Context -> Bool
@@ -76,12 +78,14 @@ sameContext ctx1 ctx2 =
 defaultContext :: [NamedRule] -> Object -> Context
 defaultContext rules obj =
   Context
-    { allRules = rules
+    { builtinRules = False
+    , allRules = rules
     , outerFormations = NonEmpty.singleton obj
     , currentAttr = Phi
     , insideFormation = False
     , dataizePackage = True
     , minimizeTerms = False
+    , insideSubObject = False
     }
 
 -- | A rule tries to apply a transformation to the root object, if possible.
@@ -112,20 +116,22 @@ withSubObject f ctx root =
   f ctx root
     <|> case root of
       Formation bindings
-        | not (any isEmptyBinding bindings) -> propagateName1 Formation <$> withSubObjectBindings f ((extendContextWith root ctx){insideFormation = True}) bindings
+        | not (any isEmptyBinding bindings) -> propagateName1 Formation <$> withSubObjectBindings f ((extendContextWith root subctx){insideFormation = True}) bindings
         | otherwise -> []
       Application obj bindings ->
         asum
-          [ propagateName2 Application <$> withSubObject f ctx obj <*> pure bindings
-          , propagateName1 (Application obj) <$> withSubObjectBindings f ctx bindings
+          [ propagateName2 Application <$> withSubObject f subctx obj <*> pure bindings
+          , propagateName1 (Application obj) <$> withSubObjectBindings f subctx bindings
           ]
-      ObjectDispatch obj a -> propagateName2 ObjectDispatch <$> withSubObject f ctx obj <*> pure a
+      ObjectDispatch obj a -> propagateName2 ObjectDispatch <$> withSubObject f subctx obj <*> pure a
       GlobalObject{} -> []
       ThisObject{} -> []
       Termination -> []
       MetaObject _ -> []
       MetaFunction _ _ -> []
       MetaSubstThis _ _ -> []
+ where
+  subctx = ctx{insideSubObject = True}
 
 -- | Given a unary function that operates only on plain objects,
 -- converts it to a function that operates on named objects
