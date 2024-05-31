@@ -21,18 +21,21 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-partial-fields #-}
 {-# OPTIONS_GHC -Wno-type-defaults #-}
 
 module Main (main) where
 
-import Control.Monad (forM, unless, when)
-import Data.Foldable (forM_)
-
 import Control.Exception (Exception (..), SomeException, catch, throw)
+import Control.Lens.Lens ((&))
+import Control.Lens.Operators ((?~))
+import Control.Monad (forM, unless, when)
 import Data.Aeson (ToJSON)
 import Data.Aeson.Encode.Pretty (Config (..), Indent (..), defConfig, encodePrettyToTextBuilder')
+import Data.Foldable (forM_)
 import Data.List (intercalate, isPrefixOf)
+import Data.Maybe (fromMaybe)
 import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy as TL (unpack)
 import Data.Yaml (decodeFileThrow)
@@ -42,9 +45,10 @@ import Language.EO.Phi.Dataize
 import Language.EO.Phi.Dependencies
 import Language.EO.Phi.Metrics.Collect as Metrics (getProgramMetrics)
 import Language.EO.Phi.Metrics.Data as Metrics (ProgramMetrics (..), splitPath)
-import Language.EO.Phi.Report.Data (Report'InputConfig (..), Report'OutputConfig (..), ReportConfig (..), ReportItem (..), makeProgramReport, makeReport)
-import Language.EO.Phi.Report.Html (ReportFormat (..), reportCSS, reportJS, toStringReport)
-import Language.EO.Phi.Report.Html qualified as ReportHtml (ReportConfig (..))
+import Language.EO.Phi.Pipeline.Config
+import Language.EO.Phi.Pipeline.EOTests.PrepareTests (prepareTests)
+import Language.EO.Phi.Report.Data (makeProgramReport, makeReport)
+import Language.EO.Phi.Report.Html (reportCSS, reportJS, toStringReport)
 import Language.EO.Phi.Rules.Common
 import Language.EO.Phi.Rules.Fast (fastYegorInsideOut, fastYegorInsideOutAsRule)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRuleNamed, parseRuleSetFromFile)
@@ -96,11 +100,17 @@ newtype CLI'ReportPhi = CLI'ReportPhi
   }
   deriving (Show)
 
+newtype CLI'PreparePipelineTests = CLI'PreparePipelineTests
+  { configFile :: FilePath
+  }
+  deriving (Show)
+
 data CLI
   = CLI'TransformPhi' CLI'TransformPhi
   | CLI'DataizePhi' CLI'DataizePhi
   | CLI'MetricsPhi' CLI'MetricsPhi
   | CLI'ReportPhi' CLI'ReportPhi
+  | CLI'PreparePipelineTests' CLI'PreparePipelineTests
   deriving (Show)
 
 data MetavarName = MetavarName
@@ -185,6 +195,7 @@ data CommandParser = CommandParser
   , transform :: Parser CLI'TransformPhi
   , dataize :: Parser CLI'DataizePhi
   , report :: Parser CLI'ReportPhi
+  , preparePipelineTests :: Parser CLI'PreparePipelineTests
   }
 
 commandParser :: CommandParser
@@ -227,12 +238,16 @@ commandParser =
   report = do
     configFile <- strOption (long "config" <> short 'c' <> metavar.file <> help [fmt|A report configuration {metavarName.file}.|])
     pure CLI'ReportPhi{..}
+  preparePipelineTests = do
+    configFile <- strOption (long "config" <> short 'c' <> metavar.file <> help [fmt|A pipeline tests configuration {metavarName.file}.|])
+    pure CLI'PreparePipelineTests{..}
 
 data CommandParserInfo = CommandParserInfo
   { metrics :: ParserInfo CLI
   , transform :: ParserInfo CLI
   , dataize :: ParserInfo CLI
   , report :: ParserInfo CLI
+  , preparePipelineTests :: ParserInfo CLI
   }
 
 commandParserInfo :: CommandParserInfo
@@ -242,6 +257,7 @@ commandParserInfo =
     , transform = info (CLI'TransformPhi' <$> commandParser.transform) (progDesc "Transform a PHI program.")
     , dataize = info (CLI'DataizePhi' <$> commandParser.dataize) (progDesc "Dataize a PHI program.")
     , report = info (CLI'ReportPhi' <$> commandParser.report) (progDesc "Generate reports about initial and normalized PHI programs.")
+    , preparePipelineTests = info (CLI'PreparePipelineTests' <$> commandParser.preparePipelineTests) (progDesc "Prepare EO test files for the pipeline.")
     }
 
 data CommandNames = CommandNames
@@ -249,6 +265,7 @@ data CommandNames = CommandNames
   , metrics :: String
   , dataize :: String
   , report :: String
+  , preparePipelineTests :: String
   }
 
 commandNames :: CommandNames
@@ -258,6 +275,7 @@ commandNames =
     , metrics = "metrics"
     , dataize = "dataize"
     , report = "report"
+    , preparePipelineTests = "prepare-pipeline-tests"
     }
 
 cli :: Parser CLI
@@ -267,6 +285,7 @@ cli =
         <> command commandNames.metrics commandParserInfo.metrics
         <> command commandNames.dataize commandParserInfo.dataize
         <> command commandNames.report commandParserInfo.report
+        <> command commandNames.preparePipelineTests commandParserInfo.preparePipelineTests
     )
 
 cliOpts :: ParserInfo CLI
@@ -459,72 +478,72 @@ main = withUtf8 do
             return (False, ruleSet.title, convertRuleNamed <$> ruleSet.rules)
           Nothing -> return (True, "Yegor's rules (builtin)", [fastYegorInsideOutAsRule])
       let (Program bindings) = program'
-      let inputObject
+          inputObject
             | asPackage = Formation (injectLamdbaPackage bindings)
             | otherwise = Formation bindings
-      let ctx =
+          ctx =
             (defaultContext rules (Formation bindingsWithDeps)) -- IMPORTANT: context contains dependencies!
               { minimizeTerms = minimizeStuckTerms
               , builtinRules = builtin
               }
-      ( if chain
-          then do
-            let dataizeChain
-                  | recursive = dataizeRecursivelyChain'
-                  | otherwise = dataizeStepChain'
-            if latex
-              then do
-                logStrLn . toLatexString $ Formation bindings
-                forM_ (fst (dataizeChain ctx inputObject)) $ \LogEntry{..} ->
-                  case logEntryLog of
-                    Left obj ->
-                      when ("Rule" `isPrefixOf` logEntryMessage) $
-                        logStrLn . toLatexString $
-                          obj
-                    Right (Bytes bytes) -> logStrLn bytes
-              else do
-                forM_ (fst (dataizeChain ctx inputObject)) $ \LogEntry{..} ->
-                  case logEntryLog of
-                    Left obj -> logStrLn (replicate logEntryLevel ' ' ++ logEntryMessage ++ ": " ++ printTree obj)
-                    Right (Bytes bytes) -> logStrLn (replicate logEntryLevel ' ' ++ logEntryMessage ++ ": " ++ bytes)
-          else do
-            let dataize
-                  -- This should be moved to a separate subcommand
-                  | recursive = dataizeRecursively
-                  | otherwise = dataizeStep'
-            case dataize ctx inputObject of
-              Left obj -> logStrLn (printAsProgramOrAsObject obj)
-              Right (Bytes bytes) -> logStrLn bytes
-        )
+      if chain
+        then do
+          let dataizeChain
+                | recursive = dataizeRecursivelyChain'
+                | otherwise = dataizeStepChain'
+          if latex
+            then do
+              logStrLn . toLatexString $ Formation bindings
+              forM_ (fst (dataizeChain ctx inputObject)) $ \LogEntry{..} ->
+                case logEntryLog of
+                  Left obj ->
+                    when ("Rule" `isPrefixOf` logEntryMessage) $
+                      logStrLn . toLatexString $
+                        obj
+                  Right (Bytes bytes) -> logStrLn bytes
+            else do
+              forM_ (fst (dataizeChain ctx inputObject)) $ \LogEntry{..} ->
+                case logEntryLog of
+                  Left obj -> logStrLn (replicate logEntryLevel ' ' ++ logEntryMessage ++ ": " ++ printTree obj)
+                  Right (Bytes bytes) -> logStrLn (replicate logEntryLevel ' ' ++ logEntryMessage ++ ": " ++ bytes)
+        else do
+          let dataize
+                -- This should be moved to a separate subcommand
+                | recursive = dataizeRecursively
+                | otherwise = dataizeStep'
+          case dataize ctx inputObject of
+            Left obj -> logStrLn (printAsProgramOrAsObject obj)
+            Right (Bytes bytes) -> logStrLn bytes
     CLI'ReportPhi' CLI'ReportPhi{..} -> do
-      reportConfig <- decodeFileThrow configFile
+      pipelineConfig <- decodeFileThrow @_ @PipelineConfig configFile
+      let testSets = filter (fromMaybe True . (.enable)) pipelineConfig.testSets
+      programReports <- forM (zip [1 ..] testSets) $ \(index :: Int, (.phi) -> testSet) -> do
+        let progress = [fmt|({index}/{length testSets})|] :: String
+        putStrLn [fmt|Processing {progress}: {testSet.initial}|]
+        metricsPhi <- getMetrics testSet.bindingsPathInitial (Just testSet.initial)
+        putStrLn [fmt|Processing {progress}: {testSet.normalized}|]
+        metricsPhiNormalized <- getMetrics testSet.bindingsPathNormalized (Just testSet.normalized)
+        pure $ makeProgramReport pipelineConfig testSet metricsPhi metricsPhiNormalized
 
-      programReports <- forM reportConfig.items $ \item -> do
-        metricsPhi <- getMetrics item.bindingsPathPhi (Just item.phi)
-        metricsPhiNormalized <- getMetrics item.bindingsPathPhiNormalized (Just item.phiNormalized)
-        pure $ makeProgramReport reportConfig item metricsPhi metricsPhiNormalized
+      css <- maybe (pure reportCSS) readFile (pipelineConfig.report.input >>= (.css))
+      js <- maybe (pure reportJS) readFile (pipelineConfig.report.input >>= (.js))
 
-      css <- maybe (pure reportCSS) readFile (reportConfig.input >>= (.css))
-      js <- maybe (pure reportJS) readFile (reportConfig.input >>= (.js))
-
-      let report = makeReport reportConfig programReports
-          ReportConfig{..} = reportConfig
-          reportConfigHtml = ReportHtml.ReportConfig{format = ReportFormat'Html{..}, ..}
-          reportHtml = toStringReport reportConfigHtml report
-
+      let report = makeReport pipelineConfig programReports
+          reportHtml = toStringReport ReportFormat'Html (pipelineConfig & #report . #input ?~ ReportInput{css = Just css, js = Just js}) report
           reportJson = encodeToJSONString report
-
-          reportConfigMarkdown = ReportHtml.ReportConfig{format = ReportFormat'Markdown, ..}
-          reportMarkdown = toStringReport reportConfigMarkdown report
+          reportMarkdown = toStringReport ReportFormat'Markdown pipelineConfig report
 
       forM_ @[]
         [ (x, y)
         | (Just x, y) <-
-            [ (reportConfig.output.html, reportHtml)
-            , (reportConfig.output.json, reportJson)
-            , (reportConfig.output.markdown, reportMarkdown)
+            [ (pipelineConfig.report.output.html, reportHtml)
+            , (pipelineConfig.report.output.json, reportJson)
+            , (pipelineConfig.report.output.markdown, reportMarkdown)
             ]
         ]
         $ \(path, reportString) -> do
           createDirectoryIfMissing True (takeDirectory path)
           writeFile path reportString
+    CLI'PreparePipelineTests' CLI'PreparePipelineTests{..} -> do
+      config <- decodeFileThrow @_ @PipelineConfig configFile
+      prepareTests config

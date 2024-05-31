@@ -271,10 +271,9 @@ jobs:
           path: |
             pipeline
             !pipeline/**/.eoc
-            !pipeline/yaml
-            pipeline/phi/.eoc/4-pull/org
-            pipeline/phi/.eoc/phi/org
-            pipeline/phi/.eoc/print/org
+            !pipeline/eo-yaml
+            pipeline/eo-initial/.eoc/4-pull/org/
+            pipeline/phi-initial/.eoc/phi/org
             report
 
       - name: Write about the artifact in the job summary
@@ -351,7 +350,7 @@ jobs:
       - name: Add report
         run: |
           mkdir -p dist/report
-          cp report/report.html dist/report/index.html
+          cp pipeline/report/report.html dist/report/index.html
 
       - name: Add index.html
         run: mv site/index.html dist

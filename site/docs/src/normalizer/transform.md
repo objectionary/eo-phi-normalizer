@@ -50,12 +50,8 @@ An expression is in normal form when no rule can be applied to that expression.
 ### Repository
 
 The commands in the following sections access files that are available in the project repository.
-Clone and enter the repository directory.
 
-```sh
-git clone https://github.com/objectionary/normalizer --recurse-submodules
-cd normalizer
-```
+{{#include ../common/enter-repository.md}}
 
 ### Sample program
 
