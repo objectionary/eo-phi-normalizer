@@ -1,5 +1,8 @@
 # shellcheck disable=SC2148
 
+# This file was generated automatically.
+# You can edit the script in 'flake.nix'
+
 mdsh
 
 mdsh -i site/docs/src/common/celsius.md --work_dir .
