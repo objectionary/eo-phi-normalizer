@@ -1,23 +1,25 @@
 {-# HLINT ignore "Use &&" #-}
 {-# LANGUAGE DeriveFunctor #-}
-{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
+{-# HLINT ignore "Redundant fmap" #-}
+
 module Language.EO.Phi.Rules.Common where
 
 import Control.Applicative (Alternative ((<|>)), asum)
 import Control.Arrow (Arrow (first))
 import Control.Monad
-import Data.Binary qualified as Binary
-import Data.ByteString.Lazy qualified as ByteString
+import Data.ByteString qualified as ByteString.Strict
 import Data.Char (toUpper)
-import Data.List (nubBy, sortOn)
+import Data.List (intercalate, minimumBy, nubBy, sortOn)
 import Data.List.NonEmpty (NonEmpty (..), (<|))
 import Data.List.NonEmpty qualified as NonEmpty
+import Data.Ord (comparing)
+import Data.Serialize qualified as Serialize
 import Data.String (IsString (..))
 import Language.EO.Phi.Syntax.Abs
 import Language.EO.Phi.Syntax.Lex (Token)
@@ -47,19 +49,22 @@ parseWith parser input = parser tokens
 unsafeParseWith :: ([Token] -> Either String a) -> String -> a
 unsafeParseWith parser input =
   case parseWith parser input of
-    Left parseError -> error parseError
+    Left parseError -> error (parseError <> "\non input\n" <> input <> "\n")
     Right object -> object
 
 type NamedRule = (String, Rule)
 
 data Context = Context
-  { allRules :: [NamedRule]
+  { builtinRules :: Bool
+  , allRules :: [NamedRule]
   , outerFormations :: NonEmpty Object
   , currentAttr :: Attribute
   , insideFormation :: Bool
   -- ^ Temporary hack for applying Ksi and Phi rules when dataizing
   , dataizePackage :: Bool
   -- ^ Temporary flag to only dataize Package attributes for the top-level formation.
+  , minimizeTerms :: Bool
+  , insideSubObject :: Bool
   }
 
 sameContext :: Context -> Context -> Bool
@@ -72,11 +77,14 @@ sameContext ctx1 ctx2 =
 defaultContext :: [NamedRule] -> Object -> Context
 defaultContext rules obj =
   Context
-    { allRules = rules
+    { builtinRules = False
+    , allRules = rules
     , outerFormations = NonEmpty.singleton obj
     , currentAttr = Phi
     , insideFormation = False
     , dataizePackage = True
+    , minimizeTerms = False
+    , insideSubObject = False
     }
 
 -- | A rule tries to apply a transformation to the root object, if possible.
@@ -107,20 +115,22 @@ withSubObject f ctx root =
   f ctx root
     <|> case root of
       Formation bindings
-        | not (any isEmptyBinding bindings) -> propagateName1 Formation <$> withSubObjectBindings f ((extendContextWith root ctx){insideFormation = True}) bindings
+        | not (any isEmptyBinding bindings) -> propagateName1 Formation <$> withSubObjectBindings f ((extendContextWith root subctx){insideFormation = True}) bindings
         | otherwise -> []
       Application obj bindings ->
         asum
-          [ propagateName2 Application <$> withSubObject f ctx obj <*> pure bindings
-          , propagateName1 (Application obj) <$> withSubObjectBindings f ctx bindings
+          [ propagateName2 Application <$> withSubObject f subctx obj <*> pure bindings
+          , propagateName1 (Application obj) <$> withSubObjectBindings f subctx bindings
           ]
-      ObjectDispatch obj a -> propagateName2 ObjectDispatch <$> withSubObject f ctx obj <*> pure a
+      ObjectDispatch obj a -> propagateName2 ObjectDispatch <$> withSubObject f subctx obj <*> pure a
       GlobalObject{} -> []
       ThisObject{} -> []
       Termination -> []
       MetaObject _ -> []
       MetaFunction _ _ -> []
       MetaSubstThis _ _ -> []
+ where
+  subctx = ctx{insideSubObject = True}
 
 -- | Given a unary function that operates only on plain objects,
 -- converts it to a function that operates on named objects
@@ -134,6 +144,9 @@ propagateName2 f (name, obj) bs = (name, f obj bs)
 
 withSubObjectBindings :: (Context -> Object -> [(String, Object)]) -> Context -> [Binding] -> [(String, [Binding])]
 withSubObjectBindings _ _ [] = []
+withSubObjectBindings f ctx (b@(AlphaBinding Rho _) : bs) =
+  -- do not apply rules inside ρ-bindings
+  [(name, b : bs') | (name, bs') <- withSubObjectBindings f ctx bs]
 withSubObjectBindings f ctx (b : bs) =
   asum
     [ [(name, b' : bs) | (name, b') <- withSubObjectBinding f ctx b]
@@ -168,8 +181,8 @@ data ApplicationLimits = ApplicationLimits
 defaultApplicationLimits :: Int -> ApplicationLimits
 defaultApplicationLimits sourceTermSize =
   ApplicationLimits
-    { maxDepth = 13
-    , maxTermSize = sourceTermSize * 10
+    { maxDepth = 130
+    , maxTermSize = sourceTermSize * 10000
     }
 
 objectSize :: Object -> Int
@@ -245,13 +258,19 @@ equalBinding b1 b2 = b1 == b2
 
 -- * Chain variants
 
+data LogEntry log = LogEntry
+  { logEntryMessage :: String
+  , logEntryLog :: log
+  , logEntryLevel :: Int
+  }
+  deriving (Show, Functor)
+
 newtype Chain log result = Chain
-  {runChain :: Context -> [([(String, log)], result)]}
+  {runChain :: Context -> [([LogEntry log], result)]}
   deriving (Functor)
 
 type NormalizeChain = Chain Object
 type DataizeChain = Chain (Either Object Bytes)
-
 instance Applicative (Chain a) where
   pure x = Chain (const [([], x)])
   (<*>) = ap
@@ -268,7 +287,13 @@ instance MonadFail (Chain a) where
   fail _msg = Chain (const [])
 
 logStep :: String -> info -> Chain info ()
-logStep msg info = Chain $ const [([(msg, info)], ())]
+logStep msg info = Chain $ const [([LogEntry msg info 0], ())]
+
+incLogLevel :: Chain info a -> Chain info a
+incLogLevel (Chain k) =
+  Chain $
+    map (first (map (\LogEntry{..} -> LogEntry{logEntryLevel = logEntryLevel + 1, ..})))
+      . k
 
 choose :: [a] -> Chain log a
 choose xs = Chain $ \_ctx -> [(mempty, x) | x <- xs]
@@ -285,6 +310,32 @@ transformLogs f (Chain normChain) = Chain $ map (first (map (fmap f))) . normCha
 transformNormLogs :: NormalizeChain a -> DataizeChain a
 transformNormLogs = transformLogs Left
 
+listen :: Chain log a -> Chain log (a, [LogEntry log])
+listen (Chain k) = Chain (map (\(logs, result) -> (logs, (result, logs))) . k)
+
+minimizeObject' :: DataizeChain (Either Object Bytes) -> DataizeChain (Either Object Bytes)
+minimizeObject' m = do
+  fmap minimizeTerms getContext >>= \case
+    True -> minimizeObject m
+    False -> m
+
+minimizeObject :: DataizeChain (Either Object Bytes) -> DataizeChain (Either Object Bytes)
+minimizeObject m = do
+  (x, entries) <- listen m
+  case x of
+    Left obj' -> do
+      let objectsOnCurrentLevel =
+            [logEntryLog | LogEntry{..} <- entries, logEntryLevel == 0]
+      return (Left (smallestObject objectsOnCurrentLevel obj'))
+    Right _ -> return x
+
+smallestObject :: [Either Object bytes] -> Object -> Object
+smallestObject objs obj = minimumBy (comparing objectSize) (obj : lefts objs)
+ where
+  lefts [] = []
+  lefts (Left x : xs) = x : lefts xs
+  lefts (Right{} : xs) = lefts xs
+
 getContext :: Chain a Context
 getContext = Chain $ \ctx -> [([], ctx)]
 
@@ -294,14 +345,14 @@ withContext = modifyContext . const
 modifyContext :: (Context -> Context) -> Chain log a -> Chain log a
 modifyContext g (Chain f) = Chain (f . g)
 
-applyRulesChain' :: Context -> Object -> [([(String, Object)], Object)]
+applyRulesChain' :: Context -> Object -> [([LogEntry Object], Object)]
 applyRulesChain' ctx obj = applyRulesChainWith' (defaultApplicationLimits (objectSize obj)) ctx obj
 
 -- | Apply the rules until the object is normalized, preserving the history (chain) of applications.
 applyRulesChain :: Object -> NormalizeChain Object
 applyRulesChain obj = applyRulesChainWith (defaultApplicationLimits (objectSize obj)) obj
 
-applyRulesChainWith' :: ApplicationLimits -> Context -> Object -> [([(String, Object)], Object)]
+applyRulesChainWith' :: ApplicationLimits -> Context -> Object -> [([LogEntry Object], Object)]
 applyRulesChainWith' limits ctx obj = runChain (applyRulesChainWith limits obj) ctx
 
 -- | A variant of `applyRulesChain` with a maximum application depth.
@@ -333,7 +384,7 @@ lookupBinding _ [] = Nothing
 lookupBinding a (AlphaBinding a' object : bindings)
   | a == a' = Just object
   | otherwise = lookupBinding a bindings
-lookupBinding _ _ = Nothing
+lookupBinding a (_ : bindings) = lookupBinding a bindings
 
 objectBindings :: Object -> [Binding]
 objectBindings (Formation bs) = bs
@@ -344,51 +395,251 @@ objectBindings _ = []
 padLeft :: Int -> [Char] -> [Char]
 padLeft n s = replicate (n - length s) '0' ++ s
 
-normalizeBytes :: String -> String
-normalizeBytes = map toUpper . insertDashes . padLeft 2
+-- | Split a list into chunks of given size.
+-- All lists in the result are guaranteed to have length less than or equal to the given size.
+--
+-- >>> chunksOf 2 "012345678"
+-- ["01","23","45","67","8"]
+--
+-- See 'paddedLeftChunksOf' for a version with padding to guarantee exact chunk size.
+chunksOf :: Int -> [a] -> [[a]]
+chunksOf _ [] = []
+chunksOf n xs = chunk : chunksOf n leftover
  where
-  insertDashes s
-    | length s <= 2 = s ++ "-"
-    | otherwise =
-        let go = \case
-              [] -> []
-              [x] -> [x]
-              [x, y] -> [x, y]
-              (x : y : xs) -> x : y : '-' : go xs
-         in go s
+  (chunk, leftover) = splitAt n xs
 
+-- | Split a list into chunks of given size,
+-- padding on the left if necessary.
+-- All lists in the result are guaranteed to have given size.
+--
+-- >>> paddedLeftChunksOf '0' 2 "1234567"
+-- ["01","23","45","67"]
+-- >>> paddedLeftChunksOf '0' 2 "123456"
+-- ["12","34","56"]
+--
+-- prop> n > 0  ==>  all (\chunk -> length chunk == n) (paddedLeftChunksOf c n s)
+paddedLeftChunksOf :: a -> Int -> [a] -> [[a]]
+paddedLeftChunksOf padSymbol n xs
+  | padSize == n = chunksOf n xs
+  | otherwise = chunksOf n (replicate padSize padSymbol ++ xs)
+ where
+  len = length xs
+  padSize = n - len `mod` n
+
+-- | Normalize the bytestring representation to fit valid 'Bytes' token.
+--
+-- >>> normalizeBytes "238714ABCDEF"
+-- "23-87-14-AB-CD-EF"
+--
+-- >>> normalizeBytes "0238714ABCDEF"
+-- "00-23-87-14-AB-CD-EF"
+--
+-- >>> normalizeBytes "4"
+-- "04-"
+normalizeBytes :: String -> String
+normalizeBytes = withDashes . paddedLeftChunksOf '0' 2 . map toUpper
+ where
+  withDashes = \case
+    [] -> "00-"
+    [byte] -> byte <> "-"
+    bytes -> intercalate "-" bytes
+
+-- | Concatenate 'Bytes'.
+-- FIXME: we should really use 'ByteString' instead of the underlying 'String' representation.
+--
+-- >>> concatBytes "00-" "01-02"
+-- Bytes "00-01-02"
+--
+-- >>> concatBytes "03-04" "01-02"
+-- Bytes "03-04-01-02"
+--
+-- >>> concatBytes "03-04" "01-"
+-- Bytes "03-04-01"
+concatBytes :: Bytes -> Bytes -> Bytes
+concatBytes (Bytes xs) (Bytes zs) = Bytes (normalizeBytes (filter (/= '-') (xs <> zs)))
+
+-- | Select a slice (section) of 'Bytes'.
+--
+-- >>> sliceBytes "12-34-56" 1 1
+-- Bytes "34-"
+--
+-- >>> sliceBytes "12-34-56" 1 0
+-- Bytes "00-"
+--
+-- >>> sliceBytes "12-34-56" 0 2
+-- Bytes "12-34"
+sliceBytes :: Bytes -> Int -> Int -> Bytes
+sliceBytes (Bytes bytes) start len = Bytes $ normalizeBytes $ take (2 * len) (drop (2 * start) (filter (/= '-') bytes))
+
+-- | Convert an 'Int' into 'Bytes' representation.
+--
+-- >>> intToBytes 7
+-- Bytes "00-00-00-00-00-00-00-07"
+-- >>> intToBytes (3^33)
+-- Bytes "00-13-BF-EF-A6-5A-BB-83"
+-- >>> intToBytes (-1)
+-- Bytes "FF-FF-FF-FF-FF-FF-FF-FF"
 intToBytes :: Int -> Bytes
-intToBytes n = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "")) $ ByteString.unpack $ Binary.encode n
+intToBytes n = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "")) $ ByteString.Strict.unpack $ Serialize.encode n
 
--- | Assuming the bytes are well-formed (otherwise crashes)
+-- | Parse 'Bytes' as 'Int'.
+--
+-- >>> bytesToInt "00-13-BF-EF-A6-5A-BB-83"
+-- 5559060566555523
+-- >>> bytesToInt "AB-"
+-- 171
+--
+-- May error on invalid 'Bytes':
+--
+-- >>> bytesToInt "s"
+-- *** Exception: Prelude.head: empty list
+-- ...
+-- ...
+-- ...
+-- ...
+-- ...
+-- ...
 bytesToInt :: Bytes -> Int
-bytesToInt (Bytes (filter (/= '-') . dropWhile (== '0') -> bytes))
+bytesToInt (Bytes (dropWhile (== '0') . filter (/= '-') -> bytes))
   | null bytes = 0
   | otherwise = fst $ head $ readHex bytes
 
+-- | Convert 'Bool' to 'Bytes'.
+--
+-- >>> boolToBytes False
+-- Bytes "00-00-00-00-00-00-00-00"
+-- >>> boolToBytes True
+-- Bytes "00-00-00-00-00-00-00-01"
 boolToBytes :: Bool -> Bytes
 boolToBytes True = intToBytes 1
 boolToBytes False = intToBytes 0
 
+-- | Interpret 'Bytes' as 'Bool'.
+--
+-- Zero is interpreted as 'False'.
+--
+-- >>> bytesToBool "00-"
+-- False
+--
+-- >>> bytesToBool "00-00"
+-- False
+--
+-- Everything else is interpreted as 'True'.
+--
+-- >>> bytesToBool "01-"
+-- True
+--
+-- >>> bytesToBool "00-01"
+-- True
+--
+-- >>> bytesToBool "AB-CD"
+-- True
 bytesToBool :: Bytes -> Bool
-bytesToBool (Bytes "00-") = False
-bytesToBool _ = True -- TODO: verify that anything (not just 01-) can be interpreted as true
+bytesToBool (Bytes (dropWhile (== '0') . filter (/= '-') -> [])) = False
+bytesToBool _ = True
 
+-- | Encode 'String' as 'Bytes'.
+--
+-- >>> stringToBytes "Hello, world!"
+-- Bytes "48-65-6C-6C-6F-2C-20-77-6F-72-6C-64-21"
+--
+-- >>> stringToBytes "Привет, мир!"
+-- Bytes "04-1F-44-04-38-43-24-35-44-22-C2-04-3C-43-84-40-21"
 stringToBytes :: String -> Bytes
 stringToBytes s = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "") . fromEnum) s
 
+-- | Decode 'String' from 'Bytes'.
+--
+-- >>> bytesToString "48-65-6C-6C-6F-2C-20-77-6F-72-6C-64-21"
+-- "Hello, world!"
 bytesToString :: Bytes -> String
 bytesToString (Bytes bytes) = map (toEnum . fst . head . readHex) $ words (map dashToSpace bytes)
  where
   dashToSpace '-' = ' '
   dashToSpace c = c
 
--- It is called "float" in EO, but it actually occupies 8 bytes so it's a double
+-- | Encode 'Double' as 'Bytes' following IEEE754.
+--
+-- Note: it is called "float" in EO, but it actually occupies 8 bytes so it corresponds to 'Double'.
+--
+-- >>> floatToBytes 0
+-- Bytes "00-00-00-00-00-00-00-00"
+--
+-- >>> floatToBytes (-0.1)
+-- Bytes "BF-B9-99-99-99-99-99-9A"
+--
+-- >>> floatToBytes (1/0)       -- Infinity
+-- Bytes "7F-F0-00-00-00-00-00-00"
+--
+-- >>> floatToBytes (asin 2) `elem` ["FF-F8-00-00-00-00-00-00", "7F-F8-00-00-00-00-00-00"]  -- sNaN or qNaN
+-- True
 floatToBytes :: Double -> Bytes
-floatToBytes f = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "")) $ ByteString.unpack $ Binary.encode f
+floatToBytes f = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "")) $ ByteString.Strict.unpack $ Serialize.encode f
 
+-- | Decode 'Double' from 'Bytes' following IEEE754.
+--
+-- >>> bytesToFloat "00-00-00-00-00-00-00-00"
+-- 0.0
+--
+-- >>> bytesToFloat "BF-B9-99-99-99-99-99-9A"
+-- -0.1
+--
+-- >>> bytesToFloat "7F-F0-00-00-00-00-00-00"
+-- Infinity
+--
+-- >>> bytesToFloat "FF-F8-00-00-00-00-00-00"
+-- NaN
 bytesToFloat :: Bytes -> Double
-bytesToFloat (Bytes bytes) = Binary.decode $ ByteString.pack $ map (fst . head . readHex) $ words (map dashToSpace bytes)
+bytesToFloat (Bytes bytes) =
+  case Serialize.decode $ ByteString.Strict.pack $ map (fst . head . readHex) $ words (map dashToSpace bytes) of
+    Left msg -> error msg
+    Right x -> x
  where
   dashToSpace '-' = ' '
   dashToSpace c = c
+
+isRhoBinding :: Binding -> Bool
+isRhoBinding (AlphaBinding Rho _) = True
+isRhoBinding _ = False
+
+hideRhoInBinding :: Binding -> Binding
+hideRhoInBinding = \case
+  AlphaBinding a obj -> AlphaBinding a (hideRho obj)
+  binding -> binding
+
+hideRho :: Object -> Object
+hideRho = \case
+  Formation bindings ->
+    Formation
+      [ hideRhoInBinding binding
+      | binding <- filter (not . isRhoBinding) bindings
+      ]
+  Application obj bindings ->
+    Application
+      (hideRho obj)
+      [ hideRhoInBinding binding
+      | binding <- filter (not . isRhoBinding) bindings
+      ]
+  ObjectDispatch obj a -> ObjectDispatch (hideRho obj) a
+  obj -> obj
+
+hideRhoInBinding1 :: Binding -> Binding
+hideRhoInBinding1 = \case
+  AlphaBinding a obj -> AlphaBinding a (hideRho obj)
+  binding -> binding
+
+hideRho1 :: Object -> Object
+hideRho1 = \case
+  Formation bindings ->
+    Formation
+      [ hideRhoInBinding1 binding
+      | binding <- bindings
+      ]
+  Application obj bindings ->
+    Application
+      (hideRho1 obj)
+      [ hideRhoInBinding1 binding
+      | binding <- bindings
+      ]
+  ObjectDispatch obj a -> ObjectDispatch (hideRho1 obj) a
+  obj -> obj
