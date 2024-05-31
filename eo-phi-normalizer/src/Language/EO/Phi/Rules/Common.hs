@@ -139,6 +139,9 @@ propagateName2 f (name, obj) bs = (name, f obj bs)
 
 withSubObjectBindings :: (Context -> Object -> [(String, Object)]) -> Context -> [Binding] -> [(String, [Binding])]
 withSubObjectBindings _ _ [] = []
+withSubObjectBindings f ctx (b@(AlphaBinding Rho _) : bs) =
+  -- do not apply rules inside ρ-bindings
+  [(name, b : bs') | (name, bs') <- withSubObjectBindings f ctx bs]
 withSubObjectBindings f ctx (b : bs) =
   asum
     [ [(name, b' : bs) | (name, b') <- withSubObjectBinding f ctx b]
