@@ -6,6 +6,34 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to the
 [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## v0.4.0 — 2024-06-03
+
+This version supports fast dataization with built-in rules and improves metrics with both built-in and user-defined rules (via YAML).
+
+New:
+
+- Add built-in rules
+- Add more built-in dataization functions ([#291](https://github.com/objectionary/normalizer/pull/291))
+- Support LaTeX format in output ([#308](https://github.com/objectionary/normalizer/pull/308))
+- Speed up pipeline by caching EO compilation results ([#340](https://github.com/objectionary/normalizer/pull/340))
+- Write generated PHI files as eo-phi-normalizer data files ([#286](https://github.com/objectionary/normalizer/pull/286))
+- Update and commit docs in CI ([#286](https://github.com/objectionary/normalizer/pull/286))
+
+Changes and fixes:
+
+- Switch to EO 0.38.0 ([#335](https://github.com/objectionary/normalizer/pull/335))
+- Remove VTX and Sigma ([#335](https://github.com/objectionary/normalizer/pull/335))
+- Fix normalization and dataization rules w.r.t. xi and rho (see [#297](https://github.com/objectionary/normalizer/pull/297))
+- Fix confluence tests ([#319](https://github.com/objectionary/normalizer/pull/319))
+- Fix pipeline tests ([#338](https://github.com/objectionary/normalizer/pull/338))
+- Integrate `transform-eo-tests` into normalizer ([#365](https://github.com/objectionary/normalizer/pull/365))
+- Switch to GHC 9.6.4 ([#263](https://github.com/objectionary/normalizer/pull/263))
+
+Documentation and maintenance:
+
+- Add the `Quick Start` page ([#317](https://github.com/objectionary/normalizer/pull/317))
+- Add the `Pipeline` page ([#261](https://github.com/objectionary/normalizer/pull/261))
+
 ## v0.3.1 — 2024-04-12
 
 This version supports proper dataization of test programs with dependencies.
