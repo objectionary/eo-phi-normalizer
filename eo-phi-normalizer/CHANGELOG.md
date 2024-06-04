@@ -8,7 +8,7 @@ and this project adheres to the
 
 ## v0.4.0 — 2024-06-03
 
-This version supports fast dataization with built-in rules and improves metrics with both built-in and Yegor's rules.
+This version supports fast dataization with built-in rules and improves metrics with both built-in and user-defined rules (via YAML).
 
 New:
 
