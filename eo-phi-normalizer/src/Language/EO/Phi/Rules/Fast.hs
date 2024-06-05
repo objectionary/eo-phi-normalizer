@@ -3,8 +3,6 @@
 
 module Language.EO.Phi.Rules.Fast where
 
--- import Debug.Trace (trace)
-
 import Data.List.NonEmpty qualified as NonEmpty
 import Language.EO.Phi.Rules.Common
 import Language.EO.Phi.Rules.Yaml qualified as Yaml
@@ -133,7 +131,7 @@ fastYegorInsideOut ctx = \case
                         ]
                   )
               _ -> Application obj' argBindings
-          [AlphaBinding a argA] -> do
+          [AlphaBinding a argA] | EmptyBinding a `elem` bindings -> do
             let argA' = fastYegorInsideOut ctx argA
             Formation
               ( AlphaBinding a argA'
@@ -144,7 +142,7 @@ fastYegorInsideOut ctx = \case
                         _ -> True
                     ]
               )
-          [DeltaBinding bytes] -> do
+          [DeltaBinding bytes] | DeltaEmptyBinding `elem` bindings -> do
             Formation
               ( DeltaBinding bytes
                   : [ binding
