@@ -75,7 +75,7 @@ dataizeStepChain obj@(Formation bs)
   isEmpty _ = False
   hasEmpty = any isEmpty bs
 -- IMPORTANT: dataize the object being copied IF normalization is stuck on it!
-dataizeStepChain (Application obj@Formation{} bindings) = incLogLevel $ do
+dataizeStepChain (Application obj bindings) = incLogLevel $ do
   logStep "Dataizing inside application" (Left obj)
   modifyContext (\c -> c{dataizePackage = False}) $ do
     (ctx, obj') <- dataizeStepChain obj
@@ -83,7 +83,7 @@ dataizeStepChain (Application obj@Formation{} bindings) = incLogLevel $ do
       Left obj'' -> return (ctx, Left (obj'' `Application` bindings))
       Right bytes -> return (ctx, Left (Formation [DeltaBinding bytes] `Application` bindings))
 -- IMPORTANT: dataize the object being dispatched IF normalization is stuck on it!
-dataizeStepChain (ObjectDispatch obj@Formation{} attr) = incLogLevel $ do
+dataizeStepChain (ObjectDispatch obj attr) = incLogLevel $ do
   logStep "Dataizing inside dispatch" (Left obj)
   modifyContext (\c -> c{dataizePackage = False}) $ do
     (ctx, obj') <- dataizeStepChain obj
