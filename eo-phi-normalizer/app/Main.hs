@@ -425,7 +425,7 @@ wrapRawBytesIn = \case
     ObjectDispatch (wrapRawBytesIn obj) a
   GlobalObject -> GlobalObject
   ThisObject -> ThisObject
-  Termination -> Termination
+  Termination -> wrapTermination
   obj@MetaSubstThis{} -> obj
   obj@MetaObject{} -> obj
   obj@MetaFunction{} -> obj

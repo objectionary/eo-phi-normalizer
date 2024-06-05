@@ -243,6 +243,10 @@ wrapBytesInString :: Bytes -> Object
 wrapBytesInString (Bytes bytes) = [fmt|Φ.org.eolang.string(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes}))|]
 wrapBytesInBytes :: Bytes -> Object
 wrapBytesInBytes (Bytes bytes) = [fmt|Φ.org.eolang.bytes(Δ ⤍ {bytes})|]
+wrapTermination :: Object
+wrapTermination = [fmt|Φ.org.eolang.error(α0 ↦ Φ.org.eolang.string(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes})))|]
+ where
+  Bytes bytes = stringToBytes "unknown error"
 
 wrapBytesAsBool :: Bytes -> Object
 wrapBytesAsBool bytes
