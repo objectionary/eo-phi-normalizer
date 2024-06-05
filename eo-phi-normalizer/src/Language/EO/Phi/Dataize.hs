@@ -16,11 +16,11 @@ import Data.List.NonEmpty qualified as NonEmpty
 
 -- import Data.List.NonEmpty qualified as NonEmpty
 import Data.Maybe (listToMaybe)
+import Language.EO.Phi (printTree)
 import Language.EO.Phi.Rules.Common
 import Language.EO.Phi.Rules.Fast (fastYegorInsideOut)
 import Language.EO.Phi.Rules.Yaml (substThis)
 import Language.EO.Phi.Syntax.Abs
-import Language.EO.Phi (printTree)
 import PyF (fmt)
 import System.IO.Unsafe (unsafePerformIO)
 
@@ -52,9 +52,13 @@ dataizeStepChain obj@(Formation bs)
   | Just (LambdaBinding (Function funcName)) <- listToMaybe [b | b@(LambdaBinding _) <- bs]
   , not hasEmpty = do
       logStep ("Evaluating lambda '" <> funcName <> "'") (Left obj)
-      (obj', _state) <- evaluateBuiltinFunChain funcName obj ()
-      ctx <- getContext
-      return (ctx, Left obj')
+      msplit (evaluateBuiltinFunChain funcName obj ()) >>= \case
+        Nothing -> do
+          ctx <- getContext
+          return (ctx, Left obj)
+        Just ((obj', _state), _alts) -> do
+          ctx <- getContext
+          return (ctx, Left obj')
   | Just (AlphaBinding Phi decoratee) <- listToMaybe [b | b@(AlphaBinding Phi _) <- bs]
   , not hasEmpty = do
       let decoratee' = substThis obj decoratee
@@ -155,9 +159,7 @@ evaluateDataizationFunChain resultToBytes bytesToParam wrapBytes func obj _state
           resultObj = wrapBytes bytes
       logStep "Evaluated function" (Left resultObj)
       return resultObj
-    _ -> do
-      logStep "Couldn't find bytes in one or both of LHS and RHS" (Left Termination)
-      return Termination
+    _ -> fail "Couldn't find bytes in one or both of LHS and RHS"
   return (result, ())
 
 evaluateBinaryDataizationFunChain ::
@@ -193,15 +195,12 @@ evaluateBinaryDataizationFunChain name resultToBytes bytesToParam wrapBytes arg1
           resultObj = wrapBytes bytes
       logStep "Evaluated function" (Left resultObj)
       return resultObj
-    (Left _l, Left _r) -> do
-      logStep (name <> ": Couldn't find bytes in both LHS and RHS") (Left Termination)
-      return Termination -- (Formation [AlphaBinding (Label "lhs") l, AlphaBinding (Label "rhs") r])
+    (Left _l, Left _r) ->
+      fail (name <> ": Couldn't find bytes in both LHS and RHS")
     (Left l, _) -> do
-      logStep (name <> ": Couldn't find bytes in LHS: " <> printTree (hideRho l)) (Left Termination)
-      return Termination -- (Formation [AlphaBinding (Label "lhs") (hideRho1 l)])
+      fail (name <> ": Couldn't find bytes in LHS: " <> printTree (hideRho l))
     (_, Left r) -> do
-      logStep (name <> ": Couldn't find bytes in RHS: " <> printTree (hideRho r)) (Left Termination)
-      return Termination -- (Formation [AlphaBinding (Label "rhs") r])
+      fail (name <> ": Couldn't find bytes in RHS: " <> printTree (hideRho r))
   return (result, ())
 
 -- | Unary functions operate on the given object without any additional parameters
