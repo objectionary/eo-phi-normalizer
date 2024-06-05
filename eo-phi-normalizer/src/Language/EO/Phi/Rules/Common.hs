@@ -510,12 +510,12 @@ bytesToInt (Bytes (dropWhile (== '0') . filter (/= '-') -> bytes))
 -- | Convert 'Bool' to 'Bytes'.
 --
 -- >>> boolToBytes False
--- Bytes "00-00-00-00-00-00-00-00"
+-- Bytes "00-"
 -- >>> boolToBytes True
--- Bytes "00-00-00-00-00-00-00-01"
+-- Bytes "01-"
 boolToBytes :: Bool -> Bytes
-boolToBytes True = intToBytes 1
-boolToBytes False = intToBytes 0
+boolToBytes True = Bytes "01-"
+boolToBytes False = Bytes "00-"
 
 -- | Interpret 'Bytes' as 'Bool'.
 --
