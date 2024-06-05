@@ -117,6 +117,7 @@ function normalize {
             --minimize-stuck-terms \
             --as-package \
             --recursive \
+            --wrap-raw-bytes \
             $dependency_file_options \
             "$f" \
             > "$destination" \
