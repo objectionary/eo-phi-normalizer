@@ -321,18 +321,7 @@ evaluateBuiltinFunChain name@"Lorg_eolang_string_slice" obj = \state -> do
 -- I/O
 -- evaluateBuiltinFunChain name@"Lorg_eolang_io_stdin_next_line" obj = evaluateIODataizationFunChain getLine obj
 -- evaluateBuiltinFunChain name@"Lorg_eolang_io_stdin_φ" obj = evaluateIODataizationFunChain getContents obj
-evaluateBuiltinFunChain name@"Lorg_eolang_io_stdout" obj = \state -> do
-  text <- incLogLevel $ dataizeRecursivelyChain True (extractLabel "text" obj)
-  let text' = case text of
-        Left textObj -> textObj
-        Right textBytes -> Formation [DeltaBinding textBytes]
-  return
-    ( Formation
-        [ AlphaBinding "text" text'
-        , LambdaBinding (Function name)
-        ]
-    , state
-    )
+-- evaluateBuiltinFunChain name@"Lorg_eolang_io_stdout" obj = evaluateUnaryDataizationFunChain boolToBytes bytesToString wrapBytesInBytes (extractLabel "text") ((`seq` True) . unsafePerformIO . putStrLn) obj
 -- others
 evaluateBuiltinFunChain name@"Lorg_eolang_dataized" obj =
   evaluateUnaryDataizationFunChain name id id wrapBytesInBytes (extractLabel "target") id obj
