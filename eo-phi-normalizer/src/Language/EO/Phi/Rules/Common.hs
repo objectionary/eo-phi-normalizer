@@ -13,6 +13,7 @@ module Language.EO.Phi.Rules.Common where
 import Control.Applicative (Alternative ((<|>)), asum)
 import Control.Arrow (Arrow (first))
 import Control.Monad
+import Data.ByteString (ByteString)
 import Data.ByteString qualified as ByteString.Strict
 import Data.Char (toUpper)
 import Data.List (intercalate, minimumBy, nubBy, sortOn)
@@ -21,6 +22,8 @@ import Data.List.NonEmpty qualified as NonEmpty
 import Data.Ord (comparing)
 import Data.Serialize qualified as Serialize
 import Data.String (IsString (..))
+import Data.Text qualified as Text
+import Data.Text.Encoding qualified as Text
 import Language.EO.Phi.Syntax.Abs
 import Language.EO.Phi.Syntax.Lex (Token)
 import Language.EO.Phi.Syntax.Par
@@ -507,12 +510,12 @@ bytesToInt (Bytes (dropWhile (== '0') . filter (/= '-') -> bytes))
 -- | Convert 'Bool' to 'Bytes'.
 --
 -- >>> boolToBytes False
--- Bytes "00-00-00-00-00-00-00-00"
+-- Bytes "00-"
 -- >>> boolToBytes True
--- Bytes "00-00-00-00-00-00-00-01"
+-- Bytes "01-"
 boolToBytes :: Bool -> Bytes
-boolToBytes True = intToBytes 1
-boolToBytes False = intToBytes 0
+boolToBytes True = Bytes "01-"
+boolToBytes False = Bytes "00-"
 
 -- | Interpret 'Bytes' as 'Bool'.
 --
@@ -544,19 +547,29 @@ bytesToBool _ = True
 -- Bytes "48-65-6C-6C-6F-2C-20-77-6F-72-6C-64-21"
 --
 -- >>> stringToBytes "Привет, мир!"
--- Bytes "04-1F-44-04-38-43-24-35-44-22-C2-04-3C-43-84-40-21"
+-- Bytes "D0-9F-D1-80-D0-B8-D0-B2-D0-B5-D1-82-2C-20-D0-BC-D0-B8-D1-80-21"
+--
+-- >>> stringToBytes  "hello, 大家!"
+-- Bytes "68-65-6C-6C-6F-2C-20-E5-A4-A7-E5-AE-B6-21"
 stringToBytes :: String -> Bytes
-stringToBytes s = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "") . fromEnum) s
+stringToBytes s = bytestringToBytes $ Text.encodeUtf8 (Text.pack s)
+
+bytestringToBytes :: ByteString -> Bytes
+bytestringToBytes = Bytes . normalizeBytes . foldMap (padLeft 2 . (`showHex` "")) . ByteString.Strict.unpack
+
+bytesToByteString :: Bytes -> ByteString
+bytesToByteString (Bytes bytes) = ByteString.Strict.pack (go (filter (/= '-') bytes))
+ where
+  go [] = []
+  go (x : y : xs) = fst (head (readHex [x, y])) : go xs
+  go [_] = error "impossible: partial byte"
 
 -- | Decode 'String' from 'Bytes'.
 --
 -- >>> bytesToString "48-65-6C-6C-6F-2C-20-77-6F-72-6C-64-21"
 -- "Hello, world!"
 bytesToString :: Bytes -> String
-bytesToString (Bytes bytes) = map (toEnum . fst . head . readHex) $ words (map dashToSpace bytes)
- where
-  dashToSpace '-' = ' '
-  dashToSpace c = c
+bytesToString = Text.unpack . Text.decodeUtf8 . bytesToByteString
 
 -- | Encode 'Double' as 'Bytes' following IEEE754.
 --

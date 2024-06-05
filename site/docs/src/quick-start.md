@@ -12,9 +12,18 @@ Dataize the program recursively.
 normalizer dataize --recursive --rules eo-phi-normalizer/test/eo/phi/rules/yegor.yaml \
   --dependency-file 'eo-phi-normalizer/data/0.38.0/org/eolang/float.phi' \
   --dependency-file 'eo-phi-normalizer/data/0.38.0/org/eolang/bytes.phi' \
-  celcius.phi
+  celsius.phi
 ```
 
 ```console
-{ ⟦ c ↦ ⟦ Δ ⤍ 40-39-00-00-00-00-00-00 ⟧, result ↦ ⟦ Δ ⤍ 40-53-40-00-00-00-00-00 ⟧, λ ⤍ Package ⟧ }
+{ ⟦
+  c ↦ ⟦
+    Δ ⤍ 40-39-00-00-00-00-00-00
+  ⟧
+  , result ↦ ⟦
+    Δ ⤍ 40-53-40-00-00-00-00-00
+  ⟧
+  , λ ⤍ Package
+⟧
+}
 ```

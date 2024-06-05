@@ -117,6 +117,7 @@ function normalize {
             --minimize-stuck-terms \
             --as-package \
             --recursive \
+            --wrap-raw-bytes \
             $dependency_file_options \
             "$f" \
             > "$destination" \
@@ -145,6 +146,7 @@ function convert_normalized_phi_to_eo {
 
     cd "$PIPELINE_PHI_NORMALIZED_DIR"
     cp -r "$PIPELINE_EO_FILTERED_DIR/.eoc" .
+    cp -r ./!(.eoc) .eoc/phi
     eo unphi --tests
     cp -r .eoc/unphi/!(org) .eoc/2-optimize
     eo print
@@ -158,7 +160,7 @@ function test_with_normalization {
     mkdir_clean "$PIPELINE_EO_NORMALIZED_DIR"
 
     cd "$PIPELINE_EO_NORMALIZED_DIR"
-    cp -r "$PIPELINE_PHI_NORMALIZED_DIR"/.eoc/print/!(org)  .
+    cp -r "$PIPELINE_PHI_NORMALIZED_DIR"/.eoc/print/!(org) .
     test_with_logs "$PIPELINE_TEST_EO_NORMALIZED_LOGS"
     cd "$PIPELINE_DIR"
 }

@@ -9,7 +9,6 @@
 
 module Language.EO.Phi.Dataize where
 
-import Control.Arrow (left)
 import Data.Bits
 import Data.List (singleton)
 import Data.List.NonEmpty qualified as NonEmpty
@@ -80,13 +79,17 @@ dataizeStepChain (Application obj bindings) = incLogLevel $ do
   logStep "Dataizing inside application" (Left obj)
   modifyContext (\c -> c{dataizePackage = False}) $ do
     (ctx, obj') <- dataizeStepChain obj
-    return (ctx, left (`Application` bindings) obj')
+    case obj' of
+      Left obj'' -> return (ctx, Left (obj'' `Application` bindings))
+      Right bytes -> return (ctx, Left (Formation [DeltaBinding bytes] `Application` bindings))
 -- IMPORTANT: dataize the object being dispatched IF normalization is stuck on it!
 dataizeStepChain (ObjectDispatch obj attr) = incLogLevel $ do
   logStep "Dataizing inside dispatch" (Left obj)
   modifyContext (\c -> c{dataizePackage = False}) $ do
     (ctx, obj') <- dataizeStepChain obj
-    return (ctx, left (`ObjectDispatch` attr) obj')
+    case obj' of
+      Left obj'' -> return (ctx, Left (obj'' `ObjectDispatch` attr))
+      Right bytes -> return (ctx, Left (Formation [DeltaBinding bytes] `ObjectDispatch` attr))
 dataizeStepChain obj = do
   logStep "Nothing to dataize" (Left obj)
   ctx <- getContext
@@ -240,6 +243,10 @@ wrapBytesInString :: Bytes -> Object
 wrapBytesInString (Bytes bytes) = [fmt|Φ.org.eolang.string(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes}))|]
 wrapBytesInBytes :: Bytes -> Object
 wrapBytesInBytes (Bytes bytes) = [fmt|Φ.org.eolang.bytes(Δ ⤍ {bytes})|]
+wrapTermination :: Object
+wrapTermination = [fmt|Φ.org.eolang.error(α0 ↦ Φ.org.eolang.string(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes})))|]
+ where
+  Bytes bytes = stringToBytes "unknown error"
 
 wrapBytesAsBool :: Bytes -> Object
 wrapBytesAsBool bytes
@@ -270,7 +277,7 @@ evaluateBuiltinFunChain :: String -> Object -> EvaluationState -> DataizeChain (
 evaluateBuiltinFunChain name@"Lorg_eolang_int_gt" obj = evaluateIntIntBoolFunChain name (>) obj
 evaluateBuiltinFunChain name@"Lorg_eolang_int_plus" obj = evaluateIntIntIntFunChain name (+) obj
 evaluateBuiltinFunChain name@"Lorg_eolang_int_times" obj = evaluateIntIntIntFunChain name (*) obj
-evaluateBuiltinFunChain name@"Lorg_eolang_int_div" obj = evaluateIntIntIntFunChain name div obj
+evaluateBuiltinFunChain name@"Lorg_eolang_int_div" obj = evaluateIntIntIntFunChain name quot obj
 -- bytes
 evaluateBuiltinFunChain name@"Lorg_eolang_bytes_eq" obj = evaluateBinaryDataizationFunChain name boolToBytes bytesToInt wrapBytesAsBool extractRho (extractLabel "b") (==) obj
 evaluateBuiltinFunChain name@"Lorg_eolang_bytes_size" obj = evaluateUnaryDataizationFunChain name intToBytes id wrapBytesInBytes extractRho (\(Bytes bytes) -> length (words (map dashToSpace bytes))) obj

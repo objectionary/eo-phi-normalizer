@@ -70,9 +70,9 @@ function unphi {
     cd "$TMP_DIR"
 
     cp -r "$INIT_DIR/.eoc" .
-    cp -r "$INPUT_DIR/*" .eoc/phi
+    cp -r "$INPUT_DIR"/* .eoc/phi
 
-    eo unphi
+    eo unphi --tests
 
     cp -r .eoc/unphi/!(org) .eoc/2-optimize
 

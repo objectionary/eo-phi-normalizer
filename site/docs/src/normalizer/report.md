@@ -80,7 +80,7 @@ Usage: normalizer report (-c|--config FILE)
   Generate reports about initial and normalized PHI programs.
 
 Available options:
-  -c,--config FILE         A report configuration FILE.
+  -c,--config FILE         The FILE with a report configuration.
   -h,--help                Show this help text
 ```
 

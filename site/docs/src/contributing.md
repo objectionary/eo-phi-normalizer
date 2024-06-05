@@ -50,6 +50,7 @@ Available commands:
   dataize                  Dataize a PHI program.
   report                   Generate reports about initial and normalized PHI
                            programs.
+  prepare-pipeline-tests   Prepare EO test files for the pipeline.
 ```
 
 Or, omit the executable name.
@@ -72,6 +73,7 @@ Available commands:
   dataize                  Dataize a PHI program.
   report                   Generate reports about initial and normalized PHI
                            programs.
+  prepare-pipeline-tests   Prepare EO test files for the pipeline.
 ```
 
 ## Test

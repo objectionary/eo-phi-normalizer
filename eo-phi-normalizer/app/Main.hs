@@ -40,7 +40,7 @@ import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy as TL (unpack)
 import Data.Yaml (decodeFileThrow)
 import GHC.Generics (Generic)
-import Language.EO.Phi (Binding (LambdaBinding), Bytes (Bytes), Object (Formation), Program (Program), parseProgram, printTree)
+import Language.EO.Phi (Binding (..), Bytes (Bytes), Object (..), Program (Program), parseProgram, printTree)
 import Language.EO.Phi.Dataize
 import Language.EO.Phi.Dependencies
 import Language.EO.Phi.Metrics.Collect as Metrics (getProgramMetrics)
@@ -85,6 +85,7 @@ data CLI'DataizePhi = CLI'DataizePhi
   , latex :: Bool
   , asPackage :: Bool
   , minimizeStuckTerms :: Bool
+  , wrapRawBytes :: Bool
   }
   deriving (Show)
 
@@ -231,6 +232,7 @@ commandParser =
     outputFile <- outputFileOption
     recursive <- switch (long "recursive" <> help "Apply dataization + normalization recursively.")
     chain <- switch (long "chain" <> help "Display all the intermediate steps.")
+    wrapRawBytes <- switch (long "wrap-raw-bytes" <> help "Wrap raw bytes ⟦ Δ ⤍ 01- ⟧ as Φ.org.eolang.bytes(Δ ⤍ 01-) in the final output.")
     latex <- latexSwitch
     asPackage <- asPackageSwitch
     minimizeStuckTerms <- minimizeStuckTermsSwitch
@@ -401,6 +403,33 @@ isLambdaPackage :: Binding -> Bool
 isLambdaPackage (LambdaBinding "Package") = True
 isLambdaPackage _ = False
 
+wrapRawBytesIn :: Object -> Object
+wrapRawBytesIn = \case
+  Formation [DeltaBinding bytes] -> wrapBytesInBytes bytes
+  Formation bindings ->
+    Formation
+      [ case binding of
+        AlphaBinding a obj -> AlphaBinding a (wrapRawBytesIn obj)
+        _ -> binding
+      | binding <- bindings
+      ]
+  Application obj bindings ->
+    Application
+      (wrapRawBytesIn obj)
+      [ case binding of
+        AlphaBinding a attached -> AlphaBinding a (wrapRawBytesIn attached)
+        _ -> binding
+      | binding <- bindings
+      ]
+  ObjectDispatch obj a ->
+    ObjectDispatch (wrapRawBytesIn obj) a
+  GlobalObject -> GlobalObject
+  ThisObject -> ThisObject
+  Termination -> wrapTermination
+  obj@MetaSubstThis{} -> obj
+  obj@MetaObject{} -> obj
+  obj@MetaFunction{} -> obj
+
 -- * Main
 
 main :: IO ()
@@ -530,7 +559,10 @@ main = withUtf8 do
               let obj'
                     | asPackage = removeLambdaPackage obj
                     | otherwise = obj
-               in logStrLn (printAsProgramOrAsObject obj')
+                  obj''
+                    | wrapRawBytes = wrapRawBytesIn obj'
+                    | otherwise = obj'
+               in logStrLn (printAsProgramOrAsObject obj'')
             Right (Bytes bytes) -> logStrLn bytes
     CLI'ReportPhi' CLI'ReportPhi{..} -> do
       pipelineConfig <- decodeFileThrow @_ @PipelineConfig configFile
