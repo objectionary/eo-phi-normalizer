@@ -99,7 +99,9 @@ fastYegorInsideOut ctx = \case
           Nothing ->
             case lookupBinding Phi bindings of
               Just objPhi -> fastYegorInsideOut ctx (ObjectDispatch (Yaml.substThis this objPhi) a)
-              Nothing -> ObjectDispatch this a
+              Nothing
+                | not (any isLambdaBinding bindings) -> Termination
+                | otherwise -> ObjectDispatch this a
       this -> ObjectDispatch this a
   Application obj argBindings ->
     case fastYegorInsideOut ctx obj of
@@ -119,7 +121,9 @@ fastYegorInsideOut ctx = \case
                             _ -> True
                         ]
                   )
-              _ -> Application obj' argBindings'
+              _
+                | not (any isLambdaBinding bindings) -> Termination
+                | otherwise -> Application obj' argBindings'
           [AlphaBinding (Alpha "α0") arg0] ->
             case filter isEmptyBinding bindings of
               EmptyBinding a0 : _ ->
@@ -132,7 +136,9 @@ fastYegorInsideOut ctx = \case
                             _ -> True
                         ]
                   )
-              _ -> Application obj' argBindings'
+              _
+                | not (any isLambdaBinding bindings) -> Termination
+                | otherwise -> Application obj' argBindings'
           [AlphaBinding a argA]
             | EmptyBinding a `elem` bindings ->
                 Formation
@@ -144,16 +150,19 @@ fastYegorInsideOut ctx = \case
                             _ -> True
                         ]
                   )
-          [DeltaBinding bytes] | DeltaEmptyBinding `elem` bindings -> do
-            Formation
-              ( DeltaBinding bytes
-                  : [ binding
-                    | binding <- bindings
-                    , case binding of
-                        DeltaEmptyBinding -> False
-                        _ -> True
-                    ]
-              )
+            | not (any isLambdaBinding bindings) -> Termination
+          [DeltaBinding bytes]
+            | DeltaEmptyBinding `elem` bindings -> do
+                Formation
+                  ( DeltaBinding bytes
+                      : [ binding
+                        | binding <- bindings
+                        , case binding of
+                            DeltaEmptyBinding -> False
+                            _ -> True
+                        ]
+                  )
+            | not (any isLambdaBinding bindings) -> Termination
           _ -> Application obj' argBindings'
       obj' -> Application obj' (map (fastYegorInsideOutBinding ctx) argBindings)
   root@(Formation bindings)
