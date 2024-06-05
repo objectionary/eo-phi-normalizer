@@ -108,12 +108,10 @@ fastYegorInsideOut ctx = \case
         case argBindings' of
           [AlphaBinding (Alpha "α0") arg0, AlphaBinding (Alpha "α1") arg1] ->
             case filter isEmptyBinding bindings of
-              EmptyBinding a0 : EmptyBinding a1 : _ -> do
-                let arg0' = fastYegorInsideOut ctx arg0
-                let arg1' = fastYegorInsideOut ctx arg1
+              EmptyBinding a0 : EmptyBinding a1 : _ ->
                 Formation
-                  ( AlphaBinding a0 arg0'
-                      : AlphaBinding a1 arg1'
+                  ( AlphaBinding a0 arg0
+                      : AlphaBinding a1 arg1
                       : [ binding
                         | binding <- bindings
                         , case binding of
@@ -124,10 +122,9 @@ fastYegorInsideOut ctx = \case
               _ -> Application obj' argBindings'
           [AlphaBinding (Alpha "α0") arg0] ->
             case filter isEmptyBinding bindings of
-              EmptyBinding a0 : _ -> do
-                let arg0' = fastYegorInsideOut ctx arg0
+              EmptyBinding a0 : _ ->
                 Formation
-                  ( AlphaBinding a0 arg0'
+                  ( AlphaBinding a0 arg0
                       : [ binding
                         | binding <- bindings
                         , case binding of
@@ -137,9 +134,8 @@ fastYegorInsideOut ctx = \case
                   )
               _ -> Application obj' argBindings'
           [AlphaBinding a argA] | EmptyBinding a `elem` bindings -> do
-            let argA' = fastYegorInsideOut ctx argA
             Formation
-              ( AlphaBinding a argA'
+              ( AlphaBinding a argA
                   : [ binding
                     | binding <- bindings
                     , case binding of
