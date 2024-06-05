@@ -277,7 +277,7 @@ evaluateBuiltinFunChain :: String -> Object -> EvaluationState -> DataizeChain (
 evaluateBuiltinFunChain name@"Lorg_eolang_int_gt" obj = evaluateIntIntBoolFunChain name (>) obj
 evaluateBuiltinFunChain name@"Lorg_eolang_int_plus" obj = evaluateIntIntIntFunChain name (+) obj
 evaluateBuiltinFunChain name@"Lorg_eolang_int_times" obj = evaluateIntIntIntFunChain name (*) obj
-evaluateBuiltinFunChain name@"Lorg_eolang_int_div" obj = evaluateIntIntIntFunChain name div obj
+evaluateBuiltinFunChain name@"Lorg_eolang_int_div" obj = evaluateIntIntIntFunChain name quot obj
 -- bytes
 evaluateBuiltinFunChain name@"Lorg_eolang_bytes_eq" obj = evaluateBinaryDataizationFunChain name boolToBytes bytesToInt wrapBytesAsBool extractRho (extractLabel "b") (==) obj
 evaluateBuiltinFunChain name@"Lorg_eolang_bytes_size" obj = evaluateUnaryDataizationFunChain name intToBytes id wrapBytesInBytes extractRho (\(Bytes bytes) -> length (words (map dashToSpace bytes))) obj
