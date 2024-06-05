@@ -387,6 +387,20 @@ injectLamdbaPackage bs
   | any isPackageBinding bs = bs
   | otherwise = bs ++ [LambdaBinding "Package"]
 
+removeLambdaPackage :: Object -> Object
+removeLambdaPackage = \case
+  Formation bindings ->
+    Formation
+      [ binding
+      | binding <- bindings
+      , not (isLambdaPackage binding)
+      ]
+  obj -> obj
+
+isLambdaPackage :: Binding -> Bool
+isLambdaPackage (LambdaBinding "Package") = True
+isLambdaPackage _ = False
+
 -- * Main
 
 main :: IO ()
@@ -512,7 +526,11 @@ main = withUtf8 do
                 | recursive = dataizeRecursively
                 | otherwise = dataizeStep'
           case dataize ctx inputObject of
-            Left obj -> logStrLn (printAsProgramOrAsObject obj)
+            Left obj ->
+              let obj'
+                    | asPackage = removeLambdaPackage obj
+                    | otherwise = obj
+               in logStrLn (printAsProgramOrAsObject obj')
             Right (Bytes bytes) -> logStrLn bytes
     CLI'ReportPhi' CLI'ReportPhi{..} -> do
       pipelineConfig <- decodeFileThrow @_ @PipelineConfig configFile
