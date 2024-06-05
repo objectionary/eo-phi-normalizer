@@ -108,6 +108,23 @@ fastYegorInsideOut ctx = \case
       obj'@(Formation bindings) -> do
         let argBindings' = map (fastYegorInsideOutBinding ctx) argBindings
         case argBindings' of
+          [AlphaBinding (Alpha "α0") arg0, AlphaBinding (Alpha "α1") arg1, AlphaBinding (Alpha "α2") arg2] ->
+            case filter isEmptyBinding bindings of
+              EmptyBinding a0 : EmptyBinding a1 : EmptyBinding a2 : _ ->
+                Formation
+                  ( AlphaBinding a0 arg0
+                      : AlphaBinding a1 arg1
+                      : AlphaBinding a2 arg2
+                      : [ binding
+                        | binding <- bindings
+                        , case binding of
+                            EmptyBinding x | x `elem` [a0, a1, a2] -> False
+                            _ -> True
+                        ]
+                  )
+              _
+                | not (any isLambdaBinding bindings) -> Termination
+                | otherwise -> Application obj' argBindings'
           [AlphaBinding (Alpha "α0") arg0, AlphaBinding (Alpha "α1") arg1] ->
             case filter isEmptyBinding bindings of
               EmptyBinding a0 : EmptyBinding a1 : _ ->
