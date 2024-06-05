@@ -76,6 +76,10 @@ applyRulesInsideOut ctx obj = do
 fastYegorInsideOutAsRule :: NamedRule
 fastYegorInsideOutAsRule = ("Yegor's rules (hardcoded)", \ctx obj -> [fastYegorInsideOut ctx obj])
 
+fastYegorInsideOutBinding :: Context -> Binding -> Binding
+fastYegorInsideOutBinding ctx (AlphaBinding a obj) = AlphaBinding a (fastYegorInsideOut ctx obj)
+fastYegorInsideOutBinding _ binding = binding
+
 fastYegorInsideOut :: Context -> Object -> Object
 fastYegorInsideOut ctx = \case
   root | insideSubObject ctx -> root -- this rule is only applied at root
@@ -99,8 +103,9 @@ fastYegorInsideOut ctx = \case
       this -> ObjectDispatch this a
   Application obj argBindings ->
     case fastYegorInsideOut ctx obj of
-      obj'@(Formation bindings) ->
-        case argBindings of
+      obj'@(Formation bindings) -> do
+        let argBindings' = map (fastYegorInsideOutBinding ctx) argBindings
+        case argBindings' of
           [AlphaBinding (Alpha "α0") arg0, AlphaBinding (Alpha "α1") arg1] ->
             case filter isEmptyBinding bindings of
               EmptyBinding a0 : EmptyBinding a1 : _ -> do
@@ -116,7 +121,7 @@ fastYegorInsideOut ctx = \case
                             _ -> True
                         ]
                   )
-              _ -> Application obj' argBindings
+              _ -> Application obj' argBindings'
           [AlphaBinding (Alpha "α0") arg0] ->
             case filter isEmptyBinding bindings of
               EmptyBinding a0 : _ -> do
@@ -130,7 +135,7 @@ fastYegorInsideOut ctx = \case
                             _ -> True
                         ]
                   )
-              _ -> Application obj' argBindings
+              _ -> Application obj' argBindings'
           [AlphaBinding a argA] | EmptyBinding a `elem` bindings -> do
             let argA' = fastYegorInsideOut ctx argA
             Formation
@@ -152,8 +157,8 @@ fastYegorInsideOut ctx = \case
                         _ -> True
                     ]
               )
-          _ -> Application obj' argBindings
-      obj' -> Application obj' argBindings
+          _ -> Application obj' argBindings'
+      obj' -> Application obj' (map (fastYegorInsideOutBinding ctx) argBindings)
   root@(Formation bindings)
     | any isEmptyBinding bindings || any isLambdaBinding bindings -> root
     | otherwise ->
