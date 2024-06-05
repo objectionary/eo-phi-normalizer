@@ -9,7 +9,6 @@
 
 module Language.EO.Phi.Dataize where
 
-import Control.Arrow (left)
 import Data.Bits
 import Data.List (singleton)
 import Data.List.NonEmpty qualified as NonEmpty
@@ -76,17 +75,21 @@ dataizeStepChain obj@(Formation bs)
   isEmpty _ = False
   hasEmpty = any isEmpty bs
 -- IMPORTANT: dataize the object being copied IF normalization is stuck on it!
-dataizeStepChain (Application obj bindings) = incLogLevel $ do
+dataizeStepChain (Application obj@Formation{} bindings) = incLogLevel $ do
   logStep "Dataizing inside application" (Left obj)
   modifyContext (\c -> c{dataizePackage = False}) $ do
     (ctx, obj') <- dataizeStepChain obj
-    return (ctx, left (`Application` bindings) obj')
+    case obj' of
+      Left obj'' -> return (ctx, Left (obj'' `Application` bindings))
+      Right bytes -> return (ctx, Left (Formation [DeltaBinding bytes] `Application` bindings))
 -- IMPORTANT: dataize the object being dispatched IF normalization is stuck on it!
-dataizeStepChain (ObjectDispatch obj attr) = incLogLevel $ do
+dataizeStepChain (ObjectDispatch obj@Formation{} attr) = incLogLevel $ do
   logStep "Dataizing inside dispatch" (Left obj)
   modifyContext (\c -> c{dataizePackage = False}) $ do
     (ctx, obj') <- dataizeStepChain obj
-    return (ctx, left (`ObjectDispatch` attr) obj')
+    case obj' of
+      Left obj'' -> return (ctx, Left (obj'' `ObjectDispatch` attr))
+      Right bytes -> return (ctx, Left (Formation [DeltaBinding bytes] `ObjectDispatch` attr))
 dataizeStepChain obj = do
   logStep "Nothing to dataize" (Left obj)
   ctx <- getContext

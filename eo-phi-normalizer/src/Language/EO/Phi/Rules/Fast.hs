@@ -133,16 +133,17 @@ fastYegorInsideOut ctx = \case
                         ]
                   )
               _ -> Application obj' argBindings'
-          [AlphaBinding a argA] | EmptyBinding a `elem` bindings -> do
-            Formation
-              ( AlphaBinding a argA
-                  : [ binding
-                    | binding <- bindings
-                    , case binding of
-                        EmptyBinding x | x == a -> False
-                        _ -> True
-                    ]
-              )
+          [AlphaBinding a argA]
+            | EmptyBinding a `elem` bindings ->
+                Formation
+                  ( AlphaBinding a argA
+                      : [ binding
+                        | binding <- bindings
+                        , case binding of
+                            EmptyBinding x | x == a -> False
+                            _ -> True
+                        ]
+                  )
           [DeltaBinding bytes] | DeltaEmptyBinding `elem` bindings -> do
             Formation
               ( DeltaBinding bytes
