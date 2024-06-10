@@ -302,7 +302,7 @@ jobs:
           <h2>Report</h2>
           <details>
             <summary>Click to expand</summary>
-            $(cat pipeline/report/report.md)
+            $(cat $(yq '.report.output.markdown' < pipeline/config.yaml))
           </details>
           EOF
 
