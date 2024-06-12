@@ -32,6 +32,7 @@ import Text.Blaze.Html5 qualified as TBH
 import Text.Blaze.Html5.Attributes (charset, class_, colspan, content, id, lang, onclick, type_, value)
 import Text.Blaze.Html5.Attributes qualified as TBHA
 import Prelude hiding (div, id, span)
+import Prelude qualified
 
 -- $setup
 -- >>> import Text.Blaze.Html.Renderer.String (renderHtml)
@@ -139,11 +140,11 @@ toHtmlReportRow reportFormat index reportRow =
 toHtmlReport :: ReportFormat -> PipelineConfig -> Report -> Html
 toHtmlReport reportFormat pipelineConfig report =
   toHtml
-    [ docType
-    , TBH.html ! lang "en-US" $
+    [ memptyIfMarkdown docType
+    , idIfMarkdown (TBH.html ! lang "en-US") $
         toHtml
-          [ TBH.head $
-              toHtml $
+          [ idIfMarkdown TBH.head $
+              memptyIfMarkdown . toHtml $
                 [ meta ! charset "utf-8"
                 , meta ! TBHA.name "viewport" ! content "width=device-width, initial-scale=1.0"
                 , TBH.title "Report"
@@ -166,94 +167,96 @@ toHtmlReport reportFormat pipelineConfig report =
                       }}
                     |]
                 ]
-                  <> case reportFormat of
-                    ReportFormat'Html ->
-                      catMaybes
-                        [ pipelineConfig.report.input >>= (.js) >>= \js -> pure (script $ toHtml js)
-                        , pipelineConfig.report.input >>= (.css) >>= \css -> pure (style ! type_ "text/css" $ toHtml css)
-                        ]
-                    ReportFormat'Markdown -> []
-          , body $
-              toHtml $
-                [ h2 "Overview"
-                    <> p
+                  <> catMaybes
+                    [ pipelineConfig.report.input >>= (.js) >>= \js -> pure (script $ toHtml js)
+                    , pipelineConfig.report.input >>= (.css) >>= \css -> pure (style ! type_ "text/css" $ toHtml css)
+                    ]
+          , idIfMarkdown body $
+              toHtml . (toHtml <$>) $
+                [
+                  [ h2 "Overview"
+                  , p
                       [fmt|
                         We translate EO files into initial PHI programs.
                         Next, we normalize these programs and get normalized PHI programs.
                         Then, we collect metrics for initial and normalized PHI programs.
                       |]
-                    <> h2 "Metrics"
-                    <> p
+                  , h2 "Metrics"
+                  , p
                       [fmt|
                         An EO file contains multiple test objects.
                         After translation, these test objects become attributes in PHI programs.
                         We call these attributes "tests".
                       |]
-                    <> p
+                  , p
                       [fmt|
                         We collect metrics on the number of {intercalate ", " (toListMetrics metricsNames)} in tests.
                         We want normalized tests to have less such elements than initial tests do.
                       |]
-                    <> p "A metric change for a test is calculated by the formula"
-                    <> p (code "(metric_initial - metric_normalized) / metric_initial")
-                    <> p "where:"
-                    <> ul
+                  , p "A metric change for a test is calculated by the formula"
+                  , p (code "(metric_initial - metric_normalized) / metric_initial")
+                  , p "where:"
+                  , ul
                       ( toHtml
                           [ li $ code "metric_initial" <> " is the metric for the initial test"
                           , li $ code "metric_normalized" <> " is the metric for the normalized test"
                           ]
                       )
-                    <> h3 "Expected"
-                    <> p [fmt|Metric changes are expected to be as follows or greater:|]
-                    <> ul
+                  , h3 "Expected"
+                  , p [fmt|Metric changes are expected to be as follows or greater:|]
+                  , ul
                       ( toHtml . toListMetrics $
                           mkPercentItem
                             <$> metricsNames
                             <*> pipelineConfig.report.expectedMetricsChange
                       )
-                    <> p
+                  , p
                       ( let expectedImprovedProgramsPercentage = pipelineConfig.report.expectedImprovedProgramsPercentage
                          in [fmt|We expect such changes for at least {expectedImprovedProgramsPercentage:s} of tests.|]
                       )
-                    <> h3 "Actual"
-                    <> p [fmt|We normalized {testsCount} tests.|]
-                    <> p [fmt|All metrics were improved for {mkNumber allGoodMetricsCount testsCount} tests.|]
-                    <> p [fmt|Tests where a particular metric was improved:|]
-                    <> ul
+                  , h3 "Actual"
+                  , p [fmt|We normalized {testsCount} tests.|]
+                  , p [fmt|All metrics were improved for {mkNumber allGoodMetricsCount testsCount} tests.|]
+                  , p [fmt|Tests where a particular metric was improved:|]
+                  , ul
                       ( toHtml . toListMetrics $
                           mkItem'
                             <$> metricsNames
                             <*> particularMetricsChangeGoodCount
                       )
-                    <> h2 "Table"
-                    <> p [fmt|The table below provides detailed information about tests.|]
-                ]
-                  <> [ (TBH.input ! type_ "button" ! value "Copy to Clipboard" ! onclick "copytable('table')")
-                      <> h3 "Columns"
-                      <> p "Columns in this table are sortable."
-                      <> p "Hover over a header cell from the second row of header cells (Attribute Initial, etc.) to see a triangle demonstrating the sorting order."
-                      <> ul
+                  , h2 "Table"
+                  , p [fmt|The table below provides detailed information about tests.|]
+                  ]
+                , memptyIfMarkdown
+                    [ TBH.input ! type_ "button" ! value "Copy to Clipboard" ! onclick "copytable('table')"
+                    , h3 "Columns"
+                    , p "Columns in this table are sortable."
+                    , p "Hover over a header cell from the second row of header cells (Attribute Initial, etc.) to see a triangle demonstrating the sorting order."
+                    , ul
                         ( toHtml
                             [ li "▾: descending"
                             , li "▴: ascending"
                             , li "▸: unordered"
                             ]
                         )
-                      <> p "Click on the triangle to change the sorting order in the corresponding column."
-                     | not isMarkdown
-                     ]
-                  <> [ table ! class_ "sortable" ! id "table" $
-                        toHtml
-                          [ toHtmlReportTableHeader
-                          , tbody . toHtml $
-                              uncurry (toHtmlReportRow reportFormat)
-                                <$> zip [1 ..] (concat [programReport.bindingsRows | programReport <- report.programReports])
-                          ]
-                     ]
+                    , p "Click on the triangle to change the sorting order in the corresponding column."
+                    ]
+                ,
+                  [ table ! class_ "sortable" ! id "table" $
+                      toHtml
+                        [ toHtmlReportTableHeader
+                        , tbody . toHtml $
+                            uncurry (toHtmlReportRow reportFormat)
+                              <$> zip [1 ..] (concat [programReport.bindingsRows | programReport <- report.programReports])
+                        ]
+                  ]
+                ]
           ]
     ]
  where
   isMarkdown = reportFormat == ReportFormat'Markdown
+  idIfMarkdown f = if isMarkdown then Prelude.id else f
+  memptyIfMarkdown f = if isMarkdown then mempty else f
 
   tests = concatMap (.bindingsRows) report.programReports
 
