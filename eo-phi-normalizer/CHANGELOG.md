@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to the
 [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## v0.4.1 — 2024-06-12
+
+Changes and fixes:
+
+- Undo injection of top-level Package lambda ([#392](https://github.com/objectionary/normalizer/pull/392))
+- Fix dataization ([#395](https://github.com/objectionary/normalizer/pull/395))
+- Fix normalized phi to normalized eo conversion in the pipeline script ([#396](https://github.com/objectionary/normalizer/pull/396))
+- Fix job summary ([#402](https://github.com/objectionary/normalizer/pull/402))
+
+Documentation and maintenance:
+
+- Bring rules up to date ([#401](https://github.com/objectionary/normalizer/pull/401))
+
 ## v0.4.0 — 2024-06-03
 
 This version supports fast dataization with built-in rules and improves metrics with both built-in and user-defined rules (via YAML).
