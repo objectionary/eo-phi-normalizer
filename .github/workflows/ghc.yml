@@ -270,12 +270,22 @@ jobs:
           # we can't use caches because we can't overwrite them
           name: pipeline-files-${{ runner.os }}
           overwrite: true
+          # Problem
+          #
+          # The action doesn't save the pipeline directory.
+          # It saves just the content of this directory.
+          #
+          # Seems like the wildcard case (https://github.com/actions/upload-artifact#upload-using-multiple-paths-and-exclusions)
+          # is triggered when there are no paths that don't start with "pipeline"
+          #
+          # I added a dummy path to not trigger the wildcard case
           path: |
             pipeline
             !pipeline/**/.eoc
             !pipeline/eo-yaml
             pipeline/eo-initial/.eoc/4-pull/org/
             pipeline/phi-initial/.eoc/phi/org
+            dummy
 
       - name: Write about the artifact in the job summary
         if: always()
