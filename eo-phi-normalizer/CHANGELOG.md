@@ -31,7 +31,7 @@ Changes and fixes:
 
 - Fix directory used in CI for:
   - Job summary ([#402](https://github.com/objectionary/normalizer/pull/402))
-  - Report ([412](https://github.com/objectionary/normalizer/pull/412))
+  - Report ([#412](https://github.com/objectionary/normalizer/pull/412))
 
 Documentation and maintenance:
 
