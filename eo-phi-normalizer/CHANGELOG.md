@@ -12,12 +12,31 @@ Changes and fixes:
 
 - Undo injection of top-level Package lambda ([#392](https://github.com/objectionary/normalizer/pull/392))
 - Fix dataization ([#395](https://github.com/objectionary/normalizer/pull/395))
-- Fix normalized phi to normalized eo conversion in the pipeline script ([#396](https://github.com/objectionary/normalizer/pull/396))
-- Fix job summary ([#402](https://github.com/objectionary/normalizer/pull/402))
+  - Fix dataization inside $\varphi$ when `--minimize-stuck-terms` is enabled (closes [#393](https://github.com/objectionary/normalizer/pull/393))
+  - Fix evaluation of atoms stuck on other atoms (fixes `while-dataizes-only-first-cycle` in `while-tests.phi`)
+  - Improve pretty-printing (closes [#292](https://github.com/objectionary/normalizer/pull/292))
+
+- Fix pipeline script to run tests on normalized EO ([#396](https://github.com/objectionary/normalizer/pull/396))
+
+- Changes to normalizer ([#396](https://github.com/objectionary/normalizer/pull/396))
+  - Add `--wrap-raw-bytes` to automatically convert raw bytes (and terminations) in the output. This is a temporary fix, pending the change mentioned in <https://github.com/objectionary/eo/issues/3213#issuecomment-2150032168>
+  - Fix builtin normalizer to produce termination in some situations
+  - Fix dataization inside application/dispatch
+  - Fix encoding for strings to follow UTF-8 (compatibility with EO)
+  - Fix bool representation to require one byte (compatibility with EO)
+  - Fix integer division to truncate toward zero (compatibility with EO)
+  - Improve pretty-printer (use indentation)
+  - Update some examples/docs on the site
+  - Support up to 3 positional arguments in the builtin normalizer
+
+- Fix directory used in CI for:
+  - Job summary ([#402](https://github.com/objectionary/normalizer/pull/402))
+  - Report ([412](https://github.com/objectionary/normalizer/pull/412))
 
 Documentation and maintenance:
 
 - Bring rules up to date ([#401](https://github.com/objectionary/normalizer/pull/401))
+- Update dependency prettier to v3.3.2 ([#385](https://github.com/objectionary/normalizer/pull/385))
 
 ## v0.4.0 — 2024-06-03
 
