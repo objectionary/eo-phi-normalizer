@@ -138,10 +138,8 @@ rules:
     pattern: |
       ⟦ φ ↦ !n, !B ⟧.!a
     result: |
-      !n[ ξ ↦ ⟦ φ ↦ !n, !B ⟧ ].!a
+      ⟦ φ ↦ !n, !B ⟧.φ.!a
     when:
-      - apply_in_subformations: false
-      - nf_inside_formation: '!n'
       - not_equal: ['!a', 'φ']
       - absent_attrs:
           attrs: ['!a']
@@ -149,7 +147,7 @@ rules:
     tests:
       - name: 'Attribute does not exist'
         input: '⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧.b'
-        output: ['⟦ ρ ↦ ⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧ ⟧.b']
+        output: ['⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧.φ.b']
       - name: 'Attribute exists'
         input: '⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧.a'
         output: []
