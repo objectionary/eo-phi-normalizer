@@ -136,11 +136,13 @@ rules:
   - name: R_φ
     description: 'Accessing a decorated object'
     pattern: |
-      ⟦ φ ↦ !n, !B ⟧.!a
+      ⟦!B ⟧.!a
     result: |
-      ⟦ φ ↦ !n, !B ⟧.φ.!a
+      ⟦!B ⟧.φ.!a
     when:
-      - not_equal: ['!a', 'φ']
+      - present_attrs:
+          attrs: ['φ']
+          bindings: ['!B']
       - absent_attrs:
           attrs: ['!a']
           bindings: ['!B']
