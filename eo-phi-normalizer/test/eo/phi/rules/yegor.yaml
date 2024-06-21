@@ -27,11 +27,11 @@ rules:
   - name: Φ-dispatch
     description: 'Φ-dispatch'
     context:
-      global_object: ⟦ !a ↦ !obj, !B ⟧
+      global_object: '!b'
     pattern: |
-      Φ.!a
+      Φ
     result: |
-      !obj
+      !b
     when:
       - apply_in_subformations: false
     tests: []
