@@ -136,20 +136,20 @@ rules:
   - name: R_φ
     description: 'Accessing a decorated object'
     pattern: |
-      ⟦ φ ↦ !n, !B ⟧.!a
+      ⟦!B ⟧.!a
     result: |
-      !n[ ξ ↦ ⟦ φ ↦ !n, !B ⟧ ].!a
+      ⟦!B ⟧.φ.!a
     when:
-      - apply_in_subformations: false
-      - nf_inside_formation: '!n'
-      - not_equal: ['!a', 'φ']
+      - present_attrs:
+          attrs: ['φ']
+          bindings: ['!B']
       - absent_attrs:
           attrs: ['!a']
           bindings: ['!B']
     tests:
       - name: 'Attribute does not exist'
         input: '⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧.b'
-        output: ['⟦ ρ ↦ ⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧ ⟧.b']
+        output: ['⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧.φ.b']
       - name: 'Attribute exists'
         input: '⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧.a'
         output: []
