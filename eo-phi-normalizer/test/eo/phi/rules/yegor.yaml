@@ -165,6 +165,29 @@ rules:
         input: '⟦ t ↦ ⟦ a ↦ ∅ ⟧ ⟧(t ↦ ⟦ b ↦ ∅ ⟧)'
         output: ['⊥']
 
+  - name: R_OVER
+    description: 'Invalid application (attribute already attached)'
+    pattern: ⟦ !t ↦ !b1, !B1 ⟧(!t ↦ !b2, !B2)
+    result: ⊥
+    when: []
+    tests:
+      - name: ''
+        input: '⟦ t ↦ ⟦ a ↦ ∅ ⟧ ⟧(t ↦ ⟦ b ↦ ∅ ⟧)'
+        output: ['⊥']
+
+  - name: R_MISS
+    description: 'Invalid application (absent attribute)'
+    pattern: ⟦ !B1 ⟧(!t ↦ !b2, !B2)
+    result: ⊥
+    when:
+      - absent_attrs:
+          attrs: ['!t', 'φ', 'λ']
+          bindings: ['!B1']
+    tests:
+      - name: ''
+        input: '⟦ t1 ↦ ⟦ a ↦ ∅ ⟧ ⟧(t ↦ ⟦ b ↦ ∅ ⟧)'
+        output: ['⊥']
+
   - name: R_STOP
     description: 'Invalid attribute access'
     pattern: |
