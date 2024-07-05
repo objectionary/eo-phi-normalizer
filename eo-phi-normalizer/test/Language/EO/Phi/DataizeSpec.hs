@@ -11,7 +11,7 @@ import Language.EO.Phi (printTree)
 import Language.EO.Phi qualified as Phi
 import Language.EO.Phi.Dataize (dataizeRecursively)
 import Language.EO.Phi.Dependencies (deepMergePrograms)
-import Language.EO.Phi.Rules.Common (defaultContext, equalObject)
+import Language.EO.Phi.Rules.Common (Context (builtinRules), defaultContext, equalObject)
 import Language.EO.Phi.Rules.Yaml (convertRuleNamed, parseRuleSetFromFile, rules)
 import Test.EO.Phi (DataizationResult (Bytes, Object), DataizeTest (..), DataizeTestGroup (..), dataizationTests)
 
@@ -47,7 +47,7 @@ spec = do
         let mergedProgs = case deepMergePrograms (test.input : deps) of
               Left err -> error ("Error merging programs: " ++ err)
               Right prog -> prog
-        let ctx = defaultContext rules (progToObj mergedProgs)
+        let ctx = (defaultContext rules (progToObj mergedProgs)){builtinRules = True}
         let inputObj = progToObj test.input
         let expectedResult = case test.output of
               Object obj -> Left obj

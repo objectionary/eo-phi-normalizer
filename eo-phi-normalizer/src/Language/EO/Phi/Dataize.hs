@@ -111,7 +111,9 @@ dataizeRecursivelyChain = fmap minimizeObject' . go
     let normalizedObj
           | builtinRules ctx = do
               let obj' = delayedYegorInsideOut ctx obj
-              logStep "Normalized" obj'
+              logStep ("Normalized") obj'
+              logStep ("Normalized\n  " ++ show obj) obj'
+              logStep ("Normalized\n  " ++ show obj ++ "\n  → " ++ show obj') obj'
               return obj'
           | otherwise = applyRulesChainWith limits obj
     msplit (transformNormLogs normalizedObj) >>= \case
