@@ -19,7 +19,7 @@ function generate_eo_tests {
     mkdir_clean "$PIPELINE_EO_YAML_DIR"
     mkdir_clean "$PIPELINE_EO_FILTERED_DIR"
 
-    normalizer prepare-pipeline-tests --config "$PIPELINE_CONFIG_FILE"
+    normalizer pipeline prepare-tests --config "$PIPELINE_CONFIG_FILE"
 }
 
 function convert_eo_to_phi {
@@ -94,8 +94,8 @@ function normalize {
 
     cd "$PIPELINE_PHI_INITIAL_DIR"
 
-    local phi_files
-    phi_files="$(find -- * -type f)"
+    local dataize_configs
+    readarray -t dataize_configs <<< "$(normalizer pipeline print-dataize-configs --strip-phi-prefix "$PIPELINE_PHI_INITIAL_DIR_RELATIVE/" --config "$PIPELINE_CONFIG_FILE")"
 
     local dependency_files
     dependency_files="$(find "$PIPELINE_EO_FILTERED_DIR"/.eoc/phi/org/eolang -type f)"
@@ -104,9 +104,28 @@ function normalize {
     export PIPELINE_PHI_NORMALIZED_DIR
     export PIPELINE_NORMALIZER_DIR
 
-    function normalize_file {
-        local f="$1"
-        destination="$PIPELINE_PHI_NORMALIZED_DIR/$f"
+    function extract {
+        yq -pj -oj -r "$1" <<< "$2"
+    }
+    export -f extract
+
+    function extract_phi {
+        extract '.phi' "$1"
+    }
+    export -f extract_phi
+
+    function extract_atoms {
+        extract '.atoms' "$1"
+    }
+    export -f extract_atoms
+
+    for config in "${dataize_configs[@]}"; do
+        echo "$config"
+        phi="$(extract_phi "$config")"
+        atoms="$(extract_atoms "$config")"
+
+        printf "%s" "$phi"
+        destination="$PIPELINE_PHI_NORMALIZED_DIR/$phi"
         mkdir -p "$(dirname "$destination")"
 
         dependency_file_options="$(printf "%s" "$dependency_files" | xargs -I {} printf "%s" " --dependency-file {} ")"
@@ -119,16 +138,13 @@ function normalize {
             --recursive \
             --wrap-raw-bytes \
             $dependency_file_options \
-            "$f" \
+            $atoms \
+            "$phi" \
             > "$destination" \
             || set +x
         set +x
-    }
+    done
 
-    export -f normalize_file
-
-    time printf "%s" "$phi_files" \
-        | xargs -I {} bash -c 'normalize_file {}'
     cd "$PIPELINE_DIR"
 }
 
