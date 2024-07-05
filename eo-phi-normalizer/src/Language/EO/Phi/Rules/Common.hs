@@ -24,6 +24,7 @@ import Data.Serialize qualified as Serialize
 import Data.String (IsString (..))
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as Text
+import Debug.Trace (trace)
 import Language.EO.Phi.Syntax.Abs
 import Language.EO.Phi.Syntax.Lex (Token)
 import Language.EO.Phi.Syntax.Par
@@ -290,7 +291,7 @@ instance MonadFail (Chain a) where
   fail _msg = Chain (const [])
 
 logStep :: String -> info -> Chain info ()
-logStep msg info = Chain $ const [([LogEntry msg info 0], ())]
+logStep msg info = trace msg $ Chain $ const [([LogEntry msg info 0], ())]
 
 incLogLevel :: Chain info a -> Chain info a
 incLogLevel (Chain k) =
