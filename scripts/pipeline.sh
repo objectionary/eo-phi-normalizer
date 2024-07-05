@@ -1,6 +1,6 @@
 # shellcheck disable=SC2148
 
-set -euo pipefail
+set -euxo pipefail
 
 if ! [ -d node_modules ]; then npm i; fi
 
