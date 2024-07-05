@@ -17,8 +17,7 @@ import Control.Monad
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as ByteString.Strict
 import Data.Char (toUpper)
-import Data.HashSet (HashSet, fromList)
-import Data.Hashable (Hashable)
+import Data.HashSet (HashSet, fromList, difference)
 import Data.List (intercalate, minimumBy, nubBy, sortOn)
 import Data.List.NonEmpty (NonEmpty (..), (<|))
 import Data.List.NonEmpty qualified as NonEmpty
@@ -59,15 +58,48 @@ unsafeParseWith parser input =
     Right object -> object
 
 type NamedRule = (String, Rule)
-newtype DisabledAtomName = DisabledAtomName String deriving newtype (Eq, Hashable)
 
-mkDisabledAtomNames :: [String] -> HashSet DisabledAtomName
-mkDisabledAtomNames = fromList . (DisabledAtomName <$>)
+-- | Atoms supported by 'Language.EO.Phi.Dataize.evaluateBuiltinFunChain'
+supportedAtoms :: [String]
+supportedAtoms =
+  [ "Lorg_eolang_int_gt"
+  , "Lorg_eolang_int_plus"
+  , "Lorg_eolang_int_times"
+  , "Lorg_eolang_int_div"
+  , "Lorg_eolang_bytes_eq"
+  , "Lorg_eolang_bytes_size"
+  , "Lorg_eolang_bytes_slice"
+  , "Lorg_eolang_bytes_and"
+  , "Lorg_eolang_bytes_or"
+  , "Lorg_eolang_bytes_xor"
+  , "Lorg_eolang_bytes_not"
+  , "Lorg_eolang_bytes_right"
+  , "Lorg_eolang_bytes_concat"
+  , "Lorg_eolang_float_gt"
+  , "Lorg_eolang_float_times"
+  , "Lorg_eolang_float_plus"
+  , "Lorg_eolang_float_div"
+  , "Lorg_eolang_string_length"
+  , "Lorg_eolang_string_slice"
+  , "Lorg_eolang_dataized"
+  , "Lorg_eolang_error"
+  ]
+
+mkEnabledAtomNames :: [String] -> [String] -> HashSet String
+mkEnabledAtomNames enabled disabled = enabledSet'
+ where
+  enabled' =
+    case enabled of
+      [] -> supportedAtoms
+      _ -> enabled
+  enabledSet = fromList enabled'
+  disabledSet = fromList disabled
+  enabledSet' = difference enabledSet disabledSet
 
 data Context = Context
   { builtinRules :: Bool
   , allRules :: [NamedRule]
-  , disabledAtomNames :: HashSet DisabledAtomName
+  , enabledAtomNames :: HashSet String
   , outerFormations :: NonEmpty Object
   , currentAttr :: Attribute
   , insideFormation :: Bool
@@ -90,7 +122,7 @@ defaultContext rules obj =
   Context
     { builtinRules = False
     , allRules = rules
-    , disabledAtomNames = fromList []
+    , enabledAtomNames = fromList supportedAtoms
     , outerFormations = NonEmpty.singleton obj
     , currentAttr = Phi
     , insideFormation = False
