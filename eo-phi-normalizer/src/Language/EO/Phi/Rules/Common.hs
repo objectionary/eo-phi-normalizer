@@ -17,7 +17,7 @@ import Control.Monad
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as ByteString.Strict
 import Data.Char (toUpper)
-import Data.HashSet (HashSet, fromList, difference)
+import Data.HashSet (HashSet, difference, fromList)
 import Data.List (intercalate, minimumBy, nubBy, sortOn)
 import Data.List.NonEmpty (NonEmpty (..), (<|))
 import Data.List.NonEmpty qualified as NonEmpty
