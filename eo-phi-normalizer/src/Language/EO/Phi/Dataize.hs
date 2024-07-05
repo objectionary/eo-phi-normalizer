@@ -50,14 +50,20 @@ dataizeStepChain obj@(Formation bs)
       return (ctx, Right bytes)
   | Just (LambdaBinding (Function funcName)) <- listToMaybe [b | b@(LambdaBinding _) <- bs]
   , not hasEmpty = do
-      logStep ("Evaluating lambda '" <> funcName <> "'") (Left obj)
-      msplit (evaluateBuiltinFunChain funcName obj ()) >>= \case
-        Nothing -> do
-          ctx <- getContext
-          return (ctx, Left obj)
-        Just ((obj', _state), _alts) -> do
-          ctx <- getContext
-          return (ctx, Left obj')
+      ctx' <- getContext
+      if not $ HashSet.member funcName ctx'.enabledAtomNames
+        then do
+          logStep [fmt|Not evaluating the lambda '{funcName}' since it's disabled.|] (Left obj)
+          pure (ctx', Left obj)
+        else do
+          logStep [fmt|Evaluating lambda '{funcName}' |] (Left obj)
+          msplit (evaluateBuiltinFunChain funcName obj ()) >>= \case
+            Nothing -> do
+              ctx <- getContext
+              return (ctx, Left obj)
+            Just ((obj', _state), _alts) -> do
+              ctx <- getContext
+              return (ctx, Left obj')
   | Just (AlphaBinding Phi decoratee) <- listToMaybe [b | b@(AlphaBinding Phi _) <- bs]
   , not hasEmpty = do
       let decoratee' = substThis obj decoratee
@@ -184,33 +190,27 @@ evaluateBinaryDataizationFunChain ::
   EvaluationState ->
   DataizeChain (Object, EvaluationState)
 evaluateBinaryDataizationFunChain name resultToBytes bytesToParam wrapBytes arg1 arg2 func obj _state = do
-  ctx <- getContext
-  if HashSet.member (DisabledAtomName name) ctx.disabledAtomNames
-    then do
-      logStep [fmt|Not evaluating the atom '{name}' since it's disabled.|] (Left obj)
-      pure (obj, ())
-    else do
-      let lhsArg = arg1 obj
-      let rhsArg = arg2 obj
-      lhs <- incLogLevel $ do
-        logStep "Evaluating LHS" (Left lhsArg)
-        dataizeRecursivelyChain True lhsArg
-      rhs <- incLogLevel $ do
-        logStep "Evaluating RHS" (Left rhsArg)
-        dataizeRecursivelyChain True rhsArg
-      result <- case (lhs, rhs) of
-        (Right l, Right r) -> do
-          let bytes = resultToBytes (bytesToParam l `func` bytesToParam r)
-              resultObj = wrapBytes bytes
-          logStep "Evaluated function" (Left resultObj)
-          return resultObj
-        (Left _l, Left _r) ->
-          fail (name <> ": Couldn't find bytes in both LHS and RHS")
-        (Left l, _) -> do
-          fail (name <> ": Couldn't find bytes in LHS: " <> printTree (hideRho l))
-        (_, Left r) -> do
-          fail (name <> ": Couldn't find bytes in RHS: " <> printTree (hideRho r))
-      return (result, ())
+  let lhsArg = arg1 obj
+  let rhsArg = arg2 obj
+  lhs <- incLogLevel $ do
+    logStep "Evaluating LHS" (Left lhsArg)
+    dataizeRecursivelyChain True lhsArg
+  rhs <- incLogLevel $ do
+    logStep "Evaluating RHS" (Left rhsArg)
+    dataizeRecursivelyChain True rhsArg
+  result <- case (lhs, rhs) of
+    (Right l, Right r) -> do
+      let bytes = resultToBytes (bytesToParam l `func` bytesToParam r)
+          resultObj = wrapBytes bytes
+      logStep "Evaluated function" (Left resultObj)
+      return resultObj
+    (Left _l, Left _r) ->
+      fail (name <> ": Couldn't find bytes in both LHS and RHS")
+    (Left l, _) -> do
+      fail (name <> ": Couldn't find bytes in LHS: " <> printTree (hideRho l))
+    (_, Left r) -> do
+      fail (name <> ": Couldn't find bytes in RHS: " <> printTree (hideRho r))
+  return (result, ())
 
 -- | Unary functions operate on the given object without any additional parameters
 evaluateUnaryDataizationFunChain ::
