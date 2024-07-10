@@ -60,12 +60,13 @@ unsafeParseWith parser input =
 type NamedRule = (String, Rule)
 
 -- | Atoms supported by 'Language.EO.Phi.Dataize.evaluateBuiltinFunChain'
-supportedAtoms :: [String]
-supportedAtoms =
+knownAtoms :: [String]
+knownAtoms =
   [ "Lorg_eolang_int_gt"
   , "Lorg_eolang_int_plus"
   , "Lorg_eolang_int_times"
   , "Lorg_eolang_int_div"
+  , "Lorg_eolang_as_phi"
   , "Lorg_eolang_bytes_eq"
   , "Lorg_eolang_bytes_size"
   , "Lorg_eolang_bytes_slice"
@@ -75,14 +76,27 @@ supportedAtoms =
   , "Lorg_eolang_bytes_not"
   , "Lorg_eolang_bytes_right"
   , "Lorg_eolang_bytes_concat"
+  , "Lorg_eolang_cage_φ"
+  , "Lorg_eolang_cage_encaged_φ"
+  , "Lorg_eolang_cage_encaged_encage"
+  , "Lorg_eolang_dataized"
+  , "Lorg_eolang_error"
   , "Lorg_eolang_float_gt"
   , "Lorg_eolang_float_times"
   , "Lorg_eolang_float_plus"
   , "Lorg_eolang_float_div"
+  , "Lorg_eolang_io_stdin_next_line"
+  , "Lorg_eolang_io_stdin_φ"
+  , "Lorg_eolang_io_stdout"
+  , "Lorg_eolang_malloc_of_φ"
+  , "Lorg_eolang_malloc_of_allocated_read"
+  , "Lorg_eolang_malloc_of_allocated_write"
+  , "Lorg_eolang_rust"
+  , "Lorg_eolang_seq"
   , "Lorg_eolang_string_length"
   , "Lorg_eolang_string_slice"
-  , "Lorg_eolang_dataized"
-  , "Lorg_eolang_error"
+  , "Lorg_eolang_try"
+  , "Package"
   ]
 
 mkEnabledAtomNames :: [String] -> [String] -> HashSet String
@@ -90,7 +104,7 @@ mkEnabledAtomNames enabled disabled = enabledSet'
  where
   enabled' =
     case enabled of
-      [] -> supportedAtoms
+      [] -> knownAtoms
       _ -> enabled
   enabledSet = fromList enabled'
   disabledSet = fromList disabled
@@ -122,7 +136,7 @@ defaultContext rules obj =
   Context
     { builtinRules = False
     , allRules = rules
-    , enabledAtomNames = fromList supportedAtoms
+    , enabledAtomNames = fromList knownAtoms
     , outerFormations = NonEmpty.singleton obj
     , currentAttr = Phi
     , insideFormation = False
