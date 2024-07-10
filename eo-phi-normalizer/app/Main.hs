@@ -111,6 +111,7 @@ data CLI'Pipeline
   | CLI'Pipeline'PrintDataizeConfigs
       { configFile :: FilePath
       , phiPrefixesToStrip :: [FilePath]
+      , singleLine :: Bool
       }
   deriving (Show)
 
@@ -261,7 +262,8 @@ commandParser =
     pure CLI'Pipeline'PrepareTests{..}
   pipelinePrintDataizeConfigs = do
     configFile <- strOption (long "config" <> short 'c' <> metavar.file <> help [fmt|A pipeline tests configuration {metavarName.file}.|])
-    phiPrefixesToStrip <- many $ strOption (long "strip-phi-prefix" <> metavar.atomName <> help "Remove prefixes in PHI file paths.")
+    phiPrefixesToStrip <- many $ strOption (long "strip-phi-prefix" <> short 'p' <> metavar.atomName <> help "Remove prefixes in PHI file paths.")
+    singleLine <- switch (long "single-line" <> short 'l' <> help [fmt|Output configs on an single line.|])
     pure CLI'Pipeline'PrintDataizeConfigs{..}
   pipeline =
     hsubparser
@@ -633,4 +635,4 @@ main = withUtf8 do
       prepareTests config
     CLI'Pipeline' CLI'Pipeline'PrintDataizeConfigs{..} -> do
       config <- decodeFileThrow @_ @PipelineConfig configFile
-      printDataizeConfigs config phiPrefixesToStrip
+      printDataizeConfigs config phiPrefixesToStrip singleLine
