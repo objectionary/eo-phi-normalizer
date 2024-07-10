@@ -125,8 +125,9 @@ function normalize {
         atoms="$(extract_atoms "$config")"
 
         printf "%s" "$phi"
-        destination="$PIPELINE_PHI_NORMALIZED_DIR/$phi"
-        mkdir -p "$(dirname "$destination")"
+        initial="$PIPELINE_PHI_INITIAL_DIR/$phi"
+        normalized="$PIPELINE_PHI_NORMALIZED_DIR/$phi"
+        mkdir -p "$(dirname "$normalized")"
 
         dependency_file_options="$(printf "%s" "$dependency_files" | xargs -I {} printf "%s" " --dependency-file {} ")"
 
@@ -139,8 +140,8 @@ function normalize {
             --wrap-raw-bytes \
             $dependency_file_options \
             $atoms \
-            "$phi" \
-            > "$destination" \
+            "$initial" \
+            > "$normalized" \
             || set +x
         set +x
     done
