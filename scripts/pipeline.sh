@@ -95,7 +95,7 @@ function normalize {
     cd "$PIPELINE_PHI_INITIAL_DIR"
 
     local dataize_configs
-    readarray -t dataize_configs <<< "$(normalizer pipeline print-dataize-configs --strip-phi-prefix "$PIPELINE_PHI_INITIAL_DIR_RELATIVE/" --config "$PIPELINE_CONFIG_FILE")"
+    eval "dataize_configs=($(normalizer pipeline print-dataize-configs --single-line --strip-phi-prefix "$PIPELINE_PHI_INITIAL_DIR_RELATIVE/" --config "$PIPELINE_CONFIG_FILE"))"
 
     local dependency_files
     dependency_files="$(find "$PIPELINE_EO_FILTERED_DIR"/.eoc/phi/org/eolang -type f)"
