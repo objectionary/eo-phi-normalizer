@@ -118,32 +118,40 @@ function normalize {
         extract '.atoms' "$1"
     }
     export -f extract_atoms
+    
+    function extract_enable {
+        extract '.enable' "$1"
+    }
+    export -f extract_enable
 
     for config in "${dataize_configs[@]}"; do
-        echo "$config"
-        phi="$(extract_phi "$config")"
-        atoms="$(extract_atoms "$config")"
+        enable="$(extract_enable "$config")"
+        if [[ "$enable" = 'true' ]]; then
+            echo "$config"
+            phi="$(extract_phi "$config")"
+            atoms="$(extract_atoms "$config")"
 
-        printf "%s" "$phi"
-        initial="$PIPELINE_PHI_INITIAL_DIR/$phi"
-        normalized="$PIPELINE_PHI_NORMALIZED_DIR/$phi"
-        mkdir -p "$(dirname "$normalized")"
+            printf "%s" "$phi"
+            initial="$PIPELINE_PHI_INITIAL_DIR/$phi"
+            normalized="$PIPELINE_PHI_NORMALIZED_DIR/$phi"
+            mkdir -p "$(dirname "$normalized")"
 
-        dependency_file_options="$(printf "%s" "$dependency_files" | xargs -I {} printf "%s" " --dependency-file {} ")"
+            dependency_file_options="$(printf "%s" "$dependency_files" | xargs -I {} printf "%s" " --dependency-file {} ")"
 
-        set -x
-        # shellcheck disable=SC2086
-        normalizer dataize \
-            --minimize-stuck-terms \
-            --as-package \
-            --recursive \
-            --wrap-raw-bytes \
-            $dependency_file_options \
-            $atoms \
-            "$initial" \
-            > "$normalized" \
-            || set +x
-        set +x
+            set -x
+            # shellcheck disable=SC2086
+            normalizer dataize \
+                --minimize-stuck-terms \
+                --as-package \
+                --recursive \
+                --wrap-raw-bytes \
+                $dependency_file_options \
+                $atoms \
+                "$initial" \
+                > "$normalized" \
+                || set +x
+            set +x
+        fi
     done
 
     cd "$PIPELINE_DIR"
