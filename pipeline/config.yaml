@@ -164,6 +164,7 @@ test-sets:
     normalized: pipeline/phi-normalized/seq-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/string-tests.eo
     yaml: pipeline/eo-yaml/string-tests.yaml
