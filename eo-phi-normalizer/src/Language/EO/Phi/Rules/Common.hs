@@ -60,8 +60,8 @@ unsafeParseWith parser input =
 type NamedRule = (String, Rule)
 
 -- | Atoms supported by 'Language.EO.Phi.Dataize.evaluateBuiltinFunChain'
-knownAtoms :: [String]
-knownAtoms =
+knownAtomNames :: [String]
+knownAtomNames =
   [ "Lorg_eolang_int_gt"
   , "Lorg_eolang_int_plus"
   , "Lorg_eolang_int_times"
@@ -99,12 +99,15 @@ knownAtoms =
   , "Package"
   ]
 
+knownAtomNamesSet :: HashSet String
+knownAtomNamesSet = fromList knownAtomNames
+
 mkEnabledAtomNames :: [String] -> [String] -> HashSet String
 mkEnabledAtomNames enabled disabled = enabledSet'
  where
   enabled' =
     case enabled of
-      [] -> knownAtoms
+      [] -> knownAtomNames
       _ -> enabled
   enabledSet = fromList enabled'
   disabledSet = fromList disabled
@@ -136,7 +139,7 @@ defaultContext rules obj =
   Context
     { builtinRules = False
     , allRules = rules
-    , enabledAtomNames = fromList knownAtoms
+    , enabledAtomNames = fromList knownAtomNames
     , outerFormations = NonEmpty.singleton obj
     , currentAttr = Phi
     , insideFormation = False
