@@ -55,7 +55,7 @@ dataizeStepChain obj@(Formation bs)
         then do
           logStep [fmt|Not evaluating the lambda '{funcName}' since it's disabled.|] (Left obj)
           pure (ctx', Left obj)
-      else do
+        else do
           logStep [fmt|Evaluating lambda '{funcName}' |] (Left obj)
           msplit (evaluateBuiltinFunChain funcName obj ()) >>= \case
             Nothing -> do
