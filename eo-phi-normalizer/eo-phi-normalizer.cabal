@@ -102,6 +102,30 @@ extra-source-files:
     data/0.38.0/org/eolang/try.phi
     data/0.38.0/org/eolang/tuple.phi
     data/0.38.0/org/eolang/while.phi
+    data/0.38.4/org/eolang/as-phi.phi
+    data/0.38.4/org/eolang/bytes.phi
+    data/0.38.4/org/eolang/cage.phi
+    data/0.38.4/org/eolang/cti.phi
+    data/0.38.4/org/eolang/dataized.phi
+    data/0.38.4/org/eolang/error.phi
+    data/0.38.4/org/eolang/false.phi
+    data/0.38.4/org/eolang/float.phi
+    data/0.38.4/org/eolang/go.phi
+    data/0.38.4/org/eolang/int.phi
+    data/0.38.4/org/eolang/io/stdin.phi
+    data/0.38.4/org/eolang/io/stdout.phi
+    data/0.38.4/org/eolang/malloc.phi
+    data/0.38.4/org/eolang/nan.phi
+    data/0.38.4/org/eolang/negative-infinity.phi
+    data/0.38.4/org/eolang/positive-infinity.phi
+    data/0.38.4/org/eolang/rust.phi
+    data/0.38.4/org/eolang/seq.phi
+    data/0.38.4/org/eolang/string.phi
+    data/0.38.4/org/eolang/switch.phi
+    data/0.38.4/org/eolang/true.phi
+    data/0.38.4/org/eolang/try.phi
+    data/0.38.4/org/eolang/tuple.phi
+    data/0.38.4/org/eolang/while.phi
 
 source-repository head
   type: git
@@ -123,6 +147,7 @@ library
       Language.EO.Phi.Metrics.Data
       Language.EO.Phi.Normalize
       Language.EO.Phi.Pipeline.Config
+      Language.EO.Phi.Pipeline.Dataize.PrintConfigs
       Language.EO.Phi.Pipeline.EOTests.Data
       Language.EO.Phi.Pipeline.EOTests.PrepareTests
       Language.EO.Phi.Report.Data
@@ -227,6 +252,7 @@ test-suite doctests
       Language.EO.Phi.Metrics.Data
       Language.EO.Phi.Normalize
       Language.EO.Phi.Pipeline.Config
+      Language.EO.Phi.Pipeline.Dataize.PrintConfigs
       Language.EO.Phi.Pipeline.EOTests.Data
       Language.EO.Phi.Pipeline.EOTests.PrepareTests
       Language.EO.Phi.Report.Data
