@@ -25,5 +25,8 @@ printDataizeConfigs pipelineConfig phiPrefixes singleLine = do
                   let enable' = unwords . ((\atom -> [fmt|--enable-atom {atom}|]) <$>) <$> enable
                       disable' = unwords . ((\atom -> [fmt|--disable-atom {atom}|]) <$>) <$> disable
                    in unwords (catMaybes [enable', disable'])
-           in [fmt|'{{"atoms": "{atoms}", "phi": "{phi}"}}'|]
+              enableTestSet
+                | fromMaybe True testSet.enable = "true"
+                | otherwise = "false"
+           in [fmt|'{{"atoms": "{atoms}", "phi": "{phi}", "enable": "{enableTestSet}"}}'|]
   putStrLn ((if singleLine then unwords else unlines) args)
