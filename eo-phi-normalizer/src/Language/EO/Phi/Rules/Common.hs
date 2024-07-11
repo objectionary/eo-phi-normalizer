@@ -17,10 +17,8 @@ import Control.Monad
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as ByteString.Strict
 import Data.Char (toUpper)
-import Data.HashSet (HashSet, difference, fromList)
 import Data.List (intercalate, minimumBy, nubBy, sortOn)
 import Data.List.NonEmpty (NonEmpty (..), (<|))
-import Data.List.NonEmpty qualified as NonEmpty
 import Data.Ord (comparing)
 import Data.Serialize qualified as Serialize
 import Data.String (IsString (..))
@@ -30,6 +28,7 @@ import Language.EO.Phi.Syntax.Abs
 import Language.EO.Phi.Syntax.Lex (Token)
 import Language.EO.Phi.Syntax.Par
 import Numeric (readHex, showHex)
+import Data.HashSet (HashSet)
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -59,60 +58,6 @@ unsafeParseWith parser input =
 
 type NamedRule = (String, Rule)
 
--- | Atoms supported by 'Language.EO.Phi.Dataize.evaluateBuiltinFunChain'
-knownAtomNames :: [String]
-knownAtomNames =
-  [ "Lorg_eolang_int_gt"
-  , "Lorg_eolang_int_plus"
-  , "Lorg_eolang_int_times"
-  , "Lorg_eolang_int_div"
-  , "Lorg_eolang_as_phi"
-  , "Lorg_eolang_bytes_eq"
-  , "Lorg_eolang_bytes_size"
-  , "Lorg_eolang_bytes_slice"
-  , "Lorg_eolang_bytes_and"
-  , "Lorg_eolang_bytes_or"
-  , "Lorg_eolang_bytes_xor"
-  , "Lorg_eolang_bytes_not"
-  , "Lorg_eolang_bytes_right"
-  , "Lorg_eolang_bytes_concat"
-  , "Lorg_eolang_cage_φ"
-  , "Lorg_eolang_cage_encaged_φ"
-  , "Lorg_eolang_cage_encaged_encage"
-  , "Lorg_eolang_dataized"
-  , "Lorg_eolang_error"
-  , "Lorg_eolang_float_gt"
-  , "Lorg_eolang_float_times"
-  , "Lorg_eolang_float_plus"
-  , "Lorg_eolang_float_div"
-  , "Lorg_eolang_io_stdin_next_line"
-  , "Lorg_eolang_io_stdin_φ"
-  , "Lorg_eolang_io_stdout"
-  , "Lorg_eolang_malloc_of_φ"
-  , "Lorg_eolang_malloc_of_allocated_read"
-  , "Lorg_eolang_malloc_of_allocated_write"
-  , "Lorg_eolang_rust"
-  , "Lorg_eolang_seq"
-  , "Lorg_eolang_string_length"
-  , "Lorg_eolang_string_slice"
-  , "Lorg_eolang_try"
-  , "Package"
-  ]
-
-knownAtomNamesSet :: HashSet String
-knownAtomNamesSet = fromList knownAtomNames
-
-mkEnabledAtomNames :: [String] -> [String] -> HashSet String
-mkEnabledAtomNames enabled disabled = enabledSet'
- where
-  enabled' =
-    case enabled of
-      [] -> knownAtomNames
-      _ -> enabled
-  enabledSet = fromList enabled'
-  disabledSet = fromList disabled
-  enabledSet' = difference enabledSet disabledSet
-
 data Context = Context
   { builtinRules :: Bool
   , allRules :: [NamedRule]
@@ -133,20 +78,6 @@ sameContext ctx1 ctx2 =
     [ outerFormations ctx1 == outerFormations ctx2
     , currentAttr ctx1 == currentAttr ctx2
     ]
-
-defaultContext :: [NamedRule] -> Object -> Context
-defaultContext rules obj =
-  Context
-    { builtinRules = False
-    , allRules = rules
-    , enabledAtomNames = fromList knownAtomNames
-    , outerFormations = NonEmpty.singleton obj
-    , currentAttr = Phi
-    , insideFormation = False
-    , dataizePackage = True
-    , minimizeTerms = False
-    , insideSubObject = False
-    }
 
 -- | A rule tries to apply a transformation to the root object, if possible.
 type Rule = Context -> Object -> [Object]

@@ -12,6 +12,7 @@ module Language.EO.Phi.Dataize where
 
 import Data.Bits
 import Data.HashMap.Strict qualified as HashMap
+import Data.HashSet (HashSet, difference, fromList)
 import Data.HashSet qualified as HashSet
 import Data.List (singleton)
 import Data.List.NonEmpty qualified as NonEmpty
@@ -52,7 +53,7 @@ dataizeStepChain obj@(Formation bs)
   | Just (LambdaBinding (Function funcName)) <- listToMaybe [b | b@(LambdaBinding _) <- bs]
   , not hasEmpty = do
       ctx' <- getContext
-      if HashSet.member funcName knownAtomNamesSet && not (HashSet.member funcName ctx'.enabledAtomNames)
+      if HashSet.member funcName knownAtomNames && not (HashSet.member funcName ctx'.enabledAtomNames)
         then do
           logStep [fmt|Not evaluating the lambda '{funcName}' since it's disabled.|] (Left obj)
           pure (ctx', Left obj)
@@ -357,6 +358,34 @@ knownAtoms =
         f
     )
   ]
+
+-- | Atoms supported by 'evaluateBuiltinFunChain'
+knownAtomNames :: HashSet String
+knownAtomNames = fromList $ fst <$> knownAtoms
+
+defaultContext :: [NamedRule] -> Object -> Context
+defaultContext rules obj =
+  Context
+    { builtinRules = False
+    , allRules = rules
+    , enabledAtomNames = knownAtomNames
+    , outerFormations = NonEmpty.singleton obj
+    , currentAttr = Phi
+    , insideFormation = False
+    , dataizePackage = True
+    , minimizeTerms = False
+    , insideSubObject = False
+    }
+
+mkEnabledAtomNames :: [String] -> [String] -> HashSet String
+mkEnabledAtomNames enabled disabled = enabledSet'
+ where
+  enabledSet =
+    case enabled of
+      [] -> knownAtomNames
+      _ -> fromList enabled
+  disabledSet = fromList disabled
+  enabledSet' = difference enabledSet disabledSet
 
 knownAtomsSet :: HashMap.HashMap String (String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState))
 knownAtomsSet = HashMap.fromList knownAtoms
