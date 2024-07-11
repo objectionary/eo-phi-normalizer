@@ -1,11 +1,11 @@
 module Language.EO.Phi.Rules.RunYegor where
 
-import Language.EO.Phi.Rules.Common
-import Language.EO.Phi.Syntax.Abs
-import Language.EO.Phi.Rules.Yaml qualified as Yaml
-import System.IO.Unsafe (unsafePerformIO)
-import Language.EO.Phi.Syntax (printTree)
 import Language.EO.Phi.Dataize
+import Language.EO.Phi.Rules.Common
+import Language.EO.Phi.Rules.Yaml qualified as Yaml
+import Language.EO.Phi.Syntax (printTree)
+import Language.EO.Phi.Syntax.Abs
+import System.IO.Unsafe (unsafePerformIO)
 
 runWithYegorRules :: (Context -> Object -> Object) -> Object -> IO ()
 runWithYegorRules f obj = putStrLn (printTree (f (defaultContext yegorRules obj) obj))

@@ -17,6 +17,7 @@ import Control.Monad
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as ByteString.Strict
 import Data.Char (toUpper)
+import Data.HashSet (HashSet)
 import Data.List (intercalate, minimumBy, nubBy, sortOn)
 import Data.List.NonEmpty (NonEmpty (..), (<|))
 import Data.Ord (comparing)
@@ -28,7 +29,6 @@ import Language.EO.Phi.Syntax.Abs
 import Language.EO.Phi.Syntax.Lex (Token)
 import Language.EO.Phi.Syntax.Par
 import Numeric (readHex, showHex)
-import Data.HashSet (HashSet)
 
 -- $setup
 -- >>> :set -XOverloadedStrings
