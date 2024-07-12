@@ -163,6 +163,7 @@ instance Print Language.EO.Phi.Syntax.Abs.Object where
     Language.EO.Phi.Syntax.Abs.Termination -> prPrec i 0 (concatD [doc (showString "\8869")])
     Language.EO.Phi.Syntax.Abs.MetaSubstThis object1 object2 -> prPrec i 0 (concatD [prt 0 object1, doc (showString "["), doc (showString "\958"), doc (showString "\8614"), prt 0 object2, doc (showString "]")])
     Language.EO.Phi.Syntax.Abs.MetaObject metaid -> prPrec i 0 (concatD [prt 0 metaid])
+    Language.EO.Phi.Syntax.Abs.MetaOneHoleContext metaid object -> prPrec i 0 (concatD [prt 0 metaid, doc (showString "[1|"), prt 0 object, doc (showString "|1]")])
     Language.EO.Phi.Syntax.Abs.MetaFunction metafunctionname object -> prPrec i 0 (concatD [prt 0 metafunctionname, doc (showString "("), prt 0 object, doc (showString ")")])
 
 instance Print Language.EO.Phi.Syntax.Abs.Binding where

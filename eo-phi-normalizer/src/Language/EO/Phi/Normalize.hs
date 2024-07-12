@@ -50,6 +50,7 @@ peelObject = \case
   ThisObject -> PeeledObject HeadThis []
   Termination -> PeeledObject HeadTermination []
   MetaObject _ -> PeeledObject HeadTermination []
+  MetaOneHoleContext{} -> error "impossible"
   MetaFunction _ _ -> error "To be honest, I'm not sure what should be here"
   MetaSubstThis{} -> error "impossible"
  where

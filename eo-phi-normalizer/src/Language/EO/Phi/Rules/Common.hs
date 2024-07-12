@@ -135,6 +135,7 @@ withSubObject f ctx root =
       Termination -> []
       MetaObject _ -> []
       MetaFunction _ _ -> []
+      MetaOneHoleContext _ _ -> []
       MetaSubstThis _ _ -> []
  where
   subctx = ctx{insideSubObject = True}
@@ -203,6 +204,7 @@ objectSize = \case
   MetaObject{} -> 1 -- should be impossible
   MetaFunction{} -> 1 -- should be impossible
   MetaSubstThis{} -> 1 -- should be impossible
+  MetaOneHoleContext{} -> 1 -- should be impossible
 
 bindingSize :: Binding -> Int
 bindingSize = \case

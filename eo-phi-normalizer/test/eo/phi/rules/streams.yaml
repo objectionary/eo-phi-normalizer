@@ -6,7 +6,7 @@ rules:
     context:
     pattern: |
        ⟦
-        !τ1 ↦ !b1.java_util_Stream$map(α0 ↦ !b2).!t1,
+        !τ1 ↦ !C1 [1| !b1.java_util_Stream$map(α0 ↦ !b2) |1],
         !B1
        ⟧
     result: |
@@ -16,7 +16,7 @@ rules:
           α0 ↦ ξ.!τ2,
           α1 ↦ !b2
         ),
-        !τ1 ↦ ξ.!τ3.!t1,
+        !τ1 ↦ !C1 [1| ξ.!τ3 |1],
         !B1
       ⟧
     fresh:

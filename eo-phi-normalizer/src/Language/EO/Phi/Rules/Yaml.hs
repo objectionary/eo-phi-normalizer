@@ -10,6 +10,7 @@
 {-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-partial-fields #-}
+{-# OPTIONS_GHC -Wno-type-defaults #-}
 
 module Language.EO.Phi.Rules.Yaml where
 
@@ -113,15 +114,16 @@ convertRuleNamed :: Rule -> NamedRule
 convertRuleNamed rule = (rule.name, convertRule rule)
 
 mkFreshSubst :: Context -> Object -> Maybe [MetaId] -> Subst
-mkFreshSubst ctx obj metas =
+mkFreshSubst _ctx _obj metas =
   Subst
     { objectMetas = []
     , bindingsMetas = []
     , attributeMetas = zip (fromMaybe [] metas) (filter isFresh defaultFreshAttrs)
     , bytesMetas = []
+    , contextMetas = []
     }
  where
-  isFresh _ = True
+  isFresh _ = True -- FIXME: properly check for freshness
 
 defaultFreshAttrs :: [Attribute]
 defaultFreshAttrs = [Label (LabelId ("tmp_" <> show i)) | i <- [1 ..]]
@@ -152,6 +154,7 @@ objectHasMetavars ThisObject = False
 objectHasMetavars Termination = False
 objectHasMetavars (MetaObject _) = True
 objectHasMetavars (MetaFunction _ _) = True
+objectHasMetavars MetaOneHoleContext{} = True
 objectHasMetavars (MetaSubstThis _ _) = True -- technically not a metavar, but a substitution
 
 bindingHasMetavars :: Binding -> Bool
@@ -221,11 +224,18 @@ hasAttr attr = any (isAttr attr)
 -- actual result (after applying substitution):
 --  ⟦ c ↦ ⟦ ⟧ ⟧(ρ ↦ ⟦ b ↦ ⟦ ⟧ ⟧)
 
+data OneHoleContext = OneHoleContext
+  { holeMetaId :: !MetaId
+  , contextObject :: !Object
+  }
+  deriving (Show)
+
 data Subst = Subst
   { objectMetas :: [(MetaId, Object)]
   , bindingsMetas :: [(MetaId, [Binding])]
   , attributeMetas :: [(MetaId, Attribute)]
   , bytesMetas :: [(MetaId, Bytes)]
+  , contextMetas :: [(MetaId, OneHoleContext)]
   }
 instance Show Subst where
   show Subst{..} =
@@ -236,6 +246,7 @@ instance Show Subst where
       , "  bindingsMetas = [" <> showMappings bindingsMetas <> "]"
       , "  attributeMetas = [" <> showMappings attributeMetas <> "]"
       , "  bytesMetas = [" <> showMappings bytesMetas <> "]"
+      , "  contextMetas = [" <> show contextMetas <> "]"
       , "}"
       ]
    where
@@ -248,7 +259,7 @@ instance Monoid Subst where
   mempty = emptySubst
 
 emptySubst :: Subst
-emptySubst = Subst [] [] [] []
+emptySubst = Subst [] [] [] [] []
 
 -- >>> putStrLn $ Language.EO.Phi.printTree (applySubst (Subst [("!n", "⟦ c ↦ ⟦ ⟧ ⟧")] [("!B", ["b ↦ ⟦ ⟧"])] [("!a", "a")]) "!n(ρ ↦ ⟦ !B ⟧)" :: Object)
 -- ⟦ c ↦ ⟦ ⟧ ⟧ (ρ ↦ ⟦ b ↦ ⟦ ⟧ ⟧)
@@ -266,6 +277,12 @@ applySubst subst@Subst{..} = \case
   Termination -> Termination
   MetaSubstThis obj thisObj -> MetaSubstThis (applySubst subst thisObj) (applySubst subst obj)
   obj@MetaFunction{} -> obj
+  MetaOneHoleContext c obj ->
+    case lookup c contextMetas of
+      Nothing -> MetaOneHoleContext c (applySubst subst obj)
+      Just OneHoleContext{..} ->
+        let holeSubst = mempty{objectMetas = [(holeMetaId, applySubst subst obj)]}
+         in applySubst holeSubst contextObject
 
 applySubstAttr :: Subst -> Attribute -> Attribute
 applySubstAttr Subst{..} = \case
@@ -288,8 +305,8 @@ applySubstBinding subst@Subst{..} = \case
   b@(MetaDeltaBinding m) -> maybe [b] (pure . DeltaBinding) (lookup m bytesMetas)
 
 mergeSubst :: Subst -> Subst -> Subst
-mergeSubst (Subst xs ys zs ws) (Subst xs' ys' zs' ws') =
-  Subst (xs ++ xs') (ys ++ ys') (zs ++ zs') (ws ++ ws')
+mergeSubst (Subst xs ys zs ws us) (Subst xs' ys' zs' ws' us') =
+  Subst (xs ++ xs') (ys ++ ys') (zs ++ zs') (ws ++ ws') (us ++ us')
 
 -- 1. need to implement applySubst' :: Subst -> Object -> Object
 -- 2. complete the code
@@ -305,10 +322,39 @@ matchObject (ObjectDispatch pat a) (ObjectDispatch obj a') = do
   pure (subst1 <> subst2)
 matchObject (MetaObject m) obj =
   pure emptySubst{objectMetas = [(m, obj)]}
+matchObject (MetaOneHoleContext x pat) obj = do
+  (subst@Subst{..}, matchedCtx) <- matchOneHoleContext x pat obj
+  return subst{contextMetas = contextMetas <> [(x, matchedCtx)]}
 matchObject Termination Termination = [emptySubst]
 matchObject ThisObject ThisObject = [emptySubst]
 matchObject GlobalObject GlobalObject = [emptySubst]
 matchObject _ _ = [] -- ? emptySubst ?
+
+matchOneHoleContext :: MetaId -> Object -> Object -> [(Subst, OneHoleContext)]
+matchOneHoleContext ctxId@(MetaId name) pat obj = matchWhole <> matchPart
+ where
+  holeId = MetaId (name ++ ":hole") -- FIXME: ensure fresh names
+  matchWhole = do
+    subst' <- matchObject pat obj
+    pure (subst', OneHoleContext holeId (MetaObject holeId))
+  matchPart = case obj of
+    ObjectDispatch obj' a -> do
+      (subst, OneHoleContext{..}) <- matchOneHoleContext ctxId pat obj'
+      return (subst, OneHoleContext{contextObject = ObjectDispatch contextObject a, ..})
+    -- FIXME: consider matching inside bindings of application as well
+    Application obj' bindings -> do
+      (subst, OneHoleContext{..}) <- matchOneHoleContext ctxId pat obj'
+      return (subst, OneHoleContext{contextObject = Application contextObject bindings, ..})
+    -- cases below cannot be matched
+    Formation{} -> []
+    GlobalObject -> []
+    ThisObject -> []
+    Termination -> []
+    -- should cases below be errors?
+    MetaSubstThis{} -> []
+    MetaObject{} -> []
+    MetaOneHoleContext{} -> []
+    MetaFunction{} -> []
 
 -- | Evaluate meta functions
 -- given top-level context as an object
@@ -410,6 +456,7 @@ substThis thisObj = go
     ObjectDispatch obj a -> ObjectDispatch (go obj) a
     GlobalObject -> GlobalObject
     Termination -> Termination
+    obj@MetaOneHoleContext{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
     obj@MetaSubstThis{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
     obj@MetaObject{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
     obj@MetaFunction{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
