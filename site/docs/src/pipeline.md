@@ -83,6 +83,9 @@ The configuration file specifies the following:
     - `normalized` - The file path of the normalized `PHI` program.
     - `bindings-path-initial` - The path to tests via bindings in the initial `PHI` program.
     - `bindings-path-normalized` - The path to tests via bindings in the normalized `PHI` program.
+  - `atoms` - The configuration of atoms in the test set. The set of enabled atoms is the difference of sets constructed from the `enable` and `disable` lists.
+    - `enable` - The list of names of atoms to enable. An empty list is equivalent to a list of all known atoms.
+    - `disable` - The list of names of atoms to disable.
 
 ## Run the pipeline script
 
