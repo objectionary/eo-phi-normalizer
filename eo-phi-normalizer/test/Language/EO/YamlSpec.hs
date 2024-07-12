@@ -21,8 +21,7 @@ spec = describe "User-defined rules unit tests" do
               let rule' = convertRuleNamed rule
                   resultOneStep = applyOneRule (defaultContext [rule'] ruleTest.input) ruleTest.input
                   expected = ruleTest.output
-                  sameObjs objs1 objs2 = and ((length objs1 == length objs2) : zipWith equalObject objs2 objs1)
-               in map snd resultOneStep `shouldSatisfy` sameObjs expected
+               in map snd resultOneStep `shouldBe` expected
  where
   testPaths =
     [ "test/eo/phi/rules/yegor.yaml"
