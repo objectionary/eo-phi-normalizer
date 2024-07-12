@@ -63,9 +63,15 @@ data Rule = Rule
   , context :: Maybe RuleContext
   , pattern :: Object
   , result :: Object
-  , fresh :: Maybe [MetaId]
+  , fresh :: Maybe [FreshMetaId]
   , when :: [Condition]
   , tests :: [RuleTest]
+  }
+  deriving (Generic, FromJSON, Show)
+
+data FreshMetaId = FreshMetaId
+  { name :: MetaId
+  , prefix :: Maybe String
   }
   deriving (Generic, FromJSON, Show)
 
@@ -113,20 +119,19 @@ convertRule Rule{..} ctx obj = do
 convertRuleNamed :: Rule -> NamedRule
 convertRuleNamed rule = (rule.name, convertRule rule)
 
-mkFreshSubst :: Context -> Object -> Maybe [MetaId] -> Subst
+mkFreshSubst :: Context -> Object -> Maybe [FreshMetaId] -> Subst
 mkFreshSubst _ctx _obj metas =
   Subst
     { objectMetas = []
     , bindingsMetas = []
-    , attributeMetas = zip (fromMaybe [] metas) (filter isFresh defaultFreshAttrs)
+    , attributeMetas = zipWith mkFresh (fromMaybe [] metas) [1 ..]
     , bytesMetas = []
     , contextMetas = []
     }
  where
-  isFresh _ = True -- FIXME: properly check for freshness
-
-defaultFreshAttrs :: [Attribute]
-defaultFreshAttrs = [Label (LabelId ("tmp_" <> show i)) | i <- [1 ..]]
+  mkFresh FreshMetaId{..} i = (name, Label (LabelId label))
+   where
+    label = fromMaybe "tmp_" prefix <> "$fresh$" <> show i
 
 -- >>> matchContext (Context [] ["⟦ a ↦ ⟦ ⟧, x ↦ ξ.a ⟧"] (Label (LabelId "x"))) (Just (RuleContext Nothing (Just "⟦ !a ↦ !obj, !B ⟧") (Just "!a")))
 -- [Subst {
