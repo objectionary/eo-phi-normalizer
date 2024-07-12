@@ -36,7 +36,7 @@ Make `cygpath` available on `PATH`.
 
 ## Learn about the pipeline
 
-## Pipeline stages
+### Pipeline stages
 
 The pipeline has several important stages:
 
@@ -49,7 +49,7 @@ The pipeline has several important stages:
 - Translate normalized `PHI` programs to normalized `EO` programs.
 - Test normalized `EO` programs.
 
-## Pipeline configuration
+### Pipeline configuration
 
 The pipeline is configured via the [pipeline/config.yaml](https://github.com/objectionary/normalizer/blob/master/pipeline/config.yaml) file.
 
