@@ -4,7 +4,7 @@
 module Language.EO.YamlSpec where
 
 import Control.Monad (forM_)
-import Language.EO.Phi.Rules.Common (applyOneRule, defaultContext, equalObject)
+import Language.EO.Phi.Rules.Common (applyOneRule, defaultContext)
 import Language.EO.Phi.Rules.Yaml (Rule (..), RuleSet (..), RuleTest (..), convertRuleNamed)
 import Test.EO.Yaml
 import Test.Hspec
