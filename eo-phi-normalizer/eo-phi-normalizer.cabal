@@ -22,7 +22,6 @@ extra-source-files:
     grammar/EO/Phi/Syntax.cf
     report/main.js
     report/styles.css
-    data/0.36.0/0.36.0.md
     data/0.36.0/org/eolang/as-phi.phi
     data/0.36.0/org/eolang/bool.phi
     data/0.36.0/org/eolang/bytes.phi
@@ -52,7 +51,6 @@ extra-source-files:
     data/0.36.0/org/eolang/try.phi
     data/0.36.0/org/eolang/tuple.phi
     data/0.36.0/org/eolang/while.phi
-    data/0.37.0/0.37.0.md
     data/0.37.0/org/eolang/as-phi.phi
     data/0.37.0/org/eolang/bytes.phi
     data/0.37.0/org/eolang/cage.phi
@@ -77,7 +75,6 @@ extra-source-files:
     data/0.37.0/org/eolang/try.phi
     data/0.37.0/org/eolang/tuple.phi
     data/0.37.0/org/eolang/while.phi
-    data/0.38.0/0.38.0.md
     data/0.38.0/org/eolang/as-phi.phi
     data/0.38.0/org/eolang/bytes.phi
     data/0.38.0/org/eolang/cage.phi

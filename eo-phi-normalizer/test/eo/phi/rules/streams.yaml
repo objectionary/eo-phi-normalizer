@@ -1,0 +1,57 @@
+title: "Rules for Java Streams"
+rules:
+  - name: "[java.util.Stream] map ↦ for-each"
+    description: |
+      Replacing Java Stream's map with a for-each loop.
+    context:
+    pattern: |
+       ⟦
+        !τ1 ↦ !b1.java_util_Stream$map(α0 ↦ !b2).!t1,
+        !B1
+       ⟧
+    result: |
+      ⟦
+        !τ2 ↦ !b1,
+        !τ3 ↦ Φ.opeo.map-for-each(
+          α0 ↦ ξ.!τ2,
+          α1 ↦ !b2
+        ),
+        !τ1 ↦ ξ.!τ3.!t1,
+        !B1
+      ⟧
+    fresh:
+      - '!τ2'
+      - '!τ3'
+    when: []
+    tests:
+      - name: Simple map to for-each example works
+        input: |
+          ⟦
+            list ↦ ∅,
+            result ↦ ξ.list.java_util_Stream$filter(
+              α0 ↦ ⟦
+                el ↦ ∅,
+                φ ↦ ξ.el.equals(
+                  α0 ↦ Φ.org.eolang.string(as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 00-))
+                ).not
+              ⟧
+            ).java_util_Stream$map(
+              α0 ↦ ⟦
+                el ↦ ∅,
+                φ ↦ Φ.java_util_Integer.parseInt(
+                  α0 ↦ ξ.el
+                )
+              ⟧
+            ).java_util_Stream$toList
+          ⟧
+        output:
+          - |
+            ⟦
+              tmp_1 ↦ ξ.list.java_util_Stream$filter (α0 ↦ ⟦
+                el ↦ ∅, φ ↦ ξ.el.equals (α0 ↦ Φ.org.eolang.string (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 00-))).not
+              ⟧),
+              tmp_2 ↦ Φ.opeo.map-for-each (α0 ↦ ξ.tmp_1, α1 ↦ ⟦
+                el ↦ ∅, φ ↦ Φ.java_util_Integer.parseInt (α0 ↦ ξ.el)
+              ⟧),
+              result ↦ ξ.tmp_2.java_util_Stream$toList, list ↦ ∅
+            ⟧

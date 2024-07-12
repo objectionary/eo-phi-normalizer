@@ -64,6 +64,7 @@ data Context = Context
   , currentAttr :: Attribute
   , insideFormation :: Bool
   -- ^ Temporary hack for applying Ksi and Phi rules when dataizing
+  , insideAbstractFormation :: Bool
   , dataizePackage :: Bool
   -- ^ Temporary flag to only dataize Package attributes for the top-level formation.
   , minimizeTerms :: Bool
@@ -85,6 +86,7 @@ defaultContext rules obj =
     , outerFormations = NonEmpty.singleton obj
     , currentAttr = Phi
     , insideFormation = False
+    , insideAbstractFormation = False
     , dataizePackage = True
     , minimizeTerms = False
     , insideSubObject = False
@@ -117,9 +119,11 @@ withSubObject :: (Context -> Object -> [(String, Object)]) -> Context -> Object 
 withSubObject f ctx root =
   f ctx root
     <|> case root of
-      Formation bindings
-        | not (any isEmptyBinding bindings) -> propagateName1 Formation <$> withSubObjectBindings f ((extendContextWith root subctx){insideFormation = True}) bindings
-        | otherwise -> []
+      Formation bindings ->
+        propagateName1 Formation
+          <$> withSubObjectBindings f ((extendContextWith root subctx){insideFormation = True, insideAbstractFormation = isAbstract}) bindings
+       where
+        isAbstract = any isEmptyBinding bindings
       Application obj bindings ->
         asum
           [ propagateName2 Application <$> withSubObject f subctx obj <*> pure bindings

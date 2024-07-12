@@ -62,6 +62,7 @@ rules:
     result: |
       !n[ ξ ↦ ⟦ !a ↦ !n, !B ⟧ ]
     when:
+      - apply_in_abstract_subformations: false
       - nf_inside_formation: '!n'
       - nf: '⟦ !B ⟧'
     tests:
@@ -97,6 +98,7 @@ rules:
     result: |
       ⟦ !a ↦ !n0, !b ↦ !n1, !B ⟧
     when:
+      - apply_in_abstract_subformations: false
       - nf: '!n0'
       - nf: '!n1'
     tests: []
@@ -111,6 +113,7 @@ rules:
     result: |
       ⟦ !a ↦ !n, !B ⟧
     when:
+      - apply_in_abstract_subformations: false
       - nf: '!n'
     tests: []
 
@@ -121,6 +124,7 @@ rules:
     result: |
       ⟦ !a ↦ !n, !B ⟧
     when:
+      - apply_in_abstract_subformations: false
       - nf: '!n'
     tests: []
 
@@ -130,7 +134,8 @@ rules:
       ⟦ Δ ⤍ ∅, !B ⟧(Δ ⤍ !bytes)
     result: |
       ⟦ Δ ⤍ !bytes, !B ⟧
-    when: []
+    when:
+      - apply_in_abstract_subformations: false
     tests: []
 
   - name: R_φ

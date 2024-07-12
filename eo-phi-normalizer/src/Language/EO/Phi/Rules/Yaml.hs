@@ -26,7 +26,7 @@ import Data.Yaml qualified as Yaml
 import GHC.Generics (Generic)
 
 import Language.EO.Phi
-import Language.EO.Phi.Rules.Common (Context (insideFormation, outerFormations), NamedRule)
+import Language.EO.Phi.Rules.Common (Context (..), NamedRule)
 import Language.EO.Phi.Rules.Common qualified as Common
 import PyF (fmt)
 
@@ -62,6 +62,7 @@ data Rule = Rule
   , context :: Maybe RuleContext
   , pattern :: Object
   , result :: Object
+  , fresh :: Maybe [MetaId]
   , when :: [Condition]
   , tests :: [RuleTest]
   }
@@ -86,6 +87,7 @@ data Condition
   | AbsentAttrs {absent_attrs :: AttrsInBindings}
   | AttrNotEqual {not_equal :: (Attribute, Attribute)}
   | ApplyInSubformations {apply_in_subformations :: Bool}
+  | ApplyInAbstractSubformations {apply_in_abstract_subformations :: Bool}
   deriving (Generic, Show)
 instance FromJSON Condition where
   parseJSON = genericParseJSON defaultOptions{sumEncoding = UntaggedValue}
@@ -100,7 +102,8 @@ convertRule Rule{..} ctx obj = do
       result' = applySubst contextSubsts result
   subst <- matchObject pattern' obj
   guard $ all (\cond -> checkCond ctx cond (contextSubsts <> subst)) when
-  let result'' = applySubst (contextSubsts <> subst) result'
+  let substFresh = mkFreshSubst ctx result' fresh
+      result'' = applySubst (contextSubsts <> subst <> substFresh) result'
       -- TODO #152:30m what context should we pass to evaluate meta funcs?
       obj' = evaluateMetaFuncs obj result''
   guard $ not (objectHasMetavars obj')
@@ -108,6 +111,20 @@ convertRule Rule{..} ctx obj = do
 
 convertRuleNamed :: Rule -> NamedRule
 convertRuleNamed rule = (rule.name, convertRule rule)
+
+mkFreshSubst :: Context -> Object -> Maybe [MetaId] -> Subst
+mkFreshSubst ctx obj metas =
+  Subst
+    { objectMetas = []
+    , bindingsMetas = []
+    , attributeMetas = zip (fromMaybe [] metas) (filter isFresh defaultFreshAttrs)
+    , bytesMetas = []
+    }
+ where
+  isFresh _ = True
+
+defaultFreshAttrs :: [Attribute]
+defaultFreshAttrs = [Label (LabelId ("tmp_" <> show i)) | i <- [1 ..]]
 
 -- >>> matchContext (Context [] ["⟦ a ↦ ⟦ ⟧, x ↦ ξ.a ⟧"] (Label (LabelId "x"))) (Just (RuleContext Nothing (Just "⟦ !a ↦ !obj, !B ⟧") (Just "!a")))
 -- [Subst {
@@ -177,6 +194,9 @@ checkCond _ctx (AttrNotEqual (a1, a2)) subst = applySubstAttr subst a1 /= applyS
 checkCond ctx (ApplyInSubformations shouldApply) _subst
   | shouldApply = True
   | otherwise = not (insideFormation ctx)
+checkCond ctx (ApplyInAbstractSubformations shouldApply) _subst
+  | shouldApply = True
+  | otherwise = not (insideAbstractFormation ctx)
 
 hasAttr :: RuleAttribute -> [Binding] -> Bool
 hasAttr attr = any (isAttr attr)
