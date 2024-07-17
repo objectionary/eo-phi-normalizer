@@ -174,8 +174,6 @@ evaluateDataizationFunChain resultToBytes bytesToParam wrapBytes func obj _state
   return (result, ())
 
 evaluateBinaryDataizationFunChain ::
-  -- | Name of the atom.
-  String ->
   -- | How to convert the result back to bytes
   (res -> Bytes) ->
   -- | How to interpret the bytes in terms of the given data type
@@ -188,10 +186,12 @@ evaluateBinaryDataizationFunChain ::
   (Object -> Object) ->
   -- | A binary function on the argument
   (a -> a -> res) ->
+  -- | Name of the atom.
+  String ->
   Object ->
   EvaluationState ->
   DataizeChain (Object, EvaluationState)
-evaluateBinaryDataizationFunChain name resultToBytes bytesToParam wrapBytes arg1 arg2 func obj _state = do
+evaluateBinaryDataizationFunChain resultToBytes bytesToParam wrapBytes arg1 arg2 func name obj _state = do
   let lhsArg = arg1 obj
   let rhsArg = arg2 obj
   lhs <- incLogLevel $ do
@@ -216,7 +216,6 @@ evaluateBinaryDataizationFunChain name resultToBytes bytesToParam wrapBytes arg1
 
 -- | Unary functions operate on the given object without any additional parameters
 evaluateUnaryDataizationFunChain ::
-  String ->
   -- | How to convert the result back to bytes
   (res -> Bytes) ->
   -- | How to interpret the bytes in terms of the given data type
@@ -227,11 +226,12 @@ evaluateUnaryDataizationFunChain ::
   (Object -> Object) ->
   -- | A unary function on the argument
   (a -> res) ->
+  String ->
   Object ->
   EvaluationState ->
   DataizeChain (Object, EvaluationState)
-evaluateUnaryDataizationFunChain name resultToBytes bytesToParam wrapBytes extractArg func =
-  evaluateBinaryDataizationFunChain name resultToBytes bytesToParam wrapBytes extractArg extractArg (const . func)
+evaluateUnaryDataizationFunChain resultToBytes bytesToParam wrapBytes extractArg func =
+  evaluateBinaryDataizationFunChain resultToBytes bytesToParam wrapBytes extractArg extractArg (const . func)
 
 evaluateIODataizationFunChain :: IO String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
 evaluateIODataizationFunChain action _obj state =
@@ -262,32 +262,32 @@ wrapBytesAsBool bytes
   | otherwise = [fmt|Φ.org.eolang.true|]
 
 -- This should maybe get converted to a type class and some instances?
-evaluateIntIntIntFunChain :: String -> (Int -> Int -> Int) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
-evaluateIntIntIntFunChain name = evaluateBinaryDataizationFunChain name intToBytes bytesToInt wrapBytesInInt extractRho (extractLabel "x")
+evaluateIntIntIntFunChain :: (Int -> Int -> Int) -> String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
+evaluateIntIntIntFunChain = evaluateBinaryDataizationFunChain intToBytes bytesToInt wrapBytesInInt extractRho (extractLabel "x")
 
-evaluateIntIntBoolFunChain :: String -> (Int -> Int -> Bool) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
-evaluateIntIntBoolFunChain name = evaluateBinaryDataizationFunChain name boolToBytes bytesToInt wrapBytesAsBool extractRho (extractLabel "x")
+evaluateIntIntBoolFunChain :: (Int -> Int -> Bool) -> String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
+evaluateIntIntBoolFunChain = evaluateBinaryDataizationFunChain boolToBytes bytesToInt wrapBytesAsBool extractRho (extractLabel "x")
 
 -- Int because Bytes are just a string, but Int has a Bits instance
-evaluateBytesBytesBytesFunChain :: String -> (Int -> Int -> Int) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
-evaluateBytesBytesBytesFunChain name = evaluateBinaryDataizationFunChain name intToBytes bytesToInt wrapBytesInBytes extractRho (extractLabel "b")
+evaluateBytesBytesBytesFunChain :: (Int -> Int -> Int) -> String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
+evaluateBytesBytesBytesFunChain = evaluateBinaryDataizationFunChain intToBytes bytesToInt wrapBytesInBytes extractRho (extractLabel "b")
 
-evaluateBytesBytesFunChain :: String -> (Int -> Int) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
-evaluateBytesBytesFunChain name = evaluateUnaryDataizationFunChain name intToBytes bytesToInt wrapBytesInBytes extractRho
+evaluateBytesBytesFunChain :: (Int -> Int) -> String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
+evaluateBytesBytesFunChain = evaluateUnaryDataizationFunChain intToBytes bytesToInt wrapBytesInBytes extractRho
 
-evaluateFloatFloatFloatFunChain :: String -> (Double -> Double -> Double) -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
-evaluateFloatFloatFloatFunChain name = evaluateBinaryDataizationFunChain name floatToBytes bytesToFloat wrapBytesInFloat extractRho (extractLabel "x")
+evaluateFloatFloatFloatFunChain :: (Double -> Double -> Double) -> String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
+evaluateFloatFloatFloatFunChain = evaluateBinaryDataizationFunChain floatToBytes bytesToFloat wrapBytesInFloat extractRho (extractLabel "x")
 
 knownAtoms :: [(String, String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState))]
 knownAtoms =
-  [ ("Lorg_eolang_int_gt", \name obj -> evaluateIntIntBoolFunChain name (>) obj)
-  , ("Lorg_eolang_int_plus", \name obj -> evaluateIntIntIntFunChain name (+) obj)
-  , ("Lorg_eolang_int_times", \name obj -> evaluateIntIntIntFunChain name (*) obj)
-  , ("Lorg_eolang_int_div", \name obj -> evaluateIntIntIntFunChain name quot obj)
-  , ("Lorg_eolang_bytes_eq", \name obj -> evaluateBinaryDataizationFunChain name boolToBytes bytesToInt wrapBytesAsBool extractRho (extractLabel "b") (==) obj)
+  [ ("Lorg_eolang_int_gt", evaluateIntIntBoolFunChain (>))
+  , ("Lorg_eolang_int_plus", evaluateIntIntIntFunChain (+))
+  , ("Lorg_eolang_int_times", evaluateIntIntIntFunChain (*))
+  , ("Lorg_eolang_int_div", evaluateIntIntIntFunChain quot)
+  , ("Lorg_eolang_bytes_eq", evaluateBinaryDataizationFunChain boolToBytes bytesToInt wrapBytesAsBool extractRho (extractLabel "b") (==))
   ,
     ( "Lorg_eolang_bytes_size"
-    , let f name obj = evaluateUnaryDataizationFunChain name intToBytes id wrapBytesInBytes extractRho (\(Bytes bytes) -> length (words (map dashToSpace bytes))) obj
+    , let f = evaluateUnaryDataizationFunChain intToBytes id wrapBytesInBytes extractRho (\(Bytes bytes) -> length (words (map dashToSpace bytes)))
            where
             dashToSpace '-' = ' '
             dashToSpace c = c
@@ -300,25 +300,25 @@ knownAtoms =
         bytes <- case thisStr of
           Right bytes -> pure bytes
           Left _ -> fail "Couldn't find bytes"
-        evaluateBinaryDataizationFunChain name id bytesToInt wrapBytesInBytes (extractLabel "start") (extractLabel "len") (sliceBytes bytes) obj state
+        evaluateBinaryDataizationFunChain id bytesToInt wrapBytesInBytes (extractLabel "start") (extractLabel "len") (sliceBytes bytes) name obj state
     )
-  , ("Lorg_eolang_bytes_and", \name obj -> evaluateBytesBytesBytesFunChain name (.&.) obj)
-  , ("Lorg_eolang_bytes_or", \name obj -> evaluateBytesBytesBytesFunChain name (.|.) obj)
-  , ("Lorg_eolang_bytes_xor", \name obj -> evaluateBytesBytesBytesFunChain name (.^.) obj)
-  , ("Lorg_eolang_bytes_not", \name obj -> evaluateBytesBytesFunChain name complement obj)
-  , ("Lorg_eolang_bytes_right", \name obj -> evaluateBinaryDataizationFunChain name intToBytes bytesToInt wrapBytesInBytes extractRho (extractLabel "x") (\x i -> shift x (-i)) obj)
-  , ("Lorg_eolang_bytes_concat", \name obj -> evaluateBinaryDataizationFunChain name id id wrapBytesInBytes extractRho (extractLabel "b") concatBytes obj)
+  , ("Lorg_eolang_bytes_and", evaluateBytesBytesBytesFunChain (.&.))
+  , ("Lorg_eolang_bytes_or", evaluateBytesBytesBytesFunChain (.|.))
+  , ("Lorg_eolang_bytes_xor", evaluateBytesBytesBytesFunChain (.^.))
+  , ("Lorg_eolang_bytes_not", evaluateBytesBytesFunChain complement)
+  , ("Lorg_eolang_bytes_right", evaluateBinaryDataizationFunChain intToBytes bytesToInt wrapBytesInBytes extractRho (extractLabel "x") (\x i -> shift x (-i)))
+  , ("Lorg_eolang_bytes_concat", evaluateBinaryDataizationFunChain id id wrapBytesInBytes extractRho (extractLabel "b") concatBytes)
   , -- float
-    ("Lorg_eolang_float_gt", \name obj -> evaluateBinaryDataizationFunChain name boolToBytes bytesToFloat wrapBytesInBytes extractRho (extractLabel "x") (>) obj)
-  , ("Lorg_eolang_float_times", \name obj -> evaluateFloatFloatFloatFunChain name (*) obj)
-  , ("Lorg_eolang_float_plus", \name obj -> evaluateFloatFloatFloatFunChain name (+) obj)
-  , ("Lorg_eolang_float_div", \name obj -> evaluateFloatFloatFloatFunChain name (/) obj)
-  , ("Lorg_eolang_float_gt", \name obj -> evaluateBinaryDataizationFunChain name boolToBytes bytesToFloat wrapBytesInBytes extractRho (extractLabel "x") (>) obj)
-  , ("Lorg_eolang_float_times", \name obj -> evaluateFloatFloatFloatFunChain name (*) obj)
-  , ("Lorg_eolang_float_plus", \name obj -> evaluateFloatFloatFloatFunChain name (+) obj)
-  , ("Lorg_eolang_float_div", \name obj -> evaluateFloatFloatFloatFunChain name (/) obj)
+    ("Lorg_eolang_float_gt", evaluateBinaryDataizationFunChain boolToBytes bytesToFloat wrapBytesInBytes extractRho (extractLabel "x") (>))
+  , ("Lorg_eolang_float_times", evaluateFloatFloatFloatFunChain (*))
+  , ("Lorg_eolang_float_plus", evaluateFloatFloatFloatFunChain (+))
+  , ("Lorg_eolang_float_div", evaluateFloatFloatFloatFunChain (/))
+  , ("Lorg_eolang_float_gt", evaluateBinaryDataizationFunChain boolToBytes bytesToFloat wrapBytesInBytes extractRho (extractLabel "x") (>))
+  , ("Lorg_eolang_float_times", evaluateFloatFloatFloatFunChain (*))
+  , ("Lorg_eolang_float_plus", evaluateFloatFloatFloatFunChain (+))
+  , ("Lorg_eolang_float_div", evaluateFloatFloatFloatFunChain (/))
   , -- string
-    ("Lorg_eolang_string_length", \name obj -> evaluateUnaryDataizationFunChain name intToBytes bytesToString wrapBytesInInt extractRho length obj)
+    ("Lorg_eolang_string_length", evaluateUnaryDataizationFunChain intToBytes bytesToString wrapBytesInInt extractRho length)
   ,
     ( "Lorg_eolang_string_slice"
     , \name obj state -> do
@@ -326,11 +326,11 @@ knownAtoms =
         string <- case thisStr of
           Right bytes -> pure $ bytesToString bytes
           Left _ -> fail "Couldn't find bytes"
-        evaluateBinaryDataizationFunChain name stringToBytes bytesToInt wrapBytesInString (extractLabel "start") (extractLabel "len") (\start len -> take len (drop start string)) obj state
+        evaluateBinaryDataizationFunChain stringToBytes bytesToInt wrapBytesInString (extractLabel "start") (extractLabel "len") (\start len -> take len (drop start string)) name obj state
     )
   , -- others
-    ("Lorg_eolang_dataized", \name obj -> evaluateUnaryDataizationFunChain name id id wrapBytesInBytes (extractLabel "target") id obj)
-  , ("Lorg_eolang_error", \name obj -> evaluateUnaryDataizationFunChain name stringToBytes bytesToString wrapBytesInBytes (extractLabel "message") error obj)
+    ("Lorg_eolang_dataized", evaluateUnaryDataizationFunChain id id wrapBytesInBytes (extractLabel "target") id)
+  , ("Lorg_eolang_error", evaluateUnaryDataizationFunChain stringToBytes bytesToString wrapBytesInBytes (extractLabel "message") error)
   ,
     ( "Package"
     , let
