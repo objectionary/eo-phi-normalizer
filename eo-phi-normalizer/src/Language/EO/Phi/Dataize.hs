@@ -53,7 +53,8 @@ dataizeStepChain obj@(Formation bs)
   | Just (LambdaBinding (Function funcName)) <- listToMaybe [b | b@(LambdaBinding _) <- bs]
   , not hasEmpty = do
       ctx' <- getContext
-      if HashSet.member funcName knownAtomNames && not (HashSet.member funcName ctx'.enabledAtomNames)
+      let lambaIsKnownAndNotEnabled = HashSet.member funcName knownAtomNames && not (HashSet.member funcName ctx'.enabledAtomNames)
+      if lambaIsKnownAndNotEnabled
         then do
           logStep [fmt|Not evaluating the lambda '{funcName}' since it's disabled.|] (Left obj)
           pure (ctx', Left obj)
