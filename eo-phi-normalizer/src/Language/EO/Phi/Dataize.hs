@@ -400,7 +400,7 @@ evaluateBuiltinFunChain name obj =
 
 evaluateBuiltinFunChainUnknown :: String -> a -> b1 -> Chain (Either a b2) (a, b1)
 evaluateBuiltinFunChainUnknown atomName obj state = do
-  logStep [fmt|[WARNING]: unknown atom ({atomName})|] (Left obj)
+  logStep [fmt|[INFO]: unknown atom ({atomName})|] (Left obj)
   return (obj, state)
 
 -- | Like `evaluateDataizationFun` but specifically for the built-in functions.
