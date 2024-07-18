@@ -154,17 +154,6 @@ rules:
         input: '⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧.a'
         output: []
 
-  - name: R_MISS
-    description: 'Invalid application'
-    pattern: ⟦ !t ↦ !b1, !B1 ⟧(!t ↦ !b2, !B2)
-    result: ⊥
-    when:
-      - not_equal: ['!t', 'ρ']
-    tests:
-      - name: ''
-        input: '⟦ t ↦ ⟦ a ↦ ∅ ⟧ ⟧(t ↦ ⟦ b ↦ ∅ ⟧)'
-        output: ['⊥']
-
   - name: R_OVER
     description: 'Invalid application (attribute already attached)'
     pattern: ⟦ !t ↦ !b1, !B1 ⟧(!t ↦ !b2, !B2)
