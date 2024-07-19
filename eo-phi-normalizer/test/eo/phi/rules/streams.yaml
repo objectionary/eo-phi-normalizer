@@ -4,6 +4,12 @@ rules:
     description: |
       Replacing Java Stream's map with a for-each loop.
     context:
+    forall:
+      - '!τ1'
+      - '!b1'
+      - '!b2'
+      - '!t1'
+      - '!B1'
     pattern: |
        ⟦
         !τ1 ↦ !b1.java_util_Stream$map(α0 ↦ !b2) * !t1,

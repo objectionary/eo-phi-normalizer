@@ -11,10 +11,11 @@
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-partial-fields #-}
 {-# OPTIONS_GHC -Wno-type-defaults #-}
+{-# OPTIONS_GHC -Wno-forall-identifier #-}
 
 module Language.EO.Phi.Rules.Yaml where
 
-import Control.Monad (guard)
+import Control.Monad (guard, unless)
 import Control.Monad.State (State, evalState)
 import Data.Aeson (FromJSON (..), Options (sumEncoding), SumEncoding (UntaggedValue), genericParseJSON)
 import Data.Aeson.Types (defaultOptions)
@@ -65,6 +66,7 @@ data Rule = Rule
   { name :: String
   , description :: String
   , context :: Maybe RuleContext
+  , forall :: Maybe [MetaId]
   , pattern :: Object
   , result :: Object
   , fresh :: Maybe [FreshMetaId]
@@ -108,6 +110,32 @@ parseRuleSetFromFile = Yaml.decodeFileThrow
 
 convertRule :: Rule -> Common.Rule
 convertRule Rule{..} ctx obj = do
+  -- first validate pattern and result in the rule
+  -- TODO: we should perform this check once, not every time we run the rule
+  let freshMetaIds = foldMap (Set.fromList . map (\FreshMetaId{..} -> name)) fresh
+
+      patternMetaIds = objectMetaIds pattern
+      resultMetaIds = objectMetaIds result
+
+      unusedFreshMetaIds = Set.difference freshMetaIds resultMetaIds
+  unless (null unusedFreshMetaIds) $
+    error ("invalid rule: result does not use some fresh variables quantified by the fresh: " <> show (Set.toList unusedFreshMetaIds))
+
+  case forall of
+    Nothing -> return ()
+    Just forall' -> do
+      let forallMetaIds = Set.fromList forall'
+          resultAllowedMetaIds = forallMetaIds <> freshMetaIds
+          unquantifiedMetaIds = Set.difference patternMetaIds forallMetaIds
+          unusedMetaIds = Set.difference forallMetaIds patternMetaIds
+          unquantifiedResultMetaIds = Set.difference resultMetaIds resultAllowedMetaIds
+      unless (null unquantifiedMetaIds) $
+        error ("invalid rule: pattern uses meta variables not quantified by the forall: " <> show (Set.toList unquantifiedMetaIds))
+      unless (null unusedMetaIds) $
+        error ("invalid rule: pattern does not use some variables quantified by the forall: " <> show (Set.toList unusedMetaIds))
+      unless (null unquantifiedResultMetaIds) $
+        error ("invalid rule: result uses meta variables not quantified by the forall or the fresh: " <> show (Set.toList unquantifiedResultMetaIds))
+
   contextSubsts <- matchContext ctx context
   let pattern' = applySubst contextSubsts pattern
       result' = applySubst contextSubsts result
@@ -132,13 +160,9 @@ mkFreshSubst ctx obj metas =
     , bytesMetas = []
     , contextMetas = []
     }
- where
-  mkFresh FreshMetaId{..} i = (name, Label (LabelId label))
-   where
-    label = fromMaybe "tmp_" prefix <> "$" <> show i
 
 mkFreshAttributes :: Set LabelId -> [FreshMetaId] -> [(MetaId, Attribute)]
-mkFreshAttributes ids [] = []
+mkFreshAttributes _ids [] = []
 mkFreshAttributes ids (x:xs) =
   case mkFreshAttribute ids x of
     (ma, ids') -> ma : mkFreshAttributes ids' xs
@@ -201,6 +225,34 @@ matchContext Common.Context{..} (Just (RuleContext{..})) = do
  where
   globalObject = NonEmpty.last outerFormations
   thisObject = NonEmpty.head outerFormations
+
+objectMetaIds :: Object -> Set MetaId
+objectMetaIds (Formation bindings) = foldMap bindingMetaIds bindings
+objectMetaIds (Application object bindings) = objectMetaIds object <> foldMap bindingMetaIds bindings
+objectMetaIds (ObjectDispatch object attr) = objectMetaIds object <> attrMetaIds attr
+objectMetaIds GlobalObject = mempty
+objectMetaIds ThisObject = mempty
+objectMetaIds Termination = mempty
+objectMetaIds (MetaObject x) = Set.singleton x
+objectMetaIds (MetaFunction _ obj) = objectMetaIds obj
+objectMetaIds (MetaTailContext obj x) = objectMetaIds obj <> Set.singleton x
+objectMetaIds (MetaSubstThis obj obj') = foldMap objectMetaIds [obj, obj']
+
+bindingMetaIds :: Binding -> Set MetaId
+bindingMetaIds (AlphaBinding attr obj) = attrMetaIds attr <> objectMetaIds obj
+bindingMetaIds (EmptyBinding attr) = attrMetaIds attr
+bindingMetaIds (DeltaBinding _) = mempty
+bindingMetaIds DeltaEmptyBinding = mempty
+bindingMetaIds (LambdaBinding _) = mempty
+bindingMetaIds (MetaBindings x) = Set.singleton x
+bindingMetaIds (MetaDeltaBinding x) = Set.singleton x
+
+attrMetaIds :: Attribute -> Set MetaId
+attrMetaIds Phi = mempty
+attrMetaIds Rho = mempty
+attrMetaIds (Label _) = mempty
+attrMetaIds (Alpha _) = mempty
+attrMetaIds (MetaAttr x) = Set.singleton x
 
 objectHasMetavars :: Object -> Bool
 objectHasMetavars (Formation bindings) = any bindingHasMetavars bindings
