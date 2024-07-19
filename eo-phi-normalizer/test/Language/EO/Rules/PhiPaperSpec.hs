@@ -52,8 +52,18 @@ instance Arbitrary Bytes where
   arbitrary = intToBytes <$> arbitrarySizedNatural
 instance Arbitrary Phi.Function where
   arbitrary = Phi.Function <$> arbitraryNonEmptyString
-instance Arbitrary Phi.MetaId where
-  arbitrary = Phi.MetaId . ("!" ++) <$> arbitraryNonEmptyString
+
+instance Arbitrary Phi.ObjectMetaId where
+  arbitrary = Phi.ObjectMetaId . ("!b" ++) <$> arbitraryNonEmptyString
+instance Arbitrary Phi.LabelMetaId where
+  arbitrary = Phi.LabelMetaId . ("!τ" ++) <$> arbitraryNonEmptyString
+instance Arbitrary Phi.BindingsMetaId where
+  arbitrary = Phi.BindingsMetaId . ("!B" ++) <$> arbitraryNonEmptyString
+instance Arbitrary Phi.TailMetaId where
+  arbitrary = Phi.TailMetaId . ("!t" ++) <$> arbitraryNonEmptyString
+instance Arbitrary Phi.BytesMetaId where
+  arbitrary = Phi.BytesMetaId . ("!y" ++) <$> arbitraryNonEmptyString
+
 instance Arbitrary Phi.MetaFunctionName where
   arbitrary = Phi.MetaFunctionName . ("@" ++) <$> arbitraryNonEmptyString
 

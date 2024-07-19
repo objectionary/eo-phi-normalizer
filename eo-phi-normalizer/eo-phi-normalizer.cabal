@@ -22,8 +22,6 @@ extra-source-files:
     grammar/EO/Phi/Syntax.cf
     report/main.js
     report/styles.css
-    data/0.36.0/0.36.0.md
-    data/0.36.0/all-atoms.md
     data/0.36.0/org/eolang/as-phi.phi
     data/0.36.0/org/eolang/bool.phi
     data/0.36.0/org/eolang/bytes.phi
@@ -53,8 +51,6 @@ extra-source-files:
     data/0.36.0/org/eolang/try.phi
     data/0.36.0/org/eolang/tuple.phi
     data/0.36.0/org/eolang/while.phi
-    data/0.37.0/0.37.0.md
-    data/0.37.0/all-atoms.md
     data/0.37.0/org/eolang/as-phi.phi
     data/0.37.0/org/eolang/bytes.phi
     data/0.37.0/org/eolang/cage.phi
@@ -79,8 +75,6 @@ extra-source-files:
     data/0.37.0/org/eolang/try.phi
     data/0.37.0/org/eolang/tuple.phi
     data/0.37.0/org/eolang/while.phi
-    data/0.38.0/0.38.0.md
-    data/0.38.0/all-atoms.md
     data/0.38.0/org/eolang/as-phi.phi
     data/0.38.0/org/eolang/bytes.phi
     data/0.38.0/org/eolang/cage.phi
@@ -105,7 +99,6 @@ extra-source-files:
     data/0.38.0/org/eolang/try.phi
     data/0.38.0/org/eolang/tuple.phi
     data/0.38.0/org/eolang/while.phi
-    data/0.38.4/all-atoms.md
     data/0.38.4/org/eolang/as-phi.phi
     data/0.38.4/org/eolang/bytes.phi
     data/0.38.4/org/eolang/cage.phi
@@ -189,6 +182,7 @@ library
     , blaze-markup
     , bytestring
     , cereal
+    , containers
     , directory
     , file-embed >=0.0.16.0
     , filepath
@@ -228,6 +222,7 @@ executable normalizer
     , blaze-markup
     , bytestring
     , cereal
+    , containers
     , directory
     , eo-phi-normalizer
     , file-embed >=0.0.16.0
@@ -296,6 +291,7 @@ test-suite doctests
     , blaze-markup
     , bytestring
     , cereal
+    , containers
     , directory
     , doctest-parallel
     , eo-phi-normalizer
@@ -346,6 +342,7 @@ test-suite spec
     , blaze-markup
     , bytestring
     , cereal
+    , containers
     , directory
     , eo-phi-normalizer
     , file-embed >=0.0.16.0

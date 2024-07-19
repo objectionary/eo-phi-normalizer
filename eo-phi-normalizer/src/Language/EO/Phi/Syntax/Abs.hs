@@ -18,6 +18,14 @@ import qualified GHC.Generics as C (Generic)
 data Program = Program [Binding]
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
+data MetaId
+    = MetaIdLabel LabelMetaId
+    | MetaIdTail TailMetaId
+    | MetaIdBindings BindingsMetaId
+    | MetaIdObject ObjectMetaId
+    | MetaIdBytes BytesMetaId
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
 data Object
     = Formation [Binding]
     | Application Object [Binding]
@@ -26,7 +34,8 @@ data Object
     | ThisObject
     | Termination
     | MetaSubstThis Object Object
-    | MetaObject MetaId
+    | MetaObject ObjectMetaId
+    | MetaTailContext Object TailMetaId
     | MetaFunction MetaFunctionName Object
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
@@ -36,12 +45,16 @@ data Binding
     | DeltaBinding Bytes
     | DeltaEmptyBinding
     | LambdaBinding Function
-    | MetaBindings MetaId
-    | MetaDeltaBinding MetaId
+    | MetaBindings BindingsMetaId
+    | MetaDeltaBinding BytesMetaId
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data Attribute
-    = Phi | Rho | Label LabelId | Alpha AlphaIndex | MetaAttr MetaId
+    = Phi
+    | Rho
+    | Label LabelId
+    | Alpha AlphaIndex
+    | MetaAttr LabelMetaId
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data RuleAttribute = ObjectAttr Attribute | DeltaAttr | LambdaAttr
@@ -70,7 +83,19 @@ newtype LabelId = LabelId String
 newtype AlphaIndex = AlphaIndex String
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic, Data.String.IsString)
 
-newtype MetaId = MetaId String
+newtype LabelMetaId = LabelMetaId String
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic, Data.String.IsString)
+
+newtype TailMetaId = TailMetaId String
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic, Data.String.IsString)
+
+newtype BindingsMetaId = BindingsMetaId String
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic, Data.String.IsString)
+
+newtype ObjectMetaId = ObjectMetaId String
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic, Data.String.IsString)
+
+newtype BytesMetaId = BytesMetaId String
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic, Data.String.IsString)
 
 newtype MetaFunctionName = MetaFunctionName String

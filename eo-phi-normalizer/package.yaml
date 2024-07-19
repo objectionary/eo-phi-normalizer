@@ -60,6 +60,7 @@ dependencies:
   - bytestring
   - hashable
   - unordered-containers
+  - containers
 
 default-extensions:
   - ImportQualifiedPost

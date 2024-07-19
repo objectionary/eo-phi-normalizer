@@ -185,4 +185,5 @@ fastYegorInsideOut ctx = \case
   Termination -> Termination
   MetaSubstThis{} -> error "impossible MetaSubstThis!"
   MetaObject{} -> error "impossible MetaObject!"
+  MetaTailContext{} -> error "impossible MetaTailContext!"
   MetaFunction{} -> error "impossible MetaFunction!"

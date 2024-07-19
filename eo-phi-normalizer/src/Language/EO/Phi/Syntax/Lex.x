@@ -28,7 +28,7 @@ $u = [. \n]          -- universal: any character
 
 -- Symbols and non-identifier-like reserved words
 
-@rsyms = \Φ | \ξ | \Δ | \λ | \φ | \ρ | \{ | \⟦ | \⟧ | \} | \( | \) | \. | \⊥ | \[ | \↦ | \] | \∅ | \⤍ | \,
+@rsyms = \Φ | \ξ | \Δ | \λ | \φ | \ρ | \{ | \⟦ | \⟧ | \} | \( | \) | \. | \⊥ | \[ | \↦ | \] | \* | \∅ | \⤍ | \,
 
 :-
 
@@ -61,9 +61,25 @@ $s [$u # [\t \n \r \  \! \' \( \) \, \. \: \; \? \[ \] \{ \| \} \⟦ \⟧]] *
 α 0 | α [$d # 0]$d *
     { tok (eitherResIdent T_AlphaIndex) }
 
--- token MetaId
-\! [$u # [\t \n \r \  \! \' \( \) \, \- \. \: \; \? \[ \] \{ \| \} \⟦ \⟧]] *
-    { tok (eitherResIdent T_MetaId) }
+-- token LabelMetaId
+\! τ [$u # [\t \n \r \  \! \' \( \) \, \- \. \: \; \? \[ \] \{ \| \} \⟦ \⟧]] *
+    { tok (eitherResIdent T_LabelMetaId) }
+
+-- token TailMetaId
+\! t [$u # [\t \n \r \  \! \' \( \) \, \- \. \: \; \? \[ \] \{ \| \} \⟦ \⟧]] *
+    { tok (eitherResIdent T_TailMetaId) }
+
+-- token BindingsMetaId
+\! B [$u # [\t \n \r \  \! \' \( \) \, \- \. \: \; \? \[ \] \{ \| \} \⟦ \⟧]] *
+    { tok (eitherResIdent T_BindingsMetaId) }
+
+-- token ObjectMetaId
+\! b [$u # [\t \n \r \  \! \' \( \) \, \- \. \: \; \? \[ \] \{ \| \} \⟦ \⟧]] *
+    { tok (eitherResIdent T_ObjectMetaId) }
+
+-- token BytesMetaId
+\! y [$u # [\t \n \r \  \! \' \( \) \, \- \. \: \; \? \[ \] \{ \| \} \⟦ \⟧]] *
+    { tok (eitherResIdent T_BytesMetaId) }
 
 -- token MetaFunctionName
 \@ [$u # [\t \n \r \  \! \' \( \) \, \- \. \: \; \? \[ \] \{ \| \} \⟦ \⟧]] *
@@ -90,7 +106,11 @@ data Tok
   | T_Function !String
   | T_LabelId !String
   | T_AlphaIndex !String
-  | T_MetaId !String
+  | T_LabelMetaId !String
+  | T_TailMetaId !String
+  | T_BindingsMetaId !String
+  | T_ObjectMetaId !String
+  | T_BytesMetaId !String
   | T_MetaFunctionName !String
   deriving (Eq, Show, Ord)
 
@@ -158,7 +178,11 @@ tokenText t = case t of
   PT _ (T_Function s) -> s
   PT _ (T_LabelId s) -> s
   PT _ (T_AlphaIndex s) -> s
-  PT _ (T_MetaId s) -> s
+  PT _ (T_LabelMetaId s) -> s
+  PT _ (T_TailMetaId s) -> s
+  PT _ (T_BindingsMetaId s) -> s
+  PT _ (T_ObjectMetaId s) -> s
+  PT _ (T_BytesMetaId s) -> s
   PT _ (T_MetaFunctionName s) -> s
 
 -- | Convert a token to a string.
@@ -186,14 +210,16 @@ eitherResIdent tv s = treeFind resWords
 -- | The keywords and symbols of the language organized as binary search tree.
 resWords :: BTree
 resWords =
-  b "\955" 11
-    (b "]" 6
-       (b "," 3 (b ")" 2 (b "(" 1 N N) N) (b "[" 5 (b "." 4 N N) N))
-       (b "\916" 9 (b "}" 8 (b "{" 7 N N) N) (b "\934" 10 N N)))
-    (b "\8709" 16
-       (b "\966" 14 (b "\961" 13 (b "\958" 12 N N) N) (b "\8614" 15 N N))
-       (b "\10215" 19
-          (b "\10214" 18 (b "\8869" 17 N N) N) (b "\10509" 20 N N)))
+  b "\934" 11
+    (b "[" 6
+       (b "*" 3 (b ")" 2 (b "(" 1 N N) N) (b "." 5 (b "," 4 N N) N))
+       (b "}" 9 (b "{" 8 (b "]" 7 N N) N) (b "\916" 10 N N)))
+    (b "\8709" 17
+       (b "\961" 14
+          (b "\958" 13 (b "\955" 12 N N) N)
+          (b "\8614" 16 (b "\966" 15 N N) N))
+       (b "\10215" 20
+          (b "\10214" 19 (b "\8869" 18 N N) N) (b "\10509" 21 N N)))
   where
   b s n = B bs (TS bs n)
     where

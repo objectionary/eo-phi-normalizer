@@ -373,6 +373,7 @@ defaultContext rules obj =
     , outerFormations = NonEmpty.singleton obj
     , currentAttr = Phi
     , insideFormation = False
+    , insideAbstractFormation = False
     , dataizePackage = True
     , minimizeTerms = False
     , insideSubObject = False

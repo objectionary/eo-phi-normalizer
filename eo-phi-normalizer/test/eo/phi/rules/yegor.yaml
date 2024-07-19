@@ -39,11 +39,11 @@ rules:
   - name: ξ-dispatch
     description: 'ξ-dispatch'
     context:
-      current_object: '!obj'
+      current_object: '!b'
     pattern: |
       ξ
     result: |
-      !obj
+      !b
     when:
       - apply_in_subformations: false
       # - present_attrs:
@@ -58,11 +58,12 @@ rules:
   - name: R_DOT
     description: 'Accessing an α-binding'
     pattern: |
-      ⟦ !a ↦ !n, !B ⟧.!a
+      ⟦ !τ ↦ !b, !B ⟧.!τ
     result: |
-      !n[ ξ ↦ ⟦ !a ↦ !n, !B ⟧ ]
+      !b[ ξ ↦ ⟦ !τ ↦ !b, !B ⟧ ]
     when:
-      - nf_inside_formation: '!n'
+      - apply_in_abstract_subformations: false
+      - nf_inside_formation: '!b'
       - nf: '⟦ !B ⟧'
     tests:
       - name: Should match
@@ -75,9 +76,9 @@ rules:
   # - name: Rule 6a
   #   description: 'Accessing an α-binding (for object with ρ ↦ ∅)'
   #   pattern: |
-  #     ⟦ !a ↦ !n, ρ ↦ ∅, !B ⟧.!a
+  #     ⟦ !τ ↦ !b, ρ ↦ ∅, !B ⟧.!τ
   #   result: |
-  #     !n[ ξ ↦ ⟦ !a ↦ !n, ρ ↦ ∅, !B ⟧ ]
+  #     !b[ ξ ↦ ⟦ !τ ↦ !b, ρ ↦ ∅, !B ⟧ ]
   #   when: []
   #   tests:
   #     - name: Should match
@@ -93,12 +94,13 @@ rules:
     # i.e., doesn't match an empty binding after an attached one.
     # We should instead match the first two empty bindings.
     pattern: |
-      ⟦ !a ↦ ∅, !b ↦ ∅, !B ⟧(α0 ↦ !n0, α1 ↦ !n1)
+      ⟦ !τ1 ↦ ∅, !τ2 ↦ ∅, !B ⟧(α0 ↦ !b0, α1 ↦ !b1)
     result: |
-      ⟦ !a ↦ !n0, !b ↦ !n1, !B ⟧
+      ⟦ !τ1 ↦ !b0, !τ2 ↦ !b1, !B ⟧
     when:
-      - nf: '!n0'
-      - nf: '!n1'
+      - apply_in_abstract_subformations: false
+      - nf: '!b0'
+      - nf: '!b1'
     tests: []
 
   - name: R_COPY1
@@ -107,44 +109,47 @@ rules:
     # i.e., doesn't match an empty binding after an attached one.
     # We should instead match the first empty binding.
     pattern: |
-      ⟦ !a ↦ ∅, !B ⟧(α0 ↦ !n)
+      ⟦ !τ ↦ ∅, !B ⟧(α0 ↦ !b)
     result: |
-      ⟦ !a ↦ !n, !B ⟧
+      ⟦ !τ ↦ !b, !B ⟧
     when:
-      - nf: '!n'
+      - apply_in_abstract_subformations: false
+      - nf: '!b'
     tests: []
 
   - name: R_COPY
     description: 'Application of α-binding'
     pattern: |
-      ⟦ !a ↦ ∅, !B ⟧(!a ↦ !n)
+      ⟦ !τ ↦ ∅, !B ⟧(!τ ↦ !b)
     result: |
-      ⟦ !a ↦ !n, !B ⟧
+      ⟦ !τ ↦ !b, !B ⟧
     when:
-      - nf: '!n'
+      - apply_in_abstract_subformations: false
+      - nf: '!b'
     tests: []
 
   - name: R_COPY_Δ
     description: 'Application of Δ-binding'
     pattern: |
-      ⟦ Δ ⤍ ∅, !B ⟧(Δ ⤍ !bytes)
+      ⟦ Δ ⤍ ∅, !B ⟧(Δ ⤍ !y)
     result: |
-      ⟦ Δ ⤍ !bytes, !B ⟧
-    when: []
+      ⟦ Δ ⤍ !y, !B ⟧
+    when:
+      - apply_in_abstract_subformations: false
     tests: []
 
   - name: R_φ
     description: 'Accessing a decorated object'
     pattern: |
-      ⟦!B ⟧.!a
+      ⟦!B ⟧.!τ
     result: |
-      ⟦!B ⟧.φ.!a
+      ⟦!B ⟧.φ.!τ
     when:
       - present_attrs:
           attrs: ['φ']
           bindings: ['!B']
       - absent_attrs:
-          attrs: ['!a']
+          attrs: ['!τ']
           bindings: ['!B']
     tests:
       - name: 'Attribute does not exist'
@@ -156,7 +161,7 @@ rules:
 
   - name: R_OVER
     description: 'Invalid application (attribute already attached)'
-    pattern: ⟦ !t ↦ !b1, !B1 ⟧(!t ↦ !b2, !B2)
+    pattern: ⟦ !τ ↦ !b1, !B1 ⟧(!τ ↦ !b2, !B2)
     result: ⊥
     when: []
     tests:
@@ -166,11 +171,11 @@ rules:
 
   - name: R_MISS
     description: 'Invalid application (absent attribute)'
-    pattern: ⟦ !B1 ⟧(!t ↦ !b2, !B2)
+    pattern: ⟦ !B1 ⟧(!τ ↦ !b2, !B2)
     result: ⊥
     when:
       - absent_attrs:
-          attrs: ['!t', 'φ', 'λ']
+          attrs: ['!τ', 'φ', 'λ']
           bindings: ['!B1']
     tests:
       - name: ''
@@ -180,12 +185,12 @@ rules:
   - name: R_STOP
     description: 'Invalid attribute access'
     pattern: |
-      ⟦ !B ⟧.!a
+      ⟦ !B ⟧.!τ
     result: |
       ⊥
     when:
       - absent_attrs:
-          attrs: ['!a', 'φ', 'λ']
+          attrs: ['!τ', 'φ', 'λ']
           bindings: ['!B']
       - present_attrs:
           attrs: ['ρ']
@@ -199,7 +204,7 @@ rules:
   - name: R_DD
     description: 'Accessing an attribute on bottom'
     pattern: |
-      ⊥.!a
+      ⊥.!τ
     result: |
       ⊥
     when: []
