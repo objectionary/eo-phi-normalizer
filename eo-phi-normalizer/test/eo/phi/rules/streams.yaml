@@ -49,11 +49,11 @@ rules:
         output:
           - |
             ⟦
-              foreach_body$fresh$1 ↦ ξ.list.java_util_Stream$filter (α0 ↦ ⟦
+              foreach_body$1 ↦ ξ.list.java_util_Stream$filter (α0 ↦ ⟦
                 el ↦ ∅, φ ↦ ξ.el.equals (α0 ↦ Φ.org.eolang.string (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 00-))).not
               ⟧),
-              java_util_Stream$map_result$fresh$2 ↦ Φ.opeo.map-for-each (α0 ↦ ξ.foreach_body$fresh$1, α1 ↦ ⟦
+              java_util_Stream$map_result$1 ↦ Φ.opeo.map-for-each (α0 ↦ ξ.foreach_body$1, α1 ↦ ⟦
                 el ↦ ∅, φ ↦ Φ.java_util_Integer.parseInt (α0 ↦ ξ.el)
               ⟧),
-              result ↦ ξ.java_util_Stream$map_result$fresh$2.java_util_Stream$toList, list ↦ ∅
+              result ↦ ξ.java_util_Stream$map_result$1.java_util_Stream$toList, list ↦ ∅
             ⟧

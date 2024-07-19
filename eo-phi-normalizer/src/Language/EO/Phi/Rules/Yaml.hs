@@ -25,11 +25,15 @@ import Data.Maybe (fromMaybe)
 import Data.String (IsString (..))
 import Data.Yaml qualified as Yaml
 import GHC.Generics (Generic)
+import Data.Set (Set)
+import qualified Data.Set as Set
 
 import Language.EO.Phi
 import Language.EO.Phi.Rules.Common (Context (..), NamedRule)
 import Language.EO.Phi.Rules.Common qualified as Common
 import PyF (fmt)
+import Language.EO.Phi (LabelId)
+import Data.Monoid (Monoid(mempty))
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -120,18 +124,66 @@ convertRuleNamed :: Rule -> NamedRule
 convertRuleNamed rule = (rule.name, convertRule rule)
 
 mkFreshSubst :: Context -> Object -> Maybe [FreshMetaId] -> Subst
-mkFreshSubst _ctx _obj metas =
+mkFreshSubst ctx obj metas =
   Subst
     { objectMetas = []
     , bindingsMetas = []
-    , attributeMetas = zipWith mkFresh (fromMaybe [] metas) [1 ..]
+    , attributeMetas = mkFreshAttributes (usedLabelIds ctx <> objectLabelIds obj) (fromMaybe [] metas)
     , bytesMetas = []
     , contextMetas = []
     }
  where
   mkFresh FreshMetaId{..} i = (name, Label (LabelId label))
    where
-    label = fromMaybe "tmp_" prefix <> "$fresh$" <> show i
+    label = fromMaybe "tmp_" prefix <> "$" <> show i
+
+mkFreshAttributes :: Set LabelId -> [FreshMetaId] -> [(MetaId, Attribute)]
+mkFreshAttributes ids [] = []
+mkFreshAttributes ids (x:xs) =
+  case mkFreshAttribute ids x of
+    (ma, ids') -> ma : mkFreshAttributes ids' xs
+
+mkFreshAttribute :: Set LabelId -> FreshMetaId -> ((MetaId, Attribute), Set LabelId)
+mkFreshAttribute ids FreshMetaId{..} = ((name, Label label), Set.insert label ids)
+  where
+    label = head
+      [ l
+      | i <- [1..]
+      , let l = LabelId (fromMaybe "tmp" prefix <> "$" <> show i)
+      , l `Set.notMember` ids
+      ]
+
+usedLabelIds :: Context -> Set LabelId
+usedLabelIds Context{..} = objectLabelIds globalObject
+  where
+    globalObject = NonEmpty.last outerFormations
+
+objectLabelIds :: Object -> Set LabelId
+objectLabelIds = \case
+  GlobalObject -> mempty
+  ThisObject -> mempty
+  Formation bindings -> foldMap bindingLabelIds bindings
+  ObjectDispatch obj a -> objectLabelIds obj <> attrLabelIds a
+  Application obj bindings -> objectLabelIds obj <> foldMap bindingLabelIds bindings
+  Termination -> mempty
+  MetaObject{} -> mempty
+  MetaFunction _ obj -> objectLabelIds obj
+  MetaTailContext obj _ -> objectLabelIds obj
+  MetaSubstThis obj obj' -> objectLabelIds obj <> objectLabelIds obj'
+
+bindingLabelIds :: Binding -> Set LabelId
+bindingLabelIds = \case
+  AlphaBinding a obj -> objectLabelIds obj <> attrLabelIds a
+  DeltaBinding _bytes -> mempty
+  EmptyBinding a -> attrLabelIds a
+  DeltaEmptyBinding -> mempty
+  LambdaBinding _ -> mempty
+  MetaBindings _ -> mempty
+  MetaDeltaBinding _ -> mempty
+
+attrLabelIds :: Attribute -> Set LabelId
+attrLabelIds (Label l) = Set.singleton l
+attrLabelIds _ = mempty
 
 -- >>> matchContext (Context [] ["⟦ a ↦ ⟦ ⟧, x ↦ ξ.a ⟧"] (Label (LabelId "x"))) (Just (RuleContext Nothing (Just "⟦ !a ↦ !obj, !B ⟧") (Just "!a")))
 -- [Subst {

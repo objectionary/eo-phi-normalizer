@@ -156,6 +156,7 @@ library
     , blaze-markup
     , bytestring
     , cereal
+    , containers
     , directory
     , file-embed >=0.0.16.0
     , filepath
@@ -193,6 +194,7 @@ executable normalizer
     , blaze-markup
     , bytestring
     , cereal
+    , containers
     , directory
     , eo-phi-normalizer
     , file-embed >=0.0.16.0
@@ -257,6 +259,7 @@ test-suite doctests
     , blaze-markup
     , bytestring
     , cereal
+    , containers
     , directory
     , doctest-parallel
     , eo-phi-normalizer
@@ -305,6 +308,7 @@ test-suite spec
     , blaze-markup
     , bytestring
     , cereal
+    , containers
     , directory
     , eo-phi-normalizer
     , file-embed >=0.0.16.0
