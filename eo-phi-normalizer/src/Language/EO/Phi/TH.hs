@@ -6,7 +6,7 @@ import Data.Aeson.Types (defaultOptions)
 import Language.Haskell.TH (Dec, Name, Q)
 
 defaultOptions' :: Options
-defaultOptions' = defaultOptions{fieldLabelModifier = camelTo2 '-'}
+defaultOptions' = defaultOptions{fieldLabelModifier = camelTo2 '-', rejectUnknownFields = True}
 
 deriveJSON :: Name -> Q [Dec]
 deriveJSON = TH.deriveJSON defaultOptions'

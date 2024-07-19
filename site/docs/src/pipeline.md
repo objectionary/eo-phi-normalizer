@@ -36,7 +36,7 @@ Make `cygpath` available on `PATH`.
 
 ## Learn about the pipeline
 
-## Pipeline stages
+### Pipeline stages
 
 The pipeline has several important stages:
 
@@ -49,7 +49,7 @@ The pipeline has several important stages:
 - Translate normalized `PHI` programs to normalized `EO` programs.
 - Test normalized `EO` programs.
 
-## Pipeline configuration
+### Pipeline configuration
 
 The pipeline is configured via the [pipeline/config.yaml](https://github.com/objectionary/normalizer/blob/master/pipeline/config.yaml) file.
 
@@ -71,18 +71,21 @@ The configuration file specifies the following:
     - `dispatches` - For dispatches.
   - `expected-improved-programs-percentage` - Expected percentage of programs where all metrics changed as expected.
 - `test-sets` - A list of configurations for sets of test objects (tests).
-  - `eo` - The configuration of an `EO` test set.
+  - `eo` - The configuration of the `EO` part of the test set.
     - `original` - The file path of the original `EO` program.
     - `enable` - A flag to enable tests in the original `EO` program.
     - `include` - A list of names of tests in the original `EO` program that should be included into the filtered `EO` program.
     - `exclude` - A list of names of tests in the original `EO` program that shouldn't be included into the filtered `EO` program.
     - `filtered` - The file path of the filtered original `EO` program.
     - `yaml` - The file path of the original `EO` program in the `YAML` format.
-  - `phi`
-    - `initial`: The file path of the initial `PHI` program.
-    - `normalized`: The file path of the normalized `PHI` program.
-    - `bindings-path-initial`: The path to tests via bindings in the initial `PHI` program.
-    - `bindings-path-normalized`: The path to tests via bindings in the normalized `PHI` program.
+  - `phi` - The configuration of the `PHI` part of the test set.
+    - `initial` - The file path of the initial `PHI` program.
+    - `normalized` - The file path of the normalized `PHI` program.
+    - `bindings-path-initial` - The path to tests via bindings in the initial `PHI` program.
+    - `bindings-path-normalized` - The path to tests via bindings in the normalized `PHI` program.
+  - `atoms` - The configuration of atoms in the test set. The set of enabled atoms is the difference of sets constructed from the `enable` and `disable` lists.
+    - `enable` - The list of names of atoms to enable. An empty list is equivalent to a list of all known atoms.
+    - `disable` - The list of names of atoms to disable.
 
 ## Run the pipeline script
 

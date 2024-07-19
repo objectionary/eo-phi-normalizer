@@ -23,6 +23,7 @@ extra-source-files:
     report/main.js
     report/styles.css
     data/0.36.0/0.36.0.md
+    data/0.36.0/all-atoms.md
     data/0.36.0/org/eolang/as-phi.phi
     data/0.36.0/org/eolang/bool.phi
     data/0.36.0/org/eolang/bytes.phi
@@ -53,6 +54,7 @@ extra-source-files:
     data/0.36.0/org/eolang/tuple.phi
     data/0.36.0/org/eolang/while.phi
     data/0.37.0/0.37.0.md
+    data/0.37.0/all-atoms.md
     data/0.37.0/org/eolang/as-phi.phi
     data/0.37.0/org/eolang/bytes.phi
     data/0.37.0/org/eolang/cage.phi
@@ -78,6 +80,7 @@ extra-source-files:
     data/0.37.0/org/eolang/tuple.phi
     data/0.37.0/org/eolang/while.phi
     data/0.38.0/0.38.0.md
+    data/0.38.0/all-atoms.md
     data/0.38.0/org/eolang/as-phi.phi
     data/0.38.0/org/eolang/bytes.phi
     data/0.38.0/org/eolang/cage.phi
@@ -102,6 +105,31 @@ extra-source-files:
     data/0.38.0/org/eolang/try.phi
     data/0.38.0/org/eolang/tuple.phi
     data/0.38.0/org/eolang/while.phi
+    data/0.38.4/all-atoms.md
+    data/0.38.4/org/eolang/as-phi.phi
+    data/0.38.4/org/eolang/bytes.phi
+    data/0.38.4/org/eolang/cage.phi
+    data/0.38.4/org/eolang/cti.phi
+    data/0.38.4/org/eolang/dataized.phi
+    data/0.38.4/org/eolang/error.phi
+    data/0.38.4/org/eolang/false.phi
+    data/0.38.4/org/eolang/float.phi
+    data/0.38.4/org/eolang/go.phi
+    data/0.38.4/org/eolang/int.phi
+    data/0.38.4/org/eolang/io/stdin.phi
+    data/0.38.4/org/eolang/io/stdout.phi
+    data/0.38.4/org/eolang/malloc.phi
+    data/0.38.4/org/eolang/nan.phi
+    data/0.38.4/org/eolang/negative-infinity.phi
+    data/0.38.4/org/eolang/positive-infinity.phi
+    data/0.38.4/org/eolang/rust.phi
+    data/0.38.4/org/eolang/seq.phi
+    data/0.38.4/org/eolang/string.phi
+    data/0.38.4/org/eolang/switch.phi
+    data/0.38.4/org/eolang/true.phi
+    data/0.38.4/org/eolang/try.phi
+    data/0.38.4/org/eolang/tuple.phi
+    data/0.38.4/org/eolang/while.phi
 
 source-repository head
   type: git
@@ -123,6 +151,7 @@ library
       Language.EO.Phi.Metrics.Data
       Language.EO.Phi.Normalize
       Language.EO.Phi.Pipeline.Config
+      Language.EO.Phi.Pipeline.Dataize.PrintConfigs
       Language.EO.Phi.Pipeline.EOTests.Data
       Language.EO.Phi.Pipeline.EOTests.PrepareTests
       Language.EO.Phi.Report.Data
@@ -130,6 +159,7 @@ library
       Language.EO.Phi.Rules.Common
       Language.EO.Phi.Rules.Fast
       Language.EO.Phi.Rules.PhiPaper
+      Language.EO.Phi.Rules.RunYegor
       Language.EO.Phi.Rules.Yaml
       Language.EO.Phi.Syntax
       Language.EO.Phi.Syntax.Abs
@@ -163,12 +193,14 @@ library
     , file-embed >=0.0.16.0
     , filepath
     , generic-lens
+    , hashable
     , lens
     , mtl
     , regex-compat
     , scientific
     , template-haskell
     , text
+    , unordered-containers
     , yaml
   default-language: Haskell2010
 
@@ -201,6 +233,7 @@ executable normalizer
     , file-embed >=0.0.16.0
     , filepath
     , generic-lens
+    , hashable
     , lens
     , mtl
     , optparse-applicative
@@ -208,6 +241,7 @@ executable normalizer
     , scientific
     , template-haskell
     , text
+    , unordered-containers
     , with-utf8
     , yaml
   default-language: Haskell2010
@@ -223,6 +257,7 @@ test-suite doctests
       Language.EO.Phi.Metrics.Data
       Language.EO.Phi.Normalize
       Language.EO.Phi.Pipeline.Config
+      Language.EO.Phi.Pipeline.Dataize.PrintConfigs
       Language.EO.Phi.Pipeline.EOTests.Data
       Language.EO.Phi.Pipeline.EOTests.PrepareTests
       Language.EO.Phi.Report.Data
@@ -230,6 +265,7 @@ test-suite doctests
       Language.EO.Phi.Rules.Common
       Language.EO.Phi.Rules.Fast
       Language.EO.Phi.Rules.PhiPaper
+      Language.EO.Phi.Rules.RunYegor
       Language.EO.Phi.Rules.Yaml
       Language.EO.Phi.Syntax
       Language.EO.Phi.Syntax.Abs
@@ -266,12 +302,14 @@ test-suite doctests
     , file-embed >=0.0.16.0
     , filepath
     , generic-lens
+    , hashable
     , lens
     , mtl
     , regex-compat
     , scientific
     , template-haskell
     , text
+    , unordered-containers
     , yaml
   default-language: Haskell2010
 
@@ -313,6 +351,7 @@ test-suite spec
     , file-embed >=0.0.16.0
     , filepath
     , generic-lens
+    , hashable
     , hspec
     , hspec-discover
     , lens
@@ -321,6 +360,7 @@ test-suite spec
     , scientific
     , template-haskell
     , text
+    , unordered-containers
     , with-utf8
     , yaml
   default-language: Haskell2010
