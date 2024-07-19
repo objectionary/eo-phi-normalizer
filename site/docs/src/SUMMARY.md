@@ -9,4 +9,5 @@
   - [normalizer dataize](./normalizer/dataize.md)
   - [normalizer metrics](./normalizer/metrics.md)
   - [normalizer report](./normalizer/report.md)
+  - [normalizer pipeline](./normalizer/pipeline.md)
 - [Contributing](./contributing.md)

@@ -15,9 +15,10 @@ import Data.List (dropWhileEnd)
 import Data.String (IsString (..))
 import Data.Yaml (decodeFileThrow)
 import Language.EO.Phi
+import Language.EO.Phi.Dataize (defaultContext)
 import Language.EO.Phi.Metrics.Collect (getProgramMetrics)
 import Language.EO.Phi.Metrics.Data (BindingsByPathMetrics (..), ProgramMetrics (..))
-import Language.EO.Phi.Rules.Common (Rule, defaultContext, equalProgram)
+import Language.EO.Phi.Rules.Common (Rule, equalProgram)
 import Language.EO.Phi.Rules.PhiPaper (rule6)
 import PyF (fmt)
 import Test.EO.Phi
