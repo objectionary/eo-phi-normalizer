@@ -42,6 +42,8 @@ instance IsString RuleAttribute where fromString = unsafeParseWith pRuleAttribut
 instance IsString PeeledObject where fromString = unsafeParseWith pPeeledObject
 instance IsString ObjectHead where fromString = unsafeParseWith pObjectHead
 
+instance IsString MetaId where fromString = unsafeParseWith pMetaId
+
 parseWith :: ([Token] -> Either String a) -> String -> Either String a
 parseWith parser input = parser tokens
  where
@@ -256,7 +258,7 @@ equalBindings bindings1 bindings2 = and (zipWith equalBinding (sortOn attr bindi
   attr DeltaEmptyBinding = Label (LabelId "Δ")
   attr (MetaDeltaBinding _) = Label (LabelId "Δ")
   attr (LambdaBinding _) = Label (LabelId "λ")
-  attr (MetaBindings metaId) = MetaAttr metaId
+  attr (MetaBindings (BindingsMetaId metaId)) = MetaAttr (LabelMetaId metaId)
 
 equalBinding :: Binding -> Binding -> Bool
 equalBinding (AlphaBinding attr1 obj1) (AlphaBinding attr2 obj2) = attr1 == attr2 && equalObject obj1 obj2

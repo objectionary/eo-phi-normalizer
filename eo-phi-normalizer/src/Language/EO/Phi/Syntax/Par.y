@@ -9,6 +9,7 @@ module Language.EO.Phi.Syntax.Par
   ( happyError
   , myLexer
   , pProgram
+  , pMetaId
   , pObject
   , pBinding
   , pListBinding
@@ -28,6 +29,7 @@ import Language.EO.Phi.Syntax.Lex
 }
 
 %name pProgram Program
+%name pMetaId MetaId
 %name pObject Object
 %name pBinding Binding
 %name pListBinding ListBinding
@@ -66,7 +68,11 @@ import Language.EO.Phi.Syntax.Lex
   L_Function         { PT _ (T_Function $$)         }
   L_LabelId          { PT _ (T_LabelId $$)          }
   L_AlphaIndex       { PT _ (T_AlphaIndex $$)       }
-  L_MetaId           { PT _ (T_MetaId $$)           }
+  L_LabelMetaId      { PT _ (T_LabelMetaId $$)      }
+  L_TailMetaId       { PT _ (T_TailMetaId $$)       }
+  L_BindingsMetaId   { PT _ (T_BindingsMetaId $$)   }
+  L_ObjectMetaId     { PT _ (T_ObjectMetaId $$)     }
+  L_BytesMetaId      { PT _ (T_BytesMetaId $$)      }
   L_MetaFunctionName { PT _ (T_MetaFunctionName $$) }
 
 %%
@@ -83,8 +89,20 @@ LabelId  : L_LabelId { Language.EO.Phi.Syntax.Abs.LabelId $1 }
 AlphaIndex :: { Language.EO.Phi.Syntax.Abs.AlphaIndex }
 AlphaIndex  : L_AlphaIndex { Language.EO.Phi.Syntax.Abs.AlphaIndex $1 }
 
-MetaId :: { Language.EO.Phi.Syntax.Abs.MetaId }
-MetaId  : L_MetaId { Language.EO.Phi.Syntax.Abs.MetaId $1 }
+LabelMetaId :: { Language.EO.Phi.Syntax.Abs.LabelMetaId }
+LabelMetaId  : L_LabelMetaId { Language.EO.Phi.Syntax.Abs.LabelMetaId $1 }
+
+TailMetaId :: { Language.EO.Phi.Syntax.Abs.TailMetaId }
+TailMetaId  : L_TailMetaId { Language.EO.Phi.Syntax.Abs.TailMetaId $1 }
+
+BindingsMetaId :: { Language.EO.Phi.Syntax.Abs.BindingsMetaId }
+BindingsMetaId  : L_BindingsMetaId { Language.EO.Phi.Syntax.Abs.BindingsMetaId $1 }
+
+ObjectMetaId :: { Language.EO.Phi.Syntax.Abs.ObjectMetaId }
+ObjectMetaId  : L_ObjectMetaId { Language.EO.Phi.Syntax.Abs.ObjectMetaId $1 }
+
+BytesMetaId :: { Language.EO.Phi.Syntax.Abs.BytesMetaId }
+BytesMetaId  : L_BytesMetaId { Language.EO.Phi.Syntax.Abs.BytesMetaId $1 }
 
 MetaFunctionName :: { Language.EO.Phi.Syntax.Abs.MetaFunctionName }
 MetaFunctionName  : L_MetaFunctionName { Language.EO.Phi.Syntax.Abs.MetaFunctionName $1 }
@@ -92,6 +110,14 @@ MetaFunctionName  : L_MetaFunctionName { Language.EO.Phi.Syntax.Abs.MetaFunction
 Program :: { Language.EO.Phi.Syntax.Abs.Program }
 Program
   : '{' '⟦' ListBinding '⟧' '}' { Language.EO.Phi.Syntax.Abs.Program $3 }
+
+MetaId :: { Language.EO.Phi.Syntax.Abs.MetaId }
+MetaId
+  : LabelMetaId { Language.EO.Phi.Syntax.Abs.MetaIdLabel $1 }
+  | TailMetaId { Language.EO.Phi.Syntax.Abs.MetaIdTail $1 }
+  | BindingsMetaId { Language.EO.Phi.Syntax.Abs.MetaIdBindings $1 }
+  | ObjectMetaId { Language.EO.Phi.Syntax.Abs.MetaIdObject $1 }
+  | BytesMetaId { Language.EO.Phi.Syntax.Abs.MetaIdBytes $1 }
 
 Object :: { Language.EO.Phi.Syntax.Abs.Object }
 Object
@@ -102,8 +128,8 @@ Object
   | 'ξ' { Language.EO.Phi.Syntax.Abs.ThisObject }
   | '⊥' { Language.EO.Phi.Syntax.Abs.Termination }
   | Object '[' 'ξ' '↦' Object ']' { Language.EO.Phi.Syntax.Abs.MetaSubstThis $1 $5 }
-  | MetaId { Language.EO.Phi.Syntax.Abs.MetaObject $1 }
-  | Object '*' MetaId { Language.EO.Phi.Syntax.Abs.MetaTailContext $1 $3 }
+  | ObjectMetaId { Language.EO.Phi.Syntax.Abs.MetaObject $1 }
+  | Object '*' TailMetaId { Language.EO.Phi.Syntax.Abs.MetaTailContext $1 $3 }
   | MetaFunctionName '(' Object ')' { Language.EO.Phi.Syntax.Abs.MetaFunction $1 $3 }
 
 Binding :: { Language.EO.Phi.Syntax.Abs.Binding }
@@ -113,8 +139,8 @@ Binding
   | 'Δ' '⤍' Bytes { Language.EO.Phi.Syntax.Abs.DeltaBinding $3 }
   | 'Δ' '⤍' '∅' { Language.EO.Phi.Syntax.Abs.DeltaEmptyBinding }
   | 'λ' '⤍' Function { Language.EO.Phi.Syntax.Abs.LambdaBinding $3 }
-  | MetaId { Language.EO.Phi.Syntax.Abs.MetaBindings $1 }
-  | 'Δ' '⤍' MetaId { Language.EO.Phi.Syntax.Abs.MetaDeltaBinding $3 }
+  | BindingsMetaId { Language.EO.Phi.Syntax.Abs.MetaBindings $1 }
+  | 'Δ' '⤍' BytesMetaId { Language.EO.Phi.Syntax.Abs.MetaDeltaBinding $3 }
 
 ListBinding :: { [Language.EO.Phi.Syntax.Abs.Binding] }
 ListBinding
@@ -128,7 +154,7 @@ Attribute
   | 'ρ' { Language.EO.Phi.Syntax.Abs.Rho }
   | LabelId { Language.EO.Phi.Syntax.Abs.Label $1 }
   | AlphaIndex { Language.EO.Phi.Syntax.Abs.Alpha $1 }
-  | MetaId { Language.EO.Phi.Syntax.Abs.MetaAttr $1 }
+  | LabelMetaId { Language.EO.Phi.Syntax.Abs.MetaAttr $1 }
 
 RuleAttribute :: { Language.EO.Phi.Syntax.Abs.RuleAttribute }
 RuleAttribute

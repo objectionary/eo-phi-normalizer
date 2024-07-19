@@ -29,12 +29,11 @@ import GHC.Generics (Generic)
 import Data.Set (Set)
 import qualified Data.Set as Set
 
-import Language.EO.Phi
+import Language.EO.Phi ( printTree )
 import Language.EO.Phi.Rules.Common (Context (..), NamedRule)
 import Language.EO.Phi.Rules.Common qualified as Common
 import PyF (fmt)
-import Language.EO.Phi (LabelId)
-import Data.Monoid (Monoid(mempty))
+import Language.EO.Phi.Syntax.Abs
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -42,7 +41,16 @@ import Data.Monoid (Monoid(mempty))
 
 instance FromJSON Object where parseJSON = fmap fromString . parseJSON
 instance FromJSON Binding where parseJSON = fmap fromString . parseJSON
-instance FromJSON MetaId where parseJSON = fmap MetaId . parseJSON
+
+instance FromJSON ObjectMetaId where parseJSON = fmap ObjectMetaId . parseJSON
+instance FromJSON LabelMetaId where parseJSON = fmap LabelMetaId . parseJSON
+instance FromJSON TailMetaId where parseJSON = fmap TailMetaId . parseJSON
+instance FromJSON BindingsMetaId where parseJSON = fmap BindingsMetaId . parseJSON
+instance FromJSON BytesMetaId where parseJSON = fmap BytesMetaId . parseJSON
+
+instance FromJSON MetaId where
+  parseJSON = fmap fromString . parseJSON
+
 instance FromJSON Attribute where parseJSON = fmap fromString . parseJSON
 instance FromJSON RuleAttribute where parseJSON = fmap fromString . parseJSON
 
@@ -76,7 +84,7 @@ data Rule = Rule
   deriving (Generic, FromJSON, Show)
 
 data FreshMetaId = FreshMetaId
-  { name :: MetaId
+  { name :: LabelMetaId
   , prefix :: Maybe String
   }
   deriving (Generic, FromJSON, Show)
@@ -112,14 +120,18 @@ convertRule :: Rule -> Common.Rule
 convertRule Rule{..} ctx obj = do
   -- first validate pattern and result in the rule
   -- TODO: we should perform this check once, not every time we run the rule
-  let freshMetaIds = foldMap (Set.fromList . map (\FreshMetaId{..} -> name)) fresh
+  let freshMetaIds = Set.mapMonotonic MetaIdLabel $
+        foldMap (Set.fromList . map (\FreshMetaId{name=x} -> x)) fresh
 
       patternMetaIds = objectMetaIds pattern
       resultMetaIds = objectMetaIds result
 
       unusedFreshMetaIds = Set.difference freshMetaIds resultMetaIds
+
+      ppMetaIds = intercalate ", " . map printTree . Set.toList
+
   unless (null unusedFreshMetaIds) $
-    error ("invalid rule: result does not use some fresh variables quantified by the fresh: " <> show (Set.toList unusedFreshMetaIds))
+    error ("invalid rule: result does not use some fresh variables quantified by the fresh: " <> ppMetaIds unusedFreshMetaIds)
 
   case forall of
     Nothing -> return ()
@@ -130,11 +142,11 @@ convertRule Rule{..} ctx obj = do
           unusedMetaIds = Set.difference forallMetaIds patternMetaIds
           unquantifiedResultMetaIds = Set.difference resultMetaIds resultAllowedMetaIds
       unless (null unquantifiedMetaIds) $
-        error ("invalid rule: pattern uses meta variables not quantified by the forall: " <> show (Set.toList unquantifiedMetaIds))
+        error ("invalid rule: pattern uses meta variables not quantified by the forall: " <> ppMetaIds unquantifiedMetaIds)
       unless (null unusedMetaIds) $
-        error ("invalid rule: pattern does not use some variables quantified by the forall: " <> show (Set.toList unusedMetaIds))
+        error ("invalid rule: pattern does not use some variables quantified by the forall: " <> ppMetaIds unusedMetaIds)
       unless (null unquantifiedResultMetaIds) $
-        error ("invalid rule: result uses meta variables not quantified by the forall or the fresh: " <> show (Set.toList unquantifiedResultMetaIds))
+        error ("invalid rule: result uses meta variables not quantified by the forall or the fresh: " <> ppMetaIds unquantifiedResultMetaIds)
 
   contextSubsts <- matchContext ctx context
   let pattern' = applySubst contextSubsts pattern
@@ -161,13 +173,13 @@ mkFreshSubst ctx obj metas =
     , contextMetas = []
     }
 
-mkFreshAttributes :: Set LabelId -> [FreshMetaId] -> [(MetaId, Attribute)]
+mkFreshAttributes :: Set LabelId -> [FreshMetaId] -> [(LabelMetaId, Attribute)]
 mkFreshAttributes _ids [] = []
 mkFreshAttributes ids (x:xs) =
   case mkFreshAttribute ids x of
     (ma, ids') -> ma : mkFreshAttributes ids' xs
 
-mkFreshAttribute :: Set LabelId -> FreshMetaId -> ((MetaId, Attribute), Set LabelId)
+mkFreshAttribute :: Set LabelId -> FreshMetaId -> ((LabelMetaId, Attribute), Set LabelId)
 mkFreshAttribute ids FreshMetaId{..} = ((name, Label label), Set.insert label ids)
   where
     label = head
@@ -233,9 +245,9 @@ objectMetaIds (ObjectDispatch object attr) = objectMetaIds object <> attrMetaIds
 objectMetaIds GlobalObject = mempty
 objectMetaIds ThisObject = mempty
 objectMetaIds Termination = mempty
-objectMetaIds (MetaObject x) = Set.singleton x
+objectMetaIds (MetaObject x) = Set.singleton (MetaIdObject x)
 objectMetaIds (MetaFunction _ obj) = objectMetaIds obj
-objectMetaIds (MetaTailContext obj x) = objectMetaIds obj <> Set.singleton x
+objectMetaIds (MetaTailContext obj x) = objectMetaIds obj <> Set.singleton (MetaIdTail x)
 objectMetaIds (MetaSubstThis obj obj') = foldMap objectMetaIds [obj, obj']
 
 bindingMetaIds :: Binding -> Set MetaId
@@ -244,15 +256,15 @@ bindingMetaIds (EmptyBinding attr) = attrMetaIds attr
 bindingMetaIds (DeltaBinding _) = mempty
 bindingMetaIds DeltaEmptyBinding = mempty
 bindingMetaIds (LambdaBinding _) = mempty
-bindingMetaIds (MetaBindings x) = Set.singleton x
-bindingMetaIds (MetaDeltaBinding x) = Set.singleton x
+bindingMetaIds (MetaBindings x) = Set.singleton (MetaIdBindings x)
+bindingMetaIds (MetaDeltaBinding x) = Set.singleton (MetaIdBytes x)
 
 attrMetaIds :: Attribute -> Set MetaId
 attrMetaIds Phi = mempty
 attrMetaIds Rho = mempty
 attrMetaIds (Label _) = mempty
 attrMetaIds (Alpha _) = mempty
-attrMetaIds (MetaAttr x) = Set.singleton x
+attrMetaIds (MetaAttr x) = Set.singleton (MetaIdLabel x)
 
 objectHasMetavars :: Object -> Bool
 objectHasMetavars (Formation bindings) = any bindingHasMetavars bindings
@@ -334,17 +346,17 @@ hasAttr attr = any (isAttr attr)
 --  ⟦ c ↦ ⟦ ⟧ ⟧(ρ ↦ ⟦ b ↦ ⟦ ⟧ ⟧)
 
 data OneHoleContext = OneHoleContext
-  { holeMetaId :: !MetaId
+  { holeMetaId :: !ObjectMetaId
   , contextObject :: !Object
   }
   deriving (Show)
 
 data Subst = Subst
-  { objectMetas :: [(MetaId, Object)]
-  , bindingsMetas :: [(MetaId, [Binding])]
-  , attributeMetas :: [(MetaId, Attribute)]
-  , bytesMetas :: [(MetaId, Bytes)]
-  , contextMetas :: [(MetaId, OneHoleContext)]
+  { objectMetas :: [(ObjectMetaId, Object)]
+  , bindingsMetas :: [(BindingsMetaId, [Binding])]
+  , attributeMetas :: [(LabelMetaId, Attribute)]
+  , bytesMetas :: [(BytesMetaId, Bytes)]
+  , contextMetas :: [(TailMetaId, OneHoleContext)]
   }
 instance Show Subst where
   show Subst{..} =
@@ -359,7 +371,7 @@ instance Show Subst where
       , "}"
       ]
    where
-    showMappings metas = intercalate "; " $ map (\(MetaId metaId, obj) -> [fmt|{metaId} -> '{printTree obj}'|]) metas
+    showMappings metas = intercalate "; " $ map (\(metaId, obj) -> [fmt|{printTree metaId} -> '{printTree obj}'|]) metas
 
 instance Semigroup Subst where
   (<>) = mergeSubst
@@ -439,10 +451,11 @@ matchObject ThisObject ThisObject = [emptySubst]
 matchObject GlobalObject GlobalObject = [emptySubst]
 matchObject _ _ = [] -- ? emptySubst ?
 
-matchOneHoleContext :: MetaId -> Object -> Object -> [(Subst, OneHoleContext)]
-matchOneHoleContext ctxId@(MetaId name) pat obj = matchWhole <> matchPart
+matchOneHoleContext :: TailMetaId -> Object -> Object -> [(Subst, OneHoleContext)]
+matchOneHoleContext ctxId pat obj = matchWhole <> matchPart
  where
-  holeId = MetaId (name ++ ":hole") -- FIXME: ensure fresh names
+  TailMetaId name = ctxId
+  holeId = ObjectMetaId (name ++ ":hole") -- FIXME: ensure fresh names
   matchWhole = do
     subst' <- matchObject pat obj
     pure (subst', OneHoleContext holeId (MetaObject holeId))

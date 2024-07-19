@@ -11,10 +11,20 @@ token Bytes ({"--"} | ["0123456789ABCDEF"] ["0123456789ABCDEF"] {"-"} | ["012345
 token Function upper (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
 token LabelId  lower (char - [" \r\n\t,.|':;!?][}{)(⟧⟦"])* ;
 token AlphaIndex ({"α0"} | {"α"} (digit - ["0"]) (digit)* ) ;
-token MetaId {"!"} (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
+token LabelMetaId {"!τ"} (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
+token TailMetaId {"!t"} (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
+token BindingsMetaId {"!B"} (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
+token ObjectMetaId {"!b"} (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
+token BytesMetaId {"!y"} (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
 token MetaFunctionName {"@"} (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
 
 Program. Program ::= "{" "⟦" [Binding] "⟧" "}" ;
+
+MetaIdLabel.    MetaId ::= LabelMetaId ;
+MetaIdTail.     MetaId ::= TailMetaId ;
+MetaIdBindings. MetaId ::= BindingsMetaId ;
+MetaIdObject.   MetaId ::= ObjectMetaId ;
+MetaIdBytes.    MetaId ::= BytesMetaId ;
 
 Formation.      Object ::= "⟦" [Binding] "⟧" ;
 Application.    Object ::= Object "(" [Binding] ")" ;
@@ -23,8 +33,8 @@ GlobalObject.   Object ::= "Φ";
 ThisObject.     Object ::= "ξ";
 Termination.    Object ::= "⊥" ;
 MetaSubstThis.  Object ::= Object "[" "ξ" "↦" Object "]" ;
-MetaObject.     Object ::= MetaId ;
-MetaTailContext. Object ::= Object "*" MetaId ;
+MetaObject.     Object ::= ObjectMetaId ;
+MetaTailContext. Object ::= Object "*" TailMetaId ;
 MetaFunction.   Object ::= MetaFunctionName "(" Object ")" ;
 
 AlphaBinding.       Binding ::= Attribute "↦" Object ;
@@ -32,15 +42,15 @@ EmptyBinding.       Binding ::= Attribute "↦" "∅" ;
 DeltaBinding.       Binding ::= "Δ" "⤍" Bytes ;
 DeltaEmptyBinding.  Binding ::= "Δ" "⤍" "∅" ;
 LambdaBinding.      Binding ::= "λ" "⤍" Function ;
-MetaBindings.       Binding ::= MetaId ;
-MetaDeltaBinding.   Binding ::= "Δ" "⤍" MetaId ;
+MetaBindings.       Binding ::= BindingsMetaId ;
+MetaDeltaBinding.   Binding ::= "Δ" "⤍" BytesMetaId ;
 separator Binding "," ;
 
 Phi.    Attribute ::= "φ" ;   -- decoratee object
 Rho.    Attribute ::= "ρ" ;   -- parent object
 Label.  Attribute ::= LabelId ;
 Alpha.  Attribute ::= AlphaIndex ;
-MetaAttr. Attribute ::= MetaId ;
+MetaAttr. Attribute ::= LabelMetaId ;
 
 -- Additional symbols used as attributes in the rules
 ObjectAttr. RuleAttribute ::= Attribute ;
