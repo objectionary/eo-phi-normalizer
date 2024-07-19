@@ -8,10 +8,10 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeApplications #-}
+{-# OPTIONS_GHC -Wno-forall-identifier #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-partial-fields #-}
 {-# OPTIONS_GHC -Wno-type-defaults #-}
-{-# OPTIONS_GHC -Wno-forall-identifier #-}
 
 module Language.EO.Phi.Rules.Yaml where
 
@@ -23,17 +23,17 @@ import Data.Coerce (coerce)
 import Data.List (intercalate)
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.Maybe (fromMaybe)
+import Data.Set (Set)
+import Data.Set qualified as Set
 import Data.String (IsString (..))
 import Data.Yaml qualified as Yaml
 import GHC.Generics (Generic)
-import Data.Set (Set)
-import qualified Data.Set as Set
 
-import Language.EO.Phi ( printTree )
+import Language.EO.Phi (printTree)
 import Language.EO.Phi.Rules.Common (Context (..), NamedRule)
 import Language.EO.Phi.Rules.Common qualified as Common
-import PyF (fmt)
 import Language.EO.Phi.Syntax.Abs
+import PyF (fmt)
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -120,8 +120,9 @@ convertRule :: Rule -> Common.Rule
 convertRule Rule{..} ctx obj = do
   -- first validate pattern and result in the rule
   -- TODO: we should perform this check once, not every time we run the rule
-  let freshMetaIds = Set.mapMonotonic MetaIdLabel $
-        foldMap (Set.fromList . map (\FreshMetaId{name=x} -> x)) fresh
+  let freshMetaIds =
+        Set.mapMonotonic MetaIdLabel $
+          foldMap (Set.fromList . map (\FreshMetaId{name = x} -> x)) fresh
 
       patternMetaIds = objectMetaIds pattern
       resultMetaIds = objectMetaIds result
@@ -175,24 +176,25 @@ mkFreshSubst ctx obj metas =
 
 mkFreshAttributes :: Set LabelId -> [FreshMetaId] -> [(LabelMetaId, Attribute)]
 mkFreshAttributes _ids [] = []
-mkFreshAttributes ids (x:xs) =
+mkFreshAttributes ids (x : xs) =
   case mkFreshAttribute ids x of
     (ma, ids') -> ma : mkFreshAttributes ids' xs
 
 mkFreshAttribute :: Set LabelId -> FreshMetaId -> ((LabelMetaId, Attribute), Set LabelId)
 mkFreshAttribute ids FreshMetaId{..} = ((name, Label label), Set.insert label ids)
-  where
-    label = head
+ where
+  label =
+    head
       [ l
-      | i <- [1..]
+      | i <- [1 ..]
       , let l = LabelId (fromMaybe "tmp" prefix <> "$" <> show i)
       , l `Set.notMember` ids
       ]
 
 usedLabelIds :: Context -> Set LabelId
 usedLabelIds Context{..} = objectLabelIds globalObject
-  where
-    globalObject = NonEmpty.last outerFormations
+ where
+  globalObject = NonEmpty.last outerFormations
 
 objectLabelIds :: Object -> Set LabelId
 objectLabelIds = \case
