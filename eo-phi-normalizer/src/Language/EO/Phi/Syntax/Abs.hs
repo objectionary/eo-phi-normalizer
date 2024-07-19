@@ -27,7 +27,7 @@ data Object
     | Termination
     | MetaSubstThis Object Object
     | MetaObject MetaId
-    | MetaOneHoleContext MetaId Object
+    | MetaTailContext Object MetaId
     | MetaFunction MetaFunctionName Object
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 

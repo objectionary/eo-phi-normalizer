@@ -159,7 +159,7 @@ objectHasMetavars ThisObject = False
 objectHasMetavars Termination = False
 objectHasMetavars (MetaObject _) = True
 objectHasMetavars (MetaFunction _ _) = True
-objectHasMetavars MetaOneHoleContext{} = True
+objectHasMetavars MetaTailContext{} = True
 objectHasMetavars (MetaSubstThis _ _) = True -- technically not a metavar, but a substitution
 
 bindingHasMetavars :: Binding -> Bool
@@ -282,9 +282,9 @@ applySubst subst@Subst{..} = \case
   Termination -> Termination
   MetaSubstThis obj thisObj -> MetaSubstThis (applySubst subst thisObj) (applySubst subst obj)
   obj@MetaFunction{} -> obj
-  MetaOneHoleContext c obj ->
+  MetaTailContext obj c ->
     case lookup c contextMetas of
-      Nothing -> MetaOneHoleContext c (applySubst subst obj)
+      Nothing -> MetaTailContext (applySubst subst obj) c
       Just OneHoleContext{..} ->
         let holeSubst = mempty{objectMetas = [(holeMetaId, applySubst subst obj)]}
          in applySubst holeSubst contextObject
@@ -327,7 +327,7 @@ matchObject (ObjectDispatch pat a) (ObjectDispatch obj a') = do
   pure (subst1 <> subst2)
 matchObject (MetaObject m) obj =
   pure emptySubst{objectMetas = [(m, obj)]}
-matchObject (MetaOneHoleContext x pat) obj = do
+matchObject (MetaTailContext pat x) obj = do
   (subst@Subst{..}, matchedCtx) <- matchOneHoleContext x pat obj
   return subst{contextMetas = contextMetas <> [(x, matchedCtx)]}
 matchObject Termination Termination = [emptySubst]
@@ -358,7 +358,7 @@ matchOneHoleContext ctxId@(MetaId name) pat obj = matchWhole <> matchPart
     -- should cases below be errors?
     MetaSubstThis{} -> []
     MetaObject{} -> []
-    MetaOneHoleContext{} -> []
+    MetaTailContext{} -> []
     MetaFunction{} -> []
 
 -- | Evaluate meta functions
@@ -461,7 +461,7 @@ substThis thisObj = go
     ObjectDispatch obj a -> ObjectDispatch (go obj) a
     GlobalObject -> GlobalObject
     Termination -> Termination
-    obj@MetaOneHoleContext{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
+    obj@MetaTailContext{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
     obj@MetaSubstThis{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
     obj@MetaObject{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
     obj@MetaFunction{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)

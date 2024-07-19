@@ -53,7 +53,7 @@ instance ToLatex Object where
   toLatex ThisObject = "$"
   toLatex Termination = "\\dead"
   toLatex (MetaObject _) = error "rendering MetaObject in LaTex format"
-  toLatex MetaOneHoleContext{} = error "rendering MetaObject in LaTex format"
+  toLatex MetaTailContext{} = error "rendering MetaTailContext in LaTex format"
   toLatex (MetaFunction _ _) = error "rendering MetaFunction in LaTex format"
   toLatex (MetaSubstThis _ _) = error "rendering MetaSubstThis in LaTex format"
 

@@ -28,7 +28,7 @@ $u = [. \n]          -- universal: any character
 
 -- Symbols and non-identifier-like reserved words
 
-@rsyms = \Φ | \ξ | \Δ | \λ | \φ | \ρ | \{ | \⟦ | \⟧ | \} | \( | \) | \. | \⊥ | \[ | \↦ | \] | \[ "1" \| | \| "1" \] | \∅ | \⤍ | \,
+@rsyms = \Φ | \ξ | \Δ | \λ | \φ | \ρ | \{ | \⟦ | \⟧ | \} | \( | \) | \. | \⊥ | \[ | \↦ | \] | \* | \∅ | \⤍ | \,
 
 :-
 
@@ -186,17 +186,16 @@ eitherResIdent tv s = treeFind resWords
 -- | The keywords and symbols of the language organized as binary search tree.
 resWords :: BTree
 resWords =
-  b "\934" 12
-    (b "[1|" 6
-       (b "," 3 (b ")" 2 (b "(" 1 N N) N) (b "[" 5 (b "." 4 N N) N))
-       (b "|1]" 9
-          (b "{" 8 (b "]" 7 N N) N) (b "\916" 11 (b "}" 10 N N) N)))
-    (b "\8709" 18
-       (b "\961" 15
-          (b "\958" 14 (b "\955" 13 N N) N)
-          (b "\8614" 17 (b "\966" 16 N N) N))
-       (b "\10215" 21
-          (b "\10214" 20 (b "\8869" 19 N N) N) (b "\10509" 22 N N)))
+  b "\934" 11
+    (b "[" 6
+       (b "*" 3 (b ")" 2 (b "(" 1 N N) N) (b "." 5 (b "," 4 N N) N))
+       (b "}" 9 (b "{" 8 (b "]" 7 N N) N) (b "\916" 10 N N)))
+    (b "\8709" 17
+       (b "\961" 14
+          (b "\958" 13 (b "\955" 12 N N) N)
+          (b "\8614" 16 (b "\966" 15 N N) N))
+       (b "\10215" 20
+          (b "\10214" 19 (b "\8869" 18 N N) N) (b "\10509" 21 N N)))
   where
   b s n = B bs (TS bs n)
     where

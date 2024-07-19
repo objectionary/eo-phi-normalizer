@@ -24,7 +24,7 @@ ThisObject.     Object ::= "ξ";
 Termination.    Object ::= "⊥" ;
 MetaSubstThis.  Object ::= Object "[" "ξ" "↦" Object "]" ;
 MetaObject.     Object ::= MetaId ;
-MetaOneHoleContext. Object ::= MetaId "[1|" Object "|1]" ;
+MetaTailContext. Object ::= Object "*" MetaId ;
 MetaFunction.   Object ::= MetaFunctionName "(" Object ")" ;
 
 AlphaBinding.       Binding ::= Attribute "↦" Object ;
