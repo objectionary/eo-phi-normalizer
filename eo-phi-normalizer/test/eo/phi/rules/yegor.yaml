@@ -125,7 +125,7 @@ rules:
       ⟦ !τ1 ↦ ⟦ !τ2 ↦ !n[ ξ ↦ ⟦ !τ1 ↦ ⟦ !τ2 ↦ ∅, !B1 ⟧(!τ2 ↦ !n, !B2), !B3 ⟧ ], !B1 ⟧(!B2), !B3 ⟧
     when:
       - apply_in_abstract_subformations: false
-      - nf: '!b'
+      - nf: '!n'
     tests: []
 
   - name: R_COPY_Δ
