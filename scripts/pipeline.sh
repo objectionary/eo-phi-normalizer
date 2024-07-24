@@ -35,14 +35,26 @@ function convert_eo_to_phi {
     cd "$PIPELINE_DIR"
 }
 
-function update_normalizer_phi_files {
+function update_normalizer_data_files {
 
-    print_message "Update .phi data files in eo-phi-normalizer"
+    print_message "Update data files in eo-phi-normalizer"
 
     cd "$PIPELINE_EO_FILTERED_DIR"
-    local data_directory="$PIPELINE_NORMALIZER_DIR/data/$EO"
+
+    print_message "Update *.phi files"
+
+    local data_directory="$PIPELINE_NORMALIZER_DATA_DIR/$EO"
     mkdir_clean "$data_directory"
     cp -r .eoc/phi/org "$data_directory"
+
+    cd "$PIPELINE_DIR"
+
+    cd "$PWD_DIR"
+
+    print_message "Update dependencies.md files"
+
+    write_dependencies_markdown
+
     cd "$PIPELINE_DIR"
 }
 
@@ -118,7 +130,7 @@ function normalize {
         extract '.atoms' "$1"
     }
     export -f extract_atoms
-    
+
     function extract_enable {
         extract '.enable' "$1"
     }
@@ -196,7 +208,7 @@ install_normalizer
 if [[ "$PIPELINE_LOCK_CHANGED" = true ]]; then
     generate_eo_tests
     convert_eo_to_phi
-    update_normalizer_phi_files
+    update_normalizer_data_files
     convert_phi_to_eo
     test_without_normalization
 fi
