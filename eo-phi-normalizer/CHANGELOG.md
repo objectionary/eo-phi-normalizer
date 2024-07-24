@@ -6,6 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to the
 [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## v1.0.0 - 2024-07-19
+
+### New
+
+- Align reductions from application to `⊥` with the paper ([#418](https://github.com/objectionary/normalizer/pull/418), [#435](https://github.com/objectionary/normalizer/pull/435))
+- Support enabling/disabling particular atoms ([#426](https://github.com/objectionary/normalizer/pull/426))
+- Support custom rules ([#432](https://github.com/objectionary/normalizer/pull/432))
+  - Test ruleset `streams.yaml` with the example rule equipped with a passing test, matching <https://github.com/objectionary/normalizer/issues/423#issue-2366637410>
+  - Allow rules to go inside abstract objects (and add explicit `apply_in_abstract_subformations` option to maintain correctness for `yegor.yaml` rules)
+  - Support tail patterns (restricted one-hole contexts)
+    - Matching against objects inside dispatch
+    - Matching against objects inside application (left only)
+  - Properly generate fresh names
+  - Allow explicit `forall` to keep track of all metavariables for extra safety (force in the future, see [#441](https://github.com/objectionary/normalizer/issues/441)).
+  - Distinguish types of metavariables for extra safety.
+
+### Changes and fixes
+
+- Update decoration rule ([#420](https://github.com/objectionary/normalizer/pull/420))
+- Generalize `Φ-dispatch` to rewrite `Φ` instead of `Φ.a` ([#419](https://github.com/objectionary/normalizer/pull/419))
+
+### Documentation and maintenance
+
+- Update EO to 0.38.4 ([#426](https://github.com/objectionary/normalizer/pull/426))
+
 ## v0.4.1 — 2024-06-12
 
 Changes and fixes:
