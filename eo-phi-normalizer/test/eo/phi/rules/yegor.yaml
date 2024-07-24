@@ -120,12 +120,12 @@ rules:
   - name: R_COPY
     description: 'Application of α-binding'
     pattern: |
-      ⟦ !τ1 ↦ ⟦ !τ2 ↦ ∅, !B1 ⟧(!τ2 ↦ !n, !B2), !B3 ⟧
+      ⟦ !τ1 ↦ ⟦ !τ2 ↦ ∅, !B1 ⟧(!τ2 ↦ !b, !B2), !B3 ⟧
     result: |
-      ⟦ !τ1 ↦ ⟦ !τ2 ↦ !n[ ξ ↦ ⟦ !τ1 ↦ ⟦ !τ2 ↦ ∅, !B1 ⟧(!τ2 ↦ !n, !B2), !B3 ⟧ ], !B1 ⟧(!B2), !B3 ⟧
+      ⟦ !τ1 ↦ ⟦ !τ2 ↦ !b[ ξ ↦ ⟦ !τ1 ↦ ⟦ !τ2 ↦ ∅, !B1 ⟧(!τ2 ↦ !b, !B2), !B3 ⟧ ], !B1 ⟧(!B2), !B3 ⟧
     when:
       - apply_in_abstract_subformations: false
-      - nf: '!n'
+      - nf: '!b'
     tests: []
 
   - name: R_COPY_Δ
