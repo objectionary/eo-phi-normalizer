@@ -238,8 +238,6 @@ function check_syntax_files_exist {
 export -f check_syntax_files_exist
 
 function write_dependencies_markdown_for_eo_version {
-    # print dependencies from eo-phi-normalizer/data/<version> in a markdown file
-
     local eo_version=$1
 
     export PIPELINE_NORMALIZER_DATA_DIR
