@@ -208,7 +208,7 @@ install_normalizer
 if [[ "$PIPELINE_LOCK_CHANGED" = true ]]; then
     generate_eo_tests
     convert_eo_to_phi
-    update_normalizer_phi_files
+    update_normalizer_data_files
     convert_phi_to_eo
     test_without_normalization
 fi
