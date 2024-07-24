@@ -234,3 +234,52 @@ function check_syntax_files_exist {
 }
 
 export -f check_syntax_files_exist
+
+function write_dependencies_markdown_for_eo_version {
+    # print dependencies from eo-phi-normalizer/data/<version> in a markdown file
+
+    local eo_version=$1
+
+    export PIPELINE_NORMALIZER_DIR
+
+    local version_data_dir="$PIPELINE_NORMALIZER_DIR/data/$eo_version"
+    export version_data_dir
+
+    function print_program {
+        # shellcheck disable=SC2317
+        local path=$1
+
+        # shellcheck disable=SC2317
+        local path_local="${path#"$version_data_dir/"}"
+
+        # shellcheck disable=SC2317
+        printf "## [%s](./%s)\n\n\`\`\`console\n%s\n\`\`\`\n\n" "$path_local" "$path_local" "$(cat "$path")"
+    }
+
+    export -f print_program
+
+    local output="$version_data_dir/dependencies.md"
+
+    printf "# Dependencies\n\n" > "$output"
+
+    find "$version_data_dir" -name '*.phi' \
+        | sort \
+        | xargs -I {} bash -c 'print_program {}' \
+        >> "$output"
+
+    export -n version_data_dir
+    export -n print_program
+}
+
+export -f write_dependencies_markdown_for_eo_version
+
+function write_dependencies_markdown {
+    export PIPELINE_NORMALIZER_DIR
+
+    # shellcheck disable=SC2038
+    find "$PIPELINE_NORMALIZER_DIR/data" -mindepth 1 -maxdepth 1 -type d \
+        | xargs -I {} basename {} \
+        | xargs -I {} bash -c "write_dependencies_markdown_for_eo_version {}"
+}
+
+export -f write_dependencies_markdown
