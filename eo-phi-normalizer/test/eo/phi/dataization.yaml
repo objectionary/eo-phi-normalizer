@@ -97,6 +97,14 @@ tests:
       object: |
         ⟦ x ↦ ⟦ a ↦ ⟦ d ↦ ξ.ρ ⟧, ρ ↦ ⟦ c ↦ ⟦ a ↦ ⟦ d ↦ ξ.ρ ⟧ ⟧ ⟧ ⟧, λ ⤍ Package ⟧
 
+  - name: "Object with ξ.ρ is an argument in application"
+    dependencies: []
+    input: |
+      {⟦ a ↦ ⟦ b ↦ ∅, x ↦ ⟦ Δ ⤍ 01- ⟧ ⟧ (b ↦ ⟦ c ↦ ξ.ρ.x ⟧ ).b.c, x ↦ ⟦ Δ ⤍ 02- ⟧, λ ⤍ Package ⟧}
+    output:
+      object: |
+        ⟦ a ↦ ⟦ Δ ⤍ 02- ⟧, x ↦ ⟦ Δ ⤍ 02- ⟧, λ ⤍ Package ⟧
+
   # FIXME: fails because nf condition for ξ.b succeeds though it shouldn't
   # - name: "ξ in application"
   #   dependencies: []
