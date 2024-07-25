@@ -117,14 +117,25 @@ tests:
       object: |
         ⟦ a ↦ ⟦ Δ ⤍ 02- ⟧, x ↦ ⟦ Δ ⤍ 02- ⟧, λ ⤍ Package ⟧
 
-  # FIXME: fails because nf condition for ξ.b succeeds though it shouldn't
-  # - name: "ξ in application"
-  #   dependencies: []
-  #   input: |
-  #     {⟦ x ↦ ⟦ a ↦ ∅ ⟧(a ↦ ξ.b), b ↦ ⟦ Δ ⤍ 01- ⟧ , λ ⤍ Package ⟧}
-  #   output:
-  #     object: |
-  #       {⟦ x ↦ ⟦ a ↦ ⟦ Δ ⤍ 01- ⟧ ⟧, b ↦ ⟦ Δ ⤍ 01- ⟧ , λ ⤍ Package ⟧}
+  - name: "ξ in application"
+    dependencies: []
+    input: |
+      {⟦ x ↦ ⟦ a ↦ ∅ ⟧(a ↦ ξ.b), b ↦ ⟦ Δ ⤍ 01- ⟧ , λ ⤍ Package ⟧}
+    output:
+      object: |
+        ⟦ x ↦ ⟦
+            a ↦ ⟦
+              Δ ⤍ 01-,
+              ρ ↦ ⟦
+                b ↦ ⟦ Δ ⤍ 01- ⟧,
+                x ↦ ⟦ a ↦ ∅ ⟧ (a ↦ ξ.b),
+                λ ⤍ Package
+              ⟧
+            ⟧
+          ⟧,
+          b ↦ ⟦ Δ ⤍ 01- ⟧,
+          λ ⤍ Package
+        ⟧
 
   - name: "ξ chain"
     dependencies: []
