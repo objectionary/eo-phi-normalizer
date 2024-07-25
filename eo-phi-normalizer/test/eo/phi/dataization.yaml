@@ -95,7 +95,15 @@ tests:
       {⟦ x ↦ ⟦ c ↦ ⟦ a ↦ ∅ ⟧ (a ↦ ⟦ d ↦ ξ.ρ ⟧) ⟧.c , λ ⤍ Package ⟧}
     output:
       object: |
-        ⟦ x ↦ ⟦ a ↦ ⟦ d ↦ ξ.ρ ⟧, ρ ↦ ⟦ c ↦ ⟦ a ↦ ⟦ d ↦ ξ.ρ ⟧ ⟧ ⟧ ⟧, λ ⤍ Package ⟧
+        ⟦ x ↦ ⟦
+            a ↦ ⟦
+              d ↦ ξ.ρ,
+              ρ ↦ ⟦ c ↦ ⟦ a ↦ ∅ ⟧(a ↦ ⟦ d ↦ ξ.ρ ⟧) ⟧
+            ⟧,
+            ρ ↦ ⟦ c ↦ ⟦ a ↦ ∅ ⟧(a ↦ ⟦ d ↦ ξ.ρ ⟧) ⟧
+          ⟧,
+          λ ⤍ Package
+        ⟧
 
   - name: "Object with ξ.ρ is an argument in application"
     dependencies: []
