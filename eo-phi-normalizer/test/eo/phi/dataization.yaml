@@ -100,7 +100,11 @@ tests:
   - name: "Object with ξ.ρ is an argument in application"
     dependencies: []
     input: |
-      {⟦ a ↦ ⟦ b ↦ ∅, x ↦ ⟦ Δ ⤍ 01- ⟧ ⟧ (b ↦ ⟦ c ↦ ξ.ρ.x ⟧ ).b.c, x ↦ ⟦ Δ ⤍ 02- ⟧, λ ⤍ Package ⟧}
+      {⟦
+        a ↦ ⟦ b ↦ ∅, x ↦ ⟦ Δ ⤍ 01- ⟧ ⟧ (b ↦ ⟦ c ↦ ξ.ρ.x ⟧ ).b.c,
+        x ↦ ⟦ Δ ⤍ 02- ⟧,
+        λ ⤍ Package
+      ⟧}
     output:
       object: |
         ⟦ a ↦ ⟦ Δ ⤍ 02- ⟧, x ↦ ⟦ Δ ⤍ 02- ⟧, λ ⤍ Package ⟧

@@ -119,13 +119,24 @@ rules:
 
   - name: R_COPY
     description: 'Application of α-binding'
+    context:
+      current_object: "!b3"
     pattern: |
-      ⟦ !τ1 ↦ ⟦ !τ2 ↦ ∅, !B1 ⟧(!τ2 ↦ !b, !B2), !B3 ⟧
+      ⟦ !τ2 ↦ ∅, !B1 ⟧(!τ2 ↦ !b, !B2)
     result: |
-      ⟦ !τ1 ↦ ⟦ !τ2 ↦ !b[ ξ ↦ ⟦ !τ1 ↦ ⟦ !τ2 ↦ ∅, !B1 ⟧(!τ2 ↦ !b, !B2), !B3 ⟧ ], !B1 ⟧(!B2), !B3 ⟧
+      ⟦ !τ2 ↦ !b[ ξ ↦ !b3 ], !B1 ⟧(!B2)
     when:
-      - apply_in_abstract_subformations: false
+      - apply_in_subformations: false
       - nf: '!b'
+    tests: []
+
+  - name: R_COPY_EMPTY
+    description: 'Empty application'
+    pattern: |
+      ⟦ !B1 ⟧()
+    result: |
+      ⟦ !B1 ⟧
+    when: []
     tests: []
 
   - name: R_COPY_Δ
