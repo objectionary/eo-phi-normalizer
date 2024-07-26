@@ -2,7 +2,7 @@
 
 ## Reports
 
-The `report` command generates reports about initial and normalized `PHI` programs.
+The `normalizer report` command generates reports about initial and normalized `PHI` programs.
 
 The reports contain detailed information about metrics collected for these programs.
 
@@ -22,49 +22,9 @@ Currently, we translate `EO` programs and get initial `PHI` programs.
 
 Next, we normalize these `PHI` programs and get normalized `PHI` programs.
 
-### Report configuration file
+### Report configuration
 
-A report configuration file has several attributes:
-
-- `input`
-  - `js` - Optional path to a `JavaScript` file that should be inlined into an `HTML` report.
-    - If no path is specified, `normalizer` will use `report/main.js` from the `eo-phi-normalizer` package.
-  - `css` - Optional path to a `CSS` file that should be inlined into an `HTML` report.
-    - If no path is specified, `normalizer` will use `report/styles.css` from the `eo-phi-normalizer` package.
-- `output`
-  - `html` - Optional path to an `HTML` report.
-    - If no path is specified, the `HTML` report won't be generated.
-  - `json` - Optional path to a `JSON` report.
-    - If no path is specified, the `JSON` report won't be generated.
-  - `markdown` - Optional path to a `GitHub Flavored Markdown` report.
-    - If no path is specified, the `GitHub Flavored Markdown` report won't be generated.
-- `expected-metrics-change` - Specifies expected changes of metrics for normalized `PHI` programs relative to the initial `PHI` programs. Values represent `(metric_initial - metric_normalized) / metric_ initial`. Attributes:
-  - `dataless`
-  - `applications`
-  - `formations`
-  - `dispatches`
-- `items`
-  - `phi` - path to an initial `PHI` program.
-  - `phi-normalized` - path to a normalized `PHI` program.
-    - The normalized `PHI` program should correspond to the initial `PHI` program.
-  - `bindings-path-phi` - path to bindings of a formation in the initial `PHI` program.
-    - `org.eolang` corresponds to a formation `Φ.org.eolang`.
-  - `bindings-path-phi-normalized` - path to bindings of a formation in the normalized `PHI` program.
-    - `org.eolang` corresponds to a formation `Φ.org.eolang`.
-
-#### Sample report configuration file
-
-The `normalizer` repository contains the `report/config.yaml` report configuration file.
-
-<details>
-
-<summary>Click to view the file</summary>
-
-```yaml
-{{#include ../../../../report/config.yaml}}
-```
-
-</details>
+The report configuration is stored in the `report` object in the [pipeline configuration file](../pipeline.md#pipeline-configuration).
 
 ## CLI
 
@@ -86,4 +46,6 @@ Available options:
 
 ### `--config`
 
-Provide a report configuration file (see [Report configuration file](#report-configuration-file)).
+```$ as console
+normalizer report --config pipeline/config.yaml
+```
