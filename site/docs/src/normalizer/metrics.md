@@ -1,53 +1,8 @@
 # `normalizer metrics`
 
-## PHI grammar
-
-![phi-grammar](../media/phi-grammar.png)
-
 ## Metrics
 
-We count:
-
-- [Object applications](#object-applications)
-- [Object formations](#object-formations)
-- [Dynamic dispatches](#dynamic-dispatches)
-- [Dataless formations](#dataless-formations)
-
-### Object formations
-
-- `⟦ d ↦ ∅, c ↦ ∅ ⟧`
-
-### Object applications
-
-- `ξ.b(c ↦ ⟦ ⟧)`
-
-### Dynamic dispatches
-
-- `ξ.ρ.c`
-
-### Dataless formations
-
-#### Definition: \\( \Delta \\)-depth
-
-\\( \Delta \\)-depth of an object describes how deep data is in the object
-when recursively traversing values attached to the object attributes. That is, \\( \Delta \\)-depth is \\( \infty \\)
-for all objects except formations. More specifically:
-
-1. the \\( \Delta \\)-depth of a formation with bytes attached to a \\( \Delta \\)-attribute is \\( 1 \\)-;
-1. for a non-empty formation, the \\( \Delta \\)--depth is:
-   1. \\( 1 + M \\), where \\( M \\) is the minimal depth among objects attached to attributes of this formation;
-   1. \\( \infty \\) if there are no objects attached to attributes of this formation;
-1. otherwise, the \\( \Delta \\)-depth of an object is \\( \infty \\).
-
-#### Definition: Dataless object
-
-An object is dataless if its \\( \Delta \\)-depth is greater than 2.
-
-#### Examples
-
-The following table demonstrates objects with their \\( \Delta \\)-depths:
-
-![metrics](../media/metrics.png)
+See [Metrics](../metrics.md) for the specification of metrics collected by this command.
 
 ## Environment
 

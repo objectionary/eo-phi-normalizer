@@ -45,7 +45,7 @@ The pipeline has several important stages:
 - Translate initial `PHI` programs to initial `EO` programs.
 - Test initial `EO` programs.
 - Normalize initial `PHI` programs and get normalized `PHI` programs.
-- Report metrics on initial `PHI` programs and normalized `PHI` programs.
+- Report metrics on initial `PHI` programs and normalized `PHI` programs (See [Metrics](./metrics.md)).
 - Translate normalized `PHI` programs to normalized `EO` programs.
 - Test normalized `EO` programs.
 
