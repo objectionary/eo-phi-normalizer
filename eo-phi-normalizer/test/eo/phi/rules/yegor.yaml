@@ -93,12 +93,14 @@ rules:
     # Warning: this is not correct for the chain variant because it only matches the first two bindings
     # i.e., doesn't match an empty binding after an attached one.
     # We should instead match the first two empty bindings.
+    context:
+      current_object: "!b_cur"
     pattern: |
       ⟦ !τ1 ↦ ∅, !τ2 ↦ ∅, !B ⟧(α0 ↦ !b0, α1 ↦ !b1)
     result: |
-      ⟦ !τ1 ↦ !b0, !τ2 ↦ !b1, !B ⟧
+      ⟦ !τ1 ↦ !b0[ ξ ↦ !b_cur ], !τ2 ↦ !b1[ ξ ↦ !b_cur ], !B ⟧
     when:
-      - apply_in_abstract_subformations: false
+      - apply_in_subformations: false
       - nf: '!b0'
       - nf: '!b1'
     tests: []
@@ -108,24 +110,37 @@ rules:
     # Warning: this is not correct for the chain variant because it only matches the first binding
     # i.e., doesn't match an empty binding after an attached one.
     # We should instead match the first empty binding.
+    context:
+      current_object: "!b_cur"
     pattern: |
       ⟦ !τ ↦ ∅, !B ⟧(α0 ↦ !b)
     result: |
-      ⟦ !τ ↦ !b, !B ⟧
+      ⟦ !τ ↦ !b[ ξ ↦ !b_cur ], !B ⟧
     when:
-      - apply_in_abstract_subformations: false
+      - apply_in_subformations: false
       - nf: '!b'
     tests: []
 
   - name: R_COPY
     description: 'Application of α-binding'
+    context:
+      current_object: "!b_cur"
     pattern: |
-      ⟦ !τ ↦ ∅, !B ⟧(!τ ↦ !b)
+      ⟦ !τ ↦ ∅, !B1 ⟧(!τ ↦ !b, !B2)
     result: |
-      ⟦ !τ ↦ !b, !B ⟧
+      ⟦ !τ ↦ !b[ ξ ↦ !b_cur ], !B1 ⟧(!B2)
     when:
-      - apply_in_abstract_subformations: false
+      - apply_in_subformations: false
       - nf: '!b'
+    tests: []
+
+  - name: R_COPY_EMPTY
+    description: 'Empty application'
+    pattern: |
+      ⟦ !B1 ⟧()
+    result: |
+      ⟦ !B1 ⟧
+    when: []
     tests: []
 
   - name: R_COPY_Δ

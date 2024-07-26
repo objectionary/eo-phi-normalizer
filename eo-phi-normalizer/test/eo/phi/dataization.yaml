@@ -95,16 +95,47 @@ tests:
       {⟦ x ↦ ⟦ c ↦ ⟦ a ↦ ∅ ⟧ (a ↦ ⟦ d ↦ ξ.ρ ⟧) ⟧.c , λ ⤍ Package ⟧}
     output:
       object: |
-        ⟦ x ↦ ⟦ a ↦ ⟦ d ↦ ξ.ρ ⟧, ρ ↦ ⟦ c ↦ ⟦ a ↦ ⟦ d ↦ ξ.ρ ⟧ ⟧ ⟧ ⟧, λ ⤍ Package ⟧
+        ⟦ x ↦ ⟦
+            a ↦ ⟦
+              d ↦ ξ.ρ,
+              ρ ↦ ⟦ c ↦ ⟦ a ↦ ∅ ⟧(a ↦ ⟦ d ↦ ξ.ρ ⟧) ⟧
+            ⟧,
+            ρ ↦ ⟦ c ↦ ⟦ a ↦ ∅ ⟧(a ↦ ⟦ d ↦ ξ.ρ ⟧) ⟧
+          ⟧,
+          λ ⤍ Package
+        ⟧
 
-  # FIXME: fails because nf condition for ξ.b succeeds though it shouldn't
-  # - name: "ξ in application"
-  #   dependencies: []
-  #   input: |
-  #     {⟦ x ↦ ⟦ a ↦ ∅ ⟧(a ↦ ξ.b), b ↦ ⟦ Δ ⤍ 01- ⟧ , λ ⤍ Package ⟧}
-  #   output:
-  #     object: |
-  #       {⟦ x ↦ ⟦ a ↦ ⟦ Δ ⤍ 01- ⟧ ⟧, b ↦ ⟦ Δ ⤍ 01- ⟧ , λ ⤍ Package ⟧}
+  - name: "Object with ξ.ρ is an argument in application"
+    dependencies: []
+    input: |
+      {⟦
+        a ↦ ⟦ b ↦ ∅, x ↦ ⟦ Δ ⤍ 01- ⟧ ⟧ (b ↦ ⟦ c ↦ ξ.ρ.x ⟧ ).b.c,
+        x ↦ ⟦ Δ ⤍ 02- ⟧,
+        λ ⤍ Package
+      ⟧}
+    output:
+      object: |
+        ⟦ a ↦ ⟦ Δ ⤍ 02- ⟧, x ↦ ⟦ Δ ⤍ 02- ⟧, λ ⤍ Package ⟧
+
+  - name: "ξ in application"
+    dependencies: []
+    input: |
+      {⟦ x ↦ ⟦ a ↦ ∅ ⟧(a ↦ ξ.b), b ↦ ⟦ Δ ⤍ 01- ⟧ , λ ⤍ Package ⟧}
+    output:
+      object: |
+        ⟦ x ↦ ⟦
+            a ↦ ⟦
+              Δ ⤍ 01-,
+              ρ ↦ ⟦
+                b ↦ ⟦ Δ ⤍ 01- ⟧,
+                x ↦ ⟦ a ↦ ∅ ⟧ (a ↦ ξ.b),
+                λ ⤍ Package
+              ⟧
+            ⟧
+          ⟧,
+          b ↦ ⟦ Δ ⤍ 01- ⟧,
+          λ ⤍ Package
+        ⟧
 
   - name: "ξ chain"
     dependencies: []
