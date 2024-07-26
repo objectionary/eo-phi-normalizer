@@ -251,8 +251,8 @@ commandParser =
     latex <- latexSwitch
     asPackage <- asPackageSwitch
     minimizeStuckTerms <- minimizeStuckTermsSwitch
-    disabledAtomNames <- many $ strOption (long "disable-atom" <> metavar.atomName <> help "Disable a particular atom by its name.")
-    enabledAtomNames <- many $ strOption (long "enable-atom" <> metavar.atomName <> help "Enable a particular atom by its name.")
+    disabledAtomNames <- many $ strOption (long "disable-atom" <> metavar.atomName <> help "Name of an atom to disable.")
+    enabledAtomNames <- many $ strOption (long "enable-atom" <> metavar.atomName <> help "Name of an atom to enable.")
     pure CLI'DataizePhi{..}
   report = do
     configFile <- strOption (long "config" <> short 'c' <> metavar.file <> help [fmt|A report configuration {metavarName.file}.|])
@@ -262,7 +262,7 @@ commandParser =
     pure CLI'Pipeline'PrepareTests{..}
   pipelinePrintDataizeConfigs = do
     configFile <- strOption (long "config" <> short 'c' <> metavar.file <> help [fmt|A pipeline tests configuration {metavarName.file}.|])
-    phiPrefixesToStrip <- many $ strOption (long "strip-phi-prefix" <> short 'p' <> metavar.atomName <> help "Remove prefixes in PHI file paths.")
+    phiPrefixesToStrip <- many $ strOption (long "strip-phi-prefix" <> short 'p' <> metavar.path <> help [fmt|{metavarName.path} prefix to remove in PHI file paths.|])
     singleLine <- switch (long "single-line" <> short 'l' <> help [fmt|Output configs on an single line.|])
     pure CLI'Pipeline'PrintDataizeConfigs{..}
   pipeline =
