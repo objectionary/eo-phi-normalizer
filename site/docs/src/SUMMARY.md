@@ -4,6 +4,7 @@
 - [Installation](./installation.md)
 - [Quick start](./quick-start.md)
 - [Pipeline](./pipeline.md)
+- [Metrics](./metrics.md)
 - [Normalizer](./normalizer.md)
   - [normalizer transform](./normalizer/transform.md)
   - [normalizer dataize](./normalizer/dataize.md)
