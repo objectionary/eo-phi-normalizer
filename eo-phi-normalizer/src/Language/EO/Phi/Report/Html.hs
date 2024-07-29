@@ -100,11 +100,15 @@ instance ToMarkup Percent where
 -- "<td class=\"number not-applicable\">N/A\128995</td>"
 toHtmlChange :: (ToMarkup a) => ReportFormat -> MetricsChangeCategory a -> Html
 toHtmlChange reportFormat = \case
-  MetricsChange'NA -> td ! class_ "number not-applicable" $ toHtml ("N/A" :: String) <> toHtml ['🟣' | isMarkdown]
-  MetricsChange'Bad{..} -> td ! class_ "number bad" $ toHtml change <> toHtml ['🔴' | isMarkdown]
-  MetricsChange'Good{..} -> td ! class_ "number good" $ toHtml change <> toHtml ['🟢' | isMarkdown]
+  MetricsChange'NA -> td ! class_ [fmt|{number} not-applicable|] $ toHtml na <> toHtml ['🟣' | isMarkdown]
+  MetricsChange'Bad{..} -> td ! class_ [fmt|{number} bad|] $ toHtml change <> toHtml ['🔴' | isMarkdown]
+  MetricsChange'Good{..} -> td ! class_ [fmt|{number} good|] $ toHtml change <> toHtml ['🟢' | isMarkdown]
  where
   isMarkdown = reportFormat == ReportFormat'Markdown
+  na :: String
+  na = "N/A"
+  number :: String
+  number = "number"
 
 toHtmlMetricsChange :: ReportFormat -> MetricsChangeCategorized -> [Html]
 toHtmlMetricsChange reportFormat change = toHtmlChange reportFormat <$> toListMetrics change
@@ -121,8 +125,8 @@ toHtmlReportRow reportFormat index reportRow =
     ( td
         . toHtml
         <$> [ [fmt|{index}|]
-            , fromMaybe "[N/A]" reportRow.attributeInitial
-            , fromMaybe "[N/A]" reportRow.attributeNormalized
+            , fromMaybe na reportRow.attributeInitial
+            , fromMaybe na reportRow.attributeNormalized
             ]
     )
       <> toHtmlMetricsChange reportFormat reportRow.metricsChange
@@ -130,12 +134,16 @@ toHtmlReportRow reportFormat index reportRow =
       <> toHtmlMetrics reportRow.metricsNormalized
       <> ( td
             . toHtml
-            <$> [ fromMaybe "[all programs]" reportRow.fileInitial
-                , intercalate "." $ fromMaybe ["[whole program]"] reportRow.bindingsPathInitial
-                , fromMaybe "[all programs]" reportRow.fileNormalized
-                , intercalate "." $ fromMaybe ["[whole program]"] reportRow.bindingsPathNormalized
+            <$> [ fromMaybe allPrograms reportRow.fileInitial
+                , intercalate "." $ fromMaybe [wholeProgram] reportRow.bindingsPathInitial
+                , fromMaybe allPrograms reportRow.fileNormalized
+                , intercalate "." $ fromMaybe [wholeProgram] reportRow.bindingsPathNormalized
                 ]
          )
+ where
+  wholeProgram = "[whole program]"
+  allPrograms = "[all programs]"
+  na = "[N/A]"
 
 toHtmlReport :: ReportFormat -> PipelineConfig -> Report -> Html
 toHtmlReport reportFormat pipelineConfig report =
