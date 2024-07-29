@@ -1,19 +1,27 @@
 # Installation
 
-Install the `normalizer` executable globally via [stack](https://docs.haskellstack.org/en/stable).
-Then, the `normalizer` executable will be available on `PATH`.
+## Environment requirements
+
+- OS: `Ubuntu 22.04` or `macOS 12`.
+- `stack` is installable.
+- `normalizer` is installable.
 
 ## Install `stack`
 
 {{#include ./common/install-stack.md}}
 
-## Install `normalizer` from the repository
+## Install `normalizer`
+
+Install the `normalizer` executable globally via [stack](https://docs.haskellstack.org/en/stable).
+Then, the `normalizer` executable will be available on `PATH`.
+
+### Install `normalizer` from the repository
 
 {{#include ./common/enter-repository.md}}
 
 {{#include ./common/install.md}}
 
-## Install `normalizer` from Hackage
+### Install `normalizer` from Hackage
 
 ```sh
 stack update
