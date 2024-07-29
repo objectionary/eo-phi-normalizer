@@ -175,7 +175,7 @@ function generate_report {
 
     cd "$PWD_DIR"
 
-    normalizer report --config "$PIPELINE_CONFIG_FILE"
+    normalizer pipeline report --config "$PIPELINE_CONFIG_FILE"
 }
 
 function convert_normalized_phi_to_eo {
