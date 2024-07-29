@@ -33,6 +33,7 @@ import Text.Blaze.Html5.Attributes (charset, class_, colspan, content, id, lang,
 import Text.Blaze.Html5.Attributes qualified as TBHA
 import Prelude hiding (div, id, span)
 import Prelude qualified
+import Data.Functor ((<&>))
 
 -- $setup
 -- >>> import Text.Blaze.Html.Renderer.String (renderHtml)
@@ -89,22 +90,45 @@ instance ToMarkup Percent where
   toMarkup :: Percent -> Markup
   toMarkup = toMarkup . show
 
--- >>> pipelineConfig = ReportConfig { general = ReportGeneralConfig { expectedMetricsChange = 0, format = ReportFormat'Markdown } }
+class (Num a) => ToDataSort a where
+  toDataSort :: a -> Integer
+
+-- TODO #389:30m
+-- I couldn't make PyF pad doubles with zeros using {n:05} syntax
+-- because PyF also counts the digits after .
+instance ToDataSort Double where
+  toDataSort :: Double -> Integer
+  toDataSort number = round $ number * 1000
+
+instance ToDataSort Percent where
+  toDataSort :: Percent -> Integer
+  toDataSort (Percent number) = toDataSort number
+
+instance ToDataSort Integer where
+  toDataSort :: Integer -> Integer
+  toDataSort x = x
+
+mkDataSortAttribute :: AttributeValue -> Attribute
+mkDataSortAttribute = dataAttribute "sort"
+
+-- >>> pipelineConfig = ReportFormat'Markdown
 --
--- >>> renderHtml $ toHtmlChange pipelineConfig (MetricsChange'Bad 0.2)
--- "<td class=\"number bad\">0.2\128308</td>"
+-- >>> renderHtml $ toHtmlChange pipelineConfig (MetricsChange'Bad (Percent 0.2))
+-- "<td class=\"number bad\" data-sort=\"1000200\">20.00%\128308</td>"
 --
--- >>> renderHtml $ toHtmlChange pipelineConfig (MetricsChange'Good 0.5)
--- "<td class=\"number good\">0.5\128994</td>"
--- >>> renderHtml $ toHtmlChange pipelineConfig (MetricsChange'NA :: MetricsChangeCategory Double)
--- "<td class=\"number not-applicable\">N/A\128995</td>"
-toHtmlChange :: (ToMarkup a) => ReportFormat -> MetricsChangeCategory a -> Html
+-- >>> renderHtml $ toHtmlChange pipelineConfig (MetricsChange'Good (Percent 0.5))
+-- "<td class=\"number good\" data-sort=\"1000500\">50.00%\128994</td>"
+-- >>> renderHtml $ toHtmlChange pipelineConfig (MetricsChange'NA :: MetricsChangeCategory Percent)
+-- "<td class=\"number not-applicable\" data-sort=\"0000000\">N/A\128995</td>"
+toHtmlChange :: forall a. (ToMarkup a, ToDataSort a) => ReportFormat -> MetricsChangeCategory a -> Html
 toHtmlChange reportFormat = \case
-  MetricsChange'NA -> td ! class_ [fmt|{number} not-applicable|] $ toHtml na <> toHtml ['🟣' | isMarkdown]
-  MetricsChange'Bad{..} -> td ! class_ [fmt|{number} bad|] $ toHtml change <> toHtml ['🔴' | isMarkdown]
-  MetricsChange'Good{..} -> td ! class_ [fmt|{number} good|] $ toHtml change <> toHtml ['🟢' | isMarkdown]
+  MetricsChange'NA -> td ! class_ [fmt|{number} not-applicable|] ! mkDataSortAttributeNA $ toHtml na <> toHtml ['🟣' | isMarkdown]
+  MetricsChange'Bad{..} -> td ! class_ [fmt|{number} bad|] ! mkDataSortAttributeChange change $ toHtml change <> toHtml ['🔴' | isMarkdown]
+  MetricsChange'Good{..} -> td ! class_ [fmt|{number} good|] ! mkDataSortAttributeChange change $ toHtml change <> toHtml ['🟢' | isMarkdown]
  where
   isMarkdown = reportFormat == ReportFormat'Markdown
+  mkDataSortAttributeChange change = mkDataSortAttribute [fmt|1{toDataSort change:06}|]
+  mkDataSortAttributeNA = mkDataSortAttribute [fmt|0{(toDataSort (Percent 0.0)):06}|]
   na :: String
   na = "N/A"
   number :: String
@@ -115,9 +139,8 @@ toHtmlMetricsChange reportFormat change = toHtmlChange reportFormat <$> toListMe
 
 toHtmlMetrics :: MetricsCount -> [Html]
 toHtmlMetrics metrics =
-  (td ! class_ "number")
-    . toHtml
-    <$> toListMetrics metrics
+  toListMetrics metrics <&>
+    (\x -> td ! class_ "number" ! mkDataSortAttribute [fmt|{x:06}|] $ toHtml x)
 
 toHtmlReportRow :: ReportFormat -> Int -> ReportRow -> Html
 toHtmlReportRow reportFormat index reportRow =
