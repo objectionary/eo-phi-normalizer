@@ -93,8 +93,16 @@ data RuleTest = RuleTest
   { name :: String
   , input :: Object
   , output :: [Object]
+  , options :: Maybe [RuleTestOption]
   }
   deriving (Generic, FromJSON, Show)
+
+newtype RuleTestOption
+  = TakeOne {take_one :: Bool}
+  -- deriving (Generic, Show, FromJSON)
+  deriving (Eq, Generic, Show)
+instance FromJSON RuleTestOption where
+  parseJSON = genericParseJSON defaultOptions{sumEncoding = UntaggedValue}
 
 data AttrsInBindings = AttrsInBindings
   { attrs :: [RuleAttribute]

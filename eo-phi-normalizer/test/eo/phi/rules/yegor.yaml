@@ -112,6 +112,8 @@ rules:
       - name: Should match positional arguments
         input: ⟦ hello ↦ ∅, bye ↦ ∅, hey ↦ ∅ ⟧(α0 ↦ ⟦⟧, α1 ↦ ⟦ a ↦ ⟦⟧ ⟧)
         output: ['⟦ hello ↦ ⟦ ρ ↦ ⟦ hello ↦ ∅, bye ↦ ∅, hey ↦ ∅ ⟧(α0 ↦ ⟦⟧, α1 ↦ ⟦ a ↦ ⟦⟧ ⟧) ⟧, bye ↦ ⟦ a ↦ ⟦⟧, ρ ↦ ⟦ hello ↦ ∅, bye ↦ ∅, hey ↦ ∅ ⟧(α0 ↦ ⟦⟧, α1 ↦ ⟦ a ↦ ⟦⟧ ⟧) ⟧, hey ↦ ∅ ⟧']
+        options:
+          - take_one: true
 
   - name: R_COPY1
     description: 'Application of α-binding'
@@ -130,7 +132,9 @@ rules:
     tests:
       - name: Should match first void attribute
         input: ⟦ hello ↦ ⟦⟧, bye ↦ ∅, hey ↦ ∅ ⟧(α0 ↦ ⟦⟧)
-        output: ['⟦ hello ↦ ⟦⟧, bye ↦ ⟦ ρ ↦ ⟦ hello ↦ ⟦⟧, bye ↦ ∅, hey ↦ ∅ ⟧(α0 ↦ ⟦⟧) ⟧, hey ↦ ∅ ⟧']
+        output: ['⟦ bye ↦ ⟦ ρ ↦ ⟦ hello ↦ ⟦⟧, bye ↦ ∅, hey ↦ ∅ ⟧(α0 ↦ ⟦⟧) ⟧, hello ↦ ⟦⟧, hey ↦ ∅ ⟧']
+        options:
+          - take_one: true
 
   - name: R_COPY
     description: 'Application of α-binding'
