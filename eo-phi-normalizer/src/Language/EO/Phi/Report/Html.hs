@@ -18,6 +18,7 @@
 module Language.EO.Phi.Report.Html where
 
 import Data.FileEmbed (embedFileRelative)
+import Data.Functor ((<&>))
 import Data.List (intercalate)
 import Data.Maybe (catMaybes, fromMaybe)
 import Data.Text qualified as T
@@ -33,7 +34,6 @@ import Text.Blaze.Html5.Attributes (charset, class_, colspan, content, id, lang,
 import Text.Blaze.Html5.Attributes qualified as TBHA
 import Prelude hiding (div, id, span)
 import Prelude qualified
-import Data.Functor ((<&>))
 
 -- $setup
 -- >>> import Text.Blaze.Html.Renderer.String (renderHtml)
@@ -139,8 +139,8 @@ toHtmlMetricsChange reportFormat change = toHtmlChange reportFormat <$> toListMe
 
 toHtmlMetrics :: MetricsCount -> [Html]
 toHtmlMetrics metrics =
-  toListMetrics metrics <&>
-    (\x -> td ! class_ "number" ! mkDataSortAttribute [fmt|{x:06}|] $ toHtml x)
+  toListMetrics metrics
+    <&> (\x -> td ! class_ "number" ! mkDataSortAttribute [fmt|{x:06}|] $ toHtml x)
 
 toHtmlReportRow :: ReportFormat -> Int -> ReportRow -> Html
 toHtmlReportRow reportFormat index reportRow =
