@@ -6,7 +6,7 @@ module Language.EO.YamlSpec where
 import Control.Monad (forM_)
 import Language.EO.Phi.Dataize (defaultContext)
 import Language.EO.Phi.Rules.Common (applyOneRule)
-import Language.EO.Phi.Rules.Yaml (Rule (..), RuleSet (..), RuleTest (..), RuleTestOption(..), convertRuleNamed)
+import Language.EO.Phi.Rules.Yaml (Rule (..), RuleSet (..), RuleTest (..), RuleTestOption (..), convertRuleNamed)
 import Test.EO.Yaml
 import Test.Hspec
 
@@ -21,9 +21,9 @@ spec = describe "User-defined rules unit tests" do
             it ruleTest.name $
               let rule' = convertRuleNamed rule
                   resultOneStep = applyOneRule (defaultContext [rule'] ruleTest.input) ruleTest.input
-                  result = maybe resultOneStep (\lst -> if TakeOne True `elem` lst then take 1 resultOneStep else resultOneStep) ruleTest.options
+                  normalizationResult = maybe resultOneStep (\lst -> if TakeOne True `elem` lst then take 1 resultOneStep else resultOneStep) ruleTest.options
                   expected = ruleTest.output
-               in map snd result `shouldBe` expected
+               in map snd normalizationResult `shouldBe` expected
  where
   testPaths =
     [ "test/eo/phi/rules/yegor.yaml"

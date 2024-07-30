@@ -97,8 +97,7 @@ data RuleTest = RuleTest
   }
   deriving (Generic, FromJSON, Show)
 
-newtype RuleTestOption
-  = TakeOne {take_one :: Bool}
+newtype RuleTestOption = TakeOne {take_one :: Bool}
   -- deriving (Generic, Show, FromJSON)
   deriving (Eq, Generic, Show)
 instance FromJSON RuleTestOption where
