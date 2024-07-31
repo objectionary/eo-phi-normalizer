@@ -11,6 +11,6 @@
   - [normalizer metrics](./normalizer/metrics.md)
   - [normalizer pipeline](./normalizer/pipeline.md)
     - [normalizer pipeline prepare-tests](./normalizer/pipeline/prepare-tests.md)
-    - [normalizer pipeline prepare-pipeline-configs](./normalizer/pipeline/print-dataize-configs.md)
+    - [normalizer pipeline print-dataize-configs](./normalizer/pipeline/print-dataize-configs.md)
     - [normalizer pipeline report](./normalizer/pipeline/report.md)
 - [Contributing](./contributing.md)
