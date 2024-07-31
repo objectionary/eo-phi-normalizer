@@ -2,7 +2,7 @@
 
 [N.B: Replace text in square brackets with your text]
 
-| author                      | date-accepted                         | pr-url                                                     | implemented                                              |
+| authors                      | date-accepted                         | pr-url                                                     | implemented                                              |
 | --------------------------- | ------------------------------------- | ---------------------------------------------------------- | -------------------------------------------------------- |
 | Max Trunnikov, Danila Danko | [Date when the proposal was accepted] | [URL](https://github.com/objectionary/normalizer/pull/259) | [normalizer version where this proposal was implemented] |
 
