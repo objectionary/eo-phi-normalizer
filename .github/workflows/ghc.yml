@@ -259,6 +259,25 @@ jobs:
           files="site proposals README.md"
           commit_and_push_if_changed "$files" "Markdown files"
 
+      - name: Create a directory for docs
+        if: runner.os == 'Linux'
+        run: mkdir -p dist
+
+      - name: Setup mdBook
+        if: runner.os == 'Linux'
+        uses: jontze/action-mdbook@v3
+        with:
+          token: ${{secrets.GITHUB_TOKEN}}
+          mdbook-version: "~0.4.40"
+          use-linkcheck: true
+
+      - name: Run mdbook
+        if: runner.os == 'Linux'
+        run: |
+          cd site/docs
+          mdbook build
+          mv docs/html ../../dist/docs
+
       - name: Upload pipeline artifact
         id: pipeline-artifact
         if: always()
@@ -276,16 +295,17 @@ jobs:
           # It saves just the content of this directory.
           #
           # Seems like the wildcard case (https://github.com/actions/upload-artifact#upload-using-multiple-paths-and-exclusions)
-          # is triggered when there are no paths that don't start with "pipeline"
+          # is triggered when all paths start with "pipeline".
           #
-          # I added a dummy path to not trigger the wildcard case
+          # Hence, to preserve the path structure, it's necessary
+          # to add a path that doesn't start with "pipeline".
           path: |
             pipeline
             !pipeline/**/.eoc
             !pipeline/eo-yaml
             pipeline/eo-initial/.eoc/4-pull/org/
             pipeline/phi-initial/.eoc/phi/org
-            dummy
+            dist
 
       - name: Write about the artifact in the job summary
         if: always()
@@ -343,23 +363,10 @@ jobs:
           pattern: pipeline-files-${{ runner.os }}
           merge-multiple: true
 
-      - name: Setup mdBook
-        uses: jontze/action-mdbook@v3
-        with:
-          token: ${{secrets.GITHUB_TOKEN}}
-          mdbook-version: "~0.4.37"
-          use-linkcheck: true
-
       - name: Add haddock
         run: |
           mkdir -p dist/haddock
           mv $(stack path --local-doc-root)/* dist/haddock
-
-      - name: Add docs
-        run: |
-          cd site/docs
-          mdbook build
-          mv docs/html ../../dist/docs
 
       - name: Add report
         run: |
