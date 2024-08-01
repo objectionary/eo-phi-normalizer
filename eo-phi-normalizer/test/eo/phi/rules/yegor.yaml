@@ -72,7 +72,12 @@ rules:
       - name: Shouldn't match
         input: ⟦ ⟧.hello
         output: []
-
+      - name: Should apply in subformations
+        input: ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ⟦⟧ ⟧ ⟧.b ⟧
+        output: ['⟦ a ↦ ⟦ c ↦ ⟦⟧, ρ ↦ ⟦ b ↦ ⟦ c ↦ ⟦⟧ ⟧ ⟧ ⟧ ⟧']
+      - name: Should respect surrounding context
+        input: ⟦ hello ↦ ⟦⟧, goodbye ↦ ⟦ a ↦ ⟦⟧ ⟧ ⟧.hello
+        output: ['⟦ ρ ↦ ⟦ hello ↦ ⟦⟧, goodbye ↦ ⟦ a ↦ ⟦⟧ ⟧ ⟧ ⟧']
   # - name: Rule 6a
   #   description: 'Accessing an α-binding (for object with ρ ↦ ∅)'
   #   pattern: |
@@ -103,7 +108,12 @@ rules:
       - apply_in_subformations: false
       - nf: '!b0'
       - nf: '!b1'
-    tests: []
+    tests:
+      - name: Should match positional arguments
+        input: ⟦ hello ↦ ∅, bye ↦ ∅, hey ↦ ∅ ⟧(α0 ↦ ⟦⟧, α1 ↦ ⟦ a ↦ ⟦⟧ ⟧)
+        output: ['⟦ hello ↦ ⟦ ρ ↦ ⟦ hello ↦ ∅, bye ↦ ∅, hey ↦ ∅ ⟧(α0 ↦ ⟦⟧, α1 ↦ ⟦ a ↦ ⟦⟧ ⟧) ⟧, bye ↦ ⟦ a ↦ ⟦⟧, ρ ↦ ⟦ hello ↦ ∅, bye ↦ ∅, hey ↦ ∅ ⟧(α0 ↦ ⟦⟧, α1 ↦ ⟦ a ↦ ⟦⟧ ⟧) ⟧, hey ↦ ∅ ⟧']
+        options:
+          - take_one: true
 
   - name: R_COPY1
     description: 'Application of α-binding'
@@ -119,7 +129,12 @@ rules:
     when:
       - apply_in_subformations: false
       - nf: '!b'
-    tests: []
+    tests:
+      - name: Should match first void attribute
+        input: ⟦ hello ↦ ⟦⟧, bye ↦ ∅, hey ↦ ∅ ⟧(α0 ↦ ⟦⟧)
+        output: ['⟦ bye ↦ ⟦ ρ ↦ ⟦ hello ↦ ⟦⟧, bye ↦ ∅, hey ↦ ∅ ⟧(α0 ↦ ⟦⟧) ⟧, hello ↦ ⟦⟧, hey ↦ ∅ ⟧']
+        options:
+          - take_one: true
 
   - name: R_COPY
     description: 'Application of α-binding'
@@ -132,7 +147,13 @@ rules:
     when:
       - apply_in_subformations: false
       - nf: '!b'
-    tests: []
+    tests:
+      - name: Should match
+        input: ⟦ a ↦ ∅ ⟧(a ↦ ⟦⟧)
+        output: ['⟦ a ↦ ⟦ ρ ↦ ⟦ a ↦ ∅ ⟧(a ↦ ⟦⟧) ⟧ ⟧()']
+      - name: Should not match in subformations
+        input: ⟦ a ↦ ⟦b ↦ ∅⟧(b ↦ ⟦⟧) ⟧
+        output: []
 
   - name: R_COPY_EMPTY
     description: 'Empty application'
@@ -141,7 +162,19 @@ rules:
     result: |
       ⟦ !B1 ⟧
     when: []
-    tests: []
+    tests:
+      - name: Should match
+        input: ⟦ a ↦ ⟦⟧ ⟧()
+        output: ['⟦ a ↦ ⟦⟧ ⟧']
+      - name: Should not match
+        input: ⟦ a ↦ ∅ ⟧(a ↦ ⟦⟧)
+        output: []
+      - name: Should match in subformation
+        input: ⟦ a ↦ ⟦ b ↦ ⟦⟧() ⟧ ⟧
+        output: ['⟦ a ↦ ⟦ b ↦ ⟦⟧ ⟧ ⟧']
+      - name: Should work with empty formation
+        input: ⟦⟧()
+        output: ['⟦⟧']
 
   - name: R_COPY_Δ
     description: 'Application of Δ-binding'
@@ -173,6 +206,9 @@ rules:
       - name: 'Attribute exists'
         input: '⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧.a'
         output: []
+      - name: 'Both attributes do not exist'
+        input: '⟦ b ↦ ⟦⟧ ⟧.a'
+        output: []
 
   - name: R_OVER
     description: 'Invalid application (attribute already attached)'
@@ -196,6 +232,15 @@ rules:
       - name: ''
         input: '⟦ t1 ↦ ⟦ a ↦ ∅ ⟧ ⟧(t ↦ ⟦ b ↦ ∅ ⟧)'
         output: ['⊥']
+      - name: Should not match if attr is present
+        input: ⟦ t ↦ ⟦⟧ ⟧(t ↦ ⟦ a ↦ ∅ ⟧)
+        output: []
+      - name: Should not match if phi is present
+        input: ⟦ φ ↦ ⟦⟧, a ↦ ⟦⟧ ⟧(t ↦ ⟦ a ↦ ∅ ⟧)
+        output: []
+      - name: Should apply in subformations
+        input: ⟦ a ↦ ⟦ b ↦ ⟦⟧(t ↦ ⟦⟧) ⟧ ⟧
+        output: ['⟦ a ↦ ⟦ b ↦ ⊥ ⟧ ⟧']
 
   - name: R_STOP
     description: 'Invalid attribute access'
@@ -238,4 +283,7 @@ rules:
     result: |
       ⊥
     when: []
-    tests: []
+    tests:
+      - name: Should apply in subformations
+        input: ⟦ a ↦ ⟦ b ↦ ⊥(t ↦ ⟦⟧, u ↦ ⟦⟧) ⟧ ⟧
+        output: ['⟦ a ↦ ⟦ b ↦ ⊥ ⟧ ⟧']
