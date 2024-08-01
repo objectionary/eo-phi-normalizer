@@ -1,5 +1,9 @@
 # Pipeline
 
+## Install `stack`
+
+{{#include ./common/install-stack.md}}
+
 ## Enter the repository
 
 {{ #include ./common/enter-repository.md }}
