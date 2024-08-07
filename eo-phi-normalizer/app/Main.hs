@@ -61,6 +61,7 @@ import PyF (fmt, fmtTrim)
 import System.Directory (createDirectoryIfMissing, doesFileExist)
 import System.FilePath (takeDirectory)
 import System.IO (IOMode (WriteMode), getContents', hFlush, hPutStr, hPutStrLn, openFile, stdout)
+import Language.EO.Phi.Dataize.Context
 
 data CLI'TransformPhi = CLI'TransformPhi
   { chain :: Bool
@@ -591,7 +592,8 @@ main = withUtf8 do
             (defaultContext rules (Formation bindingsWithDeps)) -- IMPORTANT: context contains dependencies!
               { minimizeTerms = minimizeStuckTerms
               , builtinRules = builtin
-              , enabledAtomNames = mkEnabledAtomNames disabledAtomNames enabledAtomNames
+              , enabledAtoms = mkEnabledAtoms enabledAtomNames disabledAtomNames
+              , knownAtoms = knownAtomsMap
               }
       if chain
         then do

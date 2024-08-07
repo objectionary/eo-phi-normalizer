@@ -17,7 +17,6 @@ import Control.Monad
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as ByteString.Strict
 import Data.Char (toUpper)
-import Data.HashSet (HashSet)
 import Data.List (intercalate, minimumBy, nubBy, sortOn)
 import Data.List.NonEmpty (NonEmpty (..), (<|))
 import Data.Ord (comparing)
@@ -29,6 +28,7 @@ import Language.EO.Phi.Syntax.Abs
 import Language.EO.Phi.Syntax.Lex (Token)
 import Language.EO.Phi.Syntax.Par
 import Numeric (readHex, showHex)
+import Data.HashMap.Strict qualified as HashMap
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -58,12 +58,16 @@ unsafeParseWith parser input =
     Left parseError -> error (parseError <> "\non input\n" <> input <> "\n")
     Right object -> object
 
+-- | State of evaluation is not needed yet, but it might be in the future
+type EvaluationState = ()
 type NamedRule = (String, Rule)
+type Atoms = HashMap.HashMap String (String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState))
 
 data Context = Context
   { builtinRules :: Bool
   , allRules :: [NamedRule]
-  , enabledAtomNames :: HashSet String
+  , enabledAtoms :: Atoms
+  , knownAtoms :: Atoms
   , outerFormations :: NonEmpty Object
   , currentAttr :: Attribute
   , insideFormation :: Bool
