@@ -1,11 +1,11 @@
 module Language.EO.Phi.Dataize.Context where
 
+import Data.HashMap.Strict qualified as HashMap
+import Data.HashSet as HashSet (difference, fromList, intersection, member)
+import Data.List.NonEmpty qualified as NonEmpty
 import Language.EO.Phi.Dataize.Atoms as Atoms
 import Language.EO.Phi.Rules.Common
-import Data.HashMap.Strict qualified as HashMap
-import Data.HashSet as HashSet (difference, fromList, member, intersection)
 import Language.EO.Phi.Syntax.Abs
-import Data.List.NonEmpty qualified as NonEmpty
 
 knownAtomsMap :: Atoms
 knownAtomsMap = HashMap.fromList knownAtomsList

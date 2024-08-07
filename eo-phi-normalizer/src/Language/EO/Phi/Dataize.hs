@@ -26,7 +26,7 @@ dataizeStep :: Context -> Object -> (Context, Either Object Bytes)
 dataizeStep ctx obj = snd $ head $ runChain (dataizeStepChain obj) ctx -- FIXME: head is bad
 
 dataizeStep' :: Context -> Object -> Either Object Bytes
-dataizeStep' ctx obj = snd (dataizeStep ctx  obj)
+dataizeStep' ctx obj = snd (dataizeStep ctx obj)
 
 -- | Recursively perform normalization and dataization until we get bytes in the end.
 dataizeRecursively :: Context -> Object -> Either Object Bytes

@@ -42,6 +42,7 @@ import Data.Yaml (decodeFileThrow)
 import GHC.Generics (Generic)
 import Language.EO.Phi (Binding (..), Bytes (Bytes), Object (..), Program (Program), parseProgram, printTree)
 import Language.EO.Phi.Dataize
+import Language.EO.Phi.Dataize.Context
 import Language.EO.Phi.Dependencies
 import Language.EO.Phi.Metrics.Collect as Metrics (getProgramMetrics)
 import Language.EO.Phi.Metrics.Data as Metrics (ProgramMetrics (..), splitPath)
@@ -61,7 +62,6 @@ import PyF (fmt, fmtTrim)
 import System.Directory (createDirectoryIfMissing, doesFileExist)
 import System.FilePath (takeDirectory)
 import System.IO (IOMode (WriteMode), getContents', hFlush, hPutStr, hPutStrLn, openFile, stdout)
-import Language.EO.Phi.Dataize.Context
 
 data CLI'TransformPhi = CLI'TransformPhi
   { chain :: Bool
