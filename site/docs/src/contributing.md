@@ -25,7 +25,16 @@ We recommend using [stack](https://docs.haskellstack.org/en/stable) for quick lo
 Build the project using `stack`.
 
 ```sh
+export LC_ALL=C.UTF-8
 stack build
+```
+
+## Test
+
+Run all tests
+
+```sh
+stack test
 ```
 
 ## Run
@@ -74,14 +83,6 @@ Available commands:
   report                   Generate reports about initial and normalized PHI
                            programs.
   prepare-pipeline-tests   Prepare EO test files for the pipeline.
-```
-
-## Test
-
-Run all tests
-
-```sh
-stack test
 ```
 
 ## Docs
