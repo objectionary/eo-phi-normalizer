@@ -97,6 +97,21 @@ normalizer dataize --recursive --rules eo-phi-normalizer/test/eo/phi/rules/yegor
 ```
 
 Can be combined with `--chain` to print all the intermediate steps of both normalization and dataization.
+### `--enable-atom`
+
+Enable an atom by name.
+
+```$ as console
+normalizer dataize --minimize-stuck-terms --recursive --enable-atom "Lorg_eolang_dataized" --rules eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+```
+
+### `--disable-atom`
+
+Disable an atom by name.
+
+```$ as console
+normalizer dataize --minimize-stuck-terms --recursive --disable-atom "Lorg_eolang_dataized" --rules eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+```
 
 ### `FILE` not specified (read from stdin)
 
