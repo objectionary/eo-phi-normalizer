@@ -58,9 +58,7 @@ Available commands:
   transform                Transform a PHI program.
   metrics                  Collect metrics for a PHI program.
   dataize                  Dataize a PHI program.
-  report                   Generate reports about initial and normalized PHI
-                           programs.
-  prepare-pipeline-tests   Prepare EO test files for the pipeline.
+  pipeline                 Run pipeline-related commands.
 ```
 
 Or, omit the executable name.
@@ -81,9 +79,7 @@ Available commands:
   transform                Transform a PHI program.
   metrics                  Collect metrics for a PHI program.
   dataize                  Dataize a PHI program.
-  report                   Generate reports about initial and normalized PHI
-                           programs.
-  prepare-pipeline-tests   Prepare EO test files for the pipeline.
+  pipeline                 Run pipeline-related commands.
 ```
 
 ## Docs
