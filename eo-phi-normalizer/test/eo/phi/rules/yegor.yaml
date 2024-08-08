@@ -65,12 +65,16 @@ rules:
       - apply_in_abstract_subformations: false
       - nf_inside_formation: '!b'
       - nf: '⟦ !B ⟧'
+      - not_equal: ['!τ', 'ρ']
     tests:
       - name: Should match
         input: ⟦ hello ↦ ⟦⟧ ⟧.hello
         output: ['⟦ ρ ↦ ⟦ hello ↦ ⟦⟧ ⟧ ⟧']
       - name: Shouldn't match
         input: ⟦ ⟧.hello
+        output: []
+      - name: Shouldn't match
+        input: ⟦ ρ ↦ ⟦⟧ ⟧.ρ
         output: []
       - name: Should apply in subformations
         input: ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ⟦⟧ ⟧ ⟧.b ⟧
@@ -92,6 +96,19 @@ rules:
   #     - name: Shouldn't match
   #       input: ⟦ ⟧.hello
   #       output: []
+
+  - name: R_DOT_ρ
+    description: 'Accessing ρ-binding'
+    pattern: |
+      ⟦ ρ ↦ !b, !B ⟧.ρ
+    result: |
+      !b
+    when:
+      - nf: '⟦ !B ⟧'
+    tests:
+      - name: Should match
+        input: ⟦ ρ ↦ ⟦ ⟧ ⟧.ρ
+        output: ['⟦ ⟧']
 
   - name: R_COPY2
     description: 'Application of α-binding'
