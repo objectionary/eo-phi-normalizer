@@ -53,6 +53,7 @@ import Language.EO.Phi.Report.Data (makeProgramReport, makeReport)
 import Language.EO.Phi.Report.Html (reportCSS, reportJS, toStringReport)
 import Language.EO.Phi.Rules.Common
 import Language.EO.Phi.Rules.Fast (fastYegorInsideOut, fastYegorInsideOutAsRule)
+import Language.EO.Phi.Rules.RunYegor (yegorRuleSet)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRuleNamed, parseRuleSetFromFile)
 import Language.EO.Phi.ToLaTeX
 import Main.Utf8
@@ -100,6 +101,12 @@ data CLI'MetricsPhi = CLI'MetricsPhi
   }
   deriving stock (Show)
 
+data CLI'PrintRules = CLI'PrintRules
+  { rulesPath :: Maybe String
+  , latex :: Bool
+  }
+  deriving stock (Show)
+
 newtype CLI'Pipeline'Report = CLI'Pipeline'Report
   { configFile :: FilePath
   }
@@ -127,6 +134,7 @@ data CLI
   = CLI'TransformPhi' CLI'TransformPhi
   | CLI'DataizePhi' CLI'DataizePhi
   | CLI'MetricsPhi' CLI'MetricsPhi
+  | CLI'PrintRules' CLI'PrintRules
   | CLI'Pipeline' CLI'Pipeline
   deriving stock (Show)
 
@@ -223,6 +231,7 @@ data CommandParser = CommandParser
   , dataize :: Parser CLI'DataizePhi
   , pipeline :: Parser CLI'Pipeline
   , pipeline' :: CommandParser'Pipeline
+  , printRules :: Parser CLI'PrintRules
   }
 
 commandParser :: CommandParser
@@ -234,7 +243,10 @@ commandParser =
     outputFile <- outputFileOption
     bindingsPath <- bindingsPathOption
     pure CLI'MetricsPhi{..}
-
+  printRules = do
+    rulesPath <- optional $ strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. If unspecified, yegor.yaml is rendered.|])
+    latex <- latexSwitch
+    pure CLI'PrintRules{..}
   transform = do
     rulesPath <- optional $ strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. If unspecified, builtin set of rules is used.|])
     chain <- switch (long "chain" <> short 'c' <> help "Output transformation steps.")
@@ -296,6 +308,7 @@ data CommandParserInfo = CommandParserInfo
   { metrics :: ParserInfo CLI
   , transform :: ParserInfo CLI
   , dataize :: ParserInfo CLI
+  , printRules :: ParserInfo CLI
   , pipeline :: ParserInfo CLI
   , pipeline' :: CommandParserInfo'Pipeline
   }
@@ -306,6 +319,7 @@ commandParserInfo =
     { metrics = info (CLI'MetricsPhi' <$> commandParser.metrics) (progDesc "Collect metrics for a PHI program.")
     , transform = info (CLI'TransformPhi' <$> commandParser.transform) (progDesc "Transform a PHI program.")
     , dataize = info (CLI'DataizePhi' <$> commandParser.dataize) (progDesc "Dataize a PHI program.")
+    , printRules = info (CLI'PrintRules' <$> commandParser.printRules) (progDesc "Print rules in LaTeX format.")
     , pipeline = info (CLI'Pipeline' <$> commandParser.pipeline) (progDesc "Run pipeline-related commands.")
     , pipeline' =
         CommandParserInfo'Pipeline
@@ -325,6 +339,7 @@ data CommandNames = CommandNames
   { transform :: String
   , metrics :: String
   , dataize :: String
+  , printRules :: String
   , pipeline :: String
   , pipeline' :: CommandNames'Pipeline
   }
@@ -335,6 +350,7 @@ commandNames =
     { transform = "transform"
     , metrics = "metrics"
     , dataize = "dataize"
+    , printRules = "print-rules"
     , pipeline = "pipeline"
     , pipeline' =
         CommandNames'Pipeline
@@ -351,6 +367,7 @@ cli =
         <> command commandNames.metrics commandParserInfo.metrics
         <> command commandNames.dataize commandParserInfo.dataize
         <> command commandNames.pipeline commandParserInfo.pipeline
+        <> command commandNames.printRules commandParserInfo.printRules
     )
 
 cliOpts :: ParserInfo CLI
@@ -508,6 +525,10 @@ main = withUtf8 do
       -- logStrLn "Computing metrics"
       metrics <- getMetrics bindingsPath inputFile
       logStrLn $ encodeToJSONString metrics
+    CLI'PrintRules' CLI'PrintRules{..} -> do
+      (logStrLn, _) <- getLoggers Nothing
+      rules <- rules <$> maybe (return yegorRuleSet) parseRuleSetFromFile rulesPath
+      logStrLn $ unlines $ map (show . toLatex) rules
     CLI'TransformPhi' CLI'TransformPhi{..} -> do
       program' <- getProgram inputFile
       deps <- mapM (getProgram . Just) dependencies
