@@ -207,6 +207,9 @@ rules:
       - absent_attrs:
           attrs: ['!τ', 'φ', 'λ']
           bindings: ['!B']
+      - present_attrs:
+          attrs: ['ρ']
+          bindings: ['!B']
       - nf: '⟦ !B ⟧'
     tests:
       - name: 'Accessing nonexistent attribute'
