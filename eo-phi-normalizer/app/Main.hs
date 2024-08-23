@@ -104,6 +104,7 @@ data CLI'MetricsPhi = CLI'MetricsPhi
 data CLI'PrintRules = CLI'PrintRules
   { rulesPath :: Maybe String
   , latex :: Bool
+  , compact :: Bool
   }
   deriving stock (Show)
 
@@ -197,6 +198,9 @@ jsonSwitch = switch (long "json" <> short 'j' <> help "Output JSON.")
 latexSwitch :: Parser Bool
 latexSwitch = switch (long "tex" <> help "Output LaTeX.")
 
+compactSwitch :: Parser Bool
+compactSwitch = switch (long "compact" <> short 'c' <> help "Print rules, either each on one line")
+
 asPackageSwitch :: Parser Bool
 asPackageSwitch = switch (long "as-package" <> help "Automatically inject (λ → Package) in the program if necessary, to dataize all fields.")
 
@@ -246,6 +250,7 @@ commandParser =
   printRules = do
     rulesPath <- optional $ strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. If unspecified, yegor.yaml is rendered.|])
     latex <- latexSwitch
+    compact <- compactSwitch
     pure CLI'PrintRules{..}
   transform = do
     rulesPath <- optional $ strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. If unspecified, builtin set of rules is used.|])
@@ -528,7 +533,8 @@ main = withUtf8 do
     CLI'PrintRules' CLI'PrintRules{..} -> do
       (logStrLn, _) <- getLoggers Nothing
       rules <- rules <$> maybe (return yegorRuleSet) parseRuleSetFromFile rulesPath
-      logStrLn $ unlines $ map (show . toLatex) rules
+      let toLatex' = if compact then rulesToLatexCompact else toLatex
+      logStrLn $ show $ toLatex' rules
     CLI'TransformPhi' CLI'TransformPhi{..} -> do
       program' <- getProgram inputFile
       deps <- mapM (getProgram . Just) dependencies

@@ -1,4 +1,5 @@
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -111,28 +112,40 @@ isNonEmptyContext Nothing = False
 isNonEmptyContext (Just (RuleContext Nothing Nothing Nothing)) = False
 isNonEmptyContext _ = True
 
--- Renders all conditions in one line
--- instance ToLatex Rule where
---   toLatex Rule{..} =
---     "\\rrule{" <> LaTeX name <> "}: "
---       <> (inMathMode $ toLatex pattern)
---       <> "\\(\\trans\\)"
---       <> (inMathMode $ toLatex result)
---       <> (if not (null when) || isNonEmptyContext context then "\\quad\\text {if }" else "")
---       <> maybe mempty (\c -> toLatex c <> ", ") context
---       <> fold (intersperse ", " (map toLatex when))
---       <> "\\\\\\vspace*{0.5em}"
-
 -- Renders all conditions on separate lines
 instance ToLatex Rule where
-  toLatex Rule{..} =
+  toLatex (Rule name _ context _ pattern result _ when _) =
     "\\rrule{"
       <> LaTeX name
       <> "}: &"
-      <> (inMathMode $ toLatex pattern)
+      <> inMathMode (toLatex pattern)
       <> "\\(\\trans\\)"
-      <> (inMathMode $ toLatex result)
+      <> inMathMode (toLatex result)
       <> (if not (null when) || isNonEmptyContext context then "\\\\\\text {if }" else mempty)
       <> maybe mempty (\c -> "&" <> toLatex c <> "\\\\") context
       <> fold (intersperse ",\\\\" (map (("&" <>) . toLatex) when))
-      <> "\\\\\\\\"
+
+instance ToLatex [Rule] where
+  toLatex rules =
+    "\\begin{figure*}\n\\begin{tabular}{rl}\n  "
+      <> fold (intersperse "\\\\\\\\\n  " (map toLatex rules))
+      <> "\n\\end{tabular}\n\\end{figure*}"
+
+-- Renders all conditions in one line
+ruleToLatexCompact :: Rule -> LaTeX
+ruleToLatexCompact (Rule name _ context _ pattern result _ when _) =
+  "\\rrule{"
+    <> LaTeX name
+    <> "}: "
+    <> inMathMode (toLatex pattern)
+    <> "\\(\\trans\\)"
+    <> inMathMode (toLatex result)
+    <> (if not (null when) || isNonEmptyContext context then "\\quad\\text {if }" else "")
+    <> maybe mempty (\c -> toLatex c <> ", ") context
+    <> fold (intersperse ", " (map toLatex when))
+
+rulesToLatexCompact :: [Rule] -> LaTeX
+rulesToLatexCompact rules =
+  "\\begin{figure*}\n  "
+    <> fold (intersperse "\\\\\\vspace*{0.5em}\n  " (map ruleToLatexCompact rules))
+    <> "\n\\end{figure*}"
