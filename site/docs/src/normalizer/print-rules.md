@@ -23,7 +23,7 @@ Available options:
 
 ### Default version
 
-```console
+```$ as tex
 normalizer print-rules --tex
 ```
 
@@ -57,7 +57,7 @@ The command above prints to the console rules from `yegor.yaml`, listing each co
 
 The compact version prints rules listing all conditions on a single line:
 
-```console
+```$ as tex
 normalizer print-rules --tex --compact
 ```
 
