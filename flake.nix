@@ -209,6 +209,7 @@
                       "normalizer/dataize.md"
                       "normalizer/metrics.md"
                       "normalizer/transform.md"
+                      "normalizer/print-rules.md"
                       "contributing.md"
                     ]}
 
