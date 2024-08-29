@@ -21,7 +21,6 @@ Available options:
   -h,--help                Show this help text
 ```
 
-
 ### Default version
 
 ```console

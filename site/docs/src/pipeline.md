@@ -31,7 +31,7 @@ node --version
 ```
 
 ```console
-v20.16.0
+v20.17.0
 ```
 
 Install [Java](https://www.java.com/en/download/help/download_options.html).
