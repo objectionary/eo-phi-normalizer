@@ -199,7 +199,7 @@ latexSwitch :: Parser Bool
 latexSwitch = switch (long "tex" <> help "Output LaTeX.")
 
 compactSwitch :: Parser Bool
-compactSwitch = switch (long "compact" <> short 'c' <> help "Print rules, either each on one line")
+compactSwitch = switch (long "compact" <> short 'c' <> help "Print rules, each on a single line.")
 
 asPackageSwitch :: Parser Bool
 asPackageSwitch = switch (long "as-package" <> help "Automatically inject (λ → Package) in the program if necessary, to dataize all fields.")
