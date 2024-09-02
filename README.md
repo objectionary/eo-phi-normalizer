@@ -11,3 +11,14 @@
     - We explained how the pipeline works ([link](https://www.objectionary.com/normalizer/docs/pipeline.html) to the pipeline docs).
     - We run the pipeline on each push to the repository and generate reports for each run ([link](https://www.objectionary.com/normalizer/report/) to the report for the last pipeline run).
 1. Draft of an academic paper explaining the details of normalization ([link](./papers/phi-confluence.pdf) to the paper).
+
+## Stage 2
+
+- A final version of the academic paper ([link](./papers/phi-confluence.pdf) to the paper).
+  - The paper was submitted to ITP 2024, but was rejected ([link](./papers/phi-confluence-ITP-2024-reviews.txt) to the reviews).
+- Experimental results of its application.
+  - The [normalizer](https://github.com/objectionary/normalizer) tool was built assuming confluence proved in the paper.
+  - We generate reports for each pipeline run ([link](https://www.objectionary.com/normalizer/report/) to the report for the last pipeline run).
+- A proof of confluence of φ-calculus.
+  - A proof of confluence of φ-calculus is implemented in the [proof](https://github.com/objectionary/proof) repository.
+  - The proof documentation is available [here](https://www.objectionary.com/proof/docs/).
