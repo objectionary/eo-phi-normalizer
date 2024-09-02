@@ -10,4 +10,4 @@
     - We implemented the full pipeline that tests the Normalizer on existing EOLANG code examples ([link](https://github.com/objectionary/normalizer/blob/bbe60bcbcaea7332515485da0d4e5e31fc1e163d/.github/workflows/ghc.yml#L103-L308) to the pipeline configuration).
     - We explained how the pipeline works ([link](https://www.objectionary.com/normalizer/docs/pipeline.html) to the pipeline docs).
     - We run the pipeline on each push to the repository and generate reports for each run ([link](https://www.objectionary.com/normalizer/report/) to the report for the last pipeline run).
-1. Draft of an academic paper explaining the details of normalization ([link](./paper/phi-confluence.pdf) to the paper).
+1. Draft of an academic paper explaining the details of normalization ([link](./papers/phi-confluence.pdf) to the paper).
