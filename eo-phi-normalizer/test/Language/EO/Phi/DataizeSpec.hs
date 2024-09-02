@@ -10,8 +10,9 @@ import Test.Hspec
 import Language.EO.Phi (printTree)
 import Language.EO.Phi qualified as Phi
 import Language.EO.Phi.Dataize (dataizeRecursively)
+import Language.EO.Phi.Dataize.Context (defaultContext)
 import Language.EO.Phi.Dependencies (deepMergePrograms)
-import Language.EO.Phi.Rules.Common (defaultContext, equalObject)
+import Language.EO.Phi.Rules.Common (equalObject)
 import Language.EO.Phi.Rules.Yaml (convertRuleNamed, parseRuleSetFromFile, rules)
 import Test.EO.Phi (DataizationResult (Bytes, Object), DataizeTest (..), DataizeTestGroup (..), dataizationTests)
 

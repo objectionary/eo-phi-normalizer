@@ -1,26 +1,30 @@
 {-# HLINT ignore "Use &&" #-}
 {-# LANGUAGE DeriveFunctor #-}
+{-# HLINT ignore "Redundant fmap" #-}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE GeneralisedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
-{-# HLINT ignore "Redundant fmap" #-}
-
 module Language.EO.Phi.Rules.Common where
 
 import Control.Applicative (Alternative ((<|>)), asum)
 import Control.Arrow (Arrow (first))
 import Control.Monad
+import Data.ByteString (ByteString)
 import Data.ByteString qualified as ByteString.Strict
 import Data.Char (toUpper)
+import Data.HashMap.Strict qualified as HashMap
 import Data.List (intercalate, minimumBy, nubBy, sortOn)
 import Data.List.NonEmpty (NonEmpty (..), (<|))
-import Data.List.NonEmpty qualified as NonEmpty
 import Data.Ord (comparing)
 import Data.Serialize qualified as Serialize
 import Data.String (IsString (..))
+import Data.Text qualified as Text
+import Data.Text.Encoding qualified as Text
 import Language.EO.Phi.Syntax.Abs
 import Language.EO.Phi.Syntax.Lex (Token)
 import Language.EO.Phi.Syntax.Par
@@ -39,6 +43,8 @@ instance IsString RuleAttribute where fromString = unsafeParseWith pRuleAttribut
 instance IsString PeeledObject where fromString = unsafeParseWith pPeeledObject
 instance IsString ObjectHead where fromString = unsafeParseWith pObjectHead
 
+instance IsString MetaId where fromString = unsafeParseWith pMetaId
+
 parseWith :: ([Token] -> Either String a) -> String -> Either String a
 parseWith parser input = parser tokens
  where
@@ -52,15 +58,22 @@ unsafeParseWith parser input =
     Left parseError -> error (parseError <> "\non input\n" <> input <> "\n")
     Right object -> object
 
+-- | State of evaluation is not needed yet, but it might be in the future
+type EvaluationState = ()
+
 type NamedRule = (String, Rule)
+type Atoms = HashMap.HashMap String (String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState))
 
 data Context = Context
   { builtinRules :: Bool
   , allRules :: [NamedRule]
+  , enabledAtoms :: Atoms
+  , knownAtoms :: Atoms
   , outerFormations :: NonEmpty Object
   , currentAttr :: Attribute
   , insideFormation :: Bool
   -- ^ Temporary hack for applying Ksi and Phi rules when dataizing
+  , insideAbstractFormation :: Bool
   , dataizePackage :: Bool
   -- ^ Temporary flag to only dataize Package attributes for the top-level formation.
   , minimizeTerms :: Bool
@@ -73,19 +86,6 @@ sameContext ctx1 ctx2 =
     [ outerFormations ctx1 == outerFormations ctx2
     , currentAttr ctx1 == currentAttr ctx2
     ]
-
-defaultContext :: [NamedRule] -> Object -> Context
-defaultContext rules obj =
-  Context
-    { builtinRules = False
-    , allRules = rules
-    , outerFormations = NonEmpty.singleton obj
-    , currentAttr = Phi
-    , insideFormation = False
-    , dataizePackage = True
-    , minimizeTerms = False
-    , insideSubObject = False
-    }
 
 -- | A rule tries to apply a transformation to the root object, if possible.
 type Rule = Context -> Object -> [Object]
@@ -114,9 +114,11 @@ withSubObject :: (Context -> Object -> [(String, Object)]) -> Context -> Object 
 withSubObject f ctx root =
   f ctx root
     <|> case root of
-      Formation bindings
-        | not (any isEmptyBinding bindings) -> propagateName1 Formation <$> withSubObjectBindings f ((extendContextWith root subctx){insideFormation = True}) bindings
-        | otherwise -> []
+      Formation bindings ->
+        propagateName1 Formation
+          <$> withSubObjectBindings f ((extendContextWith root subctx){insideFormation = True, insideAbstractFormation = isAbstract}) bindings
+       where
+        isAbstract = any isEmptyBinding bindings
       Application obj bindings ->
         asum
           [ propagateName2 Application <$> withSubObject f subctx obj <*> pure bindings
@@ -128,6 +130,7 @@ withSubObject f ctx root =
       Termination -> []
       MetaObject _ -> []
       MetaFunction _ _ -> []
+      MetaTailContext{} -> []
       MetaSubstThis _ _ -> []
  where
   subctx = ctx{insideSubObject = True}
@@ -196,6 +199,7 @@ objectSize = \case
   MetaObject{} -> 1 -- should be impossible
   MetaFunction{} -> 1 -- should be impossible
   MetaSubstThis{} -> 1 -- should be impossible
+  MetaTailContext{} -> 1 -- should be impossible
 
 bindingSize :: Binding -> Int
 bindingSize = \case
@@ -247,13 +251,10 @@ equalBindings bindings1 bindings2 = and (zipWith equalBinding (sortOn attr bindi
   attr DeltaEmptyBinding = Label (LabelId "Δ")
   attr (MetaDeltaBinding _) = Label (LabelId "Δ")
   attr (LambdaBinding _) = Label (LabelId "λ")
-  attr (MetaBindings metaId) = MetaAttr metaId
+  attr (MetaBindings (BindingsMetaId metaId)) = MetaAttr (LabelMetaId metaId)
 
 equalBinding :: Binding -> Binding -> Bool
 equalBinding (AlphaBinding attr1 obj1) (AlphaBinding attr2 obj2) = attr1 == attr2 && equalObject obj1 obj2
--- Ignore deltas for now while comparing since different normalization paths can lead to different vertex data
--- TODO #120:30m normalize the deltas instead of ignoring since this actually suppresses problems
-equalBinding (DeltaBinding _) (DeltaBinding _) = True
 equalBinding b1 b2 = b1 == b2
 
 -- * Chain variants
@@ -507,12 +508,12 @@ bytesToInt (Bytes (dropWhile (== '0') . filter (/= '-') -> bytes))
 -- | Convert 'Bool' to 'Bytes'.
 --
 -- >>> boolToBytes False
--- Bytes "00-00-00-00-00-00-00-00"
+-- Bytes "00-"
 -- >>> boolToBytes True
--- Bytes "00-00-00-00-00-00-00-01"
+-- Bytes "01-"
 boolToBytes :: Bool -> Bytes
-boolToBytes True = intToBytes 1
-boolToBytes False = intToBytes 0
+boolToBytes True = Bytes "01-"
+boolToBytes False = Bytes "00-"
 
 -- | Interpret 'Bytes' as 'Bool'.
 --
@@ -544,19 +545,29 @@ bytesToBool _ = True
 -- Bytes "48-65-6C-6C-6F-2C-20-77-6F-72-6C-64-21"
 --
 -- >>> stringToBytes "Привет, мир!"
--- Bytes "04-1F-44-04-38-43-24-35-44-22-C2-04-3C-43-84-40-21"
+-- Bytes "D0-9F-D1-80-D0-B8-D0-B2-D0-B5-D1-82-2C-20-D0-BC-D0-B8-D1-80-21"
+--
+-- >>> stringToBytes  "hello, 大家!"
+-- Bytes "68-65-6C-6C-6F-2C-20-E5-A4-A7-E5-AE-B6-21"
 stringToBytes :: String -> Bytes
-stringToBytes s = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "") . fromEnum) s
+stringToBytes s = bytestringToBytes $ Text.encodeUtf8 (Text.pack s)
+
+bytestringToBytes :: ByteString -> Bytes
+bytestringToBytes = Bytes . normalizeBytes . foldMap (padLeft 2 . (`showHex` "")) . ByteString.Strict.unpack
+
+bytesToByteString :: Bytes -> ByteString
+bytesToByteString (Bytes bytes) = ByteString.Strict.pack (go (filter (/= '-') bytes))
+ where
+  go [] = []
+  go (x : y : xs) = fst (head (readHex [x, y])) : go xs
+  go [_] = error "impossible: partial byte"
 
 -- | Decode 'String' from 'Bytes'.
 --
 -- >>> bytesToString "48-65-6C-6C-6F-2C-20-77-6F-72-6C-64-21"
 -- "Hello, world!"
 bytesToString :: Bytes -> String
-bytesToString (Bytes bytes) = map (toEnum . fst . head . readHex) $ words (map dashToSpace bytes)
- where
-  dashToSpace '-' = ' '
-  dashToSpace c = c
+bytesToString = Text.unpack . Text.decodeUtf8 . bytesToByteString
 
 -- | Encode 'Double' as 'Bytes' following IEEE754.
 --

@@ -40,13 +40,15 @@ import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy as TL (unpack)
 import Data.Yaml (decodeFileThrow)
 import GHC.Generics (Generic)
-import Language.EO.Phi (Binding (LambdaBinding), Bytes (Bytes), Object (Formation), Program (Program), parseProgram, printTree)
+import Language.EO.Phi (Binding (..), Bytes (Bytes), Object (..), Program (Program), parseProgram, printTree)
 import Language.EO.Phi.Dataize
+import Language.EO.Phi.Dataize.Context
 import Language.EO.Phi.Dependencies
 import Language.EO.Phi.Metrics.Collect as Metrics (getProgramMetrics)
 import Language.EO.Phi.Metrics.Data as Metrics (ProgramMetrics (..), splitPath)
 import Language.EO.Phi.Pipeline.Config
-import Language.EO.Phi.Pipeline.EOTests.PrepareTests (prepareTests)
+import Language.EO.Phi.Pipeline.Dataize.PrintConfigs as PrintConfigs
+import Language.EO.Phi.Pipeline.EOTests.PrepareTests as PrepareTests
 import Language.EO.Phi.Report.Data (makeProgramReport, makeReport)
 import Language.EO.Phi.Report.Html (reportCSS, reportJS, toStringReport)
 import Language.EO.Phi.Rules.Common
@@ -73,7 +75,7 @@ data CLI'TransformPhi = CLI'TransformPhi
   , maxDepth :: Int
   , maxGrowthFactor :: Int
   }
-  deriving (Show)
+  deriving stock (Show)
 
 data CLI'DataizePhi = CLI'DataizePhi
   { rulesPath :: Maybe String
@@ -85,38 +87,54 @@ data CLI'DataizePhi = CLI'DataizePhi
   , latex :: Bool
   , asPackage :: Bool
   , minimizeStuckTerms :: Bool
+  , wrapRawBytes :: Bool
+  , disabledAtomNames :: [String]
+  , enabledAtomNames :: [String]
   }
-  deriving (Show)
+  deriving stock (Show)
 
 data CLI'MetricsPhi = CLI'MetricsPhi
   { inputFile :: Maybe FilePath
   , outputFile :: Maybe FilePath
   , bindingsPath :: Maybe String
   }
-  deriving (Show)
+  deriving stock (Show)
 
-newtype CLI'ReportPhi = CLI'ReportPhi
+newtype CLI'Pipeline'Report = CLI'Pipeline'Report
   { configFile :: FilePath
   }
-  deriving (Show)
+  deriving stock (Show)
 
-newtype CLI'PreparePipelineTests = CLI'PreparePipelineTests
+newtype CLI'Pipeline'PrepareTests = CLI'Pipeline'PrepareTests
   { configFile :: FilePath
   }
-  deriving (Show)
+  deriving stock (Show)
+
+data CLI'Pipeline'PrintDataizeConfigs = CLI'Pipeline'PrintDataizeConfigs
+  { configFile :: FilePath
+  , phiPrefixesToStrip :: [FilePath]
+  , singleLine :: Bool
+  }
+  deriving stock (Show)
+
+data CLI'Pipeline
+  = CLI'Pipeline'Report' CLI'Pipeline'Report
+  | CLI'Pipeline'PrepareTests' CLI'Pipeline'PrepareTests
+  | CLI'Pipeline'PrintDataizeConfigs' CLI'Pipeline'PrintDataizeConfigs
+  deriving stock (Show)
 
 data CLI
   = CLI'TransformPhi' CLI'TransformPhi
   | CLI'DataizePhi' CLI'DataizePhi
   | CLI'MetricsPhi' CLI'MetricsPhi
-  | CLI'ReportPhi' CLI'ReportPhi
-  | CLI'PreparePipelineTests' CLI'PreparePipelineTests
-  deriving (Show)
+  | CLI'Pipeline' CLI'Pipeline
+  deriving stock (Show)
 
 data MetavarName = MetavarName
   { file :: String
   , int :: String
   , path :: String
+  , atomName :: String
   }
 
 metavarName :: MetavarName
@@ -125,12 +143,14 @@ metavarName =
     { file = "FILE"
     , int = "INT"
     , path = "PATH"
+    , atomName = "ATOM_NAME"
     }
 
 data Metavar a b = Metavar
   { file :: Mod a b
   , int :: Mod a b
   , path :: Mod a b
+  , atomName :: Mod a b
   }
 
 metavar :: (HasMetavar a) => Metavar a b
@@ -139,6 +159,7 @@ metavar =
     { file = Optparse.metavar metavarName.file
     , int = Optparse.metavar metavarName.int
     , path = Optparse.metavar metavarName.path
+    , atomName = Optparse.metavar metavarName.atomName
     }
 
 newtype OptionName = OptionName
@@ -190,12 +211,18 @@ bindingsPathOption =
                 |]
       )
 
+data CommandParser'Pipeline = CommandParser'Pipeline
+  { report :: Parser CLI'Pipeline'Report
+  , prepareTests :: Parser CLI'Pipeline'PrepareTests
+  , printDataizeConfigs :: Parser CLI'Pipeline'PrintDataizeConfigs
+  }
+
 data CommandParser = CommandParser
   { metrics :: Parser CLI'MetricsPhi
   , transform :: Parser CLI'TransformPhi
   , dataize :: Parser CLI'DataizePhi
-  , report :: Parser CLI'ReportPhi
-  , preparePipelineTests :: Parser CLI'PreparePipelineTests
+  , pipeline :: Parser CLI'Pipeline
+  , pipeline' :: CommandParser'Pipeline
   }
 
 commandParser :: CommandParser
@@ -231,23 +258,46 @@ commandParser =
     outputFile <- outputFileOption
     recursive <- switch (long "recursive" <> help "Apply dataization + normalization recursively.")
     chain <- switch (long "chain" <> help "Display all the intermediate steps.")
+    wrapRawBytes <- switch (long "wrap-raw-bytes" <> help "Wrap raw bytes ⟦ Δ ⤍ 01- ⟧ as Φ.org.eolang.bytes(Δ ⤍ 01-) in the final output.")
     latex <- latexSwitch
     asPackage <- asPackageSwitch
     minimizeStuckTerms <- minimizeStuckTermsSwitch
+    disabledAtomNames <- many $ strOption (long "disable-atom" <> metavar.atomName <> help "Name of an atom to disable.")
+    enabledAtomNames <- many $ strOption (long "enable-atom" <> metavar.atomName <> help "Name of an atom to enable.")
     pure CLI'DataizePhi{..}
-  report = do
-    configFile <- strOption (long "config" <> short 'c' <> metavar.file <> help [fmt|A report configuration {metavarName.file}.|])
-    pure CLI'ReportPhi{..}
-  preparePipelineTests = do
-    configFile <- strOption (long "config" <> short 'c' <> metavar.file <> help [fmt|A pipeline tests configuration {metavarName.file}.|])
-    pure CLI'PreparePipelineTests{..}
+  pipeline' =
+    CommandParser'Pipeline
+      { report = do
+          configFile <- strOption (long "config" <> short 'c' <> metavar.file <> help [fmt|A report configuration {metavarName.file}.|])
+          pure CLI'Pipeline'Report{..}
+      , prepareTests = do
+          configFile <- strOption (long "config" <> short 'c' <> metavar.file <> help [fmt|A pipeline tests configuration {metavarName.file}.|])
+          pure CLI'Pipeline'PrepareTests{..}
+      , printDataizeConfigs = do
+          configFile <- strOption (long "config" <> short 'c' <> metavar.file <> help [fmt|A pipeline tests configuration {metavarName.file}.|])
+          phiPrefixesToStrip <- many $ strOption (long "strip-phi-prefix" <> short 'p' <> metavar.path <> help [fmt|{metavarName.path} prefix to remove in PHI file paths.|])
+          singleLine <- switch (long "single-line" <> short 'l' <> help [fmt|Output configs on an single line.|])
+          pure CLI'Pipeline'PrintDataizeConfigs{..}
+      }
+  pipeline =
+    hsubparser
+      ( command commandNames.pipeline'.report commandParserInfo.pipeline'.report
+          <> command commandNames.pipeline'.prepareTests commandParserInfo.pipeline'.prepareTests
+          <> command commandNames.pipeline'.printDataizeConfigs commandParserInfo.pipeline'.printDataizeConfigs
+      )
+
+data CommandParserInfo'Pipeline = CommandParserInfo'Pipeline
+  { report :: ParserInfo CLI'Pipeline
+  , prepareTests :: ParserInfo CLI'Pipeline
+  , printDataizeConfigs :: ParserInfo CLI'Pipeline
+  }
 
 data CommandParserInfo = CommandParserInfo
   { metrics :: ParserInfo CLI
   , transform :: ParserInfo CLI
   , dataize :: ParserInfo CLI
-  , report :: ParserInfo CLI
-  , preparePipelineTests :: ParserInfo CLI
+  , pipeline :: ParserInfo CLI
+  , pipeline' :: CommandParserInfo'Pipeline
   }
 
 commandParserInfo :: CommandParserInfo
@@ -256,16 +306,27 @@ commandParserInfo =
     { metrics = info (CLI'MetricsPhi' <$> commandParser.metrics) (progDesc "Collect metrics for a PHI program.")
     , transform = info (CLI'TransformPhi' <$> commandParser.transform) (progDesc "Transform a PHI program.")
     , dataize = info (CLI'DataizePhi' <$> commandParser.dataize) (progDesc "Dataize a PHI program.")
-    , report = info (CLI'ReportPhi' <$> commandParser.report) (progDesc "Generate reports about initial and normalized PHI programs.")
-    , preparePipelineTests = info (CLI'PreparePipelineTests' <$> commandParser.preparePipelineTests) (progDesc "Prepare EO test files for the pipeline.")
+    , pipeline = info (CLI'Pipeline' <$> commandParser.pipeline) (progDesc "Run pipeline-related commands.")
+    , pipeline' =
+        CommandParserInfo'Pipeline
+          { report = info (CLI'Pipeline'Report' <$> commandParser.pipeline'.report) (progDesc "Generate reports about initial and normalized PHI programs.")
+          , prepareTests = info (CLI'Pipeline'PrepareTests' <$> commandParser.pipeline'.prepareTests) (progDesc "Prepare EO test files for the pipeline.")
+          , printDataizeConfigs = info (CLI'Pipeline'PrintDataizeConfigs' <$> commandParser.pipeline'.printDataizeConfigs) (progDesc [fmt|Print configs for the `normalizer {commandNames.dataize}` command.|])
+          }
     }
+
+data CommandNames'Pipeline = CommandNames'Pipeline
+  { report :: String
+  , prepareTests :: String
+  , printDataizeConfigs :: String
+  }
 
 data CommandNames = CommandNames
   { transform :: String
   , metrics :: String
   , dataize :: String
-  , report :: String
-  , preparePipelineTests :: String
+  , pipeline :: String
+  , pipeline' :: CommandNames'Pipeline
   }
 
 commandNames :: CommandNames
@@ -274,8 +335,13 @@ commandNames =
     { transform = "transform"
     , metrics = "metrics"
     , dataize = "dataize"
-    , report = "report"
-    , preparePipelineTests = "prepare-pipeline-tests"
+    , pipeline = "pipeline"
+    , pipeline' =
+        CommandNames'Pipeline
+          { report = "report"
+          , prepareTests = "prepare-tests"
+          , printDataizeConfigs = "print-dataize-configs"
+          }
     }
 
 cli :: Parser CLI
@@ -284,8 +350,7 @@ cli =
     ( command commandNames.transform commandParserInfo.transform
         <> command commandNames.metrics commandParserInfo.metrics
         <> command commandNames.dataize commandParserInfo.dataize
-        <> command commandNames.report commandParserInfo.report
-        <> command commandNames.preparePipelineTests commandParserInfo.preparePipelineTests
+        <> command commandNames.pipeline commandParserInfo.pipeline
     )
 
 cliOpts :: ParserInfo CLI
@@ -387,6 +452,48 @@ injectLamdbaPackage bs
   | any isPackageBinding bs = bs
   | otherwise = bs ++ [LambdaBinding "Package"]
 
+removeLambdaPackage :: Object -> Object
+removeLambdaPackage = \case
+  Formation bindings ->
+    Formation
+      [ binding
+      | binding <- bindings
+      , not (isLambdaPackage binding)
+      ]
+  obj -> obj
+
+isLambdaPackage :: Binding -> Bool
+isLambdaPackage (LambdaBinding "Package") = True
+isLambdaPackage _ = False
+
+wrapRawBytesIn :: Object -> Object
+wrapRawBytesIn = \case
+  Formation [DeltaBinding bytes] -> wrapBytesInBytes bytes
+  Formation bindings ->
+    Formation
+      [ case binding of
+        AlphaBinding a obj -> AlphaBinding a (wrapRawBytesIn obj)
+        _ -> binding
+      | binding <- bindings
+      ]
+  Application obj bindings ->
+    Application
+      (wrapRawBytesIn obj)
+      [ case binding of
+        AlphaBinding a attached -> AlphaBinding a (wrapRawBytesIn attached)
+        _ -> binding
+      | binding <- bindings
+      ]
+  ObjectDispatch obj a ->
+    ObjectDispatch (wrapRawBytesIn obj) a
+  GlobalObject -> GlobalObject
+  ThisObject -> ThisObject
+  Termination -> wrapTermination
+  obj@MetaSubstThis{} -> obj
+  obj@MetaObject{} -> obj
+  obj@MetaTailContext{} -> obj
+  obj@MetaFunction{} -> obj
+
 -- * Main
 
 main :: IO ()
@@ -485,6 +592,8 @@ main = withUtf8 do
             (defaultContext rules (Formation bindingsWithDeps)) -- IMPORTANT: context contains dependencies!
               { minimizeTerms = minimizeStuckTerms
               , builtinRules = builtin
+              , enabledAtoms = mkEnabledAtoms enabledAtomNames disabledAtomNames
+              , knownAtoms = knownAtomsMap
               }
       if chain
         then do
@@ -512,9 +621,16 @@ main = withUtf8 do
                 | recursive = dataizeRecursively
                 | otherwise = dataizeStep'
           case dataize ctx inputObject of
-            Left obj -> logStrLn (printAsProgramOrAsObject obj)
+            Left obj ->
+              let obj'
+                    | asPackage = removeLambdaPackage obj
+                    | otherwise = obj
+                  obj''
+                    | wrapRawBytes = wrapRawBytesIn obj'
+                    | otherwise = obj'
+               in logStrLn (printAsProgramOrAsObject obj'')
             Right (Bytes bytes) -> logStrLn bytes
-    CLI'ReportPhi' CLI'ReportPhi{..} -> do
+    CLI'Pipeline' (CLI'Pipeline'Report' CLI'Pipeline'Report{..}) -> do
       pipelineConfig <- decodeFileThrow @_ @PipelineConfig configFile
       let testSets = filter (fromMaybe True . (.enable)) pipelineConfig.testSets
       programReports <- forM (zip [1 ..] testSets) $ \(index :: Int, (.phi) -> testSet) -> do
@@ -544,6 +660,9 @@ main = withUtf8 do
         $ \(path, reportString) -> do
           createDirectoryIfMissing True (takeDirectory path)
           writeFile path reportString
-    CLI'PreparePipelineTests' CLI'PreparePipelineTests{..} -> do
+    CLI'Pipeline' (CLI'Pipeline'PrepareTests' CLI'Pipeline'PrepareTests{..}) -> do
       config <- decodeFileThrow @_ @PipelineConfig configFile
-      prepareTests config
+      PrepareTests.prepareTests config
+    CLI'Pipeline' (CLI'Pipeline'PrintDataizeConfigs' CLI'Pipeline'PrintDataizeConfigs{..}) -> do
+      config <- decodeFileThrow @_ @PipelineConfig configFile
+      PrintConfigs.printDataizeConfigs config phiPrefixesToStrip singleLine

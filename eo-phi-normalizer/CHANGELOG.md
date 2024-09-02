@@ -6,6 +6,91 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to the
 [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## v1.0.0 - 2024-07-19
+
+### New
+
+- Align reductions from application to `⊥` with the paper ([#418](https://github.com/objectionary/normalizer/pull/418), [#435](https://github.com/objectionary/normalizer/pull/435))
+- Support enabling/disabling particular atoms ([#426](https://github.com/objectionary/normalizer/pull/426))
+- Support custom rules ([#432](https://github.com/objectionary/normalizer/pull/432))
+  - Test ruleset `streams.yaml` with the example rule equipped with a passing test, matching <https://github.com/objectionary/normalizer/issues/423#issue-2366637410>
+  - Allow rules to go inside abstract objects (and add explicit `apply_in_abstract_subformations` option to maintain correctness for `yegor.yaml` rules)
+  - Support tail patterns (restricted one-hole contexts)
+    - Matching against objects inside dispatch
+    - Matching against objects inside application (left only)
+  - Properly generate fresh names
+  - Allow explicit `forall` to keep track of all metavariables for extra safety (force in the future, see [#441](https://github.com/objectionary/normalizer/issues/441)).
+  - Distinguish types of metavariables for extra safety.
+
+### Changes and fixes
+
+- Update decoration rule ([#420](https://github.com/objectionary/normalizer/pull/420))
+- Generalize `Φ-dispatch` to rewrite `Φ` instead of `Φ.a` ([#419](https://github.com/objectionary/normalizer/pull/419))
+
+### Documentation and maintenance
+
+- Update EO to 0.38.4 ([#426](https://github.com/objectionary/normalizer/pull/426))
+
+## v0.4.1 — 2024-06-12
+
+Changes and fixes:
+
+- Undo injection of top-level Package lambda ([#392](https://github.com/objectionary/normalizer/pull/392))
+- Fix dataization ([#395](https://github.com/objectionary/normalizer/pull/395))
+  - Fix dataization inside $\varphi$ when `--minimize-stuck-terms` is enabled (closes [#393](https://github.com/objectionary/normalizer/pull/393))
+  - Fix evaluation of atoms stuck on other atoms (fixes `while-dataizes-only-first-cycle` in `while-tests.phi`)
+  - Improve pretty-printing (closes [#292](https://github.com/objectionary/normalizer/pull/292))
+
+- Fix pipeline script to run tests on normalized EO ([#396](https://github.com/objectionary/normalizer/pull/396))
+
+- Changes to normalizer ([#396](https://github.com/objectionary/normalizer/pull/396))
+  - Add `--wrap-raw-bytes` to automatically convert raw bytes (and terminations) in the output. This is a temporary fix, pending the change mentioned in <https://github.com/objectionary/eo/issues/3213#issuecomment-2150032168>
+  - Fix builtin normalizer to produce termination in some situations
+  - Fix dataization inside application/dispatch
+  - Fix encoding for strings to follow UTF-8 (compatibility with EO)
+  - Fix bool representation to require one byte (compatibility with EO)
+  - Fix integer division to truncate toward zero (compatibility with EO)
+  - Improve pretty-printer (use indentation)
+  - Update some examples/docs on the site
+  - Support up to 3 positional arguments in the builtin normalizer
+
+- Fix directory used in CI for:
+  - Job summary ([#402](https://github.com/objectionary/normalizer/pull/402))
+  - Report ([#412](https://github.com/objectionary/normalizer/pull/412))
+
+Documentation and maintenance:
+
+- Bring rules up to date ([#401](https://github.com/objectionary/normalizer/pull/401))
+- Update dependency prettier to v3.3.2 ([#385](https://github.com/objectionary/normalizer/pull/385))
+
+## v0.4.0 — 2024-06-03
+
+This version supports fast dataization with built-in rules and improves metrics with both built-in and user-defined rules (via YAML).
+
+New:
+
+- Add built-in rules
+- Add more built-in dataization functions ([#291](https://github.com/objectionary/normalizer/pull/291))
+- Support LaTeX format in output ([#308](https://github.com/objectionary/normalizer/pull/308))
+- Speed up pipeline by caching EO compilation results ([#340](https://github.com/objectionary/normalizer/pull/340))
+- Write generated PHI files as eo-phi-normalizer data files ([#286](https://github.com/objectionary/normalizer/pull/286))
+- Update and commit docs in CI ([#286](https://github.com/objectionary/normalizer/pull/286))
+
+Changes and fixes:
+
+- Switch to EO 0.38.0 ([#335](https://github.com/objectionary/normalizer/pull/335))
+- Remove VTX and Sigma ([#335](https://github.com/objectionary/normalizer/pull/335))
+- Fix normalization and dataization rules w.r.t. xi and rho (see [#297](https://github.com/objectionary/normalizer/pull/297))
+- Fix confluence tests ([#319](https://github.com/objectionary/normalizer/pull/319))
+- Fix pipeline tests ([#338](https://github.com/objectionary/normalizer/pull/338))
+- Integrate `transform-eo-tests` into normalizer ([#365](https://github.com/objectionary/normalizer/pull/365))
+- Switch to GHC 9.6.4 ([#263](https://github.com/objectionary/normalizer/pull/263))
+
+Documentation and maintenance:
+
+- Add the `Quick Start` page ([#317](https://github.com/objectionary/normalizer/pull/317))
+- Add the `Pipeline` page ([#261](https://github.com/objectionary/normalizer/pull/261))
+
 ## v0.3.1 — 2024-04-12
 
 This version supports proper dataization of test programs with dependencies.

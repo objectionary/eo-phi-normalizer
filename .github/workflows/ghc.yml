@@ -237,12 +237,12 @@ jobs:
         if: always() && env.branch_is_not_master && runner.os == 'Linux'
         run: |
           source scripts/lib.sh
-          data_directory="eo-phi-normalizer/data"
+          data_directory="$PIPELINE_NORMALIZER_DATA_DIR"
           commit_and_push_if_changed "$data_directory" "normalizer data files"
 
       - name: Install mdsh
         if: env.branch_is_not_master && runner.os == 'Linux'
-        uses: baptiste0928/cargo-install@v3.1.0
+        uses: baptiste0928/cargo-install@v3.1.1
         with:
           crate: mdsh
           git: https://github.com/zimbatm/mdsh
@@ -256,8 +256,27 @@ jobs:
         if: env.branch_is_not_master && runner.os == 'Linux'
         run: |
           source scripts/lib.sh
-          files="site proposals README.md"
+          files=('site' 'proposals' 'README.md')
           commit_and_push_if_changed "$files" "Markdown files"
+
+      - name: Create a directory for docs
+        if: runner.os == 'Linux'
+        run: mkdir -p dist
+
+      - name: Setup mdBook
+        if: runner.os == 'Linux'
+        uses: jontze/action-mdbook@v3
+        with:
+          token: ${{secrets.GITHUB_TOKEN}}
+          mdbook-version: "~0.4.40"
+          use-linkcheck: true
+
+      - name: Run mdbook
+        if: runner.os == 'Linux'
+        run: |
+          cd site/docs
+          mdbook build
+          mv docs/html ../../dist/docs
 
       - name: Upload pipeline artifact
         id: pipeline-artifact
@@ -270,13 +289,23 @@ jobs:
           # we can't use caches because we can't overwrite them
           name: pipeline-files-${{ runner.os }}
           overwrite: true
+          # Problem
+          #
+          # The action doesn't save the pipeline directory.
+          # It saves just the content of this directory.
+          #
+          # Seems like the wildcard case (https://github.com/actions/upload-artifact#upload-using-multiple-paths-and-exclusions)
+          # is triggered when all paths start with "pipeline".
+          #
+          # Hence, to preserve the path structure, it's necessary
+          # to add a path that doesn't start with "pipeline".
           path: |
             pipeline
             !pipeline/**/.eoc
             !pipeline/eo-yaml
             pipeline/eo-initial/.eoc/4-pull/org/
             pipeline/phi-initial/.eoc/phi/org
-            report
+            dist
 
       - name: Write about the artifact in the job summary
         if: always()
@@ -302,8 +331,11 @@ jobs:
           cat << EOF >> $GITHUB_STEP_SUMMARY
           <h2>Report</h2>
           <details>
+
             <summary>Click to expand</summary>
-            $(cat report/report.md)
+
+            $(cat $(yq '.report.output.markdown' < pipeline/config.yaml))
+
           </details>
           EOF
 
@@ -331,23 +363,10 @@ jobs:
           pattern: pipeline-files-${{ runner.os }}
           merge-multiple: true
 
-      - name: Setup mdBook
-        uses: jontze/action-mdbook@v3
-        with:
-          token: ${{secrets.GITHUB_TOKEN}}
-          mdbook-version: "~0.4.37"
-          use-linkcheck: true
-
       - name: Add haddock
         run: |
           mkdir -p dist/haddock
           mv $(stack path --local-doc-root)/* dist/haddock
-
-      - name: Add docs
-        run: |
-          cd site/docs
-          mdbook build
-          mv docs/html ../../dist/docs
 
       - name: Add report
         run: |

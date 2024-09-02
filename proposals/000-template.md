@@ -2,9 +2,9 @@
 
 [N.B: Replace text in square brackets with your text]
 
-| author             | date-accepted                         | pr-url                                          | implemented                                              |
+| author(s)             | date-accepted                         | pr-url                                          | implemented                                              |
 | ------------------ | ------------------------------------- | ----------------------------------------------- | -------------------------------------------------------- |
-| [Full author name] | [Date when the proposal was accepted] | [URL of a PR where this proposal was discussed] | [normalizer version where this proposal was implemented] |
+| [Full author names] | [Date when the proposal was accepted] | [URL of a PR where this proposal was discussed] | [normalizer version where this proposal was implemented] |
 
 ## Motivation
 
