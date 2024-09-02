@@ -1,0 +1,150 @@
+SUBMISSION: 22
+TITLE: Formal Confluence for $\varphi$-Calculus in Lean 4
+
+----------------------- REVIEW 1 ---------------------
+SUBMISSION: 22
+TITLE: Formal Confluence for $\varphi$-Calculus in Lean 4
+AUTHORS: Anatoliy Baskakov, Nikolai Kudasov and Violetta Sim
+
+----------- Overall evaluation -----------
+SCORE: 1 (weak accept)
+----- TEXT:
+The short paper presents a formalisation of the proof of confluence for the minimal phi calculus, using lean4. During this formalisation, they discovered some "minor" mistakes in a lemma from one of the authors recent previous publications. The paper addresses these issues.
+
+Given the page limit, the short paper is surprisingly thorough in its presentation of the background and preliminaries. In the exposition of the results however, a strange middle ground is used between explaining general confluence proofs in detail, whilst avoiding phi-calculus specific details. For instance, the parallel reduction relation is introduced, without much further explanation besides the superficial. Does the parallel reduction relation have merit outside of the confluence proof? How general is the technique used, or how dependent is it on the phi-calculus?
+
+As for the formalisation itself, the proofs compile and definition statements seem correct and reflecting of what is mentioned in the short paper. However, several "sorries" are used at various places in the code, which are ways to assert lemmas without providing a proof. The short paper indeed mentions that the formalisation currently is incomplete, and says this is due the problem lean has with termination checking certain lemmas. It is suggested that a solution exists, which would be quite involved (and break re-usability). Given that this is presented as a short paper explaining ongoing work, this is not too big a problem. However, I would recommend the following alterations:
+
+- Be more upfront about this problem. As is, it is only mentioned in the last paragraph before the conclusion, which is least likely to be read. Please put it in the conclusion, or briefly mention in the introduction.
+- The paper does not seem to mention this is something they are working on fixing as part of future work. If this is one of your goals, please say so in the conclusion.
+
+Lastly, though this is a relatively minor issue, sometimes some confusion arises because of the way things are formulated. See the minor comments for more details.
+
+As is, the short paper has some issues, formalising only a single result without explaining how it can be re-used. Moreover, the formalisation is incomplete due to some complications with termination checking. Still, the work seems worthwhile and interesting from a formalisation perspective.
+
+Minor comments:
+
+- At certain points, some confusion arises because of the way the authors use articles. For instance, in Definition 1 there is a definition of "the join" suggesting it is unique, though it does not seem like this is the case. Similar mistakes are made in the text throughout the paper, though less of a problem.
+
+- 112. "and prove that it is in fact transitive" do you mean, the operation produces transitive relations? From the text, it sounds like the operation itself is transitive, which it is (as it is idempotent) but this is not what is meant, presumably.
+
+- 148. I find Definition 6 curious, since min^i([[a -> u]]) = min^{i+1}(u), and min^i([[a -> void]](a -> u)) = min^i(u), where [[a -> void]](a -> u) reduces to [[a -> u]].
+
+- 155. "The condition" meaning the one given in Lemma 5?
+
+----------------------- REVIEW 2 ---------------------
+SUBMISSION: 22
+TITLE: Formal Confluence for $\varphi$-Calculus in Lean 4
+AUTHORS: Anatoliy Baskakov, Nikolai Kudasov and Violetta Sim
+
+----------- Overall evaluation -----------
+SCORE: -2 (reject)
+----- TEXT:
+This short paper presents a formalisation of confluence for the \phi calculus in
+Lean 4.
+
+The work is reasonably well motivated and appears to be mostly well executed,
+but it is unfinished. While missing termination proofs may sound less important
+than the rest, they can hide major problems in the formalisation. I can therefore
+not recommend publication.
+
+The presentation also appears not fully mature yet. For instance, the related
+work section is merely a list of related papers without any comparison to the
+work presented here. For example, does IsaFoR already solve all the problems
+presented here? What about the work in Agda and PVS? Are any of them applicable
+to \phi calculus? If yes, why not use these? If no, what are the missing things
+that would be required? Would a confluence checker work for \phi calculus? Etc.
+The main question that is not answered is: what is the delta between the
+existing work and the work presented here? (to establish novelty of the
+contribution)
+
+I would encourage the authors to continue and finish this work and resubmit a
+more mature version. With a bit more maturity this could be a nice publication.
+
+Details:
+
+Sec 2: you remark that you adopted a more computationally pragmatic approach. In
+my experience, this is usually a mistake unless is it well motivated by other
+constraints (e.g. if you actually need to do computation apart from just
+printing), because a more concrete representation in the prover usually
+significantly complicates proofs (the Zulip discussion is a typical pointer
+towards such problems). Even if computation is a requirement, I would usually
+recommend formalising and proving correct an abstract version first and using
+techniques such as refinement or type classes to gain the detail needed for
+computation. If you have good motivation for doing the formalisation as is, I
+would recommend spelling out that recommendation in the paper.
+
+Figure 2: the figure uses syntax that has not been defined and is not explained,
+in particular the up-arrow in rule APP_c. Overall, I was not able to make much
+sense out of this figure. What was missing for me was an intuition of what
+reductions look like in \phi calculus and overall what \phi calculus is trying
+to achieve. Likely [19] explains all that, but the paper should be
+self-contained enough to understand at least the basics.
+
+----------------------- REVIEW 3 ---------------------
+SUBMISSION: 22
+TITLE: Formal Confluence for $\varphi$-Calculus in Lean 4
+AUTHORS: Anatoliy Baskakov, Nikolai Kudasov and Violetta Sim
+
+----------- Overall evaluation -----------
+SCORE: -2 (reject)
+----- TEXT:
+The paper presents a formalization of the (minimal) phi-calculus (an object calculus) in Lean 4. The authors have encoded syntax and reduction rules and prove that the rewriting system made of these rules is confluent.
+The paper follows the paper-and-pencil proof given in another paper [19] (written by 2 of the authors).
+The authors have discovered a missing condition in a lemma in [19]. Some termination proofs are lacking (but the paper does not give details on that point).
+
+The authors have formalized some results about abstract rewriting systems (ARS): definition of the reflexive-transitive closure of a relation, the join of 2 terms, diamond property and confluence, proof of the fact that diamond property implies confluence.
+
+The proof of confluence for the phi-calculus is done using Takahashi's technique. However all the proof has been done in the context of the object calculus while some parts are generic and could be generalized and proposed as general notions and lemmas for ARS. For example how difficult would it be to generalize theorem 4 (Parallel reduction is equivalent to regular reduction)?
+
+The paper should give more intuition. The reader has to refer to [19] to understand some notions (locators, parallel reductions, etc). Furthermore it is difficult to understand the difficulties of the proof process. It would be nice to have lessons to take home.
+
+## Detailed comments
+
+Page 1
+Sometimes you use EO, sometimes EOLANG. Is there a difference? Could you clarify or always use the same name?
+
+I suggest to make 1.1 a proper section of the paper.
+
+l 36. "object formations" -> I suggest to replace by "object constructions", here and everywhere in the paper
+
+Page 2
+In related work, you could also cite formalizations in proof assistants about object calculi, e.g. [1] in which the authors have formalized in Dedukti the simply-typed sigma-calculus defined by Abadi and Cardelli. In this paper you can find some references on other formalizations.
+
+[1] Raphaël Cauderlier, Catherine Dubois: Objects and Subtyping in the Lambda-Pi-Calculus Modulo. TYPES 2014: 47-71
+
+l 53. "Another term rewriting library in built in Prototype Verification System (PVS)" -> Another term rewriting library is built ....
+
+About formalizations of ARS, please also cite Cime3 that allows for checking a rewriting system for local confluence and termination, generating proof scripts for Coq (
+É. Contejean, P. Courtieu, J. Forest, O. Pons, and X. Urbain. Automated certified proofs
+with CiME3. In Rewriting Techniques and Applications, RTA’11).
+You could also cite Color (F. Blanqui, A. Koprowski. CoLoR: a Coq library on well-founded rewrite relations and its application to the automated verification of termination certificates. MSCS 2011)
+
+An alternative characterization of confluence is the Z property. In (Flávio L. C. de Moura and Leandro O. Rezende. A Formalization of the (Compositional) Z Property. Workshop on Formal Mathematics for Mathematicians (FMM 2021)) it is proven in Coq
+that the Z property implies confluence.
+It has also been implemented in Isabelle ( Bertram Felgenhauer, Julian Nagele, Vincent van Oostrom, Christian Sternagel. The Z Property. Arch. Formal Proofs 2016).
+
+Page 3
+In Fig. 1, put vertical bars between the different cases.
+The empty sets in the first case are confusing. I assume you mean that the value attached to a label is either empty or a term. Why not introducing a new non terminal, e, with e ::= emptyset | t and so having t::=[a_1 |-> e_1, ..., a_n |-> e_n]
+The notion of locator should be made more explicit. Without referring to [19], it is not possible to know what it is.
+
+Page 4
+l 114. "the join or two terms" -> the join of two terms
+The semantics of phi-calculus is not introduced in this section (the corresponding figure is cited later). According to me, it would be better to introduce it here and explain a little bit the different reduction rules.
+What is u\uparrow in APP_c? Is \rho^0 analogous to self? Explain the DOT rule.
+
+Page 5
+l 132. Introduce (at least informally) parallel reduction.
+This page is a succession of definitions and lemmas without any intuition. For example, what is the minimal free locator? It follows closely [19] but the reader has to go to this paper to understand.
+
+Page 6
+Same for t+, what is the intuition behind this notion.
+
+l 177. "The complete development possesses the property that all parallel reductions of a term reduce to complete development." This sentence does not help to understand the notion.
+
+l 194. "We have yet to construct a minimal working example to submit an issue to the Lean GitHub repository." -> this is useless in the paper.
+
+L 198. What lemmas lack a termination proof? Are these proofs obvious? Is it just a matter of time or a difficult piece for some of them?
+
+A last remark concerns the Lean files. Putting everything in the file Calculus.lean does not help to read the code. Would it be possible to split in different files?
