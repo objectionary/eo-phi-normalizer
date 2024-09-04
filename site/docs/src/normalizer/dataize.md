@@ -91,7 +91,7 @@ Evaluating lambda 'Package' : ⟦
 ⟧
 
  Dataizing: Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00))
- Φ-dispatch: ⟦
+ Phi: ⟦
   c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)),
   result ↦ ξ.c.times (x ↦ ⟦
     Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
@@ -103,7 +103,7 @@ Evaluating lambda 'Package' : ⟦
   λ ⤍ Package
 ⟧
 . org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00))
- Φ-dispatch: ⟦
+ Phi: ⟦
   c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)),
   result ↦ ξ.c.times (x ↦ ⟦
     Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
@@ -239,7 +239,7 @@ Evaluating lambda 'Package' : ⟦
   Δ ⤍ 40-40-00-00-00-00-00-00
 ⟧
 )
- ξ-dispatch: ⟦
+ xi: ⟦
   c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)),
   result ↦ ξ.c.times (x ↦ ⟦
     Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
@@ -257,14 +257,14 @@ Evaluating lambda 'Package' : ⟦
   Δ ⤍ 40-40-00-00-00-00-00-00
 ⟧
 )
- R_DOT: Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)).times (x ↦ ⟦
+ DOT: Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)).times (x ↦ ⟦
   Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
 ⟧
 ).plus (x ↦ ⟦
   Δ ⤍ 40-40-00-00-00-00-00-00
 ⟧
 )
- Φ-dispatch: ⟦
+ Phi: ⟦
   c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)),
   result ↦ ξ.c.times (x ↦ ⟦
     Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
@@ -282,7 +282,7 @@ Evaluating lambda 'Package' : ⟦
   Δ ⤍ 40-40-00-00-00-00-00-00
 ⟧
 )
- Φ-dispatch: ⟦
+ Phi: ⟦
   c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)),
   result ↦ ξ.c.times (x ↦ ⟦
     Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD

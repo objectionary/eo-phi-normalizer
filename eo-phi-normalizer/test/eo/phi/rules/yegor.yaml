@@ -1,30 +1,7 @@
 title: "Rule set based on Yegor's draft"
 rules:
-  # - name: Rule 3
-  #   description: 'Initialization of parent attribute'
-  #   pattern: |
-  #     ⟦ !B ⟧
-  #   result: |
-  #     ⟦ !B, ρ ↦ ξ.σ ⟧
-  #   when:
-  #     - present_attrs:
-  #         attrs: ['σ']
-  #         bindings: ['!B']
-  #     - absent_attrs:
-  #         attrs: ['ρ']
-  #         bindings: ['!B']
-  #   tests:
-  #     - name: 'Has sigma and no rho'
-  #       input: '⟦ b ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧ '
-  #       output: ['⟦ b ↦ ⟦ ⟧, σ ↦ ⟦ ⟧, ρ ↦ ξ.σ ⟧']
-  #     - name: 'Has both sigma and rho'
-  #       input: '⟦ a ↦ ⟦ b ↦ ⟦ ⟧, ρ ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧ ⟧'
-  #       output: []
-  #     - name: 'Has neither sigma nor rho'
-  #       input: '⟦ a ↦ ⟦ b ↦ ⟦ ⟧ ⟧ ⟧'
-  #       output: []
 
-  - name: Φ-dispatch
+  - name: Phi
     description: 'Φ-dispatch'
     context:
       global_object: '!b'
@@ -36,7 +13,7 @@ rules:
       - apply_in_subformations: false
     tests: []
 
-  - name: ξ-dispatch
+  - name: xi
     description: 'ξ-dispatch'
     context:
       current_object: '!b'
@@ -46,16 +23,13 @@ rules:
       !b
     when:
       - apply_in_subformations: false
-      # - present_attrs:
-      #     attrs: ['ρ']
-      #     bindings: ['!B']
     tests:
       - name: Does not replace ξ inside a subformation
         input: '⟦ a ↦ ⟦ ⟧, x ↦ ξ.a, ρ ↦ ⟦ ⟧ ⟧'
         output: []
       # How to test replacing without already having context?
 
-  - name: R_DOT
+  - name: DOT
     description: 'Accessing an α-binding'
     pattern: |
       ⟦ !τ ↦ !b, !B ⟧.!τ
@@ -82,22 +56,8 @@ rules:
       - name: Should respect surrounding context
         input: ⟦ hello ↦ ⟦⟧, goodbye ↦ ⟦ a ↦ ⟦⟧ ⟧ ⟧.hello
         output: ['⟦ ρ ↦ ⟦ hello ↦ ⟦⟧, goodbye ↦ ⟦ a ↦ ⟦⟧ ⟧ ⟧ ⟧']
-  # - name: Rule 6a
-  #   description: 'Accessing an α-binding (for object with ρ ↦ ∅)'
-  #   pattern: |
-  #     ⟦ !τ ↦ !b, ρ ↦ ∅, !B ⟧.!τ
-  #   result: |
-  #     !b[ ξ ↦ ⟦ !τ ↦ !b, ρ ↦ ∅, !B ⟧ ]
-  #   when: []
-  #   tests:
-  #     - name: Should match
-  #       input: ⟦ hello ↦ ⟦⟧, ρ ↦ ∅ ⟧.hello
-  #       output: ['⟦ ρ ↦ ⟦ hello ↦ ⟦⟧, ρ ↦ ∅ ⟧ ⟧']
-  #     - name: Shouldn't match
-  #       input: ⟦ ⟧.hello
-  #       output: []
 
-  - name: R_DOT_ρ
+  - name: DOTrho
     description: 'Accessing ρ-binding'
     pattern: |
       ⟦ ρ ↦ !b, !B ⟧.ρ
@@ -110,100 +70,7 @@ rules:
         input: ⟦ ρ ↦ ⟦ ⟧ ⟧.ρ
         output: ['⟦ ⟧']
 
-  - name: R_COPY2
-    description: 'Application of α-binding'
-    # Warning: this is not correct for the chain variant because it only matches the first two bindings
-    # i.e., doesn't match an empty binding after an attached one.
-    # We should instead match the first two empty bindings.
-    context:
-      current_object: "!b_cur"
-    pattern: |
-      ⟦ !τ1 ↦ ∅, !τ2 ↦ ∅, !B ⟧(α0 ↦ !b0, α1 ↦ !b1)
-    result: |
-      ⟦ !τ1 ↦ !b0[ ξ ↦ !b_cur ], !τ2 ↦ !b1[ ξ ↦ !b_cur ], !B ⟧
-    when:
-      - apply_in_subformations: false
-      - nf: '!b0'
-      - nf: '!b1'
-    tests:
-      - name: Should match positional arguments
-        input: ⟦ hello ↦ ∅, bye ↦ ∅, hey ↦ ∅ ⟧(α0 ↦ ⟦⟧, α1 ↦ ⟦ a ↦ ⟦⟧ ⟧)
-        output: ['⟦ hello ↦ ⟦ ρ ↦ ⟦ hello ↦ ∅, bye ↦ ∅, hey ↦ ∅ ⟧(α0 ↦ ⟦⟧, α1 ↦ ⟦ a ↦ ⟦⟧ ⟧) ⟧, bye ↦ ⟦ a ↦ ⟦⟧, ρ ↦ ⟦ hello ↦ ∅, bye ↦ ∅, hey ↦ ∅ ⟧(α0 ↦ ⟦⟧, α1 ↦ ⟦ a ↦ ⟦⟧ ⟧) ⟧, hey ↦ ∅ ⟧']
-        options:
-          - take_one: true
-
-  - name: R_COPY1
-    description: 'Application of α-binding'
-    # Warning: this is not correct for the chain variant because it only matches the first binding
-    # i.e., doesn't match an empty binding after an attached one.
-    # We should instead match the first empty binding.
-    context:
-      current_object: "!b_cur"
-    pattern: |
-      ⟦ !τ ↦ ∅, !B ⟧(α0 ↦ !b)
-    result: |
-      ⟦ !τ ↦ !b[ ξ ↦ !b_cur ], !B ⟧
-    when:
-      - apply_in_subformations: false
-      - nf: '!b'
-    tests:
-      - name: Should match first void attribute
-        input: ⟦ hello ↦ ⟦⟧, bye ↦ ∅, hey ↦ ∅ ⟧(α0 ↦ ⟦⟧)
-        output: ['⟦ bye ↦ ⟦ ρ ↦ ⟦ hello ↦ ⟦⟧, bye ↦ ∅, hey ↦ ∅ ⟧(α0 ↦ ⟦⟧) ⟧, hello ↦ ⟦⟧, hey ↦ ∅ ⟧']
-        options:
-          - take_one: true
-
-  - name: R_COPY
-    description: 'Application of α-binding'
-    context:
-      current_object: "!b_cur"
-    pattern: |
-      ⟦ !τ ↦ ∅, !B1 ⟧(!τ ↦ !b, !B2)
-    result: |
-      ⟦ !τ ↦ !b[ ξ ↦ !b_cur ], !B1 ⟧(!B2)
-    when:
-      - apply_in_subformations: false
-      - nf: '!b'
-    tests:
-      - name: Should match
-        input: ⟦ a ↦ ∅ ⟧(a ↦ ⟦⟧)
-        output: ['⟦ a ↦ ⟦ ρ ↦ ⟦ a ↦ ∅ ⟧(a ↦ ⟦⟧) ⟧ ⟧()']
-      - name: Should not match in subformations
-        input: ⟦ a ↦ ⟦b ↦ ∅⟧(b ↦ ⟦⟧) ⟧
-        output: []
-
-  - name: R_COPY_EMPTY
-    description: 'Empty application'
-    pattern: |
-      ⟦ !B1 ⟧()
-    result: |
-      ⟦ !B1 ⟧
-    when: []
-    tests:
-      - name: Should match
-        input: ⟦ a ↦ ⟦⟧ ⟧()
-        output: ['⟦ a ↦ ⟦⟧ ⟧']
-      - name: Should not match
-        input: ⟦ a ↦ ∅ ⟧(a ↦ ⟦⟧)
-        output: []
-      - name: Should match in subformation
-        input: ⟦ a ↦ ⟦ b ↦ ⟦⟧() ⟧ ⟧
-        output: ['⟦ a ↦ ⟦ b ↦ ⟦⟧ ⟧ ⟧']
-      - name: Should work with empty formation
-        input: ⟦⟧()
-        output: ['⟦⟧']
-
-  - name: R_COPY_Δ
-    description: 'Application of Δ-binding'
-    pattern: |
-      ⟦ Δ ⤍ ∅, !B ⟧(Δ ⤍ !y)
-    result: |
-      ⟦ Δ ⤍ !y, !B ⟧
-    when:
-      - apply_in_abstract_subformations: false
-    tests: []
-
-  - name: R_φ
+  - name: phi
     description: 'Accessing a decorated object'
     pattern: |
       ⟦!B ⟧.!τ
@@ -227,7 +94,100 @@ rules:
         input: '⟦ b ↦ ⟦⟧ ⟧.a'
         output: []
 
-  - name: R_OVER
+  - name: COPY
+    description: 'Application of α-binding'
+    context:
+      current_object: "!b2"
+    pattern: |
+      ⟦ !τ ↦ ∅, !B1 ⟧(!τ ↦ !b1, !B2)
+    result: |
+      ⟦ !τ ↦ !b1[ ξ ↦ !b2 ], !B1 ⟧(!B2)
+    when:
+      - apply_in_subformations: false
+      - nf: '!b1'
+    tests:
+      - name: Should match
+        input: ⟦ a ↦ ∅ ⟧(a ↦ ⟦⟧)
+        output: ['⟦ a ↦ ⟦ ρ ↦ ⟦ a ↦ ∅ ⟧(a ↦ ⟦⟧) ⟧ ⟧()']
+      - name: Should not match in subformations
+        input: ⟦ a ↦ ⟦b ↦ ∅⟧(b ↦ ⟦⟧) ⟧
+        output: []
+
+  - name: COPY1
+    description: 'Application of α-binding'
+    # Warning: this is not correct for the chain variant because it only matches the first binding
+    # i.e., doesn't match an empty binding after an attached one.
+    # We should instead match the first empty binding.
+    context:
+      current_object: "!b2"
+    pattern: |
+      ⟦ !τ ↦ ∅, !B ⟧(α0 ↦ !b1)
+    result: |
+      ⟦ !τ ↦ !b1[ ξ ↦ !b2 ], !B ⟧
+    when:
+      - apply_in_subformations: false
+      - nf: '!b1'
+    tests:
+      - name: Should match first void attribute
+        input: ⟦ hello ↦ ⟦⟧, bye ↦ ∅, hey ↦ ∅ ⟧(α0 ↦ ⟦⟧)
+        output: ['⟦ bye ↦ ⟦ ρ ↦ ⟦ hello ↦ ⟦⟧, bye ↦ ∅, hey ↦ ∅ ⟧(α0 ↦ ⟦⟧) ⟧, hello ↦ ⟦⟧, hey ↦ ∅ ⟧']
+        options:
+          - take_one: true
+
+  - name: COPY2
+    description: 'Application of α-binding'
+    # Warning: this is not correct for the chain variant because it only matches the first two bindings
+    # i.e., doesn't match an empty binding after an attached one.
+    # We should instead match the first two empty bindings.
+    context:
+      current_object: "!b3"
+    pattern: |
+      ⟦ !τ1 ↦ ∅, !τ2 ↦ ∅, !B ⟧(α0 ↦ !b1, α1 ↦ !b2)
+    result: |
+      ⟦ !τ1 ↦ !b1[ ξ ↦ !b3 ], !τ2 ↦ !b2[ ξ ↦ !b3 ], !B ⟧
+    when:
+      - apply_in_subformations: false
+      - nf: '!b1'
+      - nf: '!b2'
+    tests:
+      - name: Should match positional arguments
+        input: ⟦ hello ↦ ∅, bye ↦ ∅, hey ↦ ∅ ⟧(α0 ↦ ⟦⟧, α1 ↦ ⟦ a ↦ ⟦⟧ ⟧)
+        output: ['⟦ hello ↦ ⟦ ρ ↦ ⟦ hello ↦ ∅, bye ↦ ∅, hey ↦ ∅ ⟧(α0 ↦ ⟦⟧, α1 ↦ ⟦ a ↦ ⟦⟧ ⟧) ⟧, bye ↦ ⟦ a ↦ ⟦⟧, ρ ↦ ⟦ hello ↦ ∅, bye ↦ ∅, hey ↦ ∅ ⟧(α0 ↦ ⟦⟧, α1 ↦ ⟦ a ↦ ⟦⟧ ⟧) ⟧, hey ↦ ∅ ⟧']
+        options:
+          - take_one: true
+
+  - name: COPYdelta
+    description: 'Application of Δ-binding'
+    pattern: |
+      ⟦ Δ ⤍ ∅, !B ⟧(Δ ⤍ !y)
+    result: |
+      ⟦ Δ ⤍ !y, !B ⟧
+    when:
+      - apply_in_abstract_subformations: false
+    tests: []
+
+  - name: EMPTY
+    description: 'Empty application'
+    pattern: |
+      ⟦ !B1 ⟧()
+    result: |
+      ⟦ !B1 ⟧
+    when: []
+    tests:
+      - name: Should match
+        input: ⟦ a ↦ ⟦⟧ ⟧()
+        output: ['⟦ a ↦ ⟦⟧ ⟧']
+      - name: Should not match
+        input: ⟦ a ↦ ∅ ⟧(a ↦ ⟦⟧)
+        output: []
+      - name: Should match in subformation
+        input: ⟦ a ↦ ⟦ b ↦ ⟦⟧() ⟧ ⟧
+        output: ['⟦ a ↦ ⟦ b ↦ ⟦⟧ ⟧ ⟧']
+      - name: Should work with empty formation
+        input: ⟦⟧()
+        output: ['⟦⟧']
+
+  - name: OVER
     description: 'Invalid application (attribute already attached)'
     pattern: ⟦ !τ ↦ !b1, !B1 ⟧(!τ ↦ !b2, !B2)
     result: ⊥
@@ -237,9 +197,28 @@ rules:
         input: '⟦ t ↦ ⟦ a ↦ ∅ ⟧ ⟧(t ↦ ⟦ b ↦ ∅ ⟧)'
         output: ['⊥']
 
-  - name: R_MISS
+  - name: STOP
+    description: 'Invalid attribute access'
+    pattern: |
+      ⟦ !B ⟧.!τ
+    result: |
+      ⊥
+    when:
+      - absent_attrs:
+          attrs: ['!τ', 'φ', 'λ']
+          bindings: ['!B']
+      - present_attrs:
+          attrs: ['ρ']
+          bindings: ['!B']
+      - nf: '⟦ !B ⟧'
+    tests:
+      - name: 'Accessing nonexistent attribute'
+        input: '⟦ ρ ↦ ⟦ ⟧ ⟧.x'
+        output: ['⊥']
+
+  - name: MISS
     description: 'Invalid application (absent attribute)'
-    pattern: ⟦ !B1 ⟧(!τ ↦ !b2, !B2)
+    pattern: ⟦ !B1 ⟧(!τ ↦ !b, !B2)
     result: ⊥
     when:
       - absent_attrs:
@@ -259,26 +238,7 @@ rules:
         input: ⟦ a ↦ ⟦ b ↦ ⟦⟧(t ↦ ⟦⟧) ⟧ ⟧
         output: ['⟦ a ↦ ⟦ b ↦ ⊥ ⟧ ⟧']
 
-  - name: R_STOP
-    description: 'Invalid attribute access'
-    pattern: |
-      ⟦ !B ⟧.!τ
-    result: |
-      ⊥
-    when:
-      - absent_attrs:
-          attrs: ['!τ', 'φ', 'λ']
-          bindings: ['!B']
-      - present_attrs:
-          attrs: ['ρ']
-          bindings: ['!B']
-      - nf: '⟦ !B ⟧'
-    tests:
-      - name: 'Accessing nonexistent attribute'
-        input: '⟦ ρ ↦ ⟦ ⟧ ⟧.x'
-        output: ['⊥']
-
-  - name: R_DD
+  - name: DD
     description: 'Accessing an attribute on bottom'
     pattern: |
       ⊥.!τ
@@ -293,7 +253,7 @@ rules:
         input: '⟦ ⟧.a'
         output: []
 
-  - name: R_DC
+  - name: DC
     description: 'Application on bottom is bottom'
     pattern: |
       ⊥(!B)

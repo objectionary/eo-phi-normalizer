@@ -19,4 +19,5 @@ Available commands:
   metrics                  Collect metrics for a PHI program.
   dataize                  Dataize a PHI program.
   pipeline                 Run pipeline-related commands.
+  print-rules              Print rules in LaTeX format.
 ```
