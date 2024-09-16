@@ -32,11 +32,13 @@ eo-phi-normalizer dataize --help
 ```
 
 ```console
-Usage: eo-phi-normalizer dataize [-r|--rules FILE] [FILE] [-d|--dependency-file FILE]
-                          [-o|--output-file FILE] [--recursive] [--chain]
-                          [--wrap-raw-bytes] [--tex] [--as-package]
-                          [--minimize-stuck-terms] [--disable-atom ATOM_NAME]
-                          [--enable-atom ATOM_NAME]
+Usage: eo-phi-normalizer dataize [-r|--rules FILE] [FILE]
+                                 [-d|--dependency-file FILE]
+                                 [-o|--output-file FILE] [--recursive] [--chain]
+                                 [--wrap-raw-bytes] [--tex] [--as-package]
+                                 [--minimize-stuck-terms]
+                                 [--disable-atom ATOM_NAME]
+                                 [--enable-atom ATOM_NAME]
 
   Dataize a PHI program.
 

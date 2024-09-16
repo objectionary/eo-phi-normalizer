@@ -66,10 +66,10 @@ eo-phi-normalizer transform --help
 ```
 
 ```console
-Usage: eo-phi-normalizer transform [-r|--rules FILE] [-c|--chain] [-j|--json] [--tex]
-                            [-o|--output-file FILE] [-s|--single]
-                            [--max-depth INT] [--max-growth-factor INT] [FILE]
-                            [-d|--dependency-file FILE]
+Usage: eo-phi-normalizer transform [-r|--rules FILE] [-c|--chain] [-j|--json]
+                                   [--tex] [-o|--output-file FILE] [-s|--single]
+                                   [--max-depth INT] [--max-growth-factor INT]
+                                   [FILE] [-d|--dependency-file FILE]
 
   Transform a PHI program.
 
