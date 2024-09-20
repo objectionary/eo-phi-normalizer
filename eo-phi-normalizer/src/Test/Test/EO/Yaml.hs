@@ -2,7 +2,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
-module Test.EO.Yaml where
+module Test.Test.EO.Yaml where
 
 import Control.Monad (forM)
 import Data.List (sort)
