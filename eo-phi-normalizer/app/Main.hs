@@ -435,7 +435,7 @@ getProgram inputFile = do
 
 getLoggers :: Maybe FilePath -> IO (String -> IO (), String -> IO ())
 getLoggers outputFile = do
-  handle <- maybe (pure stdout) (`openFile` WriteMode) outputFile
+  handle <- maybe (pure stdout) (\file -> createDirectoryIfMissing True (takeDirectory file) >> openFile file WriteMode) outputFile
   pure
     ( \x -> hPutStrLn handle x >> hFlush handle
     , \x -> hPutStr handle x >> hFlush handle
