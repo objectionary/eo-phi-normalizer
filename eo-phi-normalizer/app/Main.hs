@@ -378,9 +378,9 @@ cli =
     )
 
 cliOpts :: String -> ParserInfo CLI
-cliOpts version =
+cliOpts version' =
   info
-    (cli <**> helper <**> simpleVersioner version)
+    (cli <**> helper <**> simpleVersioner version')
     (fullDesc <> progDesc "Work with PHI expressions.")
 
 data StructuredJSON = StructuredJSON
