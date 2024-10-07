@@ -2,8 +2,8 @@
 
 module Language.EO.YamlSpec where
 
+import Language.EO.Test.YamlSpec qualified as Test
 import Test.Hspec (Spec)
-import Test.Language.EO.YamlSpec qualified as Test
 
 spec :: Spec
 spec =

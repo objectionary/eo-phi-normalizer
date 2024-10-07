@@ -1,14 +1,14 @@
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 
-module Test.Language.EO.YamlSpec where
+module Language.EO.Test.YamlSpec where
 
 import Control.Monad (forM_)
 import Language.EO.Phi.Dataize.Context (defaultContext)
 import Language.EO.Phi.Rules.Common (applyOneRule)
 import Language.EO.Phi.Rules.Yaml (Rule (..), RuleSet (..), RuleTest (..), RuleTestOption (..), convertRuleNamed)
+import Language.EO.Test.Yaml
 import Test.Hspec
-import Test.Test.EO.Yaml
 
 spec :: [FilePath] -> Spec
 spec testPaths = describe "User-defined rules unit tests" do
