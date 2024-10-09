@@ -309,10 +309,9 @@ commandParser =
           <> command commandNames.pipeline'.prepareTests commandParserInfo.pipeline'.prepareTests
           <> command commandNames.pipeline'.printDataizeConfigs commandParserInfo.pipeline'.printDataizeConfigs
       )
-  test =
-    do
-      rulePaths <- many $ strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules.|])
-      pure CLI'Test{..}
+  test = do
+    rulePaths <- many $ strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules.|])
+    pure CLI'Test{..}
 
 data CommandParserInfo'Pipeline = CommandParserInfo'Pipeline
   { report :: ParserInfo CLI'Pipeline
