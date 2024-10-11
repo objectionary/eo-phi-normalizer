@@ -11,5 +11,5 @@ normalizer test --help
 ### Run tests in a file
 
 ```$ as console
-normalizer test eo-phi-normalizer/test/eo/phi/rules/yegor.yaml
+normalizer test --rules eo-phi-normalizer/test/eo/phi/rules/yegor.yaml
 ```
