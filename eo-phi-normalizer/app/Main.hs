@@ -65,6 +65,7 @@ import PyF (fmt, fmtTrim)
 import System.Directory (createDirectoryIfMissing, doesFileExist)
 import System.FilePath (takeDirectory)
 import System.IO (IOMode (WriteMode), getContents', hFlush, hPutStr, hPutStrLn, openFile, stdout)
+import Language.EO.Phi.Generate
 
 data CLI'TransformPhi = CLI'TransformPhi
   { chain :: Bool
@@ -133,12 +134,20 @@ data CLI'Pipeline
   | CLI'Pipeline'PrintDataizeConfigs' CLI'Pipeline'PrintDataizeConfigs
   deriving stock (Show)
 
+data CLI'Generate = CLI'Generate
+  { minTermSize :: Int
+  , maxTermSize :: Int
+  , quantity :: Int
+  }
+  deriving stock (Show)
+
 data CLI
   = CLI'TransformPhi' CLI'TransformPhi
   | CLI'DataizePhi' CLI'DataizePhi
   | CLI'MetricsPhi' CLI'MetricsPhi
   | CLI'PrintRules' CLI'PrintRules
   | CLI'Pipeline' CLI'Pipeline
+  | CLI'Generate' CLI'Generate
   deriving stock (Show)
 
 data MetavarName = MetavarName
@@ -238,6 +247,7 @@ data CommandParser = CommandParser
   , pipeline :: Parser CLI'Pipeline
   , pipeline' :: CommandParser'Pipeline
   , printRules :: Parser CLI'PrintRules
+  , generate :: Parser CLI'Generate
   }
 
 commandParser :: CommandParser
@@ -304,6 +314,13 @@ commandParser =
           <> command commandNames.pipeline'.prepareTests commandParserInfo.pipeline'.prepareTests
           <> command commandNames.pipeline'.printDataizeConfigs commandParserInfo.pipeline'.printDataizeConfigs
       )
+  generate = do
+    minTermSize <- option auto (long "min-size" <> value 30)
+    maxTermSize <- option auto (long "max-size" <> value 30)
+    -- minDepth <- option auto (long "min-depth" <> value 30)
+    -- maxDepth <- option auto (long "max-depth" <> value 30)
+    quantity <- argument auto (value 1)
+    pure CLI'Generate{..}
 
 data CommandParserInfo'Pipeline = CommandParserInfo'Pipeline
   { report :: ParserInfo CLI'Pipeline
@@ -318,6 +335,7 @@ data CommandParserInfo = CommandParserInfo
   , printRules :: ParserInfo CLI
   , pipeline :: ParserInfo CLI
   , pipeline' :: CommandParserInfo'Pipeline
+  , generate :: ParserInfo CLI
   }
 
 commandParserInfo :: CommandParserInfo
@@ -334,6 +352,7 @@ commandParserInfo =
           , prepareTests = info (CLI'Pipeline'PrepareTests' <$> commandParser.pipeline'.prepareTests) (progDesc "Prepare EO test files for the pipeline.")
           , printDataizeConfigs = info (CLI'Pipeline'PrintDataizeConfigs' <$> commandParser.pipeline'.printDataizeConfigs) (progDesc [fmt|Print configs for the `normalizer {commandNames.dataize}` command.|])
           }
+    , generate = info (CLI'Generate' <$> commandParser.generate) (progDesc "Generate random PHI term.")
     }
 
 data CommandNames'Pipeline = CommandNames'Pipeline
@@ -349,6 +368,7 @@ data CommandNames = CommandNames
   , printRules :: String
   , pipeline :: String
   , pipeline' :: CommandNames'Pipeline
+  , generate :: String
   }
 
 commandNames :: CommandNames
@@ -365,6 +385,7 @@ commandNames =
           , prepareTests = "prepare-tests"
           , printDataizeConfigs = "print-dataize-configs"
           }
+    , generate = "generate"
     }
 
 cli :: Parser CLI
@@ -375,6 +396,7 @@ cli =
         <> command commandNames.dataize commandParserInfo.dataize
         <> command commandNames.pipeline commandParserInfo.pipeline
         <> command commandNames.printRules commandParserInfo.printRules
+        <> command commandNames.generate commandParserInfo.generate
     )
 
 cliOpts :: String -> ParserInfo CLI
@@ -695,3 +717,9 @@ main = withUtf8 do
     CLI'Pipeline' (CLI'Pipeline'PrintDataizeConfigs' CLI'Pipeline'PrintDataizeConfigs{..}) -> do
       config <- decodeFileThrow @_ @PipelineConfig configFile
       PrintConfigs.printDataizeConfigs config phiPrefixesToStrip singleLine
+    CLI'Generate' (CLI'Generate{..}) -> do
+      objs <- generateObjectsWith (GenerateOpts{ minSize = minTermSize, maxSize = maxTermSize, .. })
+      forM_ (zip [1..] objs) $ \(ind, obj) -> do
+        putStrLn $ "Term " ++ show ind ++ ":"
+        putStrLn $ printTree obj
+        putStrLn ""

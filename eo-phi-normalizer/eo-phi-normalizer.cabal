@@ -1,6 +1,6 @@
 cabal-version: 1.24
 
--- This file has been generated from package.yaml by hpack version 0.36.0.
+-- This file has been generated from package.yaml by hpack version 0.37.0.
 --
 -- see: https://github.com/sol/hpack
 
@@ -146,6 +146,7 @@ library
       Language.EO.Phi.Dataize.Atoms
       Language.EO.Phi.Dataize.Context
       Language.EO.Phi.Dependencies
+      Language.EO.Phi.Generate
       Language.EO.Phi.Metrics.Collect
       Language.EO.Phi.Metrics.Data
       Language.EO.Phi.Normalize
@@ -181,6 +182,7 @@ library
       BNFC:bnfc >=2.9.4.1
   build-depends:
       PyF
+    , QuickCheck
     , aeson
     , array >=0.5.5.0
     , base >=4.7 && <5
@@ -220,6 +222,7 @@ executable normalizer
       BNFC:bnfc >=2.9.4.1
   build-depends:
       PyF
+    , QuickCheck
     , aeson
     , aeson-pretty
     , array >=0.5.5.0
@@ -256,6 +259,7 @@ test-suite doctests
       Language.EO.Phi.Dataize.Atoms
       Language.EO.Phi.Dataize.Context
       Language.EO.Phi.Dependencies
+      Language.EO.Phi.Generate
       Language.EO.Phi.Metrics.Collect
       Language.EO.Phi.Metrics.Data
       Language.EO.Phi.Normalize
@@ -292,6 +296,7 @@ test-suite doctests
       BNFC:bnfc >=2.9.4.1
   build-depends:
       PyF
+    , QuickCheck
     , aeson
     , array >=0.5.5.0
     , base >=4.7 && <5
