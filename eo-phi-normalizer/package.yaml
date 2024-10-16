@@ -61,6 +61,7 @@ dependencies:
   - hashable
   - unordered-containers
   - containers
+  - QuickCheck
 
 default-extensions:
   - ImportQualifiedPost
