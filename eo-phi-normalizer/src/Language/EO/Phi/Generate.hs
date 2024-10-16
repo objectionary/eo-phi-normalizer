@@ -316,5 +316,5 @@ generateObjectsWith (GenerateOpts{..}) = do
   where
     genObj :: Gen Object
     genObj = do
-      n <- chooseInt (minSize, maxSize)
+      n <- chooseInt (minSize, max minSize maxSize)
       resize n arbitrary
