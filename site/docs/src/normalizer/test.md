@@ -75,6 +75,6 @@ User-defined rules unit tests
     DC
       Should apply in subformations [✔]
 
-Finished in 0.0061 seconds
+Finished in 0.0062 seconds
 27 examples, 0 failures
 ```
