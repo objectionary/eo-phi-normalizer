@@ -5,12 +5,16 @@ rules:
       Replacing Java Stream's map with a for-each loop.
     context:
     forall:
+      - '!τ1'
       - '!b1'
       - '!b2'
-      - '!b3'
       - '!t1'
+      - '!B1'
     pattern: |
-       !b1.java_util_stream_Stream$map(α0 ↦ !b3, α1 ↦ !b2) * !t1
+       ⟦
+        !τ1 ↦ !b1.java_util_Stream$map(α0 ↦ !b2) * !t1,
+        !B1
+       ⟧
     result: |
       ⟦
         !τ2 ↦ !b1,
@@ -18,43 +22,44 @@ rules:
           α0 ↦ ξ.!τ2,
           α1 ↦ !b2
         ),
-        φ ↦ ξ.!τ3 * !t1
-      ⟧.φ
+        !τ1 ↦ ξ.!τ3 * !t1,
+        !B1
+      ⟧
     fresh:
       - name: '!τ2'
         prefix: 'foreach_body'
       - name: '!τ3'
-        prefix: 'java_util_stream_Stream$map_result'
+        prefix: 'java_util_Stream$map_result'
     when: []
     tests:
       - name: Simple map to for-each example works
         input: |
           ⟦
             list ↦ ∅,
-            result ↦ ξ.list.java_util_stream_Stream$filter(
+            result ↦ ξ.list.java_util_Stream$filter(
               α0 ↦ ⟦
                 el ↦ ∅,
                 φ ↦ ξ.el.equals(
                   α0 ↦ Φ.org.eolang.string(as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 00-))
                 ).not
               ⟧
-            ).java_util_stream_Stream$map(
+            ).java_util_Stream$map(
               α0 ↦ ⟦
                 el ↦ ∅,
                 φ ↦ Φ.java_util_Integer.parseInt(
                   α0 ↦ ξ.el
                 )
               ⟧
-            ).java_util_stream_Stream$toList
+            ).java_util_Stream$toList
           ⟧
         output:
           - |
             ⟦
-              foreach_body$1 ↦ ξ.list.java_util_stream_Stream$filter (α0 ↦ ⟦
+              foreach_body$1 ↦ ξ.list.java_util_Stream$filter (α0 ↦ ⟦
                 el ↦ ∅, φ ↦ ξ.el.equals (α0 ↦ Φ.org.eolang.string (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 00-))).not
               ⟧),
-              java_util_stream_Stream$map_result$1 ↦ Φ.opeo.map-for-each (α0 ↦ ξ.foreach_body$1, α1 ↦ ⟦
+              java_util_Stream$map_result$1 ↦ Φ.opeo.map-for-each (α0 ↦ ξ.foreach_body$1, α1 ↦ ⟦
                 el ↦ ∅, φ ↦ Φ.java_util_Integer.parseInt (α0 ↦ ξ.el)
               ⟧),
-              result ↦ ξ.java_util_stream_Stream$map_result$1.java_util_stream_Stream$toList, list ↦ ∅
+              result ↦ ξ.java_util_Stream$map_result$1.java_util_Stream$toList, list ↦ ∅
             ⟧
