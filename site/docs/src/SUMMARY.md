@@ -14,5 +14,6 @@
     - [eo-phi-normalizer pipeline prepare-tests](./eo-phi-normalizer/pipeline/prepare-tests.md)
     - [eo-phi-normalizer pipeline print-dataize-configs](./eo-phi-normalizer/pipeline/print-dataize-configs.md)
     - [eo-phi-normalizer pipeline report](./eo-phi-normalizer/pipeline/report.md)
+  - [eo-phi-normalizer test](./eo-phi-normalizer/test.md)
   - [eo-phi-normalizer print-rules](./eo-phi-normalizer/print-rules.md)
 - [Contributing](./contributing.md)

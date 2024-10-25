@@ -159,13 +159,13 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: "20.18.0"
           cache: npm
 
       - uses: actions/setup-java@v4
         with:
           distribution: "zulu"
-          java-version: 21
+          java-version: 21.0.5+11
 
       # TODO #340:10m switch to chrisdickinson/setup-yq after https://github.com/chrisdickinson/setup-yq/pull/14 is merged
       - uses: deemp/setup-yq@latest

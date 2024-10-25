@@ -31,7 +31,7 @@ node --version
 ```
 
 ```console
-v20.17.0
+v20.18.0
 ```
 
 Install [Java](https://www.java.com/en/download/help/download_options.html).
@@ -41,9 +41,9 @@ java --version
 ```
 
 ```console
-openjdk 21.0.4 2024-07-16 LTS
-OpenJDK Runtime Environment Zulu21.36+19-CRaC-CA (build 21.0.4+7-LTS)
-OpenJDK 64-Bit Server VM Zulu21.36+19-CRaC-CA (build 21.0.4+7-LTS, mixed mode, sharing)
+openjdk 21.0.5 2024-10-15 LTS
+OpenJDK Runtime Environment Zulu21.38+21-CA (build 21.0.5+11-LTS)
+OpenJDK 64-Bit Server VM Zulu21.38+21-CA (build 21.0.5+11-LTS, mixed mode, sharing)
 ```
 
 ### Windows

@@ -53,6 +53,7 @@ Usage: eo-phi-normalizer COMMAND
 
 Available options:
   -h,--help                Show this help text
+  --version                Show version information
 
 Available commands:
   transform                Transform a PHI program.
@@ -60,6 +61,8 @@ Available commands:
   dataize                  Dataize a PHI program.
   pipeline                 Run pipeline-related commands.
   print-rules              Print rules in LaTeX format.
+  test                     Run unit tests in given files with user-defined
+                           rules.
 ```
 
 Or, omit the executable name.
@@ -75,6 +78,7 @@ Usage: eo-phi-normalizer COMMAND
 
 Available options:
   -h,--help                Show this help text
+  --version                Show version information
 
 Available commands:
   transform                Transform a PHI program.
@@ -82,6 +86,8 @@ Available commands:
   dataize                  Dataize a PHI program.
   pipeline                 Run pipeline-related commands.
   print-rules              Print rules in LaTeX format.
+  test                     Run unit tests in given files with user-defined
+                           rules.
 ```
 
 ## Docs

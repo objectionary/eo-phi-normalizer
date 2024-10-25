@@ -210,6 +210,7 @@
                       "eo-phi-normalizer/metrics.md"
                       "eo-phi-normalizer/transform.md"
                       "eo-phi-normalizer/print-rules.md"
+                      "eo-phi-normalizer/test.md"
                       "contributing.md"
                     ]}
 
