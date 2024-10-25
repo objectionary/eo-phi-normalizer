@@ -69,15 +69,15 @@ The pipeline has several important stages:
 
 ### Pipeline configuration
 
-The pipeline is configured via the [pipeline/config.yaml](https://github.com/objectionary/normalizer/blob/master/pipeline/config.yaml) file.
+The pipeline is configured via the [pipeline/config.yaml](https://github.com/objectionary/eo-phi-normalizer/blob/master/pipeline/config.yaml) file.
 
 The configuration file specifies the following:
 
 - `report` - Pipeline report configuration.
   - `js` - Optional path to a `JavaScript` file that should be inlined into the `HTML` report.
-    - If no path is specified, `eo-phi-normalizer` will use [report/main.js](https://github.com/objectionary/normalizer/blob/master/eo-phi-normalizer/report/main.js).
+    - If no path is specified, `eo-phi-normalizer` will use [report/main.js](https://github.com/objectionary/eo-phi-normalizer/blob/master/eo-phi-normalizer/report/main.js).
   - `css` - Optional path to a `CSS` file that should be inlined into the `HTML` report.
-    - If no path is specified, `eo-phi-normalizer` will use [report/styles.css](https://github.com/objectionary/normalizer/blob/master/eo-phi-normalizer/report/styles.css).
+    - If no path is specified, `eo-phi-normalizer` will use [report/styles.css](https://github.com/objectionary/eo-phi-normalizer/blob/master/eo-phi-normalizer/report/styles.css).
   - `output` - Where to write report versions.
     - `html` - The file path of the `HTML` version.
     - `json` - The file path of the `JSON` version.

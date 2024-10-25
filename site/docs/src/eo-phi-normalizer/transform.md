@@ -4,7 +4,7 @@
 
 You can define [rewrite rules](https://en.wikipedia.org/wiki/Rewriting#Term_rewriting_systems) for the `PHI` language using `YAML` and the `MetaPHI` language that is a superset of `PHI`.
 
-See the `MetaPHI` [Labelled BNF](https://bnfc.readthedocs.io/en/latest/lbnf.html) in [Syntax.cf](https://github.com/objectionary/normalizer/blob/master/eo-phi-normalizer/grammar/EO/Phi/Syntax.cf).
+See the `MetaPHI` [Labelled BNF](https://bnfc.readthedocs.io/en/latest/lbnf.html) in [Syntax.cf](https://github.com/objectionary/eo-phi-normalizer/blob/master/eo-phi-normalizer/grammar/EO/Phi/Syntax.cf).
 
 ## phi-paper rules
 
@@ -14,7 +14,7 @@ Currently, the `eo-phi-normalizer` supports rules defined in an unpublished pape
 
 ### yegor.yaml
 
-These rules translated to `MetaPHI` are in [yegor.yaml](https://github.com/objectionary/normalizer/blob/master/eo-phi-normalizer/test/eo/phi/rules/yegor.yaml).
+These rules translated to `MetaPHI` are in [yegor.yaml](https://github.com/objectionary/eo-phi-normalizer/blob/master/eo-phi-normalizer/test/eo/phi/rules/yegor.yaml).
 
 Each rule has the following structure:
 

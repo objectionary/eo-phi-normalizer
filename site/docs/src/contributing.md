@@ -2,7 +2,7 @@
 
 ## Issues
 
-Check open issues ([link](https://github.com/objectionary/normalizer/issues)).
+Check open issues ([link](https://github.com/objectionary/eo-phi-normalizer/issues)).
 
 ### Issue labels
 
@@ -110,7 +110,7 @@ Run `npm i` to locally install the `prettier` version that we use.
 
 ### Automatic updates
 
-In CI, on the `master` branch, we run a [script](https://github.com/objectionary/normalizer/blob/master/scripts/update-markdown.sh) to update Markdown files and then we commit changes.
+In CI, on the `master` branch, we run a [script](https://github.com/objectionary/eo-phi-normalizer/blob/master/scripts/update-markdown.sh) to update Markdown files and then we commit changes.
 
 So, no worries if you haven't run `mdsh` in your PR!
 
@@ -163,7 +163,7 @@ chmod +x scripts/run-fourmolu.sh
 
 See [docs](https://pre-commit.com/#adding-pre-commit-plugins-to-your-project).
 
-See [.pre-commit-config.yaml](https://github.com/objectionary/normalizer/blob/master/.pre-commit-config.yaml).
+See [.pre-commit-config.yaml](https://github.com/objectionary/eo-phi-normalizer/blob/master/.pre-commit-config.yaml).
 
 You can run a specific hook (see [docs](https://pre-commit.com/#pre-commit-run)):
 

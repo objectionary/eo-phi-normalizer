@@ -9,7 +9,7 @@ title = "phi-normalizer"
 additional-css = ["theme/pagetoc.css"]
 additional-js = ["theme/pagetoc.js"]
 mathjax-support = true
-git-repository-url = "https://github.com/objectionary/normalizer"
+git-repository-url = "https://github.com/objectionary/eo-phi-normalizer"
 git-repository-icon = "fa-github"
 
 [build]

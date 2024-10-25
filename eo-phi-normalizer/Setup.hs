@@ -30,7 +30,7 @@ main =
 #else
                       False
 #endif
-            -- See the details on the command form in https://github.com/objectionary/normalizer/issues/347#issuecomment-2117097070
+            -- See the details on the command form in https://github.com/objectionary/eo-phi-normalizer/issues/347#issuecomment-2117097070
             command = intercalate "; " $
                 [ "set -ex" ] <>
                 [ "chcp.com" | isWindows ] <>
