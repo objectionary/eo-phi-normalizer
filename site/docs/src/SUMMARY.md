@@ -6,6 +6,7 @@
 - [Pipeline](./pipeline.md)
 - [Metrics](./metrics.md)
 - [Atoms](./atoms.md)
+- [User-defined rules](./user-defined-rules.md)
 - [eo-phi-normalizer](./eo-phi-normalizer.md)
   - [eo-phi-normalizer transform](./eo-phi-normalizer/transform.md)
   - [eo-phi-normalizer dataize](./eo-phi-normalizer/dataize.md)
