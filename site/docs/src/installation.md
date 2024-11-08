@@ -23,6 +23,8 @@ Then, the `eo-phi-normalizer` executable will be available on `PATH`.
 
 ### Install `eo-phi-normalizer` from Hackage
 
+<!-- `$ printf "stack update\nexport LC_ALL=C.UTF-8\nstack install --resolver lts-$(cat stack.yaml | sed -nE 's/.*lts-(.*)/\1/p') eo-phi-normalizer-"$(normalizer --version)` as sh -->
+
 ```sh
 stack update
 export LC_ALL=C.UTF-8
