@@ -111,6 +111,8 @@ jobs:
     permissions:
       contents: write
       pull-requests: write
+    env:
+      branch_is_not_master: ${{ github.ref_name != 'master' }}
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
@@ -157,13 +159,13 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: "20.18.0"
           cache: npm
 
       - uses: actions/setup-java@v4
         with:
           distribution: "zulu"
-          java-version: 21
+          java-version: 21.0.5+11
 
       # TODO #340:10m switch to chrisdickinson/setup-yq after https://github.com/chrisdickinson/setup-yq/pull/14 is merged
       - uses: deemp/setup-yq@latest
@@ -196,7 +198,7 @@ jobs:
         shell: bash
         env:
           PIPELINE_LOCK_CHANGED: ${{ (steps.check-pipeline-lock.outputs.PIPELINE_LOCK_CHANGED == 'true') || (steps.pipeline-files.outputs.cache-hit != 'true') }}
-          NORMALIZER_INSTALLED: "true"
+          EO_PHI_NORMALIZER_INSTALLED: "true"
         run: ./scripts/pipeline.sh
 
       - name: Check failing tests
@@ -215,7 +217,7 @@ jobs:
           path: pipeline
 
       - name: Configure git
-        if: always() && runner.os == 'Linux'
+        if: always() && env.branch_is_not_master && runner.os == 'Linux'
         env:
           # required for gh
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -226,36 +228,55 @@ jobs:
           git config --global user.name "github-actions[bot]"
 
       - name: Commit and push changes in pipeline lock
-        if: always() && runner.os == 'Linux' && steps.check-pipeline-lock.outputs.PIPELINE_LOCK_CHANGED
+        if: always() && env.branch_is_not_master && runner.os == 'Linux' && steps.check-pipeline-lock.outputs.PIPELINE_LOCK_CHANGED
         run: |
           source scripts/lib.sh
           commit_and_push_if_changed "$PIPELINE_LOCK_FILE_RELATIVE" "$PIPELINE_LOCK_FILE_RELATIVE"
 
-      - name: Commit and push changes in normalizer data files
-        if: always() && runner.os == 'Linux'
+      - name: Commit and push changes in eo-phi-normalizer data files
+        if: always() && env.branch_is_not_master && runner.os == 'Linux'
         run: |
           source scripts/lib.sh
-          data_directory="eo-phi-normalizer/data"
-          commit_and_push_if_changed "$data_directory" "normalizer data files"
+          data_directory="$PIPELINE_EO_PHI_NORMALIZER_DATA_DIR"
+          commit_and_push_if_changed "$data_directory" "eo-phi-normalizer data files"
 
       - name: Install mdsh
-        if: runner.os == 'Linux'
-        uses: baptiste0928/cargo-install@v3.1.0
+        if: env.branch_is_not_master && runner.os == 'Linux'
+        uses: baptiste0928/cargo-install@v3.1.1
         with:
           crate: mdsh
           git: https://github.com/zimbatm/mdsh
           branch: main
 
       - name: Update Markdown files
-        if: runner.os == 'Linux'
+        if: env.branch_is_not_master && runner.os == 'Linux'
         run: ./scripts/update-markdown.sh
 
       - name: Commit and push changes in Markdown files
-        if: runner.os == 'Linux'
+        if: env.branch_is_not_master && runner.os == 'Linux'
         run: |
           source scripts/lib.sh
-          files="site proposals README.md"
+          files=('site' 'proposals' 'README.md')
           commit_and_push_if_changed "$files" "Markdown files"
+
+      - name: Create a directory for docs
+        if: runner.os == 'Linux'
+        run: mkdir -p dist
+
+      - name: Setup mdBook
+        if: runner.os == 'Linux'
+        uses: jontze/action-mdbook@v3
+        with:
+          token: ${{secrets.GITHUB_TOKEN}}
+          mdbook-version: "~0.4.40"
+          use-linkcheck: true
+
+      - name: Run mdbook
+        if: runner.os == 'Linux'
+        run: |
+          cd site/docs
+          mdbook build
+          mv docs/html ../../dist/docs
 
       - name: Upload pipeline artifact
         id: pipeline-artifact
@@ -268,13 +289,23 @@ jobs:
           # we can't use caches because we can't overwrite them
           name: pipeline-files-${{ runner.os }}
           overwrite: true
+          # Problem
+          #
+          # The action doesn't save the pipeline directory.
+          # It saves just the content of this directory.
+          #
+          # Seems like the wildcard case (https://github.com/actions/upload-artifact#upload-using-multiple-paths-and-exclusions)
+          # is triggered when all paths start with "pipeline".
+          #
+          # Hence, to preserve the path structure, it's necessary
+          # to add a path that doesn't start with "pipeline".
           path: |
             pipeline
             !pipeline/**/.eoc
             !pipeline/eo-yaml
             pipeline/eo-initial/.eoc/4-pull/org/
             pipeline/phi-initial/.eoc/phi/org
-            report
+            dist
 
       - name: Write about the artifact in the job summary
         if: always()
@@ -300,8 +331,11 @@ jobs:
           cat << EOF >> $GITHUB_STEP_SUMMARY
           <h2>Report</h2>
           <details>
+
             <summary>Click to expand</summary>
-            $(cat report/report.md)
+
+            $(cat $(yq '.report.output.markdown' < pipeline/config.yaml))
+
           </details>
           EOF
 
@@ -329,23 +363,10 @@ jobs:
           pattern: pipeline-files-${{ runner.os }}
           merge-multiple: true
 
-      - name: Setup mdBook
-        uses: jontze/action-mdbook@v3
-        with:
-          token: ${{secrets.GITHUB_TOKEN}}
-          mdbook-version: "~0.4.37"
-          use-linkcheck: true
-
       - name: Add haddock
         run: |
           mkdir -p dist/haddock
           mv $(stack path --local-doc-root)/* dist/haddock
-
-      - name: Add docs
-        run: |
-          cd site/docs
-          mdbook build
-          mv docs/html ../../dist/docs
 
       - name: Add report
         run: |

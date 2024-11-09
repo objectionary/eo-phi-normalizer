@@ -1,6 +1,6 @@
 name: eo-phi-normalizer
 synopsis: "Command line normalizer of 𝜑-calculus expressions."
-version: 0.3.1
+version: 1.1.0
 github: "objectionary/eo-phi-normalizer"
 license: BSD3
 author: "EO/Polystat Development Team"
@@ -49,6 +49,8 @@ dependencies:
   - PyF
   - lens
   - generic-lens
+  - hspec
+  - hspec-core
   - text
   - template-haskell
   - blaze-html
@@ -58,6 +60,9 @@ dependencies:
   - regex-compat
   - cereal
   - bytestring
+  - hashable
+  - unordered-containers
+  - containers
 
 default-extensions:
   - ImportQualifiedPost
@@ -86,7 +91,7 @@ library:
         - Language.EO.Phi.Rules.Syntax.Skel
 
 executables:
-  normalizer:
+  eo-phi-normalizer:
     main: Main.hs
     source-dirs: app
     ghc-options:

@@ -2,7 +2,7 @@
 
 ## Issues
 
-Check open issues ([link](https://github.com/objectionary/normalizer/issues)).
+Check open issues ([link](https://github.com/objectionary/eo-phi-normalizer/issues)).
 
 ### Issue labels
 
@@ -25,31 +25,44 @@ We recommend using [stack](https://docs.haskellstack.org/en/stable) for quick lo
 Build the project using `stack`.
 
 ```sh
+export LC_ALL=C.UTF-8
 stack build
+```
+
+## Test
+
+Run all tests
+
+```sh
+export LC_ALL=C.UTF-8
+stack test
 ```
 
 ## Run
 
-Run the `normalizer` executable via `stack run`.
+Run the `eo-phi-normalizer` executable via `stack run`.
 
 ```$ as console
-stack run normalizer -- --help
+stack run eo-phi-normalizer -- --help
 ```
 
 ```console
-Usage: normalizer COMMAND
+Usage: eo-phi-normalizer COMMAND
 
   Work with PHI expressions.
 
 Available options:
   -h,--help                Show this help text
+  --version                Show version information
 
 Available commands:
   rewrite                  Rewrite a PHI program.
   metrics                  Collect metrics for a PHI program.
   dataize                  Dataize a PHI program.
-  report                   Generate reports about initial and normalized PHI
-                           programs.
+  pipeline                 Run pipeline-related commands.
+  print-rules              Print rules in LaTeX format.
+  test                     Run unit tests in given files with user-defined
+                           rules.
 ```
 
 Or, omit the executable name.
@@ -59,27 +72,22 @@ stack run -- --help
 ```
 
 ```console
-Usage: normalizer COMMAND
+Usage: eo-phi-normalizer COMMAND
 
   Work with PHI expressions.
 
 Available options:
   -h,--help                Show this help text
+  --version                Show version information
 
 Available commands:
   rewrite                  Rewrite a PHI program.
   metrics                  Collect metrics for a PHI program.
   dataize                  Dataize a PHI program.
-  report                   Generate reports about initial and normalized PHI
-                           programs.
-```
-
-## Test
-
-Run all tests
-
-```sh
-stack test
+  pipeline                 Run pipeline-related commands.
+  print-rules              Print rules in LaTeX format.
+  test                     Run unit tests in given files with user-defined
+                           rules.
 ```
 
 ## Docs
@@ -102,7 +110,7 @@ Run `npm i` to locally install the `prettier` version that we use.
 
 ### Automatic updates
 
-In CI, on the `master` branch, we run a [script](https://github.com/objectionary/normalizer/blob/master/scripts/update-markdown.sh) to update Markdown files and then we commit changes.
+In CI, on the `master` branch, we run a [script](https://github.com/objectionary/eo-phi-normalizer/blob/master/scripts/update-markdown.sh) to update Markdown files and then we commit changes.
 
 So, no worries if you haven't run `mdsh` in your PR!
 
@@ -155,7 +163,7 @@ chmod +x scripts/run-fourmolu.sh
 
 See [docs](https://pre-commit.com/#adding-pre-commit-plugins-to-your-project).
 
-See [.pre-commit-config.yaml](https://github.com/objectionary/normalizer/blob/master/.pre-commit-config.yaml).
+See [.pre-commit-config.yaml](https://github.com/objectionary/eo-phi-normalizer/blob/master/.pre-commit-config.yaml).
 
 You can run a specific hook (see [docs](https://pre-commit.com/#pre-commit-run)):
 

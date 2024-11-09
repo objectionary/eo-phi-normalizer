@@ -41,9 +41,12 @@ render d = rend 0 False (map ($ "") $ d []) ""
   rend i p = \case
     "[" : ts -> char '[' . rend i False ts
     "(" : ts -> char '(' . rend i False ts
-    -- "{"      :ts -> onNewLine i     p . showChar   '{'  . new (i+1) ts
-    -- "}" : ";":ts -> onNewLine (i-1) p . showString "};" . new (i-1) ts
-    -- "}"      :ts -> onNewLine (i-1) p . showChar   '}'  . new (i-1) ts
+    "{" : "⟦" : ts -> showString "{⟦" . new (i + 1) ts
+    "⟦" : ts -> showChar '⟦' . new (i + 1) ts
+    ")" : "," : ts -> showString ")," . new i ts
+    "⟧" : "," : ts -> onNewLine (i - 1) p . showString "⟧," . new (i - 1) ts
+    ["⟧", "}"] -> onNewLine (i - 1) p . showString "⟧}"
+    "⟧" : ts -> onNewLine (i - 1) p . showChar '⟧' . new (i - 1) ts
     [";"] -> char ';'
     ";" : ts -> char ';' . new i ts
     t : ts@(s : _)
@@ -85,3 +88,7 @@ render d = rend 0 False (map ($ "") $ d []) ""
 
   closerOrPunct :: String
   closerOrPunct = ")],;"
+
+  -- Make sure we are on a fresh line.
+  onNewLine :: Int -> Bool -> ShowS
+  onNewLine i p = (if p then id else showChar '\n') . indent i

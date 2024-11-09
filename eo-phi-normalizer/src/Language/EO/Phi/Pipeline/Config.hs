@@ -96,9 +96,18 @@ data TestSetEO = TestSetEO
 
 $(deriveJSON ''TestSetEO)
 
+data AtomsSet = AtomsSet
+  { enable :: Maybe [String]
+  , disable :: Maybe [String]
+  }
+  deriving stock (Show, Generic)
+
+$(deriveJSON ''AtomsSet)
+
 data TestSet = TestSet
   { eo :: TestSetEO
   , phi :: TestSetPhi
+  , atoms :: Maybe AtomsSet
   , enable :: Maybe Bool
   -- ^
   -- Whether to enable this test set.

@@ -1,6 +1,8 @@
 {-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module Language.EO.Phi.ToLaTeX where
 
@@ -9,6 +11,7 @@ import Data.List (intersperse)
 import Data.String (IsString)
 import Data.Text qualified as T
 import Language.EO.Phi
+import Language.EO.Phi.Rules.Yaml
 import Text.Regex (mkRegex, subRegex)
 
 newtype LaTeX = LaTeX {unLaTeX :: String}
@@ -31,7 +34,7 @@ instance ToLatex Attribute where
   toLatex Rho = "^"
   toLatex (Alpha (AlphaIndex a)) = LaTeX ("\\alpha_" ++ tail a)
   toLatex (Label (LabelId l)) = LaTeX l
-  toLatex (MetaAttr _) = error "rendering MetaBindings in LaTex format"
+  toLatex (MetaAttr (LabelMetaId l)) = LaTeX l
 
 instance ToLatex Binding where
   toLatex (AlphaBinding attr obj) = toLatex attr <> " -> " <> toLatex obj
@@ -39,8 +42,8 @@ instance ToLatex Binding where
   toLatex (DeltaBinding (Bytes bytes)) = "D> " <> LaTeX bytes
   toLatex DeltaEmptyBinding = "D> ?"
   toLatex (LambdaBinding (Function fn)) = "L> " <> LaTeX fn
-  toLatex (MetaBindings _) = error "rendering MetaBindings in LaTex format"
-  toLatex (MetaDeltaBinding _) = error "rendering MetaDeltaBinding in LaTex format"
+  toLatex (MetaBindings (BindingsMetaId x)) = LaTeX x
+  toLatex (MetaDeltaBinding (BytesMetaId x)) = "D> " <> LaTeX x
 
 instance ToLatex Object where
   toLatex (Formation bindings) =
@@ -50,14 +53,21 @@ instance ToLatex Object where
   toLatex (ObjectDispatch obj attr) =
     toLatex obj <> "." <> toLatex attr
   toLatex GlobalObject = "Q"
-  toLatex ThisObject = "$"
+  toLatex ThisObject = "\\xi"
   toLatex Termination = "\\dead"
-  toLatex (MetaObject _) = error "rendering MetaObject in LaTex format"
+  toLatex (MetaObject (ObjectMetaId metaId)) = LaTeX metaId
+  toLatex MetaTailContext{} = error "rendering MetaTailContext in LaTex format"
   toLatex (MetaFunction _ _) = error "rendering MetaFunction in LaTex format"
-  toLatex (MetaSubstThis _ _) = error "rendering MetaSubstThis in LaTex format"
+  toLatex (MetaSubstThis obj1 obj2) = LaTeX "\\mathbb{S}(" <> toLatex obj1 <> ", " <> toLatex obj2 <> ")"
 
 removeOrgEolang :: String -> String
 removeOrgEolang = T.unpack . T.replace "Q.org.eolang" "QQ" . T.pack
+
+substituteTau :: String -> String
+substituteTau = T.unpack . T.replace "τ" "\\tau" . T.pack
+
+removeExclamationsMarks :: String -> String
+removeExclamationsMarks = filter (/= '!')
 
 removeAlpha :: String -> String
 removeAlpha s = subRegex (mkRegex "\\\\alpha_([0-9]+) ->") s "\\1->"
@@ -65,4 +75,77 @@ removeAlpha s = subRegex (mkRegex "\\\\alpha_([0-9]+) ->") s "\\1->"
 -- >>> toLatex ("{ ⟦ α0 ↦ ξ, α1 ↦ Φ.org.eolang.bytes( Δ ⤍ 00- ) ⟧ }" :: Program)
 -- \Big\{ [[ 0-> $, 1-> QQ.bytes( D> 00- ) ]] \Big\}
 latexToString :: LaTeX -> String
-latexToString = removeAlpha . removeOrgEolang . unLaTeX
+latexToString = removeExclamationsMarks . substituteTau . removeAlpha . removeOrgEolang . unLaTeX
+
+inMathMode :: LaTeX -> LaTeX
+inMathMode = (" $ " <>) . (<> " $ ")
+
+-- it's ok without separators here because rules have zero or one constraint from the context
+instance ToLatex RuleContext where
+  toLatex RuleContext{..} =
+    maybe mempty (\x -> inMathMode $ toLatex GlobalObject <> " -> " <> toLatex x) global_object
+      <> maybe mempty (\x -> (inMathMode $ toLatex x) <> " is the scope of the redex") current_object
+      <> maybe mempty (\x -> toLatex x <> " is the current attribute") current_attribute
+
+instance ToLatex RuleAttribute where
+  toLatex (ObjectAttr a) = toLatex a
+  toLatex DeltaAttr = "\\Delta"
+  toLatex LambdaAttr = "\\lambda"
+
+instance ToLatex Condition where
+  toLatex (IsNF nf) = inMathMode $ toLatex nf <> "\\in\\mathcal{N}"
+  toLatex (IsNFInsideFormation nf_inside_formation) =
+    (inMathMode $ toLatex nf_inside_formation) <> " is nf inside formation"
+  toLatex (PresentAttrs (AttrsInBindings attrs bindings)) =
+    inMathMode $ fold (intersperse ", " (map toLatex attrs)) <> " \\in " <> foldMap toLatex bindings
+  toLatex (AbsentAttrs (AttrsInBindings attrs bindings)) =
+    inMathMode $ fold (intersperse ", " (map toLatex attrs)) <> " \\notin " <> foldMap toLatex bindings
+  toLatex (AttrNotEqual (attr1, attr2)) =
+    inMathMode $ toLatex attr1 <> " \\neq " <> toLatex attr2
+  toLatex (ApplyInSubformations apply_in_subformations) =
+    if not apply_in_subformations then LaTeX "not in subformations" else mempty
+  toLatex (ApplyInAbstractSubformations apply_in_abstract_subformations) =
+    if not apply_in_abstract_subformations then LaTeX "not in subformations" else mempty
+
+isNonEmptyContext :: Maybe RuleContext -> Bool
+isNonEmptyContext Nothing = False
+isNonEmptyContext (Just (RuleContext Nothing Nothing Nothing)) = False
+isNonEmptyContext _ = True
+
+-- Renders all conditions on separate lines
+instance ToLatex Rule where
+  toLatex (Rule name _ context _ pattern result _ when _) =
+    "\\rrule{"
+      <> LaTeX name
+      <> "}: &"
+      <> inMathMode (toLatex pattern)
+      <> "\\(\\trans\\)"
+      <> inMathMode (toLatex result)
+      <> (if not (null when) || isNonEmptyContext context then "\\\\\\text {if }" else mempty)
+      <> maybe mempty (\c -> "&" <> toLatex c <> "\\\\") context
+      <> fold (intersperse ",\\\\" (map (("&" <>) . toLatex) when))
+
+instance ToLatex [Rule] where
+  toLatex rules =
+    "\\begin{figure*}\n\\begin{tabular}{rl}\n  "
+      <> fold (intersperse "\\\\\\\\\n  " (map toLatex rules))
+      <> "\n\\end{tabular}\n\\end{figure*}"
+
+-- Renders all conditions in one line
+ruleToLatexCompact :: Rule -> LaTeX
+ruleToLatexCompact (Rule name _ context _ pattern result _ when _) =
+  "\\rrule{"
+    <> LaTeX name
+    <> "}: "
+    <> inMathMode (toLatex pattern)
+    <> "\\(\\trans\\)"
+    <> inMathMode (toLatex result)
+    <> (if not (null when) || isNonEmptyContext context then "\\quad\\text {if }" else "")
+    <> maybe mempty (\c -> toLatex c <> ", ") context
+    <> fold (intersperse ", " (map toLatex when))
+
+rulesToLatexCompact :: [Rule] -> LaTeX
+rulesToLatexCompact rules =
+  "\\begin{figure*}\n  "
+    <> fold (intersperse "\\\\\\vspace*{0.5em}\n  " (map ruleToLatexCompact rules))
+    <> "\n\\end{figure*}"

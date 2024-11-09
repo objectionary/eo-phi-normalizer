@@ -192,6 +192,7 @@
               runtimeInputs = [
                 inputs.mdsh.packages.${system}.default
                 pkgs.mdbook-linkcheck
+                pkgs.yq-go
                 stack-wrapped
               ];
               text =
@@ -205,12 +206,14 @@
 
                     ${lib.concatMapStringsSep "\n" (x: "mdsh -i site/docs/src/${x} --work_dir .") [
                       "common/celsius.md"
-                      "normalizer.md"
+                      "eo-phi-normalizer.md"
+                      "pipeline.md"
                       "quick-start.md"
-                      "normalizer/rewrite.md"
-                      "normalizer/metrics.md"
-                      "normalizer/dataize.md"
-                      "normalizer/report.md"
+                      "eo-phi-normalizer/dataize.md"
+                      "eo-phi-normalizer/metrics.md"
+                      "eo-phi-normalizer/rewrite.md"
+                      "eo-phi-normalizer/print-rules.md"
+                      "eo-phi-normalizer/test.md"
                       "contributing.md"
                     ]}
 
@@ -278,7 +281,7 @@
                   prefix = "nix run .#";
                   packages = {
                     inherit (self'.packages) pipeline update-markdown site-dev site-build;
-                    normalizer = self'.packages.default;
+                    eo-phi-normalizer = self'.packages.default;
                   };
                 }
               ];

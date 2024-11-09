@@ -8,12 +8,14 @@
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeApplications #-}
+{-# OPTIONS_GHC -Wno-forall-identifier #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-partial-fields #-}
+{-# OPTIONS_GHC -Wno-type-defaults #-}
 
 module Language.EO.Phi.Rules.Yaml where
 
-import Control.Monad (guard)
+import Control.Monad (guard, unless)
 import Control.Monad.State (State, evalState)
 import Data.Aeson (FromJSON (..), Options (sumEncoding), SumEncoding (UntaggedValue), genericParseJSON)
 import Data.Aeson.Types (defaultOptions)
@@ -21,13 +23,16 @@ import Data.Coerce (coerce)
 import Data.List (intercalate)
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.Maybe (fromMaybe)
+import Data.Set (Set)
+import Data.Set qualified as Set
 import Data.String (IsString (..))
 import Data.Yaml qualified as Yaml
 import GHC.Generics (Generic)
 
-import Language.EO.Phi
-import Language.EO.Phi.Rules.Common (Context (insideFormation, outerFormations), NamedRule)
+import Language.EO.Phi (printTree)
+import Language.EO.Phi.Rules.Common (Context (..), NamedRule)
 import Language.EO.Phi.Rules.Common qualified as Common
+import Language.EO.Phi.Syntax.Abs
 import PyF (fmt)
 
 -- $setup
@@ -36,7 +41,16 @@ import PyF (fmt)
 
 instance FromJSON Object where parseJSON = fmap fromString . parseJSON
 instance FromJSON Binding where parseJSON = fmap fromString . parseJSON
-instance FromJSON MetaId where parseJSON = fmap MetaId . parseJSON
+
+instance FromJSON ObjectMetaId where parseJSON = fmap ObjectMetaId . parseJSON
+instance FromJSON LabelMetaId where parseJSON = fmap LabelMetaId . parseJSON
+instance FromJSON TailMetaId where parseJSON = fmap TailMetaId . parseJSON
+instance FromJSON BindingsMetaId where parseJSON = fmap BindingsMetaId . parseJSON
+instance FromJSON BytesMetaId where parseJSON = fmap BytesMetaId . parseJSON
+
+instance FromJSON MetaId where
+  parseJSON = fmap fromString . parseJSON
+
 instance FromJSON Attribute where parseJSON = fmap fromString . parseJSON
 instance FromJSON RuleAttribute where parseJSON = fmap fromString . parseJSON
 
@@ -60,10 +74,18 @@ data Rule = Rule
   { name :: String
   , description :: String
   , context :: Maybe RuleContext
+  , forall :: Maybe [MetaId]
   , pattern :: Object
   , result :: Object
+  , fresh :: Maybe [FreshMetaId]
   , when :: [Condition]
   , tests :: [RuleTest]
+  }
+  deriving (Generic, FromJSON, Show)
+
+data FreshMetaId = FreshMetaId
+  { name :: LabelMetaId
+  , prefix :: Maybe String
   }
   deriving (Generic, FromJSON, Show)
 
@@ -71,8 +93,15 @@ data RuleTest = RuleTest
   { name :: String
   , input :: Object
   , output :: [Object]
+  , options :: Maybe [RuleTestOption]
   }
   deriving (Generic, FromJSON, Show)
+
+newtype RuleTestOption = TakeOne {take_one :: Bool}
+  -- deriving (Generic, Show, FromJSON)
+  deriving (Eq, Generic, Show)
+instance FromJSON RuleTestOption where
+  parseJSON = genericParseJSON defaultOptions{sumEncoding = UntaggedValue}
 
 data AttrsInBindings = AttrsInBindings
   { attrs :: [RuleAttribute]
@@ -86,6 +115,7 @@ data Condition
   | AbsentAttrs {absent_attrs :: AttrsInBindings}
   | AttrNotEqual {not_equal :: (Attribute, Attribute)}
   | ApplyInSubformations {apply_in_subformations :: Bool}
+  | ApplyInAbstractSubformations {apply_in_abstract_subformations :: Bool}
   deriving (Generic, Show)
 instance FromJSON Condition where
   parseJSON = genericParseJSON defaultOptions{sumEncoding = UntaggedValue}
@@ -95,12 +125,44 @@ parseRuleSetFromFile = Yaml.decodeFileThrow
 
 convertRule :: Rule -> Common.Rule
 convertRule Rule{..} ctx obj = do
+  -- first validate pattern and result in the rule
+  -- TODO: we should perform this check once, not every time we run the rule
+  let freshMetaIds =
+        Set.mapMonotonic MetaIdLabel $
+          foldMap (Set.fromList . map (\FreshMetaId{name = x} -> x)) fresh
+
+      patternMetaIds = objectMetaIds pattern
+      resultMetaIds = objectMetaIds result
+
+      unusedFreshMetaIds = Set.difference freshMetaIds resultMetaIds
+
+      ppMetaIds = intercalate ", " . map printTree . Set.toList
+
+  unless (null unusedFreshMetaIds) $
+    error ("invalid rule: result does not use some fresh variables quantified by the fresh: " <> ppMetaIds unusedFreshMetaIds)
+
+  case forall of
+    Nothing -> return ()
+    Just forall' -> do
+      let forallMetaIds = Set.fromList forall'
+          resultAllowedMetaIds = forallMetaIds <> freshMetaIds
+          unquantifiedMetaIds = Set.difference patternMetaIds forallMetaIds
+          unusedMetaIds = Set.difference forallMetaIds patternMetaIds
+          unquantifiedResultMetaIds = Set.difference resultMetaIds resultAllowedMetaIds
+      unless (null unquantifiedMetaIds) $
+        error ("invalid rule: pattern uses meta variables not quantified by the forall: " <> ppMetaIds unquantifiedMetaIds)
+      unless (null unusedMetaIds) $
+        error ("invalid rule: pattern does not use some variables quantified by the forall: " <> ppMetaIds unusedMetaIds)
+      unless (null unquantifiedResultMetaIds) $
+        error ("invalid rule: result uses meta variables not quantified by the forall or the fresh: " <> ppMetaIds unquantifiedResultMetaIds)
+
   contextSubsts <- matchContext ctx context
   let pattern' = applySubst contextSubsts pattern
       result' = applySubst contextSubsts result
   subst <- matchObject pattern' obj
   guard $ all (\cond -> checkCond ctx cond (contextSubsts <> subst)) when
-  let result'' = applySubst (contextSubsts <> subst) result'
+  let substFresh = mkFreshSubst ctx result' fresh
+      result'' = applySubst (contextSubsts <> subst <> substFresh) result'
       -- TODO #152:30m what context should we pass to evaluate meta funcs?
       obj' = evaluateMetaFuncs obj result''
   guard $ not (objectHasMetavars obj')
@@ -108,6 +170,65 @@ convertRule Rule{..} ctx obj = do
 
 convertRuleNamed :: Rule -> NamedRule
 convertRuleNamed rule = (rule.name, convertRule rule)
+
+mkFreshSubst :: Context -> Object -> Maybe [FreshMetaId] -> Subst
+mkFreshSubst ctx obj metas =
+  Subst
+    { objectMetas = []
+    , bindingsMetas = []
+    , attributeMetas = mkFreshAttributes (usedLabelIds ctx <> objectLabelIds obj) (fromMaybe [] metas)
+    , bytesMetas = []
+    , contextMetas = []
+    }
+
+mkFreshAttributes :: Set LabelId -> [FreshMetaId] -> [(LabelMetaId, Attribute)]
+mkFreshAttributes _ids [] = []
+mkFreshAttributes ids (x : xs) =
+  case mkFreshAttribute ids x of
+    (ma, ids') -> ma : mkFreshAttributes ids' xs
+
+mkFreshAttribute :: Set LabelId -> FreshMetaId -> ((LabelMetaId, Attribute), Set LabelId)
+mkFreshAttribute ids FreshMetaId{..} = ((name, Label label), Set.insert label ids)
+ where
+  label =
+    head
+      [ l
+      | i <- [1 ..]
+      , let l = LabelId (fromMaybe "tmp" prefix <> "$" <> show i)
+      , l `Set.notMember` ids
+      ]
+
+usedLabelIds :: Context -> Set LabelId
+usedLabelIds Context{..} = objectLabelIds globalObject
+ where
+  globalObject = NonEmpty.last outerFormations
+
+objectLabelIds :: Object -> Set LabelId
+objectLabelIds = \case
+  GlobalObject -> mempty
+  ThisObject -> mempty
+  Formation bindings -> foldMap bindingLabelIds bindings
+  ObjectDispatch obj a -> objectLabelIds obj <> attrLabelIds a
+  Application obj bindings -> objectLabelIds obj <> foldMap bindingLabelIds bindings
+  Termination -> mempty
+  MetaObject{} -> mempty
+  MetaFunction _ obj -> objectLabelIds obj
+  MetaTailContext obj _ -> objectLabelIds obj
+  MetaSubstThis obj obj' -> objectLabelIds obj <> objectLabelIds obj'
+
+bindingLabelIds :: Binding -> Set LabelId
+bindingLabelIds = \case
+  AlphaBinding a obj -> objectLabelIds obj <> attrLabelIds a
+  DeltaBinding _bytes -> mempty
+  EmptyBinding a -> attrLabelIds a
+  DeltaEmptyBinding -> mempty
+  LambdaBinding _ -> mempty
+  MetaBindings _ -> mempty
+  MetaDeltaBinding _ -> mempty
+
+attrLabelIds :: Attribute -> Set LabelId
+attrLabelIds (Label l) = Set.singleton l
+attrLabelIds _ = mempty
 
 -- >>> matchContext (Context [] ["⟦ a ↦ ⟦ ⟧, x ↦ ξ.a ⟧"] (Label (LabelId "x"))) (Just (RuleContext Nothing (Just "⟦ !a ↦ !obj, !B ⟧") (Just "!a")))
 -- [Subst {
@@ -126,6 +247,34 @@ matchContext Common.Context{..} (Just (RuleContext{..})) = do
   globalObject = NonEmpty.last outerFormations
   thisObject = NonEmpty.head outerFormations
 
+objectMetaIds :: Object -> Set MetaId
+objectMetaIds (Formation bindings) = foldMap bindingMetaIds bindings
+objectMetaIds (Application object bindings) = objectMetaIds object <> foldMap bindingMetaIds bindings
+objectMetaIds (ObjectDispatch object attr) = objectMetaIds object <> attrMetaIds attr
+objectMetaIds GlobalObject = mempty
+objectMetaIds ThisObject = mempty
+objectMetaIds Termination = mempty
+objectMetaIds (MetaObject x) = Set.singleton (MetaIdObject x)
+objectMetaIds (MetaFunction _ obj) = objectMetaIds obj
+objectMetaIds (MetaTailContext obj x) = objectMetaIds obj <> Set.singleton (MetaIdTail x)
+objectMetaIds (MetaSubstThis obj obj') = foldMap objectMetaIds [obj, obj']
+
+bindingMetaIds :: Binding -> Set MetaId
+bindingMetaIds (AlphaBinding attr obj) = attrMetaIds attr <> objectMetaIds obj
+bindingMetaIds (EmptyBinding attr) = attrMetaIds attr
+bindingMetaIds (DeltaBinding _) = mempty
+bindingMetaIds DeltaEmptyBinding = mempty
+bindingMetaIds (LambdaBinding _) = mempty
+bindingMetaIds (MetaBindings x) = Set.singleton (MetaIdBindings x)
+bindingMetaIds (MetaDeltaBinding x) = Set.singleton (MetaIdBytes x)
+
+attrMetaIds :: Attribute -> Set MetaId
+attrMetaIds Phi = mempty
+attrMetaIds Rho = mempty
+attrMetaIds (Label _) = mempty
+attrMetaIds (Alpha _) = mempty
+attrMetaIds (MetaAttr x) = Set.singleton (MetaIdLabel x)
+
 objectHasMetavars :: Object -> Bool
 objectHasMetavars (Formation bindings) = any bindingHasMetavars bindings
 objectHasMetavars (Application object bindings) = objectHasMetavars object || any bindingHasMetavars bindings
@@ -135,6 +284,7 @@ objectHasMetavars ThisObject = False
 objectHasMetavars Termination = False
 objectHasMetavars (MetaObject _) = True
 objectHasMetavars (MetaFunction _ _) = True
+objectHasMetavars MetaTailContext{} = True
 objectHasMetavars (MetaSubstThis _ _) = True -- technically not a metavar, but a substitution
 
 bindingHasMetavars :: Binding -> Bool
@@ -177,6 +327,9 @@ checkCond _ctx (AttrNotEqual (a1, a2)) subst = applySubstAttr subst a1 /= applyS
 checkCond ctx (ApplyInSubformations shouldApply) _subst
   | shouldApply = True
   | otherwise = not (insideFormation ctx)
+checkCond ctx (ApplyInAbstractSubformations shouldApply) _subst
+  | shouldApply = True
+  | otherwise = not (insideAbstractFormation ctx)
 
 hasAttr :: RuleAttribute -> [Binding] -> Bool
 hasAttr attr = any (isAttr attr)
@@ -201,11 +354,18 @@ hasAttr attr = any (isAttr attr)
 -- actual result (after applying substitution):
 --  ⟦ c ↦ ⟦ ⟧ ⟧(ρ ↦ ⟦ b ↦ ⟦ ⟧ ⟧)
 
+data OneHoleContext = OneHoleContext
+  { holeMetaId :: !ObjectMetaId
+  , contextObject :: !Object
+  }
+  deriving (Show)
+
 data Subst = Subst
-  { objectMetas :: [(MetaId, Object)]
-  , bindingsMetas :: [(MetaId, [Binding])]
-  , attributeMetas :: [(MetaId, Attribute)]
-  , bytesMetas :: [(MetaId, Bytes)]
+  { objectMetas :: [(ObjectMetaId, Object)]
+  , bindingsMetas :: [(BindingsMetaId, [Binding])]
+  , attributeMetas :: [(LabelMetaId, Attribute)]
+  , bytesMetas :: [(BytesMetaId, Bytes)]
+  , contextMetas :: [(TailMetaId, OneHoleContext)]
   }
 instance Show Subst where
   show Subst{..} =
@@ -216,10 +376,11 @@ instance Show Subst where
       , "  bindingsMetas = [" <> showMappings bindingsMetas <> "]"
       , "  attributeMetas = [" <> showMappings attributeMetas <> "]"
       , "  bytesMetas = [" <> showMappings bytesMetas <> "]"
+      , "  contextMetas = [" <> show contextMetas <> "]"
       , "}"
       ]
    where
-    showMappings metas = intercalate "; " $ map (\(MetaId metaId, obj) -> [fmt|{metaId} -> '{printTree obj}'|]) metas
+    showMappings metas = intercalate "; " $ map (\(metaId, obj) -> [fmt|{printTree metaId} -> '{printTree obj}'|]) metas
 
 instance Semigroup Subst where
   (<>) = mergeSubst
@@ -228,7 +389,7 @@ instance Monoid Subst where
   mempty = emptySubst
 
 emptySubst :: Subst
-emptySubst = Subst [] [] [] []
+emptySubst = Subst [] [] [] [] []
 
 -- >>> putStrLn $ Language.EO.Phi.printTree (applySubst (Subst [("!n", "⟦ c ↦ ⟦ ⟧ ⟧")] [("!B", ["b ↦ ⟦ ⟧"])] [("!a", "a")]) "!n(ρ ↦ ⟦ !B ⟧)" :: Object)
 -- ⟦ c ↦ ⟦ ⟧ ⟧ (ρ ↦ ⟦ b ↦ ⟦ ⟧ ⟧)
@@ -246,6 +407,12 @@ applySubst subst@Subst{..} = \case
   Termination -> Termination
   MetaSubstThis obj thisObj -> MetaSubstThis (applySubst subst thisObj) (applySubst subst obj)
   obj@MetaFunction{} -> obj
+  MetaTailContext obj c ->
+    case lookup c contextMetas of
+      Nothing -> MetaTailContext (applySubst subst obj) c
+      Just OneHoleContext{..} ->
+        let holeSubst = mempty{objectMetas = [(holeMetaId, applySubst subst obj)]}
+         in applySubst holeSubst contextObject
 
 applySubstAttr :: Subst -> Attribute -> Attribute
 applySubstAttr Subst{..} = \case
@@ -268,8 +435,8 @@ applySubstBinding subst@Subst{..} = \case
   b@(MetaDeltaBinding m) -> maybe [b] (pure . DeltaBinding) (lookup m bytesMetas)
 
 mergeSubst :: Subst -> Subst -> Subst
-mergeSubst (Subst xs ys zs ws) (Subst xs' ys' zs' ws') =
-  Subst (xs ++ xs') (ys ++ ys') (zs ++ zs') (ws ++ ws')
+mergeSubst (Subst xs ys zs ws us) (Subst xs' ys' zs' ws' us') =
+  Subst (xs ++ xs') (ys ++ ys') (zs ++ zs') (ws ++ ws') (us ++ us')
 
 -- 1. need to implement applySubst' :: Subst -> Object -> Object
 -- 2. complete the code
@@ -285,10 +452,40 @@ matchObject (ObjectDispatch pat a) (ObjectDispatch obj a') = do
   pure (subst1 <> subst2)
 matchObject (MetaObject m) obj =
   pure emptySubst{objectMetas = [(m, obj)]}
+matchObject (MetaTailContext pat x) obj = do
+  (subst@Subst{..}, matchedCtx) <- matchOneHoleContext x pat obj
+  return subst{contextMetas = contextMetas <> [(x, matchedCtx)]}
 matchObject Termination Termination = [emptySubst]
 matchObject ThisObject ThisObject = [emptySubst]
 matchObject GlobalObject GlobalObject = [emptySubst]
 matchObject _ _ = [] -- ? emptySubst ?
+
+matchOneHoleContext :: TailMetaId -> Object -> Object -> [(Subst, OneHoleContext)]
+matchOneHoleContext ctxId pat obj = matchWhole <> matchPart
+ where
+  TailMetaId name = ctxId
+  holeId = ObjectMetaId (name ++ ":hole") -- FIXME: ensure fresh names
+  matchWhole = do
+    subst' <- matchObject pat obj
+    pure (subst', OneHoleContext holeId (MetaObject holeId))
+  matchPart = case obj of
+    ObjectDispatch obj' a -> do
+      (subst, OneHoleContext{..}) <- matchOneHoleContext ctxId pat obj'
+      return (subst, OneHoleContext{contextObject = ObjectDispatch contextObject a, ..})
+    -- FIXME: consider matching inside bindings of application as well
+    Application obj' bindings -> do
+      (subst, OneHoleContext{..}) <- matchOneHoleContext ctxId pat obj'
+      return (subst, OneHoleContext{contextObject = Application contextObject bindings, ..})
+    -- cases below cannot be matched
+    Formation{} -> []
+    GlobalObject -> []
+    ThisObject -> []
+    Termination -> []
+    -- should cases below be errors?
+    MetaSubstThis{} -> []
+    MetaObject{} -> []
+    MetaTailContext{} -> []
+    MetaFunction{} -> []
 
 -- | Evaluate meta functions
 -- given top-level context as an object
@@ -390,6 +587,7 @@ substThis thisObj = go
     ObjectDispatch obj a -> ObjectDispatch (go obj) a
     GlobalObject -> GlobalObject
     Termination -> Termination
+    obj@MetaTailContext{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
     obj@MetaSubstThis{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
     obj@MetaObject{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
     obj@MetaFunction{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)

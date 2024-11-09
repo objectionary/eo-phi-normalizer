@@ -1,69 +1,45 @@
 title: "Rule set based on Yegor's draft"
 rules:
-  # - name: Rule 3
-  #   description: 'Initialization of parent attribute'
-  #   pattern: |
-  #     ⟦ !B ⟧
-  #   result: |
-  #     ⟦ !B, ρ ↦ ξ.σ ⟧
-  #   when:
-  #     - present_attrs:
-  #         attrs: ['σ']
-  #         bindings: ['!B']
-  #     - absent_attrs:
-  #         attrs: ['ρ']
-  #         bindings: ['!B']
-  #   tests:
-  #     - name: 'Has sigma and no rho'
-  #       input: '⟦ b ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧ '
-  #       output: ['⟦ b ↦ ⟦ ⟧, σ ↦ ⟦ ⟧, ρ ↦ ξ.σ ⟧']
-  #     - name: 'Has both sigma and rho'
-  #       input: '⟦ a ↦ ⟦ b ↦ ⟦ ⟧, ρ ↦ ⟦ ⟧, σ ↦ ⟦ ⟧ ⟧ ⟧'
-  #       output: []
-  #     - name: 'Has neither sigma nor rho'
-  #       input: '⟦ a ↦ ⟦ b ↦ ⟦ ⟧ ⟧ ⟧'
-  #       output: []
 
-  - name: Rule 4
+  - name: Phi
     description: 'Φ-dispatch'
     context:
-      global_object: ⟦ !a ↦ !obj, !B ⟧
+      global_object: '!b'
     pattern: |
-      Φ.!a
+      Φ
     result: |
-      !obj
+      !b
     when:
       - apply_in_subformations: false
     tests: []
 
-  - name: Rule 5
+  - name: xi
     description: 'ξ-dispatch'
     context:
-      current_object: '!obj'
+      current_object: '!b'
     pattern: |
       ξ
     result: |
-      !obj
+      !b
     when:
       - apply_in_subformations: false
-      # - present_attrs:
-      #     attrs: ['ρ']
-      #     bindings: ['!B']
     tests:
       - name: Does not replace ξ inside a subformation
         input: '⟦ a ↦ ⟦ ⟧, x ↦ ξ.a, ρ ↦ ⟦ ⟧ ⟧'
         output: []
       # How to test replacing without already having context?
 
-  - name: Rule 6
+  - name: DOT
     description: 'Accessing an α-binding'
     pattern: |
-      ⟦ !a ↦ !n, !B ⟧.!a
+      ⟦ !τ ↦ !b, !B ⟧.!τ
     result: |
-      !n[ ξ ↦ ⟦ !a ↦ !n, !B ⟧ ]
+      !b[ ξ ↦ ⟦ !τ ↦ !b, !B ⟧ ]
     when:
-      - nf_inside_formation: '!n'
+      - apply_in_abstract_subformations: false
+      - nf_inside_formation: '!b'
       - nf: '⟦ !B ⟧'
+      - not_equal: ['!τ', 'ρ']
     tests:
       - name: Should match
         input: ⟦ hello ↦ ⟦⟧ ⟧.hello
@@ -71,128 +47,165 @@ rules:
       - name: Shouldn't match
         input: ⟦ ⟧.hello
         output: []
+      - name: Shouldn't match
+        input: ⟦ ρ ↦ ⟦⟧ ⟧.ρ
+        output: []
+      - name: Should apply in subformations
+        input: ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ⟦⟧ ⟧ ⟧.b ⟧
+        output: ['⟦ a ↦ ⟦ c ↦ ⟦⟧, ρ ↦ ⟦ b ↦ ⟦ c ↦ ⟦⟧ ⟧ ⟧ ⟧ ⟧']
+      - name: Should respect surrounding context
+        input: ⟦ hello ↦ ⟦⟧, goodbye ↦ ⟦ a ↦ ⟦⟧ ⟧ ⟧.hello
+        output: ['⟦ ρ ↦ ⟦ hello ↦ ⟦⟧, goodbye ↦ ⟦ a ↦ ⟦⟧ ⟧ ⟧ ⟧']
 
-  - name: Rule 6a
-    description: 'Accessing an α-binding (for object with ρ ↦ ∅)'
+  - name: DOTrho
+    description: 'Accessing ρ-binding'
     pattern: |
-      ⟦ !a ↦ !n, ρ ↦ ∅, !B ⟧.!a
+      ⟦ ρ ↦ !b, !B ⟧.ρ
     result: |
-      !n[ ξ ↦ ⟦ !a ↦ !n, ρ ↦ ∅, !B ⟧ ]
-    when: []
+      !b
+    when:
+      - nf: '⟦ !B ⟧'
     tests:
       - name: Should match
-        input: ⟦ hello ↦ ⟦⟧, ρ ↦ ∅ ⟧.hello
-        output: ['⟦ ρ ↦ ⟦ hello ↦ ⟦⟧, ρ ↦ ∅ ⟧ ⟧']
-      - name: Shouldn't match
-        input: ⟦ ⟧.hello
-        output: []
+        input: ⟦ ρ ↦ ⟦ ⟧ ⟧.ρ
+        output: ['⟦ ⟧']
 
-  - name: Rule 7 α0 α1
-    description: 'Application of α-binding'
-    # Warning: this is not correct for the chain variant because it only matches the first two bindings
-    # i.e., doesn't match an empty binding after an attached one.
-    # We should instead match the first two empty bindings.
-    pattern: |
-      ⟦ !a ↦ ∅, !b ↦ ∅, !B ⟧(α0 ↦ !n0, α1 ↦ !n1)
-    result: |
-      ⟦ !a ↦ !n0, !b ↦ !n1, !B ⟧
-    when:
-      - nf: '!n0'
-      - nf: '!n1'
-    tests: []
-
-  - name: Rule 7 α0
-    description: 'Application of α-binding'
-    # Warning: this is not correct for the chain variant because it only matches the first binding
-    # i.e., doesn't match an empty binding after an attached one.
-    # We should instead match the first empty binding.
-    pattern: |
-      ⟦ !a ↦ ∅, !B ⟧(α0 ↦ !n)
-    result: |
-      ⟦ !a ↦ !n, !B ⟧
-    when:
-      - nf: '!n'
-    tests: []
-
-  - name: Rule 7a
-    description: 'Application of α-binding'
-    pattern: |
-      ⟦ !a ↦ ∅, !B ⟧(!a ↦ !n)
-    result: |
-      ⟦ !a ↦ !n, !B ⟧
-    when:
-      - nf: '!n'
-    tests: []
-
-  - name: Rule 7b
-    description: 'Application of Δ-binding'
-    pattern: |
-      ⟦ Δ ⤍ ∅, !B ⟧(Δ ⤍ !bytes)
-    result: |
-      ⟦ Δ ⤍ !bytes, !B ⟧
-    when: []
-    tests: []
-
-  - name: Rule 8
+  - name: phi
     description: 'Accessing a decorated object'
     pattern: |
-      ⟦ φ ↦ !n, !B ⟧.!a
+      ⟦!B ⟧.!τ
     result: |
-      !n[ ξ ↦ ⟦ φ ↦ !n, !B ⟧ ].!a
+      ⟦!B ⟧.φ.!τ
     when:
-      - apply_in_subformations: false
-      - nf_inside_formation: '!n'
-      - not_equal: ['!a', 'φ']
+      - present_attrs:
+          attrs: ['φ']
+          bindings: ['!B']
       - absent_attrs:
-          attrs: ['!a']
+          attrs: ['!τ']
           bindings: ['!B']
     tests:
       - name: 'Attribute does not exist'
         input: '⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧.b'
-        output: ['⟦ ρ ↦ ⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧ ⟧.b']
+        output: ['⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧.φ.b']
       - name: 'Attribute exists'
         input: '⟦ φ ↦ ⟦ ⟧, a ↦ ⟦ ⟧ ⟧.a'
         output: []
+      - name: 'Both attributes do not exist'
+        input: '⟦ b ↦ ⟦⟧ ⟧.a'
+        output: []
 
-  - name: Rule 9a
-    description: 'Parent application (for existing parent)'
-    pattern: ⟦ ρ ↦ !t, !B ⟧(ρ ↦ !n)
-    result: ⟦ ρ ↦ !n, !B ⟧
+  - name: COPY
+    description: 'Application of α-binding'
+    context:
+      current_object: "!b2"
+    pattern: |
+      ⟦ !τ ↦ ∅, !B1 ⟧(!τ ↦ !b1, !B2)
+    result: |
+      ⟦ !τ ↦ !b1[ ξ ↦ !b2 ], !B1 ⟧(!B2)
     when:
-      - nf: '!n'
+      - apply_in_subformations: false
+      - nf: '!b1'
+    tests:
+      - name: Should match
+        input: ⟦ a ↦ ∅ ⟧(a ↦ ⟦⟧)
+        output: ['⟦ a ↦ ⟦ ρ ↦ ⟦ a ↦ ∅ ⟧(a ↦ ⟦⟧) ⟧ ⟧()']
+      - name: Should not match in subformations
+        input: ⟦ a ↦ ⟦b ↦ ∅⟧(b ↦ ⟦⟧) ⟧
+        output: []
+
+  - name: COPY1
+    description: 'Application of α-binding'
+    # Warning: this is not correct for the chain variant because it only matches the first binding
+    # i.e., doesn't match an empty binding after an attached one.
+    # We should instead match the first empty binding.
+    context:
+      current_object: "!b2"
+    pattern: |
+      ⟦ !τ ↦ ∅, !B ⟧(α0 ↦ !b1)
+    result: |
+      ⟦ !τ ↦ !b1[ ξ ↦ !b2 ], !B ⟧
+    when:
+      - apply_in_subformations: false
+      - nf: '!b1'
+    tests:
+      - name: Should match first void attribute
+        input: ⟦ hello ↦ ⟦⟧, bye ↦ ∅, hey ↦ ∅ ⟧(α0 ↦ ⟦⟧)
+        output: ['⟦ bye ↦ ⟦ ρ ↦ ⟦ hello ↦ ⟦⟧, bye ↦ ∅, hey ↦ ∅ ⟧(α0 ↦ ⟦⟧) ⟧, hello ↦ ⟦⟧, hey ↦ ∅ ⟧']
+        options:
+          - take_one: true
+
+  - name: COPY2
+    description: 'Application of α-binding'
+    # Warning: this is not correct for the chain variant because it only matches the first two bindings
+    # i.e., doesn't match an empty binding after an attached one.
+    # We should instead match the first two empty bindings.
+    context:
+      current_object: "!b3"
+    pattern: |
+      ⟦ !τ1 ↦ ∅, !τ2 ↦ ∅, !B ⟧(α0 ↦ !b1, α1 ↦ !b2)
+    result: |
+      ⟦ !τ1 ↦ !b1[ ξ ↦ !b3 ], !τ2 ↦ !b2[ ξ ↦ !b3 ], !B ⟧
+    when:
+      - apply_in_subformations: false
+      - nf: '!b1'
+      - nf: '!b2'
+    tests:
+      - name: Should match positional arguments
+        input: ⟦ hello ↦ ∅, bye ↦ ∅, hey ↦ ∅ ⟧(α0 ↦ ⟦⟧, α1 ↦ ⟦ a ↦ ⟦⟧ ⟧)
+        output: ['⟦ hello ↦ ⟦ ρ ↦ ⟦ hello ↦ ∅, bye ↦ ∅, hey ↦ ∅ ⟧(α0 ↦ ⟦⟧, α1 ↦ ⟦ a ↦ ⟦⟧ ⟧) ⟧, bye ↦ ⟦ a ↦ ⟦⟧, ρ ↦ ⟦ hello ↦ ∅, bye ↦ ∅, hey ↦ ∅ ⟧(α0 ↦ ⟦⟧, α1 ↦ ⟦ a ↦ ⟦⟧ ⟧) ⟧, hey ↦ ∅ ⟧']
+        options:
+          - take_one: true
+
+  - name: COPYdelta
+    description: 'Application of Δ-binding'
+    pattern: |
+      ⟦ Δ ⤍ ∅, !B ⟧(Δ ⤍ !y)
+    result: |
+      ⟦ Δ ⤍ !y, !B ⟧
+    when:
+      - apply_in_abstract_subformations: false
     tests: []
 
-  - name: Rule 9b
-    description: 'Parent application (without an existing parent)'
-    pattern: '⟦ !B ⟧(ρ ↦ !n)'
-    result: ⟦ ρ ↦ !n, !B ⟧
-    when:
-      - nf: '!n'
-      - absent_attrs:
-          attrs: ['ρ']
-          bindings: ['!B']
-    tests: []
+  - name: EMPTY
+    description: 'Empty application'
+    pattern: |
+      ⟦ !B1 ⟧()
+    result: |
+      ⟦ !B1 ⟧
+    when: []
+    tests:
+      - name: Should match
+        input: ⟦ a ↦ ⟦⟧ ⟧()
+        output: ['⟦ a ↦ ⟦⟧ ⟧']
+      - name: Should not match
+        input: ⟦ a ↦ ∅ ⟧(a ↦ ⟦⟧)
+        output: []
+      - name: Should match in subformation
+        input: ⟦ a ↦ ⟦ b ↦ ⟦⟧() ⟧ ⟧
+        output: ['⟦ a ↦ ⟦ b ↦ ⟦⟧ ⟧ ⟧']
+      - name: Should work with empty formation
+        input: ⟦⟧()
+        output: ['⟦⟧']
 
-  - name: Rule 10
-    description: 'Invalid application'
-    pattern: ⟦ !t ↦ !b1, !B1 ⟧(!t ↦ !b2, !B2)
+  - name: OVER
+    description: 'Invalid application (attribute already attached)'
+    pattern: ⟦ !τ ↦ !b1, !B1 ⟧(!τ ↦ !b2, !B2)
     result: ⊥
-    when:
-      - not_equal: ['!t', 'ρ']
+    when: []
     tests:
       - name: ''
         input: '⟦ t ↦ ⟦ a ↦ ∅ ⟧ ⟧(t ↦ ⟦ b ↦ ∅ ⟧)'
         output: ['⊥']
 
-  - name: Rule 11
+  - name: STOP
     description: 'Invalid attribute access'
     pattern: |
-      ⟦ !B ⟧.!a
+      ⟦ !B ⟧.!τ
     result: |
       ⊥
     when:
       - absent_attrs:
-          attrs: ['!a', 'φ', 'λ']
+          attrs: ['!τ', 'φ', 'λ']
           bindings: ['!B']
       - present_attrs:
           attrs: ['ρ']
@@ -203,10 +216,32 @@ rules:
         input: '⟦ ρ ↦ ⟦ ⟧ ⟧.x'
         output: ['⊥']
 
-  - name: Rule 12
+  - name: MISS
+    description: 'Invalid application (absent attribute)'
+    pattern: ⟦ !B1 ⟧(!τ ↦ !b, !B2)
+    result: ⊥
+    when:
+      - absent_attrs:
+          attrs: ['!τ', 'φ', 'λ']
+          bindings: ['!B1']
+    tests:
+      - name: ''
+        input: '⟦ t1 ↦ ⟦ a ↦ ∅ ⟧ ⟧(t ↦ ⟦ b ↦ ∅ ⟧)'
+        output: ['⊥']
+      - name: Should not match if attr is present
+        input: ⟦ t ↦ ⟦⟧ ⟧(t ↦ ⟦ a ↦ ∅ ⟧)
+        output: []
+      - name: Should not match if phi is present
+        input: ⟦ φ ↦ ⟦⟧, a ↦ ⟦⟧ ⟧(t ↦ ⟦ a ↦ ∅ ⟧)
+        output: []
+      - name: Should apply in subformations
+        input: ⟦ a ↦ ⟦ b ↦ ⟦⟧(t ↦ ⟦⟧) ⟧ ⟧
+        output: ['⟦ a ↦ ⟦ b ↦ ⊥ ⟧ ⟧']
+
+  - name: DD
     description: 'Accessing an attribute on bottom'
     pattern: |
-      ⊥.!a
+      ⊥.!τ
     result: |
       ⊥
     when: []
@@ -218,11 +253,14 @@ rules:
         input: '⟦ ⟧.a'
         output: []
 
-  - name: Extra rule for bottom
+  - name: DC
     description: 'Application on bottom is bottom'
     pattern: |
       ⊥(!B)
     result: |
       ⊥
     when: []
-    tests: []
+    tests:
+      - name: Should apply in subformations
+        input: ⟦ a ↦ ⟦ b ↦ ⊥(t ↦ ⟦⟧, u ↦ ⟦⟧) ⟧ ⟧
+        output: ['⟦ a ↦ ⟦ b ↦ ⊥ ⟧ ⟧']

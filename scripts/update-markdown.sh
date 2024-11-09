@@ -6,12 +6,14 @@
 mdsh
 
 mdsh -i site/docs/src/common/celsius.md --work_dir .
-mdsh -i site/docs/src/normalizer.md --work_dir .
+mdsh -i site/docs/src/eo-phi-normalizer.md --work_dir .
+mdsh -i site/docs/src/pipeline.md --work_dir .
 mdsh -i site/docs/src/quick-start.md --work_dir .
-mdsh -i site/docs/src/normalizer/rewrite.md --work_dir .
-mdsh -i site/docs/src/normalizer/metrics.md --work_dir .
-mdsh -i site/docs/src/normalizer/dataize.md --work_dir .
-mdsh -i site/docs/src/normalizer/report.md --work_dir .
+mdsh -i site/docs/src/eo-phi-normalizer/dataize.md --work_dir .
+mdsh -i site/docs/src/eo-phi-normalizer/metrics.md --work_dir .
+mdsh -i site/docs/src/eo-phi-normalizer/rewrite.md --work_dir .
+mdsh -i site/docs/src/eo-phi-normalizer/print-rules.md --work_dir .
+mdsh -i site/docs/src/eo-phi-normalizer/test.md --work_dir .
 mdsh -i site/docs/src/contributing.md --work_dir .
 
 rm celsius.phi
