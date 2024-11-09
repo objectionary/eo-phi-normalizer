@@ -39,7 +39,7 @@ New:
 
 - Command Line Interface:
   - Add commands:
-    - `normalizer transform` to perform normalization without executing any atoms (was default behavior before)
+    - `normalizer rewrite` to perform normalization without executing any atoms (was default behavior before)
     - `normalizer metrics` to compute metrics of a given φ-expression (see [#153](https://github.com/objectionary/normalizer/pull/153))
     - `normalizer dataize` to run partial evaluation of φ-expressions with atoms (see [#187](https://github.com/objectionary/normalizer/pull/187))
     - `normalizer report` to generate report based on the results of testing against the EO compiler (see [#213](https://github.com/objectionary/normalizer/pull/213))

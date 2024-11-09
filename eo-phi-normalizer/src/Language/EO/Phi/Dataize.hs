@@ -105,7 +105,7 @@ dataizeRecursivelyChain = fmap minimizeObject' . go
               logStep "Normalized" obj'
               return obj'
           | otherwise = applyRulesChainWith limits obj
-    msplit (transformNormLogs normalizedObj) >>= \case
+    msplit (rewriteNormLogs normalizedObj) >>= \case
       Nothing -> do
         logStep "No rules applied" (Left obj)
         return (Left obj)

@@ -40,7 +40,7 @@ Make `cygpath` available on `PATH`.
 
 The pipeline has several important stages:
 
-- Transform original `EO` programs into filtered `EO` programs, leaving only the specified top-level objects (tests).
+- rewrite original `EO` programs into filtered `EO` programs, leaving only the specified top-level objects (tests).
 - Translate filtered `EO` programs to initial `PHI` programs.
 - Translate initial `PHI` programs to initial `EO` programs.
 - Test initial `EO` programs.

@@ -405,7 +405,7 @@ main = withUtf8 do
       program' <- getProgram inputFile
       deps <- mapM (getProgram . Just) dependencies
       (logStrLn, logStr) <- getLoggers outputFile
-      -- logStrLn "Running transform"
+      -- logStrLn "Running rewrite"
       (builtin, ruleSetTitle, rules) <-
         case rulesPath of
           Just path -> do
