@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to the
 [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## v2.0.0 - 2024-11-11
+
+### New
+
+- Rename `normalizer` to `eo-phi-normalizer` everywhere [494](https://github.com/objectionary/eo-phi-normalizer/pull/494)
+- Add `eo-phi-normalizer version` command [493](https://github.com/objectionary/eo-phi-normalizer/pull/493)
+- Add `eo-phi-normalizer test` command [498](https://github.com/objectionary/eo-phi-normalizer/pull/498)
+
+### Documentation and maintenance
+
+- Make site Markdown generation reproducible [513](https://github.com/objectionary/eo-phi-normalizer/pull/513), [514](https://github.com/objectionary/eo-phi-normalizer/pull/514)
+
 ## v1.1.0 - 2024-10-03
 
 ### New
