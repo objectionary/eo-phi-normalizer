@@ -305,11 +305,11 @@ msplit (Chain m) = Chain $ \ctx ->
     [] -> runChain (return Nothing) ctx
     (logs, x) : xs -> [(logs, Just (x, Chain (const xs)))]
 
-rewriteLogs :: (log1 -> log2) -> Chain log1 a -> Chain log2 a
-rewriteLogs f (Chain normChain) = Chain $ map (first (map (fmap f))) . normChain
+transformLogs :: (log1 -> log2) -> Chain log1 a -> Chain log2 a
+transformLogs f (Chain normChain) = Chain $ map (first (map (fmap f))) . normChain
 
-rewriteNormLogs :: NormalizeChain a -> DataizeChain a
-rewriteNormLogs = rewriteLogs Left
+transformNormLogs :: NormalizeChain a -> DataizeChain a
+transformNormLogs = transformLogs Left
 
 listen :: Chain log a -> Chain log (a, [LogEntry log])
 listen (Chain k) = Chain (map (\(logs, result) -> (logs, (result, logs))) . k)
