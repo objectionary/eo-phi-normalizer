@@ -101,12 +101,12 @@ test-sets:
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
 - eo:
-    original: eo/eo-runtime/src/test/eo/org/eolang/goto-tests.eo
-    yaml: pipeline/eo-yaml/goto-tests.yaml
-    filtered: pipeline/eo-filtered/goto-tests.eo
+    original: eo/eo-runtime/src/test/eo/org/eolang/go-tests.eo
+    yaml: pipeline/eo-yaml/go-tests.yaml
+    filtered: pipeline/eo-filtered/go-tests.eo
   phi:
-    initial: pipeline/phi-initial/goto-tests.phi
-    normalized: pipeline/phi-normalized/goto-tests.phi
+    initial: pipeline/phi-initial/go-tests.phi
+    normalized: pipeline/phi-normalized/go-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
 - eo:
