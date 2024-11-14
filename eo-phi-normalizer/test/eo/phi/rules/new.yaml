@@ -145,8 +145,8 @@ rules:
       - name: Should not match if attr is present
         input: ⟦ t ↦ ⟦⟧ ⟧(t ↦ ⟦ a ↦ ∅ ⟧)
         output: []
-      - name: Should not match if phi is present
-        input: ⟦ φ ↦ ⟦⟧, a ↦ ⟦⟧ ⟧(t ↦ ⟦ a ↦ ∅ ⟧)
+      - name: Should not match for rho
+        input: ⟦ ⟧(ρ ↦ ⟦ ⟧)
         output: []
       - name: Should apply in subformations
         input: ⟦ a ↦ ⟦ b ↦ ⟦⟧(t ↦ ⟦⟧) ⟧ ⟧
