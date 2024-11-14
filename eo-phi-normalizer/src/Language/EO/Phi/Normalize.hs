@@ -53,6 +53,7 @@ peelObject = \case
   MetaTailContext{} -> error "impossible"
   MetaFunction _ _ -> error "To be honest, I'm not sure what should be here"
   MetaSubstThis{} -> error "impossible"
+  MetaContextualize{} -> error "impossible"
  where
   followedBy (PeeledObject object actions) action = PeeledObject object (actions ++ [action])
 

@@ -34,6 +34,7 @@ data Object
     | ThisObject
     | Termination
     | MetaSubstThis Object Object
+    | MetaContextualize Object Object
     | MetaObject ObjectMetaId
     | MetaTailContext Object TailMetaId
     | MetaFunction MetaFunctionName Object

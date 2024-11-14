@@ -132,6 +132,7 @@ withSubObject f ctx root =
       MetaFunction _ _ -> []
       MetaTailContext{} -> []
       MetaSubstThis _ _ -> []
+      MetaContextualize _ _ -> []
  where
   subctx = ctx{insideSubObject = True}
 
@@ -199,6 +200,7 @@ objectSize = \case
   MetaObject{} -> 1 -- should be impossible
   MetaFunction{} -> 1 -- should be impossible
   MetaSubstThis{} -> 1 -- should be impossible
+  MetaContextualize{} -> 1 -- should be impossible
   MetaTailContext{} -> 1 -- should be impossible
 
 bindingSize :: Binding -> Int

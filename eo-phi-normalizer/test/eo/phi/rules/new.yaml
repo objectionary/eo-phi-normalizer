@@ -6,30 +6,39 @@ rules:
     pattern: |
       ⟦ !τ ↦ !b, !B ⟧.!τ
     result: |
-      !b[ ξ ↦ ⟦ !τ ↦ !b, !B ⟧ ](ρ ↦ ⟦ !τ ↦ !b, !B ⟧)
+      ⌈ !b , ⟦ !τ ↦ !b, !B ⟧ ⌉(ρ ↦ ⟦ !τ ↦ !b, !B ⟧)
     when:
-      - nf: '⟦ !b ⟧'
-      - nf: '⟦ !B ⟧' #TODO: change the condition, every object in !B should be in the nf
-    tests: []
+      - nf: '!b'
+      - nf: '⟦ !B ⟧'
+    tests:
+      - name: 'Contextualization changes ξ'
+        input: ⟦ a ↦ ξ ⟧.a
+        output: ['⟦ a ↦ ξ ⟧ (ρ ↦ ⟦ a ↦ ξ ⟧)']
+      - name: 'Contextualization applies recursively'
+        input: ⟦ a ↦ ξ.b ⟧.a
+        output: ['⟦ a ↦ ξ.b ⟧.b (ρ ↦ ⟦ a ↦ ξ.b ⟧)']
 
   - name: COPY
     description: 'Application of α-binding'
     pattern: |
       ⟦ !τ1 ↦ ⟦ !τ2 ↦ ∅, !B1 ⟧(!τ2 ↦ !b, !B2), !B3 ⟧
     result: |
-      ⟦ !τ1 ↦ ⟦ !τ2 ↦ !b[ ξ ↦ ⟦ !τ1 ↦ ⟦ !τ2 ↦ ∅, !B1 ⟧(!τ2 ↦ !b, !B2), !B3 ⟧ ], !B1 ⟧(!B2), !B3 ⟧
+      ⟦ !τ1 ↦ ⟦ !τ2 ↦ ⌈ !b , ⟦ !τ1 ↦ ⟦ !τ2 ↦ ∅, !B1 ⟧(!τ2 ↦ !b, !B2), !B3 ⟧ ⌉, !B1 ⟧(!B2), !B3 ⟧
     when:
       - nf: '!b'
       - nf: '⟦ !B1 ⟧'
       - nf: '⟦ !B3 ⟧'
-    tests: []
+    tests:
+      - name: 'Should match'
+        input: ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ) ⟧
+        output: ['⟦ a ↦ ⟦ b ↦ ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ) ⟧ ⟧ () ⟧']
 
   - name: RHO
     description: 'Application of a ρ-binding'
     pattern: |
       ⟦ !τ ↦ ⟦ !B1 ⟧(ρ ↦ !b, !B2), !B3 ⟧
     result: |
-      ⟦ !τ ↦ ⟦ !B1, ρ ↦ !b[ ξ ↦ ⟦ !τ ↦ ⟦ !B1 ⟧(ρ ↦ !b, !B2), !B3 ⟧ ] ⟧(!B2), !B3 ⟧
+      ⟦ !τ ↦ ⟦ !B1, ρ ↦ ⌈ !b , ⟦ !τ ↦ ⟦ !B1 ⟧(ρ ↦ !b, !B2), !B3 ⟧ ⌉ ⟧(!B2), !B3 ⟧
     when:
       - nf: '!b'
       - absent_attrs:

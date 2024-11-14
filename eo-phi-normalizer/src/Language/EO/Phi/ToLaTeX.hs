@@ -59,6 +59,7 @@ instance ToLatex Object where
   toLatex MetaTailContext{} = error "rendering MetaTailContext in LaTex format"
   toLatex (MetaFunction _ _) = error "rendering MetaFunction in LaTex format"
   toLatex (MetaSubstThis obj1 obj2) = LaTeX "\\mathbb{S}(" <> toLatex obj1 <> ", " <> toLatex obj2 <> ")"
+  toLatex (MetaContextualize obj1 obj2) = LaTeX "\\lceil" <> toLatex obj1 <> ", " <> toLatex obj2 <> "\\rceil"
 
 removeOrgEolang :: String -> String
 removeOrgEolang = T.unpack . T.replace "Q.org.eolang" "QQ" . T.pack
