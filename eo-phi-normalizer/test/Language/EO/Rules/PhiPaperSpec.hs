@@ -305,14 +305,19 @@ parseTests :: String -> IO ConfluenceTests
 parseTests = Yaml.decodeFileThrow
 
 spec :: Spec
-spec = do
-  ruleset <- runIO $ parseRuleSetFromFile "./test/eo/phi/rules/yegor.yaml"
-  let rulesFromYaml = map convertRuleNamed (rules ruleset)
-  inputs <- runIO $ parseTests "./test/eo/phi/confluence.yaml"
-  describe "Yegor's rules" $ do
-    it "Are confluent (via QuickCheck)" (confluent rulesFromYaml)
-    describe
-      "Are confluent (regression tests)"
-      $ forM_ (tests inputs)
-      $ \input -> do
-        it (printTree input) (input `shouldSatisfy` confluentOnObject rulesFromYaml)
+spec =
+  forM_
+    [ ("Old Yegor's rules", "test/eo/phi/rules/yegor.yaml")
+    , ("New Yegor's rules", "test/eo/phi/rules/new.yaml")
+    ]
+    $ \(name, rulesFile) -> do
+      ruleset <- runIO $ parseRuleSetFromFile rulesFile
+      let rulesFromYaml = map convertRuleNamed (rules ruleset)
+      inputs <- runIO $ parseTests "test/eo/phi/confluence.yaml"
+      describe name $ do
+        it "Are confluent (via QuickCheck)" (confluent rulesFromYaml)
+        describe
+          "Are confluent (regression tests)"
+          $ forM_ (tests inputs)
+          $ \input -> do
+            it (printTree input) (input `shouldSatisfy` confluentOnObject rulesFromYaml)
