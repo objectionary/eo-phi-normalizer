@@ -44,3 +44,10 @@ jobs:
             !**/Print.hs
             **/*.sh
             **/*.cf
+
+      - uses: yegor256/copyrights-action@0.0.8
+        with:
+          license: BNFC.txt
+          globs: >-
+            **/Abs.hs
+            **/Print.hs
