@@ -99,6 +99,7 @@ rules:
         input: '⟦ ρ ↦ ⟦ ⟧ ⟧.x'
         output: ['⊥']
 
+  # Named VOID instead of NULL because NULL is a keyword in yaml
   - name: VOID
     description: 'Void attribute access'
     pattern: |
