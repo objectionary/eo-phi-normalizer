@@ -62,6 +62,9 @@ main =
                 , "cd src/Language/EO/Phi/Syntax"
                 , "alex Lex.x"
                 , "happy Par.y"
+                , "function add_license { FILE=\"$1\"; printf \"{-\\n%s\\n-}\\n\\n\" \"$(cat ../../../../../LICENSE)\" > \"$FILE.concat\"; cat \"$FILE\" >> \"$FILE.concat\"; mv \"$FILE.concat\" \"$FILE\"; }"
+                , "add_license Abs.hs"
+                , "add_license Print.hs"
                 , "true"
                 ]
 
