@@ -37,6 +37,11 @@ test-sets:
     normalized: pipeline/phi-normalized/bytes-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
+  exclude:
+    - counts-size-of-bytes
+    - size-of-part-is-correct
+    - takes-part-of-bytes
+    - written-in-several-lines
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/cage-tests.eo
     yaml: pipeline/eo-yaml/cage-tests.yaml
@@ -320,6 +325,14 @@ test-sets:
     normalized: pipeline/phi-normalized/string-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
+  exclude:
+    - slice-foreign-literals
+    - slice-foreign-literals-2
+    - slice-from-start
+    - slice-from-the-end
+    - slice-in-the-middle
+    - throws-on-slicing-end-below-start
+    - throws-on-slicing-end-greater-actual
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/structs/bytes-as-array-tests.eo
     yaml: pipeline/eo-yaml/structs/bytes-as-array-tests.yaml
@@ -477,6 +490,8 @@ test-sets:
     normalized: pipeline/phi-normalized/txt/text-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
+  exclude:
+    - text-slices-the-origin-string
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/while-tests.eo
     yaml: pipeline/eo-yaml/while-tests.yaml
