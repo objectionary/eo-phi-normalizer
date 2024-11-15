@@ -39,12 +39,12 @@ jobs:
           globs: >-
             **/*.yml
             **/*.yaml
+            !**/.pre-commit-config.yaml
             **/*.hs
             !**/Abs.hs
             !**/Print.hs
             **/*.sh
             **/*.cf
-
       - uses: yegor256/copyrights-action@0.0.8
         with:
           license: BNFC.txt
