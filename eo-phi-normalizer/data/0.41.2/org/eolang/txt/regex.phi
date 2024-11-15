@@ -1,0 +1,138 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        txt ↦ ⟦
+          regex ↦ ⟦
+            expression ↦ ∅,
+            φ ↦ ξ.compiled,
+            compiled ↦ ⟦
+              λ ⤍ Lorg_eolang_txt_regex_compiled
+            ⟧,
+            pattern ↦ ⟦
+              serialized ↦ ∅,
+              matches ↦ ⟦
+                φ ↦ ξ.ρ.match(
+                  α0 ↦ ξ.txt
+                ).next.exists,
+                txt ↦ ∅
+              ⟧,
+              match ↦ ⟦
+                txt ↦ ∅,
+                next ↦ ξ.matched-from-index(
+                  α0 ↦ Φ.org.eolang.number(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 3F-F0-00-00-00-00-00-00
+                    )
+                  ),
+                  α1 ↦ Φ.org.eolang.number(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 00-00-00-00-00-00-00-00
+                    )
+                  )
+                ).matched,
+                matched-from-index ↦ ⟦
+                  λ ⤍ Lorg_eolang_txt_regex_pattern_match_matched_from_index,
+                  position ↦ ∅,
+                  start ↦ ∅
+                ⟧,
+                matched ↦ ⟦
+                  position ↦ ∅,
+                  start ↦ ∅,
+                  from ↦ ∅,
+                  to ↦ ∅,
+                  groups ↦ ∅,
+                  matched ↦ ξ,
+                  groups-count ↦ ξ.groups.length,
+                  exists ↦ ξ.start.gte(
+                    α0 ↦ Φ.org.eolang.number(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ 00-00-00-00-00-00-00-00
+                      )
+                    )
+                  ),
+                  next ↦ ξ.exists.if(
+                    α0 ↦ ξ.ρ.matched-from-index(
+                      α0 ↦ ξ.position.plus(
+                        α0 ↦ Φ.org.eolang.number(
+                          α0 ↦ Φ.org.eolang.bytes(
+                            Δ ⤍ 3F-F0-00-00-00-00-00-00
+                          )
+                        )
+                      ),
+                      α1 ↦ ξ.to
+                    ).matched,
+                    α1 ↦ Φ.org.eolang.error(
+                      α0 ↦ Φ.org.eolang.string(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 4D-61-74-63-68-65-64-20-62-6C-6F-63-6B-20-64-6F-65-73-20-6E-6F-74-20-65-78-69-73-74-2C-20-63-61-6E-27-74-20-67-65-74-20-6E-65-78-74
+                        )
+                      )
+                    )
+                  ),
+                  text ↦ ξ.exists.if(
+                    α0 ↦ ξ.group(
+                      α0 ↦ Φ.org.eolang.number(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 00-00-00-00-00-00-00-00
+                        )
+                      )
+                    ),
+                    α1 ↦ Φ.org.eolang.error(
+                      α0 ↦ Φ.org.eolang.string(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 4D-61-74-63-68-65-64-20-62-6C-6F-63-6B-20-64-6F-65-73-20-6E-6F-74-20-65-78-69-73-74-2C-20-63-61-6E-27-74-20-67-65-74-20-74-65-78-74
+                        )
+                      )
+                    )
+                  ),
+                  group ↦ ⟦
+                    φ ↦ ξ.ρ.groups.at(
+                      α0 ↦ ξ.index
+                    ),
+                    index ↦ ∅
+                  ⟧
+                ⟧,
+                not-matched ↦ ⟦
+                  position ↦ ∅,
+                  φ ↦ ξ.ρ.matched(
+                    α0 ↦ ξ.position,
+                    α1 ↦ Φ.org.eolang.number(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ BF-F0-00-00-00-00-00-00
+                      )
+                    ),
+                    α2 ↦ Φ.org.eolang.error(
+                      α0 ↦ Φ.org.eolang.string(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 4D-61-74-63-68-65-64-20-62-6C-6F-63-6B-20-64-6F-65-73-20-6E-6F-74-20-65-78-69-73-74-2C-20-63-61-6E-27-74-20-67-65-74-20-27-66-72-6F-6D-27-20-70-6F-73-69-74-69-6F-6E
+                        )
+                      )
+                    ),
+                    α3 ↦ Φ.org.eolang.error(
+                      α0 ↦ Φ.org.eolang.string(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 4D-61-74-63-68-65-64-20-62-6C-6F-63-6B-20-64-6F-65-73-20-6E-6F-74-20-65-78-69-73-74-2C-20-63-61-6E-27-74-20-67-65-74-20-27-74-6F-27-20-70-6F-73-69-74-69-6F-6E
+                        )
+                      )
+                    ),
+                    α4 ↦ Φ.org.eolang.error(
+                      α0 ↦ Φ.org.eolang.string(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 4D-61-74-63-68-65-64-20-62-6C-6F-63-6B-20-64-6F-65-73-20-6E-6F-74-20-65-78-69-73-74-2C-20-63-61-6E-27-74-20-67-65-74-20-67-72-6F-75-70-73
+                        )
+                      )
+                    )
+                  )
+                ⟧
+              ⟧
+            ⟧
+          ⟧,
+          λ ⤍ Package
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

@@ -1,0 +1,68 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        sys ↦ ⟦
+          os ↦ ⟦
+            φ ↦ ξ.name,
+            is-windows ↦ ⟦
+              os-name ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.ρ.name
+              ).as-bytes,
+              φ ↦ ξ.os-name.size.gt(
+                α0 ↦ Φ.org.eolang.number(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 40-18-00-00-00-00-00-00
+                  )
+                )
+              ).and(
+                α0 ↦ ξ.os-name.slice(
+                  α0 ↦ Φ.org.eolang.number(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 00-00-00-00-00-00-00-00
+                    )
+                  ),
+                  α1 ↦ Φ.org.eolang.number(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 40-1C-00-00-00-00-00-00
+                    )
+                  )
+                ).eq(
+                  α0 ↦ Φ.org.eolang.string(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 57-69-6E-64-6F-77-73
+                    )
+                  )
+                )
+              )
+            ⟧,
+            is-linux ↦ Φ.org.eolang.txt.regex(
+              α0 ↦ Φ.org.eolang.string(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 2F-6C-69-6E-75-78-2F-69
+                )
+              )
+            ).matches(
+              α0 ↦ ξ.name
+            ).as-bool,
+            is-macos ↦ Φ.org.eolang.txt.regex(
+              α0 ↦ Φ.org.eolang.string(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 2F-6D-61-63-2F-69
+                )
+              )
+            ).matches(
+              α0 ↦ ξ.name
+            ).as-bool,
+            name ↦ ⟦
+              λ ⤍ Lorg_eolang_sys_os_name
+            ⟧
+          ⟧,
+          λ ⤍ Package
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}
