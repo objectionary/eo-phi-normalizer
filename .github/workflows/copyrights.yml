@@ -1,0 +1,22 @@
+name: copyrights
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+jobs:
+  copyrights:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: yegor256/copyrights-action@0.0.8
+        with:
+          license: LICENSE.txt
+          globs: >-
+            **/*.yml
+            **/*.yaml
+            **/*.hs
+            **/*.sh
+            **/*.phi
