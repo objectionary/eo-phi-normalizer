@@ -64,6 +64,20 @@ jobs:
         run: |
           chmod +x scripts/run-hlint.sh
           echo "hlint-bin=$(realpath scripts/run-hlint.sh)" >> $GITHUB_OUTPUT
+      - name: Copyrights
+        - uses: actions/checkout@v4
+        - uses: yegor256/copyrights-action@0.0.8
+          with:
+            license: LICENSE.txt
+            globs: >-
+              **/*.yml
+              **/*.yaml
+              **/*.hs
+              **/*.sh
+              **/*.cf
+            ignore: >-
+              **/.pre-commit-config.yaml
+              **/run-fourmolu.sh
 
       - uses: haskell-actions/hlint-run@v2
         with:
@@ -405,17 +419,3 @@ jobs:
           folder: dist
           single-commit: true
 
-      - name: Copyrights
-        - uses: actions/checkout@v4
-        - uses: yegor256/copyrights-action@0.0.8
-          with:
-            license: LICENSE.txt
-            globs: >-
-              **/*.yml
-              **/*.yaml
-              **/*.hs
-              **/*.sh
-              **/*.cf
-            ignore: >-
-              **/.pre-commit-config.yaml
-              **/run-fourmolu.sh
