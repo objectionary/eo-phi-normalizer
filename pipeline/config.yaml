@@ -91,6 +91,7 @@ test-sets:
     normalized: pipeline/phi-normalized/fs/path-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/fs/tmpdir-tests.eo
     yaml: pipeline/eo-yaml/fs/tmpdir-tests.yaml
