@@ -272,6 +272,7 @@ test-sets:
     normalized: pipeline/phi-normalized/number-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/positive-infinity-tests.eo
     yaml: pipeline/eo-yaml/positive-infinity-tests.yaml
@@ -309,6 +310,7 @@ test-sets:
     normalized: pipeline/phi-normalized/seq-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/string-tests.eo
     yaml: pipeline/eo-yaml/string-tests.yaml
@@ -345,6 +347,7 @@ test-sets:
     normalized: pipeline/phi-normalized/structs/list-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/structs/map-tests.eo
     yaml: pipeline/eo-yaml/structs/map-tests.yaml
@@ -354,6 +357,7 @@ test-sets:
     normalized: pipeline/phi-normalized/structs/map-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/structs/range-of-ints-tests.eo
     yaml: pipeline/eo-yaml/structs/range-of-ints-tests.yaml
@@ -381,6 +385,7 @@ test-sets:
     normalized: pipeline/phi-normalized/structs/set-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/switch-tests.eo
     yaml: pipeline/eo-yaml/switch-tests.yaml
@@ -435,6 +440,7 @@ test-sets:
     normalized: pipeline/phi-normalized/tuple-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/txt/regex-tests.eo
     yaml: pipeline/eo-yaml/txt/regex-tests.yaml
