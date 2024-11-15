@@ -85,7 +85,7 @@ jobs:
             **/Print.hs
       - uses: yegor256/copyrights-action@0.0.8
         with:
-          license: /eo-phi-normalizer/LICENSE
+          license: ./eo-phi-normalizer/LICENSE
           globs: >-
             **/Abs.hs
             **/Print.hs
