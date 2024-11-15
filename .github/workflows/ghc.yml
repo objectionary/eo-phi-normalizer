@@ -303,6 +303,11 @@ jobs:
           # to add a path that doesn't start with "pipeline".
           path: |
             pipeline
+            !pipeline/**/.eoc
+            !pipeline/eo-yaml
+            pipeline/eo-initial/.eoc/4-pull/org/
+            pipeline/phi-initial/.eoc/phi/org
+            dist
 
       - name: Write about the artifact in the job summary
         if: always()
