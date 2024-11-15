@@ -404,3 +404,18 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           folder: dist
           single-commit: true
+
+      - name: Copyrights
+        - uses: actions/checkout@v4
+        - uses: yegor256/copyrights-action@0.0.8
+          with:
+            license: LICENSE.txt
+            globs: >-
+              **/*.yml
+              **/*.yaml
+              **/*.hs
+              **/*.sh
+              **/*.cf
+            ignore: >-
+              **/.pre-commit-config.yaml
+              **/run-fourmolu.sh
