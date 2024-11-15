@@ -40,5 +40,7 @@ jobs:
             **/*.yml
             **/*.yaml
             **/*.hs
+            !**/Abs.hs
+            !**/Print.hs
             **/*.sh
             **/*.cf
