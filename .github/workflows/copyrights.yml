@@ -46,6 +46,7 @@ jobs:
             **/Abs.hs
             **/Print.hs
             **/.pre-commit-config.yaml
+            **/run-fourmolu.sh
 
       - uses: yegor256/copyrights-action@0.0.8
         with:
