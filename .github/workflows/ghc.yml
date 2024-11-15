@@ -64,6 +64,11 @@ jobs:
         run: |
           chmod +x scripts/run-hlint.sh
           echo "hlint-bin=$(realpath scripts/run-hlint.sh)" >> $GITHUB_OUTPUT
+
+      - uses: haskell-actions/hlint-run@v2
+        with:
+          hlint-bin: ${{ steps.get-hlint-bin.outputs.hlint-bin }}
+
       - name: Copyrights
         - uses: actions/checkout@v4
         - uses: yegor256/copyrights-action@0.0.8
@@ -78,10 +83,6 @@ jobs:
             ignore: >-
               **/.pre-commit-config.yaml
               **/run-fourmolu.sh
-
-      - uses: haskell-actions/hlint-run@v2
-        with:
-          hlint-bin: ${{ steps.get-hlint-bin.outputs.hlint-bin }}
 
   tests:
     name: Run tests
@@ -418,4 +419,3 @@ jobs:
           token: ${{ secrets.GITHUB_TOKEN }}
           folder: dist
           single-commit: true
-
