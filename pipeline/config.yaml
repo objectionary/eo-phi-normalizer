@@ -32,16 +32,16 @@ test-sets:
     original: eo/eo-runtime/src/test/eo/org/eolang/bytes-tests.eo
     yaml: pipeline/eo-yaml/bytes-tests.yaml
     filtered: pipeline/eo-filtered/bytes-tests.eo
+    exclude:
+      - counts-size-of-bytes
+      - size-of-part-is-correct
+      - takes-part-of-bytes
+      - written-in-several-lines
   phi:
     initial: pipeline/phi-initial/bytes-tests.phi
     normalized: pipeline/phi-normalized/bytes-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
-  exclude:
-    - counts-size-of-bytes
-    - size-of-part-is-correct
-    - takes-part-of-bytes
-    - written-in-several-lines
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/cage-tests.eo
     yaml: pipeline/eo-yaml/cage-tests.yaml
@@ -320,19 +320,19 @@ test-sets:
     original: eo/eo-runtime/src/test/eo/org/eolang/string-tests.eo
     yaml: pipeline/eo-yaml/string-tests.yaml
     filtered: pipeline/eo-filtered/string-tests.eo
+    exclude:
+      - slice-foreign-literals
+      - slice-foreign-literals-2
+      - slice-from-start
+      - slice-from-the-end
+      - slice-in-the-middle
+      - throws-on-slicing-end-below-start
+      - throws-on-slicing-end-greater-actual
   phi:
     initial: pipeline/phi-initial/string-tests.phi
     normalized: pipeline/phi-normalized/string-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
-  exclude:
-    - slice-foreign-literals
-    - slice-foreign-literals-2
-    - slice-from-start
-    - slice-from-the-end
-    - slice-in-the-middle
-    - throws-on-slicing-end-below-start
-    - throws-on-slicing-end-greater-actual
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/structs/bytes-as-array-tests.eo
     yaml: pipeline/eo-yaml/structs/bytes-as-array-tests.yaml
@@ -485,13 +485,13 @@ test-sets:
     original: eo/eo-runtime/src/test/eo/org/eolang/txt/text-tests.eo
     yaml: pipeline/eo-yaml/txt/text-tests.yaml
     filtered: pipeline/eo-filtered/txt/text-tests.eo
+    exclude:
+      - text-slices-the-origin-string
   phi:
     initial: pipeline/phi-initial/txt/text-tests.phi
     normalized: pipeline/phi-normalized/txt/text-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
-  exclude:
-    - text-slices-the-origin-string
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/while-tests.eo
     yaml: pipeline/eo-yaml/while-tests.yaml
