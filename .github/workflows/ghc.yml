@@ -69,7 +69,6 @@ jobs:
         with:
           hlint-bin: ${{ steps.get-hlint-bin.outputs.hlint-bin }}
 
-      - uses: actions/checkout@v4
       - uses: yegor256/copyrights-action@0.0.8
         with:
           license: LICENSE.txt
@@ -82,6 +81,14 @@ jobs:
           ignore: >-
             **/.pre-commit-config.yaml
             **/run-fourmolu.sh
+            **/Abs.hs
+            **/Print.hs
+      - uses: yegor256/copyrights-action@0.0.8
+        with:
+          license: */eo-phi-normalizer/LICENSE
+          globs: >-
+            **/Abs.hs
+            **/Print.hs
 
   tests:
     name: Run tests
