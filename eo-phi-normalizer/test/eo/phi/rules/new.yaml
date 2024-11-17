@@ -68,9 +68,12 @@ rules:
     pattern: |
       ⟦ ρ ↦ !b1, !B1 ⟧ (ρ ↦ !b, !B2)
     result: |
-      ⟦ ρ ↦ !b1, !B1 ⟧
+      ⟦ ρ ↦ !b1, !B1 ⟧ (!B2)
     when: []
-    tests: []
+    tests:
+      - name: 'Should match'
+        input: '⟦ ρ ↦ ⟦ c ↦ ∅ ⟧ ⟧ (ρ ↦ ⟦ ⟧, b ↦ ξ)'
+        output: ['⟦ ρ ↦ ⟦ c ↦ ∅ ⟧ ⟧ (b ↦ ξ)']
 
   - name: OVER
     description: 'Invalid application (attribute already attached)'
