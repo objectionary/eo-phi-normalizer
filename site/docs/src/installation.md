@@ -28,7 +28,7 @@ Then, the `eo-phi-normalizer` executable will be available on `PATH`.
 ```sh
 stack update
 export LC_ALL=C.UTF-8
-stack install --resolver lts-22.16 eo-phi-normalizer
+stack install --resolver lts-22.16 eo-phi-normalizer-
 ```
 
 ## Update `eo-phi-normalizer`
