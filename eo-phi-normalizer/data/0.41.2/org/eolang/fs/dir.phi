@@ -1,0 +1,137 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        fs ↦ ⟦
+          dir ↦ ⟦
+            file ↦ ∅,
+            φ ↦ ξ.file,
+            is-directory ↦ Φ.org.eolang.true,
+            made ↦ ⟦
+              φ ↦ ξ.ρ.exists.if(
+                α0 ↦ ξ.ρ,
+                α1 ↦ Φ.org.eolang.seq(
+                  α0 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple.empty,
+                      α1 ↦ ξ.mkdir
+                    ),
+                    α1 ↦ ξ.ρ
+                  )
+                )
+              ),
+              mkdir ↦ ⟦
+                λ ⤍ Lorg_eolang_fs_dir_made_mkdir
+              ⟧
+            ⟧,
+            walk ↦ ⟦
+              λ ⤍ Lorg_eolang_fs_dir_walk,
+              glob ↦ ∅
+            ⟧,
+            deleted ↦ ⟦
+              walked ↦ ξ.ρ.walk(
+                α0 ↦ Φ.org.eolang.string(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 2A-2A
+                  )
+                )
+              ).at.ρ,
+              len ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.walked.length
+              ).as-bytes,
+              φ ↦ ξ.ρ.exists.if(
+                α0 ↦ Φ.org.eolang.seq(
+                  α0 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple.empty,
+                      α1 ↦ ξ.rec-delete(
+                        α0 ↦ ξ.walked,
+                        α1 ↦ Φ.org.eolang.number(
+                          α0 ↦ Φ.org.eolang.bytes(
+                            Δ ⤍ 00-00-00-00-00-00-00-00
+                          )
+                        )
+                      )
+                    ),
+                    α1 ↦ ξ.ρ
+                  )
+                ),
+                α1 ↦ ξ.ρ
+              ),
+              rec-delete ↦ ⟦
+                tup ↦ ∅,
+                index ↦ ∅,
+                φ ↦ ξ.ρ.len.eq(
+                  α0 ↦ ξ.index
+                ).if(
+                  α0 ↦ Φ.org.eolang.true,
+                  α1 ↦ Φ.org.eolang.seq(
+                    α0 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple.empty,
+                        α1 ↦ ξ.tup.tail.deleted.exists
+                      ),
+                      α1 ↦ ξ.ρ.rec-delete(
+                        α0 ↦ ξ.tup.head,
+                        α1 ↦ ξ.index.plus(
+                          α0 ↦ Φ.org.eolang.number(
+                            α0 ↦ Φ.org.eolang.bytes(
+                              Δ ⤍ 3F-F0-00-00-00-00-00-00
+                            )
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              ⟧
+            ⟧,
+            tmpfile ↦ ⟦
+              φ ↦ ξ.ρ.exists.if(
+                α0 ↦ Φ.org.eolang.fs.file(
+                  α0 ↦ ξ.touch.as-bytes.as-string
+                ),
+                α1 ↦ Φ.org.eolang.error(
+                  α0 ↦ Φ.org.eolang.txt.sprintf(
+                    α0 ↦ Φ.org.eolang.string(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ 44-69-72-65-63-74-6F-72-79-20-25-73-20-64-6F-65-73-20-6E-6F-74-20-65-78-69-73-74-2C-20-63-61-6E-27-74-20-63-72-65-61-74-65-20-74-65-6D-70-6F-72-61-72-79-20-66-69-6C-65
+                      )
+                    ),
+                    α1 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple.empty,
+                      α1 ↦ ξ.ρ.path
+                    )
+                  )
+                )
+              ),
+              touch ↦ ⟦
+                λ ⤍ Lorg_eolang_fs_dir_tmpfile_touch
+              ⟧
+            ⟧,
+            open ↦ ⟦
+              mode ↦ ∅,
+              scope ↦ ∅,
+              φ ↦ Φ.org.eolang.error(
+                α0 ↦ Φ.org.eolang.txt.sprintf(
+                  α0 ↦ Φ.org.eolang.string(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 54-68-65-20-66-69-6C-65-20-25-73-20-69-73-20-61-20-64-69-72-65-63-74-6F-72-79-2C-20-63-61-6E-27-74-20-6F-70-65-6E-20-66-6F-72-20-49-2F-4F-20-6F-70-65-72-61-74-69-6F-6E-73
+                    )
+                  ),
+                  α1 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple.empty,
+                    α1 ↦ ξ.ρ.path
+                  )
+                )
+              )
+            ⟧
+          ⟧,
+          λ ⤍ Package
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

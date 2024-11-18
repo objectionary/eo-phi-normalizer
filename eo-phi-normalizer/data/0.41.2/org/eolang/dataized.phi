@@ -1,0 +1,25 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        dataized ↦ ⟦
+          target ↦ ∅,
+          φ ↦ Φ.org.eolang.try(
+            α0 ↦ ξ.target,
+            α1 ↦ ⟦
+              φ ↦ Φ.org.eolang.error(
+                α0 ↦ ξ.ex
+              ),
+              ex ↦ ∅
+            ⟧,
+            α2 ↦ Φ.org.eolang.bytes(
+              Δ ⤍ 01-
+            )
+          )
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

@@ -1,0 +1,82 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        structs ↦ ⟦
+          range-of-ints ↦ ⟦
+            start ↦ ∅,
+            end ↦ ∅,
+            φ ↦ Φ.org.eolang.number(
+              α0 ↦ Φ.org.eolang.bytes(
+                Δ ⤍ 00-00-00-00-00-00-00-00
+              )
+            ).eq(
+              α0 ↦ ξ.start
+            ).or(
+              α0 ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 3F-F0-00-00-00-00-00-00
+                )
+              ).eq(
+                α0 ↦ ξ.start.div(
+                  α0 ↦ ξ.start
+                )
+              )
+            ).and(
+              α0 ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-00-00-00-00-00-00-00
+                )
+              ).eq(
+                α0 ↦ ξ.end
+              ).or(
+                α0 ↦ Φ.org.eolang.number(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 3F-F0-00-00-00-00-00-00
+                  )
+                ).eq(
+                  α0 ↦ ξ.end.div(
+                    α0 ↦ ξ.end
+                  )
+                )
+              )
+            ).if(
+              α0 ↦ Φ.org.eolang.structs.range(
+                α0 ↦ ξ.auto-named-attr-at-44-8,
+                α1 ↦ ξ.end
+              ),
+              α1 ↦ Φ.org.eolang.error(
+                α0 ↦ Φ.org.eolang.string(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 53-6F-6D-65-20-6F-66-20-74-68-65-20-61-72-67-75-6D-65-6E-74-73-20-61-72-65-20-6E-6F-74-20-69-6E-74-65-67-65-72-73
+                  )
+                )
+              )
+            ),
+            auto-named-attr-at-44-8 ↦ ⟦
+              build ↦ ⟦
+                num ↦ ∅,
+                φ ↦ ξ.num,
+                next ↦ ξ.ρ.build(
+                  α0 ↦ Φ.org.eolang.number(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 3F-F0-00-00-00-00-00-00
+                    )
+                  ).plus(
+                    α0 ↦ ξ.φ
+                  )
+                )
+              ⟧,
+              φ ↦ ξ.build(
+                α0 ↦ ξ.ρ.start
+              )
+            ⟧
+          ⟧,
+          λ ⤍ Package
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

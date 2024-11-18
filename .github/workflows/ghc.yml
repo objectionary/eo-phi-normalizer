@@ -289,6 +289,8 @@ jobs:
           # we can't use caches because we can't overwrite them
           name: pipeline-files-${{ runner.os }}
           overwrite: true
+          # Need to upload .eoc
+          include-hidden-files: true
           # Problem
           #
           # The action doesn't save the pipeline directory.

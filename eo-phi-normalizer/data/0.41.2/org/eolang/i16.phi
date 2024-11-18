@@ -1,0 +1,232 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        i16 ↦ ⟦
+          as-bytes ↦ ∅,
+          φ ↦ ξ.as-bytes,
+          as-i16 ↦ ξ,
+          neg ↦ ξ.times(
+            α0 ↦ Φ.org.eolang.number(
+              α0 ↦ Φ.org.eolang.bytes(
+                Δ ⤍ BF-F0-00-00-00-00-00-00
+              )
+            ).as-i64.as-i32.as-i16
+          ),
+          as-i64 ↦ ξ.as-i32.as-i64,
+          as-number ↦ ξ.as-i64.as-number,
+          as-i32 ↦ ⟦
+            λ ⤍ Lorg_eolang_i16_as_i32
+          ⟧,
+          lt ↦ ⟦
+            φ ↦ ξ.ρ.as-i32.lt(
+              α0 ↦ ξ.x.as-i16.as-i32
+            ),
+            x ↦ ∅
+          ⟧,
+          lte ↦ ⟦
+            φ ↦ ξ.ρ.as-i32.lte(
+              α0 ↦ ξ.x.as-i16.as-i32
+            ),
+            x ↦ ∅
+          ⟧,
+          gt ↦ ⟦
+            φ ↦ ξ.ρ.as-i32.gt(
+              α0 ↦ ξ.x.as-i16.as-i32
+            ),
+            x ↦ ∅
+          ⟧,
+          gte ↦ ⟦
+            φ ↦ ξ.ρ.as-i32.gte(
+              α0 ↦ ξ.x.as-i16.as-i32
+            ),
+            x ↦ ∅
+          ⟧,
+          times ↦ ⟦
+            x ↦ ∅,
+            bts ↦ ξ.ρ.as-i32.times(
+              α0 ↦ ξ.x.as-i16.as-i32
+            ).as-bytes,
+            left ↦ ξ.bts.slice(
+              α0 ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-00-00-00-00-00-00-00
+                )
+              ),
+              α1 ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 40-00-00-00-00-00-00-00
+                )
+              )
+            ),
+            right ↦ ξ.bts.slice(
+              α0 ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 40-00-00-00-00-00-00-00
+                )
+              ),
+              α1 ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 40-00-00-00-00-00-00-00
+                )
+              )
+            ),
+            φ ↦ ξ.left.eq(
+              α0 ↦ Φ.org.eolang.bytes(
+                Δ ⤍ 00-00
+              )
+            ).or(
+              α0 ↦ ξ.left.eq(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ FF-FF
+                )
+              )
+            ).if(
+              α0 ↦ ξ.ρ.ρ.i16(
+                α0 ↦ ξ.right
+              ),
+              α1 ↦ ξ.ρ.ρ.i16(
+                α0 ↦ ξ.left
+              ).plus(
+                α0 ↦ ξ.ρ.ρ.i16(
+                  α0 ↦ ξ.right
+                )
+              )
+            )
+          ⟧,
+          plus ↦ ⟦
+            x ↦ ∅,
+            bts ↦ ξ.ρ.as-i32.plus(
+              α0 ↦ ξ.x.as-i16.as-i32
+            ).as-bytes,
+            left ↦ ξ.bts.slice(
+              α0 ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-00-00-00-00-00-00-00
+                )
+              ),
+              α1 ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 40-00-00-00-00-00-00-00
+                )
+              )
+            ),
+            right ↦ ξ.bts.slice(
+              α0 ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 40-00-00-00-00-00-00-00
+                )
+              ),
+              α1 ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 40-00-00-00-00-00-00-00
+                )
+              )
+            ),
+            φ ↦ ξ.left.eq(
+              α0 ↦ Φ.org.eolang.bytes(
+                Δ ⤍ 00-00
+              )
+            ).or(
+              α0 ↦ ξ.left.eq(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ FF-FF
+                )
+              )
+            ).if(
+              α0 ↦ ξ.ρ.ρ.i16(
+                α0 ↦ ξ.right
+              ),
+              α1 ↦ ξ.ρ.ρ.i16(
+                α0 ↦ ξ.left
+              ).plus(
+                α0 ↦ ξ.ρ.ρ.i16(
+                  α0 ↦ ξ.right
+                )
+              )
+            )
+          ⟧,
+          minus ↦ ⟦
+            φ ↦ ξ.ρ.plus(
+              α0 ↦ ξ.x.as-i16.neg
+            ),
+            x ↦ ∅
+          ⟧,
+          div ↦ ⟦
+            x ↦ ∅,
+            x-as-i16 ↦ ξ.x.as-i16,
+            bts ↦ ξ.ρ.as-i32.div(
+              α0 ↦ ξ.x-as-i16.as-i32
+            ).as-bytes,
+            left ↦ ξ.bts.slice(
+              α0 ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-00-00-00-00-00-00-00
+                )
+              ),
+              α1 ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 40-00-00-00-00-00-00-00
+                )
+              )
+            ),
+            right ↦ ξ.bts.slice(
+              α0 ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 40-00-00-00-00-00-00-00
+                )
+              ),
+              α1 ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 40-00-00-00-00-00-00-00
+                )
+              )
+            ),
+            zero ↦ Φ.org.eolang.bytes(
+              Δ ⤍ 00-00
+            ),
+            φ ↦ ξ.x-as-i16.eq(
+              α0 ↦ ξ.zero
+            ).if(
+              α0 ↦ Φ.org.eolang.error(
+                α0 ↦ Φ.org.eolang.txt.sprintf(
+                  α0 ↦ Φ.org.eolang.string(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 43-61-6E-27-74-20-64-69-76-69-64-65-20-25-64-20-62-79-20-69-31-36-20-7A-65-72-6F
+                    )
+                  ),
+                  α1 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple.empty,
+                    α1 ↦ ξ.ρ.as-i32.as-i64.as-number
+                  )
+                )
+              ),
+              α1 ↦ ξ.left.eq(
+                α0 ↦ ξ.zero
+              ).or(
+                α0 ↦ ξ.left.eq(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ FF-FF
+                  )
+                )
+              ).if(
+                α0 ↦ ξ.ρ.ρ.i16(
+                  α0 ↦ ξ.right
+                ),
+                α1 ↦ ξ.ρ.ρ.i16(
+                  α0 ↦ ξ.left
+                ).plus(
+                  α0 ↦ ξ.ρ.ρ.i16(
+                    α0 ↦ ξ.right
+                  )
+                )
+              )
+            )
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}
