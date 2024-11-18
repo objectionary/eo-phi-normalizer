@@ -39,14 +39,18 @@ render d = rend 0 False (map ($ "") $ d []) ""
     [String] ->
     ShowS
   rend i p = \case
+    "[" : "]" : ts -> showString "[]" . rend i False ts
+    "(" : ")" : ts -> showString "()" . rend i False ts
+    "⟦" : "⟧" : ts -> showString "⟦ ⟧" . rend i False ts
     "[" : ts -> char '[' . rend i False ts
-    "(" : ts -> char '(' . rend i False ts
-    "{" : "⟦" : ts -> showString "{⟦" . new (i + 1) ts
+    "(" : ts -> char '(' . new (i + 1) ts
+    "{" : "⟦" : ts -> showChar '{' . onNewLine (i + 1) p . showChar '⟦' . new (i + 2) ts
     "⟦" : ts -> showChar '⟦' . new (i + 1) ts
-    ")" : "," : ts -> showString ")," . new i ts
+    ")" : "," : ts -> onNewLine (i - 1) p . showString ")," . new (i - 1) ts
     "⟧" : "," : ts -> onNewLine (i - 1) p . showString "⟧," . new (i - 1) ts
-    ["⟧", "}"] -> onNewLine (i - 1) p . showString "⟧}"
+    ["⟧", "}"] -> onNewLine (i - 1) p . showChar '⟧' . new (i - 2) ["}"]
     "⟧" : ts -> onNewLine (i - 1) p . showChar '⟧' . new (i - 1) ts
+    ")" : ts -> onNewLine (i - 1) p . showChar ')' . new (i - 1) ts
     [";"] -> char ';'
     ";" : ts -> char ';' . new i ts
     t : ts@(s : _)
