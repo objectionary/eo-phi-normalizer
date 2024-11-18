@@ -1,0 +1,137 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        io ↦ ⟦
+          stdin ↦ ⟦
+            φ ↦ ξ.all-lines,
+            all-lines ↦ ⟦
+              φ ↦ ξ.rec-read(
+                α0 ↦ ξ.ρ.next-line,
+                α1 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ --
+                ),
+                α2 ↦ Φ.org.eolang.true
+              ),
+              separator ↦ Φ.org.eolang.dataized(
+                α0 ↦ Φ.org.eolang.sys.line-separator
+              ).as-bytes,
+              rec-read ↦ ⟦
+                line ↦ ∅,
+                buffer ↦ ∅,
+                first ↦ ∅,
+                φ ↦ ξ.line.length.eq(
+                  α0 ↦ Φ.org.eolang.number(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 00-00-00-00-00-00-00-00
+                    )
+                  )
+                ).if(
+                  α0 ↦ Φ.org.eolang.string(
+                    α0 ↦ ξ.buffer
+                  ),
+                  α1 ↦ ξ.ρ.rec-read(
+                    α0 ↦ ξ.ρ.ρ.next-line,
+                    α1 ↦ ξ.first.if(
+                      α0 ↦ ξ.buffer.concat(
+                        α0 ↦ ξ.line
+                      ),
+                      α1 ↦ ξ.buffer.concat(
+                        α0 ↦ ξ.ρ.separator
+                      ).concat(
+                        α0 ↦ ξ.line
+                      )
+                    ),
+                    α2 ↦ Φ.org.eolang.false
+                  )
+                )
+              ⟧
+            ⟧,
+            next-line ↦ ⟦
+              first ↦ Φ.org.eolang.io.console.read(
+                α0 ↦ Φ.org.eolang.number(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 3F-F0-00-00-00-00-00-00
+                  )
+                )
+              ).self,
+              φ ↦ ξ.first.as-bytes.size.eq(
+                α0 ↦ Φ.org.eolang.number(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 00-00-00-00-00-00-00-00
+                  )
+                )
+              ).if(
+                α0 ↦ Φ.org.eolang.string(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ --
+                  )
+                ),
+                α1 ↦ ξ.rec-read(
+                  α0 ↦ ξ.first,
+                  α1 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ --
+                  )
+                )
+              ),
+              rec-read ↦ ⟦
+                input ↦ ∅,
+                buffer ↦ ∅,
+                char ↦ ξ.input.as-bytes,
+                next ↦ ξ.input.read(
+                  α0 ↦ Φ.org.eolang.number(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 3F-F0-00-00-00-00-00-00
+                    )
+                  )
+                ).self,
+                φ ↦ ξ.char.eq(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ --
+                  )
+                ).or(
+                  α0 ↦ ξ.char.eq(
+                    α0 ↦ Φ.org.eolang.string(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ 0D-
+                      )
+                    )
+                  ).and(
+                    α0 ↦ ξ.next.as-bytes.eq(
+                      α0 ↦ Φ.org.eolang.string(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 0A-
+                        )
+                      )
+                    )
+                  ).or(
+                    α0 ↦ ξ.char.eq(
+                      α0 ↦ Φ.org.eolang.string(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 0A-
+                        )
+                      )
+                    )
+                  )
+                ).if(
+                  α0 ↦ Φ.org.eolang.string(
+                    α0 ↦ ξ.buffer
+                  ),
+                  α1 ↦ ξ.ρ.rec-read(
+                    α0 ↦ ξ.next,
+                    α1 ↦ ξ.buffer.concat(
+                      α0 ↦ ξ.char
+                    )
+                  )
+                )
+              ⟧
+            ⟧
+          ⟧,
+          λ ⤍ Package
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}
