@@ -6,17 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to the
 [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
-## v2.0.0 - 2024-11-11
+## v2.0.0 - 2024-11-18
 
 ### New
 
-- Rename `normalizer` to `eo-phi-normalizer` everywhere [494](https://github.com/objectionary/eo-phi-normalizer/pull/494)
-- Add `eo-phi-normalizer version` command [493](https://github.com/objectionary/eo-phi-normalizer/pull/493)
-- Add `eo-phi-normalizer test` command [498](https://github.com/objectionary/eo-phi-normalizer/pull/498)
+- Rename `normalizer` to `eo-phi-normalizer` everywhere ([#494](https://github.com/objectionary/eo-phi-normalizer/pull/494))
+- Add `eo-phi-normalizer version` command ([#493](https://github.com/objectionary/eo-phi-normalizer/pull/493))
+- Add `eo-phi-normalizer test` command ([#498](https://github.com/objectionary/eo-phi-normalizer/pull/498))
+
+### Changes and fixes
+
+- Fix pretty-printer for applications and program ([#529](https://github.com/objectionary/eo-phi-normalizer/pull/529))
 
 ### Documentation and maintenance
 
-- Make site Markdown generation reproducible [513](https://github.com/objectionary/eo-phi-normalizer/pull/513), [514](https://github.com/objectionary/eo-phi-normalizer/pull/514)
+- Make site Markdown generation reproducible ([#513](https://github.com/objectionary/eo-phi-normalizer/pull/513), [#514](https://github.com/objectionary/eo-phi-normalizer/pull/514))
+- Describe how to install a specific `normalizer` version ([#525](https://github.com/objectionary/eo-phi-normalizer/pull/525))
+- Speed up CI ([#533](https://github.com/objectionary/eo-phi-normalizer/pull/533))
+- Switch the EO version from `0.38.4` to `0.41.2` in CI ([#528](https://github.com/objectionary/eo-phi-normalizer/pull/528))
+- Switch to `macos-latest` in CI ([#539](https://github.com/objectionary/eo-phi-normalizer/pull/539))
 
 ## v1.1.0 - 2024-10-03
 
