@@ -22,28 +22,28 @@ and this project adheres to the
 
 ### New
 
-- Add unit tests [#461](https://github.com/objectionary/eo-phi-normalizer/pull/461)
-- Add `R_DOT_ρ` [#468](https://github.com/objectionary/eo-phi-normalizer/pull/468)
-- Support printing rules in LaTeX [#474](https://github.com/objectionary/eo-phi-normalizer/pull/474)
-- Automatically create an output directory [#499](https://github.com/objectionary/eo-phi-normalizer/pull/499)
+- Add unit tests ([#461](https://github.com/objectionary/eo-phi-normalizer/pull/461))
+- Add `R_DOT_ρ` ([#468](https://github.com/objectionary/eo-phi-normalizer/pull/468))
+- Support printing rules in LaTeX ([#474](https://github.com/objectionary/eo-phi-normalizer/pull/474))
+- Automatically create an output directory ([#499](https://github.com/objectionary/eo-phi-normalizer/pull/499))
 
 ### Changes and fixes
 
-- Update the `COPY` rule as in phi-paper [#445](https://github.com/objectionary/eo-phi-normalizer/pull/445)
-- Remove special case for delta binding since VTX is removed [#356](https://github.com/objectionary/eo-phi-normalizer/pull/356)
-- Replace `normalizer report` command with the `normalizer pipeline report` command [#456](https://github.com/objectionary/eo-phi-normalizer/pull/456)
-- Fix sorting in numeric columns [#460](https://github.com/objectionary/eo-phi-normalizer/pull/460)
-- Run mdbook in the pipeline job [#463](https://github.com/objectionary/eo-phi-normalizer/pull/463)
+- Update the `COPY` rule as in phi-paper ([#445](https://github.com/objectionary/eo-phi-normalizer/pull/445))
+- Remove special case for delta binding since VTX is removed ([#356](https://github.com/objectionary/eo-phi-normalizer/pull/356))
+- Replace `normalizer report` command with the `normalizer pipeline report` command ([#456](https://github.com/objectionary/eo-phi-normalizer/pull/456))
+- Fix sorting in numeric columns ([#460](https://github.com/objectionary/eo-phi-normalizer/pull/460))
+- Run mdbook in the pipeline job ([#463](https://github.com/objectionary/eo-phi-normalizer/pull/463))
 
 ### Documentation and maintenance
 
-- Document all dependencies in a single doc in `eo/phi/normalizer/data` for each eo version [#446](https://github.com/objectionary/eo-phi-normalizer/pull/446).
-- Create a metrics page on the site [#453](https://github.com/objectionary/eo-phi-normalizer/pull/453)
-- Chore(deps): update dependency pre-commit to v3.8.0 [#455](https://github.com/objectionary/eo-phi-normalizer/pull/455)
-- Provide instructions for the customer to check that we've completed the contract requirements [#458](https://github.com/objectionary/eo-phi-normalizer/pull/458)
-- Bump stack action version [#459](https://github.com/objectionary/eo-phi-normalizer/pull/459)
-- Update proposal process [#464](https://github.com/objectionary/eo-phi-normalizer/pull/464)
-- Document creating custom atoms on the site [#467](https://github.com/objectionary/eo-phi-normalizer/pull/467)
+- Document all dependencies in a single doc in `eo/phi/normalizer/data` for each eo version ([#446](https://github.com/objectionary/eo-phi-normalizer/pull/446)).
+- Create a metrics page on the site ([#453](https://github.com/objectionary/eo-phi-normalizer/pull/453))
+- Chore(deps): update dependency pre-commit to v3.8.0 ([#455](https://github.com/objectionary/eo-phi-normalizer/pull/455))
+- Provide instructions for the customer to check that we've completed the contract requirements ([#458](https://github.com/objectionary/eo-phi-normalizer/pull/458))
+- Bump stack action version ([#459](https://github.com/objectionary/eo-phi-normalizer/pull/459))
+- Update proposal process ([#464](https://github.com/objectionary/eo-phi-normalizer/pull/464))
+- Document creating custom atoms on the site ([#467](https://github.com/objectionary/eo-phi-normalizer/pull/467))
 
 ## v1.0.0 - 2024-07-19
 
