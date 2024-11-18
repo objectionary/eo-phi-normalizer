@@ -1,0 +1,60 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        structs ↦ ⟦
+          set ↦ ⟦
+            lst ↦ ∅,
+            φ ↦ ξ.initialized(
+              α0 ↦ Φ.org.eolang.structs.map(
+                α0 ↦ Φ.org.eolang.structs.list(
+                  α0 ↦ ξ.lst
+                ).mapped(
+                  α0 ↦ ⟦
+                    φ ↦ Φ.org.eolang.structs.map.entry(
+                      α0 ↦ ξ.item,
+                      α1 ↦ Φ.org.eolang.true
+                    ),
+                    item ↦ ∅
+                  ⟧
+                ).origin
+              )
+            ).initialized,
+            initialized ↦ ⟦
+              map ↦ ∅,
+              initialized ↦ ξ,
+              φ ↦ ξ.map.keys,
+              size ↦ ξ.map.size,
+              with ↦ ⟦
+                item ↦ ∅,
+                φ ↦ ξ.ρ.ρ.ρ.set.initialized(
+                  α0 ↦ ξ.ρ.map.with(
+                    α0 ↦ ξ.item,
+                    α1 ↦ Φ.org.eolang.true
+                  )
+                )
+              ⟧,
+              without ↦ ⟦
+                item ↦ ∅,
+                φ ↦ ξ.ρ.ρ.ρ.set.initialized(
+                  α0 ↦ ξ.ρ.map.without(
+                    α0 ↦ ξ.item
+                  )
+                )
+              ⟧,
+              has ↦ ⟦
+                item ↦ ∅,
+                φ ↦ ξ.ρ.map.has(
+                  α0 ↦ ξ.item
+                )
+              ⟧
+            ⟧
+          ⟧,
+          λ ⤍ Package
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

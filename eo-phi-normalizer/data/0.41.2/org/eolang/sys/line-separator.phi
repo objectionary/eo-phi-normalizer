@@ -1,0 +1,29 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        sys ↦ ⟦
+          line-separator ↦ ⟦
+            φ ↦ Φ.org.eolang.string(
+              α0 ↦ Φ.org.eolang.sys.os.is-windows.if(
+                α0 ↦ Φ.org.eolang.string(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 0D-0A
+                  )
+                ),
+                α1 ↦ Φ.org.eolang.string(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 0A-
+                  )
+                )
+              ).as-bytes
+            )
+          ⟧,
+          λ ⤍ Package
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

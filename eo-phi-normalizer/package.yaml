@@ -131,3 +131,4 @@ tests:
       other-modules:
         - Language.EO.Phi.Syntax.Test
         - Language.EO.Phi.Syntax.ErrM
+        - Language.EO.Phi.Syntax.Skel
