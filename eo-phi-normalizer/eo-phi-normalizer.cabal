@@ -281,7 +281,6 @@ test-suite doctests
       Language.EO.Phi.Syntax.Lex
       Language.EO.Phi.Syntax.Par
       Language.EO.Phi.Syntax.Print
-      Language.EO.Phi.Syntax.Skel
       Language.EO.Phi.TH
       Language.EO.Phi.ToLaTeX
       Language.EO.Test.Yaml

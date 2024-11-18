@@ -1,0 +1,47 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        sys ↦ ⟦
+          getenv ↦ ⟦
+            name ↦ ∅,
+            φ ↦ Φ.org.eolang.sys.os.is-windows.if(
+              α0 ↦ Φ.org.eolang.sys.win32(
+                α0 ↦ Φ.org.eolang.string(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 47-65-74-45-6E-76-69-72-6F-6E-6D-65-6E-74-56-61-72-69-61-62-6C-65
+                  )
+                ),
+                α1 ↦ Φ.org.eolang.tuple(
+                  α0 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple.empty,
+                    α1 ↦ ξ.name
+                  ),
+                  α1 ↦ Φ.org.eolang.number(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 40-80-00-00-00-00-00-00
+                    )
+                  )
+                )
+              ),
+              α1 ↦ Φ.org.eolang.sys.posix(
+                α0 ↦ Φ.org.eolang.string(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 67-65-74-65-6E-76
+                  )
+                ),
+                α1 ↦ Φ.org.eolang.tuple(
+                  α0 ↦ Φ.org.eolang.tuple.empty,
+                  α1 ↦ ξ.name
+                )
+              )
+            ).output
+          ⟧,
+          λ ⤍ Package
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

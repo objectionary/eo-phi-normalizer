@@ -1,0 +1,124 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        math ↦ ⟦
+          integral ↦ ⟦
+            fun ↦ ∅,
+            a ↦ ∅,
+            b ↦ ∅,
+            n ↦ ∅,
+            subsection ↦ ⟦
+              a ↦ ∅,
+              b ↦ ∅,
+              φ ↦ ξ.b.minus(
+                α0 ↦ ξ.a
+              ).div(
+                α0 ↦ Φ.org.eolang.number(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 40-18-00-00-00-00-00-00
+                  )
+                )
+              ).times(
+                α0 ↦ ξ.ρ.fun(
+                  α0 ↦ ξ.a
+                ).plus(
+                  α0 ↦ Φ.org.eolang.number(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 40-10-00-00-00-00-00-00
+                    )
+                  ).times(
+                    α0 ↦ ξ.ρ.fun(
+                      α0 ↦ Φ.org.eolang.number(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 3F-E0-00-00-00-00-00-00
+                        )
+                      ).times(
+                        α0 ↦ ξ.a.plus(
+                          α0 ↦ ξ.b
+                        )
+                      )
+                    )
+                  ).plus(
+                    α0 ↦ ξ.ρ.fun(
+                      α0 ↦ ξ.b
+                    )
+                  )
+                )
+              )
+            ⟧,
+            φ ↦ Φ.org.eolang.malloc.of(
+              α0 ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 40-20-00-00-00-00-00-00
+                )
+              ),
+              α1 ↦ ξ.auto-named-attr-at-52-11
+            ).as-number,
+            auto-named-attr-at-52-11 ↦ ⟦
+              sum ↦ ∅,
+              φ ↦ Φ.org.eolang.malloc.for(
+                α0 ↦ ξ.ρ.a,
+                α1 ↦ ξ.auto-named-attr-at-55-16
+              ),
+              auto-named-attr-at-55-16 ↦ ⟦
+                left ↦ ∅,
+                right ↦ ξ.ρ.ρ.b,
+                step ↦ ξ.right.minus(
+                  α0 ↦ ξ.left
+                ).div(
+                  α0 ↦ ξ.ρ.ρ.n
+                ).as-number,
+                φ ↦ Φ.org.eolang.while(
+                  α0 ↦ ξ.auto-named-attr-at-59-17,
+                  α1 ↦ ⟦
+                    φ ↦ Φ.org.eolang.true,
+                    i ↦ ∅
+                  ⟧
+                ),
+                auto-named-attr-at-59-17 ↦ ⟦
+                  i ↦ ∅,
+                  φ ↦ ξ.ρ.left.as-number.plus(
+                    α0 ↦ ξ.ρ.step
+                  ).lt(
+                    α0 ↦ ξ.ρ.right
+                  ).if(
+                    α0 ↦ Φ.org.eolang.seq(
+                      α0 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple(
+                            α0 ↦ Φ.org.eolang.tuple.empty,
+                            α1 ↦ ξ.ρ.ρ.sum.put(
+                              α0 ↦ ξ.ρ.ρ.sum.as-number.plus(
+                                α0 ↦ ξ.ρ.ρ.ρ.subsection(
+                                  α0 ↦ ξ.ρ.left.as-number,
+                                  α1 ↦ ξ.ρ.left.as-number.plus(
+                                    α0 ↦ ξ.ρ.step
+                                  )
+                                )
+                              )
+                            )
+                          ),
+                          α1 ↦ ξ.ρ.left.put(
+                            α0 ↦ ξ.ρ.left.as-number.plus(
+                              α0 ↦ ξ.ρ.step
+                            )
+                          )
+                        ),
+                        α1 ↦ Φ.org.eolang.true
+                      )
+                    ),
+                    α1 ↦ Φ.org.eolang.false
+                  )
+                ⟧
+              ⟧
+            ⟧
+          ⟧,
+          λ ⤍ Package
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}
