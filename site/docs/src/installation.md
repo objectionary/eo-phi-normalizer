@@ -23,6 +23,10 @@ Then, the `eo-phi-normalizer` executable will be available on `PATH`.
 
 ### Install `eo-phi-normalizer` from Hackage
 
+You can see all package versions on its [Hackage page](https://hackage.haskell.org/package/eo-phi-normalizer).
+
+Use the necessary version in the `stack install` command.
+
 <!-- `$ printf "stack update\nexport LC_ALL=C.UTF-8\nstack install --resolver lts-$(cat stack.yaml | sed -nE 's/.*lts-(.*)/\1/p') eo-phi-normalizer-"$(normalizer --version)` as sh -->
 
 ```sh
