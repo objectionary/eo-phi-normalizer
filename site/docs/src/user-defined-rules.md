@@ -24,11 +24,13 @@ Each rule has the following structure:
   - `global_object` - (optional) Global object `MetaId`.
   - `current_object` - (optional) Current object `MetaId`.
 - `pattern` - Term pattern written in `MetaPHI`.
+  - The pattern must be an object (formation, application, dispatch, etc.)
   - When this term pattern matches a subterm of a `PHI` term, `MetaId`s from the term pattern become associated with matching subexpressions of that subterm.
 - `result` - Substitution result.
   - `MetaId`s in the subterm pattern get replaced by their associated subexpressions.
 - `when` - A list of conditions for pattern matching.
-  - `nf` - A list of `MetaId`s associated with subexpressions that should be in [normal form](#normal-form).
+  - `nf` - A list of `MetaId`s associated with subexpressions that should be in the normal form.
+    - An expression is in the normal form when no rule can be applied to that expression.
   - `present_attrs` - A list of attributes that must be present in subexpression bindings.
     - `attrs` - A list of attributes. Can include `MetaId`s.
     - `bindings` - A list of bindings that must contain these attributes.
@@ -40,7 +42,3 @@ Each rule has the following structure:
   - `input` - An initial `PHI` term.
   - `output` - The initial `PHI` term after this rule was applied.
   - `matches` - Whether the term pattern should match any subterm.
-
-### Normal form
-
-An expression is in normal form when no rule can be applied to that expression.
