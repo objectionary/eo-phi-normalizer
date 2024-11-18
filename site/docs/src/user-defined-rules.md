@@ -10,7 +10,7 @@ See the `MetaPHI` [Labelled BNF](https://bnfc.readthedocs.io/en/latest/lbnf.html
 
 Currently, the `eo-phi-normalizer` supports rules defined in an unpublished paper by Yegor Bugayenko.
 
-![Rules](../media/rules.jpg)
+![Rules](media/rules.jpg)
 
 ## yegor.yaml
 
