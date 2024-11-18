@@ -7,8 +7,9 @@
 
 ## In the [repository](https://github.com/objectionary/eo-phi-normalizer)
 
+1. Choose a new release version `<version>`. The `<version>` must conform to [SemVer](https://semver.org/).
 1. Draft a [new release](https://github.com/objectionary/eo-phi-normalizer/releases/new).
-1. Create a new tag `v<version>`. The `<version>` must conform to [SemVer](https://semver.org/).
+1. Create a new tag `v<version>`.
 1. Click `Generate release notes`.
 1. Create an issue named `Release v<version>` ([example](https://github.com/objectionary/eo-phi-normalizer/issues/526)).
 1. List there in the `## Subtasks` section what needs to be done for the release.
@@ -17,7 +18,7 @@
 1. Open `CHANGELOG.md`
 1. Add a new section at the top of the file before sections for previous versions.
 1. In the section title, specify the version (`v<version>`) and the release date.
-1. Copy the generated release notes into that section.
+1. Copy the generated release notes from the release draft into that section.
 1. Format the notes similar to the sections that go below this one.
 1. Commit the changes with a message `feat(changelog): add notes for v<version>` (replace `<version>` with the actual version).
 1. In `eo-phi-normalizer/package.yaml` and `eo-phi-normalizer/eo-phi-normalizer.cabal`, update the `version`.
@@ -27,7 +28,7 @@
 1. Merge changes into `master`.
 1. Wait until CI succeeds (see [Actions](https://github.com/objectionary/eo-phi-normalizer/actions)).
 1. Return to the page where you drafted the release.
-1. Copy the text from the section in `CHANGELOG.md` into the release description.
+1. Copy the text from the section about the `v<version>` in `CHANGELOG.md` into the release description.
 1. Select `Set as the latest release`.
 1. Click `Publish release`.
 
