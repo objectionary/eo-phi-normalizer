@@ -1,0 +1,147 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        fs ↦ ⟦
+          tmpdir ↦ ⟦
+            φ ↦ Φ.org.eolang.fs.dir(
+              α0 ↦ Φ.org.eolang.fs.file(
+                α0 ↦ Φ.org.eolang.string(
+                  α0 ↦ ξ.os-tmp-dir
+                )
+              )
+            ),
+            os-tmp-dir ↦ Φ.org.eolang.dataized(
+              α0 ↦ ξ.os-tmp-dir-1
+            ).as-bytes,
+            os-tmp-dir-1 ↦ ⟦
+              tmpdir ↦ Φ.org.eolang.dataized(
+                α0 ↦ Φ.org.eolang.sys.getenv(
+                  α0 ↦ Φ.org.eolang.string(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 54-4D-50-44-49-52
+                    )
+                  )
+                )
+              ).as-bytes,
+              tmp ↦ Φ.org.eolang.dataized(
+                α0 ↦ Φ.org.eolang.sys.getenv(
+                  α0 ↦ Φ.org.eolang.string(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 54-4D-50
+                    )
+                  )
+                )
+              ).as-bytes,
+              temp ↦ Φ.org.eolang.dataized(
+                α0 ↦ Φ.org.eolang.sys.getenv(
+                  α0 ↦ Φ.org.eolang.string(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 54-45-4D-50
+                    )
+                  )
+                )
+              ).as-bytes,
+              tempdir ↦ Φ.org.eolang.dataized(
+                α0 ↦ Φ.org.eolang.sys.getenv(
+                  α0 ↦ Φ.org.eolang.string(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 54-45-4D-50-44-49-52
+                    )
+                  )
+                )
+              ).as-bytes,
+              userprofile ↦ Φ.org.eolang.dataized(
+                α0 ↦ Φ.org.eolang.sys.getenv(
+                  α0 ↦ Φ.org.eolang.string(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 55-53-45-52-50-52-4F-46-49-4C-45
+                    )
+                  )
+                )
+              ).as-bytes,
+              φ ↦ Φ.org.eolang.sys.os.is-windows.if(
+                α0 ↦ ξ.tmp.eq(
+                  α0 ↦ Φ.org.eolang.string(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ --
+                    )
+                  )
+                ).if(
+                  α0 ↦ ξ.temp.eq(
+                    α0 ↦ Φ.org.eolang.string(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ --
+                      )
+                    )
+                  ).if(
+                    α0 ↦ ξ.userprofile.eq(
+                      α0 ↦ Φ.org.eolang.string(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ --
+                        )
+                      )
+                    ).if(
+                      α0 ↦ Φ.org.eolang.string(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 43-3A-5C-57-69-6E-64-6F-77-73
+                        )
+                      ),
+                      α1 ↦ ξ.userprofile
+                    ),
+                    α1 ↦ ξ.temp
+                  ),
+                  α1 ↦ ξ.tmp
+                ),
+                α1 ↦ ξ.tmpdir.eq(
+                  α0 ↦ Φ.org.eolang.string(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ --
+                    )
+                  )
+                ).if(
+                  α0 ↦ ξ.tmp.eq(
+                    α0 ↦ Φ.org.eolang.string(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ --
+                      )
+                    )
+                  ).if(
+                    α0 ↦ ξ.temp.eq(
+                      α0 ↦ Φ.org.eolang.string(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ --
+                        )
+                      )
+                    ).if(
+                      α0 ↦ ξ.tempdir.eq(
+                        α0 ↦ Φ.org.eolang.string(
+                          α0 ↦ Φ.org.eolang.bytes(
+                            Δ ⤍ --
+                          )
+                        )
+                      ).if(
+                        α0 ↦ Φ.org.eolang.string(
+                          α0 ↦ Φ.org.eolang.bytes(
+                            Δ ⤍ 2F-74-6D-70
+                          )
+                        ),
+                        α1 ↦ ξ.tempdir
+                      ),
+                      α1 ↦ ξ.temp
+                    ),
+                    α1 ↦ ξ.tmp
+                  ),
+                  α1 ↦ ξ.tmpdir
+                )
+              )
+            ⟧
+          ⟧,
+          λ ⤍ Package
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

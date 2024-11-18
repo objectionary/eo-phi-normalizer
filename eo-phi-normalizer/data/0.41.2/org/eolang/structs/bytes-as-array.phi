@@ -1,0 +1,55 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        structs ↦ ⟦
+          bytes-as-array ↦ ⟦
+            bts ↦ ∅,
+            bytes-size ↦ Φ.org.eolang.dataized(
+              α0 ↦ ξ.bts.size
+            ).as-bytes,
+            φ ↦ ξ.slice-byte(
+              α0 ↦ Φ.org.eolang.tuple.empty,
+              α1 ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-00-00-00-00-00-00-00
+                )
+              )
+            ),
+            slice-byte ↦ ⟦
+              tup ↦ ∅,
+              index ↦ ∅,
+              φ ↦ ξ.index.lt(
+                α0 ↦ ξ.ρ.bytes-size
+              ).if(
+                α0 ↦ ξ.ρ.slice-byte(
+                  α0 ↦ ξ.tup.with(
+                    α0 ↦ ξ.ρ.bts.slice(
+                      α0 ↦ ξ.index,
+                      α1 ↦ Φ.org.eolang.number(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 3F-F0-00-00-00-00-00-00
+                        )
+                      )
+                    )
+                  ),
+                  α1 ↦ ξ.index.plus(
+                    α0 ↦ Φ.org.eolang.number(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ 3F-F0-00-00-00-00-00-00
+                      )
+                    )
+                  )
+                ),
+                α1 ↦ ξ.tup
+              )
+            ⟧
+          ⟧,
+          λ ⤍ Package
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}
