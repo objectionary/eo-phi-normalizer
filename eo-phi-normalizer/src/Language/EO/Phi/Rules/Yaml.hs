@@ -408,8 +408,8 @@ applySubst subst@Subst{..} = \case
   ThisObject -> ThisObject
   obj@(MetaObject x) -> fromMaybe obj $ lookup x objectMetas
   Termination -> Termination
-  MetaSubstThis obj thisObj -> MetaSubstThis (applySubst subst thisObj) (applySubst subst obj)
-  MetaContextualize obj thisObj -> MetaContextualize (applySubst subst thisObj) (applySubst subst obj)
+  MetaSubstThis obj thisObj -> MetaSubstThis (applySubst subst obj) (applySubst subst thisObj)
+  MetaContextualize obj thisObj -> MetaContextualize (applySubst subst obj) (applySubst subst thisObj)
   obj@MetaFunction{} -> obj
   MetaTailContext obj c ->
     case lookup c contextMetas of
