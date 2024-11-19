@@ -95,12 +95,15 @@ rules:
     pattern: |
       ⟦ ρ ↦ !b1, !B1 ⟧ (ρ ↦ !b, !B2)
     result: |
-      ⟦ ρ ↦ !b1, !B1 ⟧
+      ⟦ ρ ↦ !b1, !B1 ⟧ (!B2)
     when: []
     tests:
-      - name: Phi Paper Example E3 first R_stay
+      - name: Phi Paper - Example E3 - first R_stay
         input: ⟦ ρ ↦ ⟦⟧ ⟧(ρ ↦ ⟦ t ↦ ⟦ ρ ↦ ⟦⟧ ⟧ ⟧)(ρ ↦ ⟦ x ↦ ⟦ ρ ↦ ⟦⟧ ⟧(ρ ↦ ⟦ t ↦ ⟦ ρ ↦ ⟦⟧ ⟧ ⟧) ⟧)
-        output: [⟦ ρ ↦ ⟦⟧ ⟧(ρ ↦ ⟦ x ↦ ⟦ ρ ↦ ⟦⟧ ⟧(ρ ↦ ⟦ t ↦ ⟦ ρ ↦ ⟦⟧ ⟧ ⟧) ⟧)]
+        output: [⟦ ρ ↦ ⟦⟧ ⟧()(ρ ↦ ⟦ x ↦ ⟦ ρ ↦ ⟦⟧ ⟧(ρ ↦ ⟦ t ↦ ⟦ ρ ↦ ⟦⟧ ⟧ ⟧) ⟧)]
+      - name: 'Should match'
+        input: '⟦ ρ ↦ ⟦ c ↦ ∅ ⟧ ⟧ (ρ ↦ ⟦ ⟧, b ↦ ξ)'
+        output: ['⟦ ρ ↦ ⟦ c ↦ ∅ ⟧ ⟧ (b ↦ ξ)']
 
   - name: OVER
     description: 'Invalid application (attribute already attached)'
@@ -129,6 +132,7 @@ rules:
         input: '⟦ ρ ↦ ⟦ ⟧ ⟧.x'
         output: ['⊥']
 
+  # Named VOID instead of NULL because NULL is a keyword in yaml
   - name: VOID
     description: 'Void attribute access'
     pattern: |
