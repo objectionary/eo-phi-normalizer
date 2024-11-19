@@ -21,9 +21,9 @@ rules:
   - name: COPY
     description: 'Application of α-binding'
     pattern: |
-      ⟦ !τ1 ↦ ⟦ !τ2 ↦ ∅, !B1 ⟧(!τ2 ↦ !b, !B2), !B3 ⟧
+      ⟦ !τ1 ↦ ⟦ !τ2 ↦ ∅, !B1 ⟧(!τ2 ↦ !b, !B2) * !t, !B3 ⟧
     result: |
-      ⟦ !τ1 ↦ ⟦ !τ2 ↦ ⌈ !b , ⟦ !τ1 ↦ ⟦ !τ2 ↦ ∅, !B1 ⟧(!τ2 ↦ !b, !B2), !B3 ⟧ ⌉, !B1 ⟧(!B2), !B3 ⟧
+      ⟦ !τ1 ↦ ⟦ !τ2 ↦ ⌈ !b , ⟦ !τ1 ↦ ⟦ !τ2 ↦ ∅, !B1 ⟧(!τ2 ↦ !b, !B2), !B3 ⟧ ⌉, !B1 ⟧(!B2) * !t, !B3 ⟧
     when:
       - nf: '!b'
       - nf: '⟦ !B1 ⟧'
@@ -32,13 +32,16 @@ rules:
       - name: 'Should match'
         input: ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ) ⟧
         output: ['⟦ a ↦ ⟦ b ↦ ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ) ⟧ ⟧ () ⟧']
+      - name: 'Should match'
+        input: ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ).a ⟧
+        output: ['⟦ a ↦ ⟦ b ↦ ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ) ⟧ ⟧ ().a ⟧']
 
   - name: RHO
     description: 'Application of a ρ-binding'
     pattern: |
-      ⟦ !τ ↦ ⟦ !B1 ⟧(ρ ↦ !b, !B2), !B3 ⟧
+      ⟦ !τ ↦ ⟦ !B1 ⟧(ρ ↦ !b, !B2) * !t, !B3 ⟧
     result: |
-      ⟦ !τ ↦ ⟦ !B1, ρ ↦ ⌈ !b , ⟦ !τ ↦ ⟦ !B1 ⟧(ρ ↦ !b, !B2), !B3 ⟧ ⌉ ⟧(!B2), !B3 ⟧
+      ⟦ !τ ↦ ⟦ !B1, ρ ↦ ⌈ !b , ⟦ !τ ↦ ⟦ !B1 ⟧(ρ ↦ !b, !B2) * !t, !B3 ⟧ ⌉ ⟧(!B2), !B3 ⟧
     when:
       - nf: '!b'
       - absent_attrs:
