@@ -9,7 +9,7 @@ rules:
       ⌈ !b , ⟦ !τ ↦ !b, !B ⟧ ⌉(ρ ↦ ⟦ !τ ↦ !b, !B ⟧)
     when:
       - nf: '!b'
-      - nf: '⟦ !B ⟧'
+      - nf: '⟦ !B ⟧' #TODO: change the condition, every object in !B should be in the nf
     tests:
       - name: 'Contextualization changes ξ'
         input: ⟦ a ↦ ξ ⟧.a
@@ -17,6 +17,22 @@ rules:
       - name: 'Contextualization applies recursively'
         input: ⟦ a ↦ ξ.b ⟧.a
         output: ['⟦ a ↦ ξ.b ⟧.b (ρ ↦ ⟦ a ↦ ξ.b ⟧)']
+      - name: Phi Paper - Example E2
+        input: '⟦ x ↦ ξ.t, t ↦ ∅ ⟧.x'
+        output: ['⟦ x ↦ ξ.t, t ↦ ∅ ⟧.t(ρ ↦ ⟦ x ↦ ξ.t, t ↦ ∅ ⟧)']
+      - name:  Phi Paper - Example E3 - first R_dot
+        input: '⟦ x ↦ ⟦t ↦ ⟦ρ ↦ ⟦⟧⟧⟧.t ⟧.x'
+        output: ['⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧(ρ ↦ ⟦t ↦ ⟦ρ ↦ ⟦⟧⟧⟧) ⟧.x']
+      - name:  Phi Paper - Example E3 - second R_dot
+        input: '⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧ ⟧.x'
+        output: ['⟦ρ ↦ ⟦⟧⟧(ρ ↦ ⟦x ↦ ⟦ρ ↦ ⟦⟧⟧⟧)']
+      - name: Phi Paper - Example E4 - first R_dot
+        input: '⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧.y'
+        # output: ['⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧.x(ρ ↦ ⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧)']
+        output: ['⟦ y ↦ ξ.x, x ↦ ⟦ρ ↦ ⟦⟧⟧ ⟧.x(ρ ↦ ⟦ y ↦ ξ.x, x ↦ ⟦ρ ↦ ⟦⟧⟧ ⟧)']
+      - name: Phi Paper - Example E4 - second R_dot
+        input: ⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧.x(ρ ↦ ⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧)
+        output: ['⟦ρ ↦ ⟦⟧⟧(ρ ↦ ⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧)(ρ ↦ ⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧)']
 
   - name: COPY
     description: 'Application of α-binding'
@@ -29,9 +45,20 @@ rules:
       - nf: '⟦ !B1 ⟧'
       - nf: '⟦ !B3 ⟧'
     tests:
-      - name: 'Should match'
+      - name: Should match
         input: ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ) ⟧
-        output: ['⟦ a ↦ ⟦ b ↦ ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ) ⟧ ⟧ () ⟧']
+        output: [⟦ a ↦ ⟦ b ↦ ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ) ⟧ ⟧ () ⟧]
+      - name: Phi Paper - Example E1
+        input: ⟦ k ↦ ⟦ x ↦ ξ.t, t ↦ ∅ ⟧(t ↦ ⟦ρ ↦ ⟦⟧⟧) ⟧
+        # output: ['⟦ k ↦ ⟦ x ↦ ξ.t, t ↦ ⟦ρ ↦ ⟦⟧⟧ ⟧() ⟧']
+        output: ['⟦ k ↦ ⟦ t ↦ ⟦ρ ↦ ⟦⟧⟧, x ↦ ξ.t ⟧() ⟧']
+      - name: Phi Paper - Example E4 without dispatch on y
+        input: ⟦ k ↦ ⟦ x ↦ ∅, y ↦ ξ.x ⟧(x ↦ ⟦ρ ↦ ⟦⟧⟧).y ⟧
+        output: ['⟦ k ↦ ⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧.y ⟧']
+      - name: Phi Paper - Example E4 without dispatch on y
+        input: ⟦ k ↦ ⟦ x ↦ ∅, y ↦ ξ.x ⟧(x ↦ ⟦ρ ↦ ⟦⟧⟧) ⟧
+        output: ['⟦ k ↦ ⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧() ⟧']
+
 
   - name: RHO
     description: 'Application of a ρ-binding'
@@ -70,7 +97,10 @@ rules:
     result: |
       ⟦ ρ ↦ !b1, !B1 ⟧
     when: []
-    tests: []
+    tests:
+      - name: Phi Paper Example E3 first R_stay
+        input: ⟦ ρ ↦ ⟦⟧ ⟧(ρ ↦ ⟦ t ↦ ⟦ ρ ↦ ⟦⟧ ⟧ ⟧)(ρ ↦ ⟦ x ↦ ⟦ ρ ↦ ⟦⟧ ⟧(ρ ↦ ⟦ t ↦ ⟦ ρ ↦ ⟦⟧ ⟧ ⟧) ⟧)
+        output: [⟦ ρ ↦ ⟦⟧ ⟧(ρ ↦ ⟦ x ↦ ⟦ ρ ↦ ⟦⟧ ⟧(ρ ↦ ⟦ t ↦ ⟦ ρ ↦ ⟦⟧ ⟧ ⟧) ⟧)]
 
   - name: OVER
     description: 'Invalid application (attribute already attached)'
@@ -106,7 +136,10 @@ rules:
     result: |
       ⊥
     when: []
-    tests: []
+    tests:
+      - name: Phi Paper Example E2 second dispatch
+        input: '⟦ x ↦ ξ.t, t ↦ ∅ ⟧.t(ρ ↦ ⟦ x ↦ ξ.t, t ↦ ∅ ⟧)'
+        output: ['⊥(ρ ↦ ⟦ x ↦ ξ.t, t ↦ ∅ ⟧)']
 
   - name: DUP
     description: 'Empty application'
@@ -178,3 +211,6 @@ rules:
       - name: Should apply in subformations
         input: ⟦ a ↦ ⟦ b ↦ ⊥(t ↦ ⟦⟧, u ↦ ⟦⟧) ⟧ ⟧
         output: ['⟦ a ↦ ⟦ b ↦ ⊥ ⟧ ⟧']
+      - name: Phi Paper Example E2 last application
+        input: '⊥(ρ ↦ ⟦ x ↦ ξ.t, t ↦ ∅ ⟧)'
+        output: ['⊥']
