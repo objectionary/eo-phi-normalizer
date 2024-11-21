@@ -36,6 +36,8 @@ import Distribution.Simple.Program (Program (..), findProgramVersion, simpleProg
 import PyF (fmt)
 import System.Exit (ExitCode (..))
 import System.Process (callCommand)
+import Text.Printf (printf)
+import Control.Exception (evaluate)
 
 -- | Run BNFC, happy, and alex on the grammar before the actual build step.
 --
@@ -54,25 +56,36 @@ main =
                       False
 #endif
             -- See the details on the command form in https://github.com/objectionary/eo-phi-normalizer/issues/347#issuecomment-2117097070
+            addLicense :: FilePath -> IO ()
+            addLicense file = do
+              let readFile' path = do
+                    content <- readFile path
+                    evaluate (length content)
+                    pure content
+                  targetFile = "src/Language/EO/Phi/Syntax/" <> file
+              license <- readFile' "LICENSE"
+              let licenseFormatted = printf "{-\n%s-}\n\n" license
+              code <- readFile' targetFile
+              evaluate (length license)
+              writeFile targetFile (licenseFormatted <> code)
+
             command = intercalate "; " $
                 [ "set -ex" ] <>
                 [ "chcp.com" | isWindows ] <>
                 [ "chcp.com 65001" | isWindows ] <>
-                [ "bnfc --haskell -d -p Language.EO.Phi --generic -o src/ grammar/EO/Phi/Syntax.cf"
-                , "cd src/Language/EO/Phi/Syntax"
-                , "alex Lex.x"
-                , "happy Par.y"
-                , "add_license() { FILE=\"$1\"; printf \"{-\\n%s\\n-}\\n\\n\" \"$(cat ../../../../../LICENSE)\" > \"$FILE.concat\"; cat \"$FILE\" >> \"$FILE.concat\"; mv \"$FILE.concat\" \"$FILE\"; }"
-                , "add_license Abs.hs"
-                , "add_license Print.hs"
-                , "true"
-                ]
+                [ "bnfc --haskell -d -p Language.EO.Phi --generic -o src/ grammar/EO/Phi/Syntax.cf"] <>
+                [ "cd src/Language/EO/Phi/Syntax" ] <>
+                [ "alex Lex.x" ] <>
+                [ "happy Par.y" ] <>
+                [ "true" ]
 
             fullCommand = [fmt|bash -c ' {command} '|]
 
           putStrLn fullCommand
 
           _ <- callCommand fullCommand
+          _ <- addLicense "Abs.hs"
+          _ <- addLicense "Print.hs"
 
           postConf simpleUserHooks args flags packageDesc localBuildInfo
       }
