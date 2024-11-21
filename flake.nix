@@ -199,6 +199,9 @@
                 let
                   name = "update-markdown";
                   text = ''
+                    # This file was generated automatically.
+                    # You can edit the script in 'flake.nix'
+
                     mdsh
 
                     ${lib.concatMapStringsSep "\n" (x: "mdsh -i site/docs/src/${x} --work_dir .") [
@@ -209,7 +212,7 @@
                       "quick-start.md"
                       "eo-phi-normalizer/dataize.md"
                       "eo-phi-normalizer/metrics.md"
-                      "eo-phi-normalizer/transform.md"
+                      "eo-phi-normalizer/rewrite.md"
                       "eo-phi-normalizer/print-rules.md"
                       "eo-phi-normalizer/test.md"
                       "contributing.md"

@@ -84,6 +84,7 @@ Changes and fixes:
 
 - Undo injection of top-level Package lambda ([#392](https://github.com/objectionary/eo-phi-normalizer/pull/392))
 - Fix dataization ([#395](https://github.com/objectionary/eo-phi-normalizer/pull/395))
+
   - Fix dataization inside $\varphi$ when `--minimize-stuck-terms` is enabled (closes [#393](https://github.com/objectionary/eo-phi-normalizer/pull/393))
   - Fix evaluation of atoms stuck on other atoms (fixes `while-dataizes-only-first-cycle` in `while-tests.phi`)
   - Improve pretty-printing (closes [#292](https://github.com/objectionary/eo-phi-normalizer/pull/292))
@@ -91,6 +92,7 @@ Changes and fixes:
 - Fix pipeline script to run tests on normalized EO ([#396](https://github.com/objectionary/eo-phi-normalizer/pull/396))
 
 - Changes to normalizer ([#396](https://github.com/objectionary/eo-phi-normalizer/pull/396))
+
   - Add `--wrap-raw-bytes` to automatically convert raw bytes (and terminations) in the output. This is a temporary fix, pending the change mentioned in <https://github.com/objectionary/eo/issues/3213#issuecomment-2150032168>
   - Fix builtin normalizer to produce termination in some situations
   - Fix dataization inside application/dispatch

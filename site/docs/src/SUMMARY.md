@@ -7,7 +7,7 @@
 - [Metrics](./metrics.md)
 - [Atoms](./atoms.md)
 - [eo-phi-normalizer](./eo-phi-normalizer.md)
-  - [eo-phi-normalizer transform](./eo-phi-normalizer/transform.md)
+  - [eo-phi-normalizer rewrite](./eo-phi-normalizer/rewrite.md)
   - [eo-phi-normalizer dataize](./eo-phi-normalizer/dataize.md)
   - [eo-phi-normalizer metrics](./eo-phi-normalizer/metrics.md)
   - [eo-phi-normalizer pipeline](./eo-phi-normalizer/pipeline.md)
