@@ -1,0 +1,519 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        structs ↦ ⟦
+          list ↦ ⟦
+            origin ↦ ∅,
+            φ ↦ ξ.origin,
+            is-empty ↦ ⟦
+              φ ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-00-00-00-00-00-00-00
+                )
+              ).eq(
+                α0 ↦ ξ.ρ.origin.length
+              )
+            ⟧,
+            with ↦ ⟦
+              x ↦ ∅,
+              φ ↦ ξ.ρ.ρ.list(
+                α0 ↦ ξ.ρ.origin.with(
+                  α0 ↦ ξ.x
+                )
+              )
+            ⟧,
+            withi ↦ ⟦
+              index ↦ ∅,
+              item ↦ ∅,
+              φ ↦ ξ.ρ.head(
+                α0 ↦ ξ.index
+              ).with(
+                α0 ↦ ξ.item
+              ).concat(
+                α0 ↦ ξ.ρ.tail(
+                  α0 ↦ ξ.ρ.origin.length.minus(
+                    α0 ↦ ξ.index
+                  )
+                )
+              )
+            ⟧,
+            reducedi ↦ ⟦
+              start ↦ ∅,
+              func ↦ ∅,
+              origin-len ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.ρ.origin.length
+              ).as-bytes,
+              φ ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-00-00-00-00-00-00-00
+                )
+              ).eq(
+                α0 ↦ ξ.origin-len
+              ).if(
+                α0 ↦ ξ.start,
+                α1 ↦ ξ.rec-reduced(
+                  α0 ↦ ξ.start,
+                  α1 ↦ Φ.org.eolang.number(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 00-00-00-00-00-00-00-00
+                    )
+                  ).as-bytes
+                )
+              ),
+              rec-reduced ↦ ⟦
+                accum ↦ ∅,
+                index ↦ ∅,
+                idx-as-number ↦ ξ.index.as-number,
+                next-index ↦ Φ.org.eolang.dataized(
+                  α0 ↦ Φ.org.eolang.number(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 3F-F0-00-00-00-00-00-00
+                    )
+                  ).plus(
+                    α0 ↦ ξ.idx-as-number
+                  )
+                ).as-bytes,
+                φ ↦ ξ.next-index.eq(
+                  α0 ↦ ξ.ρ.origin-len
+                ).if(
+                  α0 ↦ ξ.accumulated,
+                  α1 ↦ ξ.ρ.rec-reduced(
+                    α0 ↦ ξ.accumulated,
+                    α1 ↦ ξ.next-index
+                  )
+                ),
+                accumulated ↦ ξ.ρ.func(
+                  α0 ↦ ξ.accum,
+                  α1 ↦ ξ.ρ.ρ.origin.at(
+                    α0 ↦ ξ.idx-as-number
+                  ),
+                  α2 ↦ ξ.idx-as-number
+                )
+              ⟧
+            ⟧,
+            reduced ↦ ⟦
+              start ↦ ∅,
+              func ↦ ∅,
+              φ ↦ ξ.ρ.reducedi(
+                α0 ↦ ξ.start,
+                α1 ↦ ξ.auto-named-attr-at-85-42
+              ),
+              auto-named-attr-at-85-42 ↦ ⟦
+                φ ↦ ξ.ρ.func(
+                  α0 ↦ ξ.accum,
+                  α1 ↦ ξ.item
+                ),
+                accum ↦ ∅,
+                item ↦ ∅,
+                idx ↦ ∅
+              ⟧
+            ⟧,
+            mappedi ↦ ⟦
+              func ↦ ∅,
+              φ ↦ ξ.ρ.ρ.list(
+                α0 ↦ ξ.ρ.reducedi(
+                  α0 ↦ Φ.org.eolang.tuple.empty,
+                  α1 ↦ ξ.auto-named-attr-at-95-24
+                )
+              ),
+              auto-named-attr-at-95-24 ↦ ⟦
+                accum ↦ ∅,
+                item ↦ ∅,
+                idx ↦ ∅,
+                φ ↦ ξ.accum.with(
+                  α0 ↦ ξ.ρ.func(
+                    α0 ↦ ξ.item,
+                    α1 ↦ ξ.idx
+                  )
+                )
+              ⟧
+            ⟧,
+            mapped ↦ ⟦
+              func ↦ ∅,
+              φ ↦ ξ.ρ.mappedi(
+                α0 ↦ ξ.auto-named-attr-at-105-30
+              ),
+              auto-named-attr-at-105-30 ↦ ⟦
+                φ ↦ ξ.ρ.func(
+                  α0 ↦ ξ.item
+                ),
+                item ↦ ∅,
+                idx ↦ ∅
+              ⟧
+            ⟧,
+            eachi ↦ ⟦
+              func ↦ ∅,
+              φ ↦ ξ.ρ.reducedi(
+                α0 ↦ Φ.org.eolang.true,
+                α1 ↦ ξ.auto-named-attr-at-115-22
+              ),
+              auto-named-attr-at-115-22 ↦ ⟦
+                acc ↦ ∅,
+                item ↦ ∅,
+                index ↦ ∅,
+                φ ↦ Φ.org.eolang.seq(
+                  α0 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple.empty,
+                      α1 ↦ ξ.acc
+                    ),
+                    α1 ↦ ξ.ρ.func(
+                      α0 ↦ ξ.item,
+                      α1 ↦ ξ.index
+                    )
+                  )
+                )
+              ⟧
+            ⟧,
+            each ↦ ⟦
+              func ↦ ∅,
+              φ ↦ ξ.ρ.eachi(
+                α0 ↦ ξ.auto-named-attr-at-126-32
+              ),
+              auto-named-attr-at-126-32 ↦ ⟦
+                φ ↦ ξ.ρ.func(
+                  α0 ↦ ξ.item
+                ),
+                item ↦ ∅,
+                index ↦ ∅
+              ⟧
+            ⟧,
+            withouti ↦ ⟦
+              i ↦ ∅,
+              φ ↦ ξ.ρ.ρ.list(
+                α0 ↦ ξ.ρ.reducedi(
+                  α0 ↦ Φ.org.eolang.tuple.empty,
+                  α1 ↦ ξ.auto-named-attr-at-133-24
+                )
+              ),
+              auto-named-attr-at-133-24 ↦ ⟦
+                accum ↦ ∅,
+                item ↦ ∅,
+                idx ↦ ∅,
+                φ ↦ ξ.ρ.i.eq(
+                  α0 ↦ ξ.idx
+                ).if(
+                  α0 ↦ ξ.accum,
+                  α1 ↦ ξ.accum.with(
+                    α0 ↦ ξ.item
+                  )
+                )
+              ⟧
+            ⟧,
+            without ↦ ⟦
+              element ↦ ∅,
+              φ ↦ ξ.ρ.ρ.list(
+                α0 ↦ ξ.ρ.reduced(
+                  α0 ↦ Φ.org.eolang.tuple.empty,
+                  α1 ↦ ξ.auto-named-attr-at-144-20
+                )
+              ),
+              auto-named-attr-at-144-20 ↦ ⟦
+                accum ↦ ∅,
+                item ↦ ∅,
+                φ ↦ ξ.ρ.element.eq(
+                  α0 ↦ ξ.item
+                ).if(
+                  α0 ↦ ξ.accum,
+                  α1 ↦ ξ.accum.with(
+                    α0 ↦ ξ.item
+                  )
+                )
+              ⟧
+            ⟧,
+            eq ↦ ⟦
+              other ↦ ∅,
+              φ ↦ ξ.ρ.origin.length.eq(
+                α0 ↦ ξ.other.length
+              ).and(
+                α0 ↦ ξ.ρ.reducedi(
+                  α0 ↦ Φ.org.eolang.true,
+                  α1 ↦ ξ.auto-named-attr-at-159-24
+                )
+              ),
+              auto-named-attr-at-159-24 ↦ ⟦
+                accum ↦ ∅,
+                item ↦ ∅,
+                idx ↦ ∅,
+                φ ↦ ξ.accum.and(
+                  α0 ↦ ξ.item.eq(
+                    α0 ↦ ξ.ρ.other.at(
+                      α0 ↦ ξ.idx
+                    )
+                  )
+                )
+              ⟧
+            ⟧,
+            concat ↦ ⟦
+              passed ↦ ∅,
+              φ ↦ ξ.ρ.ρ.list(
+                α0 ↦ ξ.passed
+              ).reduced(
+                α0 ↦ ξ.ρ,
+                α1 ↦ ⟦
+                  φ ↦ ξ.accum.with(
+                    α0 ↦ ξ.item
+                  ),
+                  accum ↦ ∅,
+                  item ↦ ∅
+                ⟧
+              )
+            ⟧,
+            index-of ↦ ⟦
+              wanted ↦ ∅,
+              φ ↦ ξ.ρ.reducedi(
+                α0 ↦ Φ.org.eolang.number(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ BF-F0-00-00-00-00-00-00
+                  )
+                ),
+                α1 ↦ ξ.auto-named-attr-at-179-24
+              ),
+              auto-named-attr-at-179-24 ↦ ⟦
+                accum ↦ ∅,
+                item ↦ ∅,
+                index ↦ ∅,
+                φ ↦ Φ.org.eolang.number(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ BF-F0-00-00-00-00-00-00
+                  )
+                ).eq(
+                  α0 ↦ ξ.accum
+                ).and(
+                  α0 ↦ ξ.item.eq(
+                    α0 ↦ ξ.ρ.wanted
+                  )
+                ).if(
+                  α0 ↦ ξ.index,
+                  α1 ↦ ξ.accum
+                )
+              ⟧
+            ⟧,
+            last-index-of ↦ ⟦
+              wanted ↦ ∅,
+              φ ↦ ξ.ρ.reducedi(
+                α0 ↦ Φ.org.eolang.number(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ BF-F0-00-00-00-00-00-00
+                  )
+                ),
+                α1 ↦ ξ.auto-named-attr-at-192-24
+              ),
+              auto-named-attr-at-192-24 ↦ ⟦
+                accum ↦ ∅,
+                item ↦ ∅,
+                index ↦ ∅,
+                φ ↦ ξ.item.eq(
+                  α0 ↦ ξ.ρ.wanted
+                ).if(
+                  α0 ↦ ξ.index,
+                  α1 ↦ ξ.accum
+                )
+              ⟧
+            ⟧,
+            contains ↦ ⟦
+              element ↦ ∅,
+              φ ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ BF-F0-00-00-00-00-00-00
+                )
+              ).eq(
+                α0 ↦ ξ.ρ.index-of(
+                  α0 ↦ ξ.element
+                )
+              ).not
+            ⟧,
+            sorted ↦ ⟦
+              φ ↦ ξ.ρ
+            ⟧,
+            filteredi ↦ ⟦
+              func ↦ ∅,
+              origin-length ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.ρ.origin.length
+              ).as-bytes,
+              φ ↦ ξ.ρ.ρ.list(
+                α0 ↦ ξ.rec-filtered(
+                  α0 ↦ Φ.org.eolang.number(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 00-00-00-00-00-00-00-00
+                    )
+                  ).as-bytes,
+                  α1 ↦ Φ.org.eolang.tuple.empty
+                )
+              ),
+              rec-filtered ↦ ⟦
+                idx-as-bytes ↦ ∅,
+                accum ↦ ∅,
+                original ↦ ξ.ρ.ρ.origin,
+                index ↦ ξ.idx-as-bytes.as-number,
+                item ↦ ξ.ρ.ρ.origin.at(
+                  α0 ↦ ξ.index
+                ),
+                φ ↦ ξ.idx-as-bytes.eq(
+                  α0 ↦ ξ.ρ.origin-length
+                ).if(
+                  α0 ↦ ξ.accum,
+                  α1 ↦ ξ.ρ.rec-filtered(
+                    α0 ↦ Φ.org.eolang.number(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ 3F-F0-00-00-00-00-00-00
+                      )
+                    ).plus(
+                      α0 ↦ ξ.index
+                    ).as-bytes,
+                    α1 ↦ ξ.ρ.func(
+                      α0 ↦ ξ.item,
+                      α1 ↦ ξ.index
+                    ).if(
+                      α0 ↦ ξ.accum.with(
+                        α0 ↦ ξ.item
+                      ),
+                      α1 ↦ ξ.accum
+                    )
+                  )
+                )
+              ⟧
+            ⟧,
+            filtered ↦ ⟦
+              func ↦ ∅,
+              φ ↦ ξ.ρ.filteredi(
+                α0 ↦ ξ.auto-named-attr-at-245-32
+              ),
+              auto-named-attr-at-245-32 ↦ ⟦
+                φ ↦ ξ.ρ.func(
+                  α0 ↦ ξ.item
+                ),
+                item ↦ ∅,
+                index ↦ ∅
+              ⟧
+            ⟧,
+            head ↦ ⟦
+              index ↦ ∅,
+              idx ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.index
+              ).as-bytes,
+              φ ↦ Φ.org.eolang.switch(
+                α0 ↦ Φ.org.eolang.tuple(
+                  α0 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple.empty,
+                        α1 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple(
+                            α0 ↦ Φ.org.eolang.tuple.empty,
+                            α1 ↦ Φ.org.eolang.number(
+                              α0 ↦ Φ.org.eolang.bytes(
+                                Δ ⤍ 00-00-00-00-00-00-00-00
+                              )
+                            ).eq(
+                              α0 ↦ ξ.idx
+                            )
+                          ),
+                          α1 ↦ ξ.ρ.ρ.list(
+                            α0 ↦ Φ.org.eolang.tuple.empty
+                          )
+                        )
+                      ),
+                      α1 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple.empty,
+                          α1 ↦ Φ.org.eolang.number(
+                            α0 ↦ Φ.org.eolang.bytes(
+                              Δ ⤍ 00-00-00-00-00-00-00-00
+                            )
+                          ).gt(
+                            α0 ↦ ξ.idx
+                          )
+                        ),
+                        α1 ↦ ξ.ρ.tail(
+                          α0 ↦ ξ.index.as-number.neg
+                        )
+                      )
+                    ),
+                    α1 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple.empty,
+                        α1 ↦ ξ.ρ.origin.length.lte(
+                          α0 ↦ ξ.idx
+                        )
+                      ),
+                      α1 ↦ ξ.ρ
+                    )
+                  ),
+                  α1 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple.empty,
+                      α1 ↦ Φ.org.eolang.true
+                    ),
+                    α1 ↦ ξ.ρ.ρ.list(
+                      α0 ↦ ξ.ρ.reducedi(
+                        α0 ↦ Φ.org.eolang.tuple.empty,
+                        α1 ↦ ξ.auto-named-attr-at-266-32
+                      )
+                    )
+                  )
+                )
+              ),
+              auto-named-attr-at-266-32 ↦ ⟦
+                accum ↦ ∅,
+                item ↦ ∅,
+                index ↦ ∅,
+                φ ↦ ξ.index.gte(
+                  α0 ↦ ξ.ρ.idx
+                ).if(
+                  α0 ↦ ξ.accum,
+                  α1 ↦ ξ.accum.with(
+                    α0 ↦ ξ.item
+                  )
+                )
+              ⟧
+            ⟧,
+            tail ↦ ⟦
+              index ↦ ∅,
+              idx ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.index
+              ).as-bytes,
+              start ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.ρ.origin.length.minus(
+                  α0 ↦ ξ.idx.as-number
+                )
+              ).as-bytes,
+              φ ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-00-00-00-00-00-00-00
+                )
+              ).gt(
+                α0 ↦ ξ.start
+              ).if(
+                α0 ↦ ξ.ρ,
+                α1 ↦ ξ.ρ.ρ.list(
+                  α0 ↦ ξ.ρ.reducedi(
+                    α0 ↦ Φ.org.eolang.tuple.empty,
+                    α1 ↦ ξ.auto-named-attr-at-282-26
+                  )
+                )
+              ),
+              auto-named-attr-at-282-26 ↦ ⟦
+                accum ↦ ∅,
+                item ↦ ∅,
+                idx ↦ ∅,
+                φ ↦ ξ.idx.gte(
+                  α0 ↦ ξ.ρ.start
+                ).if(
+                  α0 ↦ ξ.accum.with(
+                    α0 ↦ ξ.item
+                  ),
+                  α1 ↦ ξ.accum
+                )
+              ⟧
+            ⟧
+          ⟧,
+          λ ⤍ Package
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

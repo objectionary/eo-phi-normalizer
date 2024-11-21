@@ -1,0 +1,28 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        io ↦ ⟦
+          dead-input ↦ ⟦
+            read ↦ ⟦
+              size ↦ ∅,
+              φ ↦ ξ.input-block,
+              input-block ↦ ⟦
+                φ ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ --
+                ),
+                read ↦ ⟦
+                  φ ↦ ξ.ρ.ρ.input-block,
+                  size ↦ ∅
+                ⟧
+              ⟧
+            ⟧
+          ⟧,
+          λ ⤍ Package
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

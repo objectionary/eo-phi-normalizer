@@ -207,6 +207,7 @@
                     ${lib.concatMapStringsSep "\n" (x: "mdsh -i site/docs/src/${x} --work_dir .") [
                       "common/celsius.md"
                       "eo-phi-normalizer.md"
+                      "installation.md"
                       "pipeline.md"
                       "quick-start.md"
                       "eo-phi-normalizer/dataize.md"

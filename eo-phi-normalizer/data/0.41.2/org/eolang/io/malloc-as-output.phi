@@ -1,0 +1,52 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        io ↦ ⟦
+          malloc-as-output ↦ ⟦
+            allocated ↦ ∅,
+            write ↦ ⟦
+              buffer ↦ ∅,
+              φ ↦ ξ.output-block(
+                α0 ↦ Φ.org.eolang.number(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 00-00-00-00-00-00-00-00
+                  )
+                )
+              ).write(
+                α0 ↦ ξ.buffer
+              ).self,
+              output-block ↦ ⟦
+                offset ↦ ∅,
+                self ↦ ξ,
+                φ ↦ Φ.org.eolang.true,
+                write ↦ ⟦
+                  buffer ↦ ∅,
+                  φ ↦ Φ.org.eolang.seq(
+                    α0 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple.empty,
+                        α1 ↦ ξ.ρ.ρ.ρ.allocated.write(
+                          α0 ↦ ξ.ρ.offset,
+                          α1 ↦ ξ.buffer
+                        )
+                      ),
+                      α1 ↦ ξ.ρ.ρ.output-block(
+                        α0 ↦ ξ.ρ.offset.plus(
+                          α0 ↦ ξ.buffer.size
+                        )
+                      )
+                    )
+                  ).self
+                ⟧
+              ⟧
+            ⟧
+          ⟧,
+          λ ⤍ Package
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

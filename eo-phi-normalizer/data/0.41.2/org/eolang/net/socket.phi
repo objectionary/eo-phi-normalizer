@@ -1,0 +1,1178 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        net ↦ ⟦
+          socket ↦ ⟦
+            address ↦ ∅,
+            port ↦ ∅,
+            φ ↦ Φ.org.eolang.sys.os.is-windows.if(
+              α0 ↦ ξ.win-socket(
+                α0 ↦ ξ.address,
+                α1 ↦ ξ.port
+              ),
+              α1 ↦ ξ.posix-socket(
+                α0 ↦ ξ.address,
+                α1 ↦ ξ.port
+              )
+            ),
+            htons ↦ ⟦
+              port ↦ ∅,
+              bts ↦ ξ.port.as-i16.as-bytes,
+              φ ↦ ξ.bts.and(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ FF-
+                )
+              ).left(
+                α0 ↦ Φ.org.eolang.number(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 40-20-00-00-00-00-00-00
+                  )
+                )
+              ).or(
+                α0 ↦ ξ.bts.right(
+                  α0 ↦ Φ.org.eolang.number(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 40-20-00-00-00-00-00-00
+                    )
+                  )
+                ).and(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ FF-
+                  )
+                )
+              ).as-i16
+            ⟧,
+            as-input ↦ ⟦
+              recv ↦ ∅,
+              read ↦ ⟦
+                size ↦ ∅,
+                φ ↦ ξ.input-block(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ --
+                  )
+                ).read(
+                  α0 ↦ ξ.size
+                ).self,
+                input-block ↦ ⟦
+                  buffer ↦ ∅,
+                  self ↦ ξ,
+                  φ ↦ ξ.buffer,
+                  read ↦ ⟦
+                    size ↦ ∅,
+                    read-bytes ↦ ξ.ρ.ρ.ρ.recv(
+                      α0 ↦ ξ.size
+                    ).as-bytes,
+                    φ ↦ Φ.org.eolang.seq(
+                      α0 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple.empty,
+                          α1 ↦ ξ.read-bytes
+                        ),
+                        α1 ↦ ξ.ρ.ρ.input-block(
+                          α0 ↦ ξ.read-bytes
+                        )
+                      )
+                    ).self
+                  ⟧
+                ⟧
+              ⟧
+            ⟧,
+            as-output ↦ ⟦
+              send ↦ ∅,
+              write ↦ ⟦
+                buffer ↦ ∅,
+                φ ↦ ξ.output-block.write(
+                  α0 ↦ ξ.buffer
+                ).self,
+                output-block ↦ ⟦
+                  self ↦ ξ,
+                  φ ↦ Φ.org.eolang.true,
+                  write ↦ ⟦
+                    buffer ↦ ∅,
+                    φ ↦ Φ.org.eolang.seq(
+                      α0 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple.empty,
+                          α1 ↦ ξ.ρ.ρ.ρ.send(
+                            α0 ↦ ξ.buffer
+                          )
+                        ),
+                        α1 ↦ ξ.ρ.ρ.output-block
+                      )
+                    ).self
+                  ⟧
+                ⟧
+              ⟧
+            ⟧,
+            posix-socket ↦ ⟦
+              address ↦ ∅,
+              port ↦ ∅,
+              sd ↦ Φ.org.eolang.sys.posix(
+                α0 ↦ Φ.org.eolang.string(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 73-6F-63-6B-65-74
+                  )
+                ),
+                α1 ↦ Φ.org.eolang.tuple(
+                  α0 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple.empty,
+                      α1 ↦ Φ.org.eolang.sys.posix.af-inet
+                    ),
+                    α1 ↦ Φ.org.eolang.sys.posix.sock-stream
+                  ),
+                  α1 ↦ Φ.org.eolang.sys.posix.ipproto-tcp
+                )
+              ).code,
+              inet-addr ↦ Φ.org.eolang.sys.posix(
+                α0 ↦ Φ.org.eolang.string(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 69-6E-65-74-5F-61-64-64-72
+                  )
+                ),
+                α1 ↦ Φ.org.eolang.tuple(
+                  α0 ↦ Φ.org.eolang.tuple.empty,
+                  α1 ↦ ξ.address
+                )
+              ).code,
+              inet-addr-as-int ↦ ξ.inet-addr.eq(
+                α0 ↦ Φ.org.eolang.sys.posix.inaddr-none
+              ).if(
+                α0 ↦ Φ.org.eolang.error(
+                  α0 ↦ Φ.org.eolang.txt.sprintf(
+                    α0 ↦ Φ.org.eolang.string(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ 43-6F-75-6C-64-6E-27-74-20-63-6F-6E-76-65-72-74-20-61-6E-20-49-50-76-34-20-61-64-64-72-65-73-73-20-27-25-73-27-20-69-6E-74-6F-20-61-20-33-32-2D-62-69-74-20-69-6E-74-65-67-65-72-20-76-69-61-20-27-69-6E-65-74-5F-61-64-64-72-27-20-70-6F-73-69-78-20-73-79-73-63-61-6C-6C-2C-20-72-65-61-73-6F-6E-3A-20-27-25-73-27
+                      )
+                    ),
+                    α1 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple.empty,
+                        α1 ↦ ξ.address
+                      ),
+                      α1 ↦ ξ.strerror.code
+                    )
+                  )
+                ),
+                α1 ↦ ξ.inet-addr.as-i32
+              ),
+              sockaddr ↦ Φ.org.eolang.sys.posix.sockaddr-in(
+                α0 ↦ Φ.org.eolang.sys.posix.af-inet.as-i16,
+                α1 ↦ ξ.ρ.htons(
+                  α0 ↦ ξ.port
+                ),
+                α2 ↦ ξ.inet-addr-as-int
+              ),
+              scoped-socket ↦ ⟦
+                sockfd ↦ ∅,
+                as-input ↦ ξ.ρ.ρ.ρ.as-input(
+                  α0 ↦ ξ.recv
+                ),
+                as-output ↦ ξ.ρ.ρ.ρ.as-output(
+                  α0 ↦ ξ.send
+                ),
+                send ↦ ⟦
+                  buffer ↦ ∅,
+                  buff ↦ Φ.org.eolang.dataized(
+                    α0 ↦ ξ.buffer
+                  ).as-bytes,
+                  sent ↦ Φ.org.eolang.sys.posix(
+                    α0 ↦ Φ.org.eolang.string(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ 73-65-6E-64
+                      )
+                    ),
+                    α1 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple(
+                            α0 ↦ Φ.org.eolang.tuple.empty,
+                            α1 ↦ ξ.ρ.sockfd
+                          ),
+                          α1 ↦ ξ.buff
+                        ),
+                        α1 ↦ ξ.buff.size
+                      ),
+                      α1 ↦ Φ.org.eolang.number(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 00-00-00-00-00-00-00-00
+                        )
+                      )
+                    )
+                  ).code,
+                  φ ↦ ξ.sent.eq(
+                    α0 ↦ Φ.org.eolang.number(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ BF-F0-00-00-00-00-00-00
+                      )
+                    )
+                  ).if(
+                    α0 ↦ Φ.org.eolang.error(
+                      α0 ↦ Φ.org.eolang.txt.sprintf(
+                        α0 ↦ Φ.org.eolang.string(
+                          α0 ↦ Φ.org.eolang.bytes(
+                            Δ ⤍ 46-61-69-6C-65-64-20-74-6F-20-73-65-6E-64-20-6D-65-73-73-61-67-65-20-74-68-72-6F-75-67-68-20-74-68-65-20-73-6F-63-6B-65-74-20-27-25-64-27-2C-20-72-65-61-73-6F-6E-3A-20-25-73
+                          )
+                        ),
+                        α1 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple(
+                            α0 ↦ Φ.org.eolang.tuple.empty,
+                            α1 ↦ ξ.ρ.sockfd
+                          ),
+                          α1 ↦ ξ.ρ.ρ.strerror.code
+                        )
+                      )
+                    ),
+                    α1 ↦ ξ.sent
+                  )
+                ⟧,
+                recv ↦ ⟦
+                  size ↦ ∅,
+                  received ↦ Φ.org.eolang.sys.posix(
+                    α0 ↦ Φ.org.eolang.string(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ 72-65-63-76
+                      )
+                    ),
+                    α1 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple.empty,
+                          α1 ↦ ξ.ρ.sockfd
+                        ),
+                        α1 ↦ ξ.size
+                      ),
+                      α1 ↦ Φ.org.eolang.number(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 00-00-00-00-00-00-00-00
+                        )
+                      )
+                    )
+                  ).called,
+                  φ ↦ ξ.received.code.eq(
+                    α0 ↦ Φ.org.eolang.number(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ BF-F0-00-00-00-00-00-00
+                      )
+                    )
+                  ).if(
+                    α0 ↦ Φ.org.eolang.error(
+                      α0 ↦ Φ.org.eolang.txt.sprintf(
+                        α0 ↦ Φ.org.eolang.string(
+                          α0 ↦ Φ.org.eolang.bytes(
+                            Δ ⤍ 46-61-69-6C-65-64-20-74-6F-20-72-65-63-65-69-76-65-20-64-61-74-61-20-66-72-6F-6D-20-74-68-65-20-73-6F-63-6B-65-74-20-27-25-64-27-2C-20-72-65-61-73-6F-6E-3A-20-25-73
+                          )
+                        ),
+                        α1 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple(
+                            α0 ↦ Φ.org.eolang.tuple.empty,
+                            α1 ↦ ξ.ρ.sockfd
+                          ),
+                          α1 ↦ ξ.ρ.ρ.strerror.code
+                        )
+                      )
+                    ),
+                    α1 ↦ ξ.received.output
+                  )
+                ⟧
+              ⟧,
+              strerror ↦ ⟦
+                φ ↦ Φ.org.eolang.sys.posix(
+                  α0 ↦ Φ.org.eolang.string(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 73-74-72-65-72-72-6F-72
+                    )
+                  ),
+                  α1 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple.empty,
+                    α1 ↦ Φ.org.eolang.sys.posix(
+                      α0 ↦ Φ.org.eolang.string(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 65-72-72-6E-6F
+                        )
+                      ),
+                      α1 ↦ Φ.org.eolang.tuple.empty
+                    ).code
+                  )
+                )
+              ⟧,
+              closed-socket ↦ ⟦
+                sockfd ↦ ∅,
+                closed ↦ Φ.org.eolang.sys.posix(
+                  α0 ↦ Φ.org.eolang.string(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 63-6C-6F-73-65
+                    )
+                  ),
+                  α1 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple.empty,
+                    α1 ↦ ξ.sockfd
+                  )
+                ).code,
+                φ ↦ ξ.closed.eq(
+                  α0 ↦ Φ.org.eolang.number(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ BF-F0-00-00-00-00-00-00
+                    )
+                  )
+                ).if(
+                  α0 ↦ Φ.org.eolang.error(
+                    α0 ↦ Φ.org.eolang.txt.sprintf(
+                      α0 ↦ Φ.org.eolang.string(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 43-6F-75-6C-64-6E-27-74-20-63-6C-6F-73-65-20-61-20-70-6F-73-69-78-20-73-6F-63-6B-65-74-20-27-25-64-27-2C-20-72-65-61-73-6F-6E-3A-20-27-25-73-27
+                        )
+                      ),
+                      α1 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple.empty,
+                          α1 ↦ ξ.sockfd
+                        ),
+                        α1 ↦ ξ.ρ.strerror.code
+                      )
+                    )
+                  ),
+                  α1 ↦ Φ.org.eolang.true
+                )
+              ⟧,
+              safe-socket ↦ ⟦
+                scope ↦ ∅,
+                φ ↦ ξ.ρ.sd.eq(
+                  α0 ↦ Φ.org.eolang.number(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ BF-F0-00-00-00-00-00-00
+                    )
+                  )
+                ).if(
+                  α0 ↦ Φ.org.eolang.error(
+                    α0 ↦ Φ.org.eolang.txt.sprintf(
+                      α0 ↦ Φ.org.eolang.string(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 43-6F-75-6C-64-6E-27-74-20-63-72-65-61-74-65-20-61-20-70-6F-73-69-78-20-73-6F-63-6B-65-74-2C-20-72-65-61-73-6F-6E-3A-20-27-25-73-27
+                        )
+                      ),
+                      α1 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple.empty,
+                        α1 ↦ ξ.ρ.strerror.code
+                      )
+                    )
+                  ),
+                  α1 ↦ Φ.org.eolang.try(
+                    α0 ↦ ξ.scope,
+                    α1 ↦ ⟦
+                      φ ↦ Φ.org.eolang.error(
+                        α0 ↦ ξ.ex
+                      ),
+                      ex ↦ ∅
+                    ⟧,
+                    α2 ↦ ξ.ρ.closed-socket(
+                      α0 ↦ ξ.ρ.sd
+                    )
+                  )
+                )
+              ⟧,
+              connect ↦ ⟦
+                scope ↦ ∅,
+                φ ↦ ξ.ρ.safe-socket(
+                  α0 ↦ ξ.auto-named-attr-at-278-10
+                ),
+                auto-named-attr-at-278-10 ↦ ⟦
+                  sock ↦ ξ.ρ.ρ,
+                  connected ↦ Φ.org.eolang.sys.posix(
+                    α0 ↦ Φ.org.eolang.string(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ 63-6F-6E-6E-65-63-74
+                      )
+                    ),
+                    α1 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple.empty,
+                          α1 ↦ ξ.sock.sd
+                        ),
+                        α1 ↦ ξ.sock.sockaddr
+                      ),
+                      α1 ↦ ξ.sock.sockaddr.size
+                    )
+                  ).code,
+                  φ ↦ ξ.connected.eq(
+                    α0 ↦ Φ.org.eolang.number(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ BF-F0-00-00-00-00-00-00
+                      )
+                    )
+                  ).if(
+                    α0 ↦ Φ.org.eolang.error(
+                      α0 ↦ Φ.org.eolang.txt.sprintf(
+                        α0 ↦ Φ.org.eolang.string(
+                          α0 ↦ Φ.org.eolang.bytes(
+                            Δ ⤍ 43-6F-75-6C-64-6E-27-74-20-63-6F-6E-6E-65-63-74-20-74-6F-20-27-25-73-3A-25-64-27-20-6F-6E-20-70-6F-73-69-78-20-73-6F-63-6B-65-74-20-27-25-64-27-2C-20-72-65-61-73-6F-6E-3A-20-27-25-73-27
+                          )
+                        ),
+                        α1 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple(
+                            α0 ↦ Φ.org.eolang.tuple(
+                              α0 ↦ Φ.org.eolang.tuple(
+                                α0 ↦ Φ.org.eolang.tuple.empty,
+                                α1 ↦ ξ.sock.address
+                              ),
+                              α1 ↦ ξ.sock.port
+                            ),
+                            α1 ↦ ξ.sock.sd
+                          ),
+                          α1 ↦ ξ.sock.strerror.code
+                        )
+                      )
+                    ),
+                    α1 ↦ Φ.org.eolang.dataized(
+                      α0 ↦ ξ.ρ.scope(
+                        α0 ↦ ξ.sock.scoped-socket(
+                          α0 ↦ ξ.sock.sd
+                        )
+                      )
+                    ).as-bytes
+                  )
+                ⟧
+              ⟧,
+              listen ↦ ⟦
+                scope ↦ ∅,
+                φ ↦ ξ.ρ.safe-socket(
+                  α0 ↦ ξ.auto-named-attr-at-302-10
+                ),
+                auto-named-attr-at-302-10 ↦ ⟦
+                  sock ↦ ξ.ρ.ρ,
+                  bound ↦ Φ.org.eolang.sys.posix(
+                    α0 ↦ Φ.org.eolang.string(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ 62-69-6E-64
+                      )
+                    ),
+                    α1 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple.empty,
+                          α1 ↦ ξ.sock.sd
+                        ),
+                        α1 ↦ ξ.sock.sockaddr
+                      ),
+                      α1 ↦ ξ.sock.sockaddr.size
+                    )
+                  ).code,
+                  listened ↦ Φ.org.eolang.sys.posix(
+                    α0 ↦ Φ.org.eolang.string(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ 6C-69-73-74-65-6E
+                      )
+                    ),
+                    α1 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple.empty,
+                        α1 ↦ ξ.sock.sd
+                      ),
+                      α1 ↦ Φ.org.eolang.number(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 40-A0-00-00-00-00-00-00
+                        )
+                      )
+                    )
+                  ).code,
+                  φ ↦ ξ.bound.eq(
+                    α0 ↦ Φ.org.eolang.number(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ BF-F0-00-00-00-00-00-00
+                      )
+                    )
+                  ).if(
+                    α0 ↦ Φ.org.eolang.error(
+                      α0 ↦ Φ.org.eolang.txt.sprintf(
+                        α0 ↦ Φ.org.eolang.string(
+                          α0 ↦ Φ.org.eolang.bytes(
+                            Δ ⤍ 43-6F-75-6C-64-6E-27-74-20-62-69-6E-64-20-70-6F-73-69-78-20-73-6F-63-6B-65-74-20-27-25-64-27-20-74-6F-20-27-25-73-3A-25-64-27-2C-20-72-65-61-73-6F-6E-3A-20-27-25-73-27
+                          )
+                        ),
+                        α1 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple(
+                            α0 ↦ Φ.org.eolang.tuple(
+                              α0 ↦ Φ.org.eolang.tuple(
+                                α0 ↦ Φ.org.eolang.tuple.empty,
+                                α1 ↦ ξ.sock.sd
+                              ),
+                              α1 ↦ ξ.sock.address
+                            ),
+                            α1 ↦ ξ.sock.port
+                          ),
+                          α1 ↦ ξ.sock.strerror.code
+                        )
+                      )
+                    ),
+                    α1 ↦ ξ.listened.eq(
+                      α0 ↦ Φ.org.eolang.number(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ BF-F0-00-00-00-00-00-00
+                        )
+                      )
+                    ).if(
+                      α0 ↦ Φ.org.eolang.error(
+                        α0 ↦ Φ.org.eolang.txt.sprintf(
+                          α0 ↦ Φ.org.eolang.string(
+                            α0 ↦ Φ.org.eolang.bytes(
+                              Δ ⤍ 46-61-69-6C-65-64-20-74-6F-20-6C-69-73-74-65-6E-20-66-6F-72-20-63-6F-6E-6E-65-63-74-69-6F-6E-73-20-74-6F-20-27-25-73-3A-25-64-27-20-6F-6E-20-73-6F-63-6B-65-74-20-27-25-64-27-2C-20-72-65-61-73-6F-6E-3A-20-27-25-73-27
+                            )
+                          ),
+                          α1 ↦ Φ.org.eolang.tuple(
+                            α0 ↦ Φ.org.eolang.tuple(
+                              α0 ↦ Φ.org.eolang.tuple(
+                                α0 ↦ Φ.org.eolang.tuple(
+                                  α0 ↦ Φ.org.eolang.tuple.empty,
+                                  α1 ↦ ξ.sock.address
+                                ),
+                                α1 ↦ ξ.sock.port
+                              ),
+                              α1 ↦ ξ.sock.sd
+                            ),
+                            α1 ↦ ξ.sock.strerror.code
+                          )
+                        )
+                      ),
+                      α1 ↦ Φ.org.eolang.dataized(
+                        α0 ↦ ξ.ρ.scope(
+                          α0 ↦ ξ.auto-named-attr-at-327-22
+                        )
+                      ).as-bytes
+                    )
+                  ),
+                  auto-named-attr-at-327-22 ↦ ⟦
+                    φ ↦ ξ.ρ.sock.scoped-socket(
+                      α0 ↦ ξ.ρ.sock.sd
+                    ),
+                    accept ↦ ⟦
+                      scope ↦ ∅,
+                      sock ↦ ξ.ρ.ρ.sock,
+                      client-sockfd ↦ Φ.org.eolang.sys.posix(
+                        α0 ↦ Φ.org.eolang.string(
+                          α0 ↦ Φ.org.eolang.bytes(
+                            Δ ⤍ 61-63-63-65-70-74
+                          )
+                        ),
+                        α1 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple(
+                            α0 ↦ Φ.org.eolang.tuple(
+                              α0 ↦ Φ.org.eolang.tuple.empty,
+                              α1 ↦ ξ.sock.sd
+                            ),
+                            α1 ↦ ξ.sock.sockaddr
+                          ),
+                          α1 ↦ ξ.sock.sockaddr.size
+                        )
+                      ).code,
+                      φ ↦ Φ.org.eolang.try(
+                        α0 ↦ ξ.client-sockfd.eq(
+                          α0 ↦ Φ.org.eolang.number(
+                            α0 ↦ Φ.org.eolang.bytes(
+                              Δ ⤍ BF-F0-00-00-00-00-00-00
+                            )
+                          )
+                        ).if(
+                          α0 ↦ Φ.org.eolang.error(
+                            α0 ↦ Φ.org.eolang.txt.sprintf(
+                              α0 ↦ Φ.org.eolang.string(
+                                α0 ↦ Φ.org.eolang.bytes(
+                                  Δ ⤍ 46-61-69-6C-65-64-20-74-6F-20-61-63-63-65-70-74-20-61-20-63-6F-6E-6E-65-63-74-69-6F-6E-20-6F-6E-20-70-6F-73-69-78-20-73-6F-63-6B-65-74-20-27-25-64-27-2C-20-72-65-61-73-6F-6E-3A-20-25-73
+                                )
+                              ),
+                              α1 ↦ Φ.org.eolang.tuple(
+                                α0 ↦ Φ.org.eolang.tuple(
+                                  α0 ↦ Φ.org.eolang.tuple.empty,
+                                  α1 ↦ ξ.sock.sd
+                                ),
+                                α1 ↦ ξ.sock.strerror.code
+                              )
+                            )
+                          ),
+                          α1 ↦ Φ.org.eolang.dataized(
+                            α0 ↦ ξ.scope(
+                              α0 ↦ ξ.sock.scoped-socket(
+                                α0 ↦ ξ.client-sockfd
+                              )
+                            )
+                          ).as-bytes
+                        ),
+                        α1 ↦ ⟦
+                          φ ↦ Φ.org.eolang.error(
+                            α0 ↦ ξ.ex
+                          ),
+                          ex ↦ ∅
+                        ⟧,
+                        α2 ↦ ξ.sock.closed-socket(
+                          α0 ↦ ξ.client-sockfd
+                        )
+                      )
+                    ⟧
+                  ⟧
+                ⟧
+              ⟧
+            ⟧,
+            win-socket ↦ ⟦
+              address ↦ ∅,
+              port ↦ ∅,
+              sd ↦ Φ.org.eolang.sys.win32(
+                α0 ↦ Φ.org.eolang.string(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 73-6F-63-6B-65-74
+                  )
+                ),
+                α1 ↦ Φ.org.eolang.tuple(
+                  α0 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple.empty,
+                      α1 ↦ Φ.org.eolang.sys.win32.af-inet
+                    ),
+                    α1 ↦ Φ.org.eolang.sys.win32.sock-stream
+                  ),
+                  α1 ↦ Φ.org.eolang.sys.win32.ipproto-tcp
+                )
+              ).code,
+              inet-addr ↦ Φ.org.eolang.sys.win32(
+                α0 ↦ Φ.org.eolang.string(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 69-6E-65-74-5F-61-64-64-72
+                  )
+                ),
+                α1 ↦ Φ.org.eolang.tuple(
+                  α0 ↦ Φ.org.eolang.tuple.empty,
+                  α1 ↦ ξ.address
+                )
+              ).code,
+              inet-addr-as-int ↦ ξ.inet-addr.eq(
+                α0 ↦ Φ.org.eolang.sys.win32.inaddr-none
+              ).if(
+                α0 ↦ Φ.org.eolang.error(
+                  α0 ↦ Φ.org.eolang.txt.sprintf(
+                    α0 ↦ Φ.org.eolang.string(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ 43-6F-75-6C-64-6E-27-74-20-63-6F-6E-76-65-72-74-20-61-6E-20-49-50-76-34-20-61-64-64-72-65-73-73-20-27-25-73-27-20-69-6E-74-6F-20-61-20-33-32-2D-62-69-74-20-69-6E-74-65-67-65-72-20-76-69-61-20-27-69-6E-65-74-5F-61-64-64-72-27-20-77-69-6E-33-32-20-66-75-6E-63-74-69-6F-6E-20-63-61-6C-6C-2C-20-57-53-41-20-65-72-72-6F-72-20-63-6F-64-65-3A-20-25-64
+                      )
+                    ),
+                    α1 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple.empty,
+                        α1 ↦ ξ.address
+                      ),
+                      α1 ↦ ξ.last-error.code
+                    )
+                  )
+                ),
+                α1 ↦ ξ.inet-addr.as-i32
+              ),
+              sockaddr ↦ Φ.org.eolang.sys.win32.sockaddr-in(
+                α0 ↦ Φ.org.eolang.sys.win32.af-inet.as-i16,
+                α1 ↦ ξ.ρ.htons(
+                  α0 ↦ ξ.port
+                ),
+                α2 ↦ ξ.inet-addr-as-int
+              ),
+              scoped-socket ↦ ⟦
+                sockfd ↦ ∅,
+                as-input ↦ ξ.ρ.ρ.ρ.as-input(
+                  α0 ↦ ξ.recv
+                ),
+                as-output ↦ ξ.ρ.ρ.ρ.as-output(
+                  α0 ↦ ξ.send
+                ),
+                send ↦ ⟦
+                  buffer ↦ ∅,
+                  buff ↦ Φ.org.eolang.dataized(
+                    α0 ↦ ξ.buffer
+                  ).as-bytes,
+                  sent ↦ Φ.org.eolang.sys.win32(
+                    α0 ↦ Φ.org.eolang.string(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ 73-65-6E-64
+                      )
+                    ),
+                    α1 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple(
+                            α0 ↦ Φ.org.eolang.tuple.empty,
+                            α1 ↦ ξ.ρ.sockfd
+                          ),
+                          α1 ↦ ξ.buff
+                        ),
+                        α1 ↦ ξ.buff.size
+                      ),
+                      α1 ↦ Φ.org.eolang.number(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 00-00-00-00-00-00-00-00
+                        )
+                      )
+                    )
+                  ).code,
+                  φ ↦ ξ.sent.eq(
+                    α0 ↦ Φ.org.eolang.number(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ BF-F0-00-00-00-00-00-00
+                      )
+                    )
+                  ).if(
+                    α0 ↦ Φ.org.eolang.error(
+                      α0 ↦ Φ.org.eolang.txt.sprintf(
+                        α0 ↦ Φ.org.eolang.string(
+                          α0 ↦ Φ.org.eolang.bytes(
+                            Δ ⤍ 46-61-69-6C-65-64-20-74-6F-20-73-65-6E-64-20-6D-65-73-73-61-67-65-20-74-68-72-6F-75-67-68-20-74-68-65-20-73-6F-63-6B-65-74-20-27-25-64-27-2C-20-57-53-41-20-65-72-72-6F-72-20-63-6F-64-65-3A-20-25-64
+                          )
+                        ),
+                        α1 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple(
+                            α0 ↦ Φ.org.eolang.tuple.empty,
+                            α1 ↦ ξ.ρ.sockfd
+                          ),
+                          α1 ↦ ξ.ρ.ρ.last-error.code
+                        )
+                      )
+                    ),
+                    α1 ↦ ξ.sent
+                  )
+                ⟧,
+                recv ↦ ⟦
+                  size ↦ ∅,
+                  received ↦ Φ.org.eolang.sys.win32(
+                    α0 ↦ Φ.org.eolang.string(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ 72-65-63-76
+                      )
+                    ),
+                    α1 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple.empty,
+                          α1 ↦ ξ.ρ.sockfd
+                        ),
+                        α1 ↦ ξ.size
+                      ),
+                      α1 ↦ Φ.org.eolang.number(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 00-00-00-00-00-00-00-00
+                        )
+                      )
+                    )
+                  ).called,
+                  φ ↦ ξ.received.code.eq(
+                    α0 ↦ Φ.org.eolang.number(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ BF-F0-00-00-00-00-00-00
+                      )
+                    )
+                  ).if(
+                    α0 ↦ Φ.org.eolang.error(
+                      α0 ↦ Φ.org.eolang.txt.sprintf(
+                        α0 ↦ Φ.org.eolang.string(
+                          α0 ↦ Φ.org.eolang.bytes(
+                            Δ ⤍ 46-61-69-6C-65-64-20-74-6F-20-72-65-63-65-69-76-65-20-64-61-74-61-20-66-72-6F-6D-20-74-68-65-20-73-6F-63-6B-65-74-20-27-25-64-27-2C-20-57-53-41-20-65-72-72-6F-72-20-63-6F-64-65-3A-20-25-64
+                          )
+                        ),
+                        α1 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple(
+                            α0 ↦ Φ.org.eolang.tuple.empty,
+                            α1 ↦ ξ.ρ.sockfd
+                          ),
+                          α1 ↦ ξ.ρ.ρ.last-error.code
+                        )
+                      )
+                    ),
+                    α1 ↦ ξ.received.output
+                  )
+                ⟧
+              ⟧,
+              last-error ↦ ⟦
+                φ ↦ Φ.org.eolang.sys.win32(
+                  α0 ↦ Φ.org.eolang.string(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 57-53-41-47-65-74-4C-61-73-74-45-72-72-6F-72
+                    )
+                  ),
+                  α1 ↦ Φ.org.eolang.tuple.empty
+                )
+              ⟧,
+              closed-socket ↦ ⟦
+                sockfd ↦ ∅,
+                closed ↦ Φ.org.eolang.sys.win32(
+                  α0 ↦ Φ.org.eolang.string(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 63-6C-6F-73-65-73-6F-63-6B-65-74
+                    )
+                  ),
+                  α1 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple.empty,
+                    α1 ↦ ξ.sockfd
+                  )
+                ).code,
+                φ ↦ ξ.closed.eq(
+                  α0 ↦ Φ.org.eolang.sys.win32.socket-error
+                ).if(
+                  α0 ↦ Φ.org.eolang.error(
+                    α0 ↦ Φ.org.eolang.txt.sprintf(
+                      α0 ↦ Φ.org.eolang.string(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 43-6F-75-6C-64-6E-27-74-20-63-6C-6F-73-65-20-61-20-77-69-6E-33-32-20-73-6F-63-6B-65-74-20-27-25-64-27-2C-20-57-53-41-20-65-72-72-6F-72-20-63-6F-64-65-3A-20-25-64
+                        )
+                      ),
+                      α1 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple.empty,
+                          α1 ↦ ξ.sockfd
+                        ),
+                        α1 ↦ ξ.ρ.last-error.code
+                      )
+                    )
+                  ),
+                  α1 ↦ Φ.org.eolang.true
+                )
+              ⟧,
+              safe-socket ↦ ⟦
+                scope ↦ ∅,
+                started-up ↦ Φ.org.eolang.sys.win32(
+                  α0 ↦ Φ.org.eolang.string(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 57-53-41-53-74-61-72-74-75-70
+                    )
+                  ),
+                  α1 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple.empty,
+                    α1 ↦ Φ.org.eolang.sys.win32.winsock-version-2-2
+                  )
+                ).code,
+                cleaned-up ↦ Φ.org.eolang.sys.win32(
+                  α0 ↦ Φ.org.eolang.string(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 57-53-41-43-6C-65-61-6E-75-70
+                    )
+                  ),
+                  α1 ↦ Φ.org.eolang.tuple.empty
+                ).code,
+                φ ↦ ξ.started-up.eq(
+                  α0 ↦ Φ.org.eolang.number(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 00-00-00-00-00-00-00-00
+                    )
+                  )
+                ).not.if(
+                  α0 ↦ Φ.org.eolang.error(
+                    α0 ↦ Φ.org.eolang.txt.sprintf(
+                      α0 ↦ Φ.org.eolang.string(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 43-6F-75-6C-64-6E-27-74-20-69-6E-69-74-69-61-6C-69-7A-65-20-57-69-6E-73-6F-63-6B-20-76-69-61-20-27-57-53-41-53-74-61-72-74-75-70-27-20-63-61-6C-6C-2C-20-57-53-41-20-65-72-72-6F-72-20-63-6F-64-65-3A-20-25-64
+                        )
+                      ),
+                      α1 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple.empty,
+                        α1 ↦ ξ.started-up
+                      )
+                    )
+                  ),
+                  α1 ↦ Φ.org.eolang.try(
+                    α0 ↦ ξ.ρ.sd.eq(
+                      α0 ↦ Φ.org.eolang.number(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ BF-F0-00-00-00-00-00-00
+                        )
+                      )
+                    ).if(
+                      α0 ↦ Φ.org.eolang.error(
+                        α0 ↦ Φ.org.eolang.txt.sprintf(
+                          α0 ↦ Φ.org.eolang.string(
+                            α0 ↦ Φ.org.eolang.bytes(
+                              Δ ⤍ 43-6F-75-6C-64-6E-27-74-20-63-72-65-61-74-65-20-61-20-77-69-6E-33-32-20-73-6F-63-6B-65-74-2C-20-57-53-41-20-65-72-72-6F-72-20-63-6F-64-65-3A-20-25-64
+                            )
+                          ),
+                          α1 ↦ Φ.org.eolang.tuple(
+                            α0 ↦ Φ.org.eolang.tuple.empty,
+                            α1 ↦ ξ.ρ.last-error.code
+                          )
+                        )
+                      ),
+                      α1 ↦ Φ.org.eolang.try(
+                        α0 ↦ ξ.scope,
+                        α1 ↦ ⟦
+                          φ ↦ Φ.org.eolang.error(
+                            α0 ↦ ξ.ex
+                          ),
+                          ex ↦ ∅
+                        ⟧,
+                        α2 ↦ ξ.ρ.closed-socket(
+                          α0 ↦ ξ.ρ.sd
+                        )
+                      )
+                    ),
+                    α1 ↦ ⟦
+                      φ ↦ Φ.org.eolang.error(
+                        α0 ↦ ξ.ex
+                      ),
+                      ex ↦ ∅
+                    ⟧,
+                    α2 ↦ ξ.cleaned-up.eq(
+                      α0 ↦ Φ.org.eolang.sys.win32.socket-error
+                    ).if(
+                      α0 ↦ Φ.org.eolang.error(
+                        α0 ↦ Φ.org.eolang.string(
+                          α0 ↦ Φ.org.eolang.bytes(
+                            Δ ⤍ 43-6F-75-6C-64-6E-27-74-20-63-6C-65-61-6E-75-70-20-57-69-6E-73-6F-63-6B-20-72-65-73-6F-75-72-63-65-73
+                          )
+                        )
+                      ),
+                      α1 ↦ Φ.org.eolang.true
+                    )
+                  )
+                )
+              ⟧,
+              connect ↦ ⟦
+                scope ↦ ∅,
+                φ ↦ ξ.ρ.safe-socket(
+                  α0 ↦ ξ.auto-named-attr-at-487-10
+                ),
+                auto-named-attr-at-487-10 ↦ ⟦
+                  sock ↦ ξ.ρ.ρ,
+                  connected ↦ Φ.org.eolang.sys.win32(
+                    α0 ↦ Φ.org.eolang.string(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ 63-6F-6E-6E-65-63-74
+                      )
+                    ),
+                    α1 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple.empty,
+                          α1 ↦ ξ.sock.sd
+                        ),
+                        α1 ↦ ξ.sock.sockaddr
+                      ),
+                      α1 ↦ ξ.sock.sockaddr.size
+                    )
+                  ).code,
+                  φ ↦ ξ.connected.eq(
+                    α0 ↦ Φ.org.eolang.number(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ BF-F0-00-00-00-00-00-00
+                      )
+                    )
+                  ).if(
+                    α0 ↦ Φ.org.eolang.error(
+                      α0 ↦ Φ.org.eolang.txt.sprintf(
+                        α0 ↦ Φ.org.eolang.string(
+                          α0 ↦ Φ.org.eolang.bytes(
+                            Δ ⤍ 43-6F-75-6C-64-6E-27-74-20-63-6F-6E-6E-65-63-74-20-74-6F-20-27-25-73-3A-25-64-27-20-6F-6E-20-77-69-6E-33-32-20-73-6F-63-6B-65-74-20-27-25-64-27-2C-20-57-53-41-20-65-72-72-6F-72-20-63-6F-64-65-3A-20-25-64
+                          )
+                        ),
+                        α1 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple(
+                            α0 ↦ Φ.org.eolang.tuple(
+                              α0 ↦ Φ.org.eolang.tuple(
+                                α0 ↦ Φ.org.eolang.tuple.empty,
+                                α1 ↦ ξ.sock.address
+                              ),
+                              α1 ↦ ξ.sock.port
+                            ),
+                            α1 ↦ ξ.sock.sd
+                          ),
+                          α1 ↦ ξ.sock.last-error.code
+                        )
+                      )
+                    ),
+                    α1 ↦ Φ.org.eolang.dataized(
+                      α0 ↦ ξ.ρ.scope(
+                        α0 ↦ ξ.sock.scoped-socket(
+                          α0 ↦ ξ.sock.sd
+                        )
+                      )
+                    ).as-bytes
+                  )
+                ⟧
+              ⟧,
+              listen ↦ ⟦
+                scope ↦ ∅,
+                φ ↦ ξ.ρ.safe-socket(
+                  α0 ↦ ξ.auto-named-attr-at-511-10
+                ),
+                auto-named-attr-at-511-10 ↦ ⟦
+                  sock ↦ ξ.ρ.ρ,
+                  bound ↦ Φ.org.eolang.sys.win32(
+                    α0 ↦ Φ.org.eolang.string(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ 62-69-6E-64
+                      )
+                    ),
+                    α1 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple.empty,
+                          α1 ↦ ξ.sock.sd
+                        ),
+                        α1 ↦ ξ.sock.sockaddr
+                      ),
+                      α1 ↦ ξ.sock.sockaddr.size
+                    )
+                  ).code,
+                  listened ↦ Φ.org.eolang.sys.win32(
+                    α0 ↦ Φ.org.eolang.string(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ 6C-69-73-74-65-6E
+                      )
+                    ),
+                    α1 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple.empty,
+                        α1 ↦ ξ.sock.sd
+                      ),
+                      α1 ↦ Φ.org.eolang.number(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 40-A0-00-00-00-00-00-00
+                        )
+                      )
+                    )
+                  ).code,
+                  φ ↦ ξ.bound.eq(
+                    α0 ↦ Φ.org.eolang.number(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ BF-F0-00-00-00-00-00-00
+                      )
+                    )
+                  ).if(
+                    α0 ↦ Φ.org.eolang.error(
+                      α0 ↦ Φ.org.eolang.txt.sprintf(
+                        α0 ↦ Φ.org.eolang.string(
+                          α0 ↦ Φ.org.eolang.bytes(
+                            Δ ⤍ 43-6F-75-6C-64-6E-27-74-20-62-69-6E-64-20-77-69-6E-33-32-20-73-6F-63-6B-65-74-20-27-25-64-27-20-74-6F-20-27-25-73-3A-25-64-27-2C-20-57-53-41-20-65-72-72-6F-72-20-63-6F-64-65-3A-20-25-64
+                          )
+                        ),
+                        α1 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple(
+                            α0 ↦ Φ.org.eolang.tuple(
+                              α0 ↦ Φ.org.eolang.tuple(
+                                α0 ↦ Φ.org.eolang.tuple.empty,
+                                α1 ↦ ξ.sock.sd
+                              ),
+                              α1 ↦ ξ.sock.address
+                            ),
+                            α1 ↦ ξ.sock.port
+                          ),
+                          α1 ↦ ξ.sock.last-error.code
+                        )
+                      )
+                    ),
+                    α1 ↦ ξ.listened.eq(
+                      α0 ↦ Φ.org.eolang.number(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ BF-F0-00-00-00-00-00-00
+                        )
+                      )
+                    ).if(
+                      α0 ↦ Φ.org.eolang.error(
+                        α0 ↦ Φ.org.eolang.txt.sprintf(
+                          α0 ↦ Φ.org.eolang.string(
+                            α0 ↦ Φ.org.eolang.bytes(
+                              Δ ⤍ 46-61-69-6C-65-64-20-74-6F-20-6C-69-73-74-65-6E-20-66-6F-72-20-63-6F-6E-6E-65-63-74-69-6F-6E-73-20-74-6F-20-27-25-73-3A-25-64-27-20-6F-6E-20-73-6F-63-6B-65-74-20-27-25-64-27-2C-20-57-53-41-20-65-72-72-6F-72-20-63-6F-64-65-3A-20-25-64
+                            )
+                          ),
+                          α1 ↦ Φ.org.eolang.tuple(
+                            α0 ↦ Φ.org.eolang.tuple(
+                              α0 ↦ Φ.org.eolang.tuple(
+                                α0 ↦ Φ.org.eolang.tuple(
+                                  α0 ↦ Φ.org.eolang.tuple.empty,
+                                  α1 ↦ ξ.sock.address
+                                ),
+                                α1 ↦ ξ.sock.port
+                              ),
+                              α1 ↦ ξ.sock.sd
+                            ),
+                            α1 ↦ ξ.sock.last-error.code
+                          )
+                        )
+                      ),
+                      α1 ↦ Φ.org.eolang.dataized(
+                        α0 ↦ ξ.ρ.scope(
+                          α0 ↦ ξ.auto-named-attr-at-536-22
+                        )
+                      ).as-bytes
+                    )
+                  ),
+                  auto-named-attr-at-536-22 ↦ ⟦
+                    φ ↦ ξ.ρ.sock.scoped-socket(
+                      α0 ↦ ξ.ρ.sock.sd
+                    ),
+                    accept ↦ ⟦
+                      scope ↦ ∅,
+                      sock ↦ ξ.ρ.ρ.sock,
+                      client-sockfd ↦ Φ.org.eolang.sys.win32(
+                        α0 ↦ Φ.org.eolang.string(
+                          α0 ↦ Φ.org.eolang.bytes(
+                            Δ ⤍ 61-63-63-65-70-74
+                          )
+                        ),
+                        α1 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple(
+                            α0 ↦ Φ.org.eolang.tuple(
+                              α0 ↦ Φ.org.eolang.tuple.empty,
+                              α1 ↦ ξ.sock.sd
+                            ),
+                            α1 ↦ ξ.sock.sockaddr
+                          ),
+                          α1 ↦ ξ.sock.sockaddr.size
+                        )
+                      ).code,
+                      φ ↦ Φ.org.eolang.try(
+                        α0 ↦ ξ.client-sockfd.eq(
+                          α0 ↦ Φ.org.eolang.number(
+                            α0 ↦ Φ.org.eolang.bytes(
+                              Δ ⤍ BF-F0-00-00-00-00-00-00
+                            )
+                          )
+                        ).if(
+                          α0 ↦ Φ.org.eolang.error(
+                            α0 ↦ Φ.org.eolang.txt.sprintf(
+                              α0 ↦ Φ.org.eolang.string(
+                                α0 ↦ Φ.org.eolang.bytes(
+                                  Δ ⤍ 46-61-69-6C-65-64-20-74-6F-20-61-63-63-65-70-74-20-61-20-63-6F-6E-6E-65-63-74-69-6F-6E-20-6F-6E-20-77-69-6E-33-32-20-73-6F-63-6B-65-74-20-27-25-64-27-2C-20-57-53-41-20-65-72-72-6F-72-20-63-6F-64-65-3A-20-25-64
+                                )
+                              ),
+                              α1 ↦ Φ.org.eolang.tuple(
+                                α0 ↦ Φ.org.eolang.tuple(
+                                  α0 ↦ Φ.org.eolang.tuple.empty,
+                                  α1 ↦ ξ.sock.sd
+                                ),
+                                α1 ↦ ξ.sock.last-error.code
+                              )
+                            )
+                          ),
+                          α1 ↦ Φ.org.eolang.dataized(
+                            α0 ↦ ξ.scope(
+                              α0 ↦ ξ.sock.scoped-socket(
+                                α0 ↦ ξ.client-sockfd
+                              )
+                            )
+                          ).as-bytes
+                        ),
+                        α1 ↦ ⟦
+                          φ ↦ Φ.org.eolang.error(
+                            α0 ↦ ξ.ex
+                          ),
+                          ex ↦ ∅
+                        ⟧,
+                        α2 ↦ ξ.sock.closed-socket(
+                          α0 ↦ ξ.client-sockfd
+                        )
+                      )
+                    ⟧
+                  ⟧
+                ⟧
+              ⟧
+            ⟧
+          ⟧,
+          λ ⤍ Package
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

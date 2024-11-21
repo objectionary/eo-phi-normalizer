@@ -42,8 +42,8 @@ java --version
 
 ```console
 openjdk 21.0.5 2024-10-15 LTS
-OpenJDK Runtime Environment Zulu21.38+21-CA (build 21.0.5+11-LTS)
-OpenJDK 64-Bit Server VM Zulu21.38+21-CA (build 21.0.5+11-LTS, mixed mode, sharing)
+OpenJDK Runtime Environment Zulu21.38+21-CRaC-CA (build 21.0.5+11-LTS)
+OpenJDK 64-Bit Server VM Zulu21.38+21-CRaC-CA (build 21.0.5+11-LTS, mixed mode, sharing)
 ```
 
 ### Windows

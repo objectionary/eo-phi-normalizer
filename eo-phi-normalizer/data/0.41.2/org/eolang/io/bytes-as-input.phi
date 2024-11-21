@@ -1,0 +1,88 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        io ↦ ⟦
+          bytes-as-input ↦ ⟦
+            bts ↦ ∅,
+            read ↦ ⟦
+              size ↦ ∅,
+              φ ↦ ξ.input-block(
+                α0 ↦ ξ.ρ.bts,
+                α1 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ --
+                )
+              ).read(
+                α0 ↦ ξ.size
+              ).self,
+              input-block ↦ ⟦
+                data ↦ ∅,
+                buffer ↦ ∅,
+                self ↦ ξ,
+                φ ↦ ξ.buffer,
+                read ↦ ⟦
+                  size ↦ ∅,
+                  to-read ↦ Φ.org.eolang.dataized(
+                    α0 ↦ ξ.size
+                  ).as-bytes,
+                  available ↦ Φ.org.eolang.dataized(
+                    α0 ↦ ξ.ρ.data.size
+                  ).as-bytes,
+                  next ↦ Φ.org.eolang.dataized(
+                    α0 ↦ Φ.org.eolang.number(
+                      α0 ↦ ξ.available
+                    ).gt(
+                      α0 ↦ ξ.to-read
+                    ).if(
+                      α0 ↦ ξ.to-read,
+                      α1 ↦ ξ.available
+                    )
+                  ).as-bytes,
+                  φ ↦ ξ.available.eq(
+                    α0 ↦ Φ.org.eolang.number(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ 00-00-00-00-00-00-00-00
+                      )
+                    )
+                  ).if(
+                    α0 ↦ ξ.ρ.ρ.input-block(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ --
+                      ),
+                      α1 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ --
+                      )
+                    ),
+                    α1 ↦ ξ.ρ.ρ.input-block(
+                      α0 ↦ ξ.ρ.data.slice(
+                        α0 ↦ ξ.next,
+                        α1 ↦ Φ.org.eolang.number(
+                          α0 ↦ ξ.available
+                        ).minus(
+                          α0 ↦ Φ.org.eolang.number(
+                            α0 ↦ ξ.next
+                          )
+                        )
+                      ).as-bytes,
+                      α1 ↦ ξ.ρ.data.slice(
+                        α0 ↦ Φ.org.eolang.number(
+                          α0 ↦ Φ.org.eolang.bytes(
+                            Δ ⤍ 00-00-00-00-00-00-00-00
+                          )
+                        ),
+                        α1 ↦ ξ.next
+                      ).as-bytes
+                    )
+                  ).self
+                ⟧
+              ⟧
+            ⟧
+          ⟧,
+          λ ⤍ Package
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}
