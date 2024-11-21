@@ -1,0 +1,191 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        io ↦ ⟦
+          console ↦ ⟦
+            φ ↦ Φ.org.eolang.sys.os.is-windows.if(
+              α0 ↦ ξ.windows-console,
+              α1 ↦ ξ.posix-console
+            ).platform,
+            posix-console ↦ ⟦
+              platform ↦ ξ,
+              read ↦ ⟦
+                size ↦ ∅,
+                φ ↦ ξ.input-block(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ --
+                  )
+                ).read(
+                  α0 ↦ ξ.size
+                ).self,
+                input-block ↦ ⟦
+                  buffer ↦ ∅,
+                  self ↦ ξ,
+                  φ ↦ ξ.buffer,
+                  read ↦ ⟦
+                    size ↦ ∅,
+                    read-bytes ↦ Φ.org.eolang.dataized(
+                      α0 ↦ Φ.org.eolang.sys.posix(
+                        α0 ↦ Φ.org.eolang.string(
+                          α0 ↦ Φ.org.eolang.bytes(
+                            Δ ⤍ 72-65-61-64
+                          )
+                        ),
+                        α1 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple(
+                            α0 ↦ Φ.org.eolang.tuple.empty,
+                            α1 ↦ Φ.org.eolang.sys.posix.stdin-fileno
+                          ),
+                          α1 ↦ ξ.size
+                        )
+                      ).output
+                    ).as-bytes,
+                    φ ↦ Φ.org.eolang.seq(
+                      α0 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple.empty,
+                          α1 ↦ ξ.read-bytes
+                        ),
+                        α1 ↦ ξ.ρ.ρ.input-block(
+                          α0 ↦ ξ.read-bytes
+                        )
+                      )
+                    ).self
+                  ⟧
+                ⟧
+              ⟧,
+              write ↦ ⟦
+                buffer ↦ ∅,
+                φ ↦ ξ.output-block.write(
+                  α0 ↦ ξ.buffer
+                ).self,
+                output-block ↦ ⟦
+                  self ↦ ξ,
+                  φ ↦ Φ.org.eolang.true,
+                  write ↦ ⟦
+                    buffer ↦ ∅,
+                    φ ↦ Φ.org.eolang.seq(
+                      α0 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple.empty,
+                          α1 ↦ Φ.org.eolang.sys.posix(
+                            α0 ↦ Φ.org.eolang.string(
+                              α0 ↦ Φ.org.eolang.bytes(
+                                Δ ⤍ 77-72-69-74-65
+                              )
+                            ),
+                            α1 ↦ Φ.org.eolang.tuple(
+                              α0 ↦ Φ.org.eolang.tuple(
+                                α0 ↦ Φ.org.eolang.tuple(
+                                  α0 ↦ Φ.org.eolang.tuple.empty,
+                                  α1 ↦ Φ.org.eolang.sys.posix.stdout-fileno
+                                ),
+                                α1 ↦ ξ.buffer
+                              ),
+                              α1 ↦ ξ.buffer.size
+                            )
+                          ).code
+                        ),
+                        α1 ↦ ξ.ρ.ρ.output-block
+                      )
+                    ).self
+                  ⟧
+                ⟧
+              ⟧
+            ⟧,
+            windows-console ↦ ⟦
+              platform ↦ ξ,
+              read ↦ ⟦
+                size ↦ ∅,
+                φ ↦ ξ.input-block(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ --
+                  )
+                ).read(
+                  α0 ↦ ξ.size
+                ).self,
+                input-block ↦ ⟦
+                  buffer ↦ ∅,
+                  self ↦ ξ,
+                  φ ↦ ξ.buffer,
+                  read ↦ ⟦
+                    size ↦ ∅,
+                    read-bytes ↦ Φ.org.eolang.dataized(
+                      α0 ↦ Φ.org.eolang.sys.win32(
+                        α0 ↦ Φ.org.eolang.string(
+                          α0 ↦ Φ.org.eolang.bytes(
+                            Δ ⤍ 52-65-61-64-46-69-6C-65
+                          )
+                        ),
+                        α1 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple(
+                            α0 ↦ Φ.org.eolang.tuple.empty,
+                            α1 ↦ Φ.org.eolang.sys.win32.std-input-handle
+                          ),
+                          α1 ↦ ξ.size
+                        )
+                      ).output
+                    ).as-bytes,
+                    φ ↦ Φ.org.eolang.seq(
+                      α0 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple.empty,
+                          α1 ↦ ξ.read-bytes
+                        ),
+                        α1 ↦ ξ.ρ.ρ.input-block(
+                          α0 ↦ ξ.read-bytes
+                        )
+                      )
+                    ).self
+                  ⟧
+                ⟧
+              ⟧,
+              write ↦ ⟦
+                buffer ↦ ∅,
+                φ ↦ ξ.output-block.write(
+                  α0 ↦ ξ.buffer
+                ).self,
+                output-block ↦ ⟦
+                  self ↦ ξ,
+                  φ ↦ Φ.org.eolang.true,
+                  write ↦ ⟦
+                    buffer ↦ ∅,
+                    φ ↦ Φ.org.eolang.seq(
+                      α0 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple(
+                          α0 ↦ Φ.org.eolang.tuple.empty,
+                          α1 ↦ Φ.org.eolang.sys.win32(
+                            α0 ↦ Φ.org.eolang.string(
+                              α0 ↦ Φ.org.eolang.bytes(
+                                Δ ⤍ 57-72-69-74-65-46-69-6C-65
+                              )
+                            ),
+                            α1 ↦ Φ.org.eolang.tuple(
+                              α0 ↦ Φ.org.eolang.tuple(
+                                α0 ↦ Φ.org.eolang.tuple(
+                                  α0 ↦ Φ.org.eolang.tuple.empty,
+                                  α1 ↦ Φ.org.eolang.sys.win32.std-output-handle
+                                ),
+                                α1 ↦ ξ.buffer
+                              ),
+                              α1 ↦ ξ.buffer.size
+                            )
+                          ).code
+                        ),
+                        α1 ↦ ξ.ρ.ρ.output-block
+                      )
+                    ).self
+                  ⟧
+                ⟧
+              ⟧
+            ⟧
+          ⟧,
+          λ ⤍ Package
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

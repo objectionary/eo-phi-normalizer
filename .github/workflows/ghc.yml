@@ -96,7 +96,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-12]
+        os: [ubuntu-latest, windows-latest, macos-latest]
       fail-fast: false
     steps:
       - name: 📥 Checkout repository
@@ -149,7 +149,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-12]
+        os: [ubuntu-latest, windows-latest, macos-latest]
       fail-fast: false
     permissions:
       contents: write
@@ -332,6 +332,8 @@ jobs:
           # we can't use caches because we can't overwrite them
           name: pipeline-files-${{ runner.os }}
           overwrite: true
+          # Need to upload .eoc
+          include-hidden-files: true
           # Problem
           #
           # The action doesn't save the pipeline directory.

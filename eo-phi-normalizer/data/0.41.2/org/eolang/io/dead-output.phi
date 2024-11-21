@@ -1,0 +1,26 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        io ↦ ⟦
+          dead-output ↦ ⟦
+            write ↦ ⟦
+              buffer ↦ ∅,
+              φ ↦ ξ.output-block,
+              output-block ↦ ⟦
+                φ ↦ Φ.org.eolang.true,
+                write ↦ ⟦
+                  φ ↦ ξ.ρ.ρ.output-block,
+                  buffer ↦ ∅
+                ⟧
+              ⟧
+            ⟧
+          ⟧,
+          λ ⤍ Package
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

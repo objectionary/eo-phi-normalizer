@@ -1,0 +1,71 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        math ↦ ⟦
+          numbers ↦ ⟦
+            sequence ↦ ∅,
+            φ ↦ ξ.sequence,
+            max ↦ ⟦
+              lst ↦ Φ.org.eolang.structs.list(
+                α0 ↦ ξ.ρ.sequence
+              ),
+              φ ↦ ξ.lst.is-empty.if(
+                α0 ↦ Φ.org.eolang.error(
+                  α0 ↦ Φ.org.eolang.string(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 43-61-6E-27-74-20-67-65-74-20-6D-61-78-20-6E-75-6D-62-65-72-20-66-72-6F-6D-20-65-6D-70-74-79-20-73-65-71-75-65-6E-63-65
+                    )
+                  )
+                ),
+                α1 ↦ ξ.lst.reduced(
+                  α0 ↦ Φ.org.eolang.negative-infinity,
+                  α1 ↦ ⟦
+                    max ↦ ∅,
+                    item ↦ ∅,
+                    φ ↦ ξ.item.as-number.gt(
+                      α0 ↦ ξ.max
+                    ).if(
+                      α0 ↦ ξ.item,
+                      α1 ↦ ξ.max
+                    )
+                  ⟧
+                )
+              )
+            ⟧,
+            min ↦ ⟦
+              lst ↦ Φ.org.eolang.structs.list(
+                α0 ↦ ξ.ρ.sequence
+              ),
+              φ ↦ ξ.lst.is-empty.if(
+                α0 ↦ Φ.org.eolang.error(
+                  α0 ↦ Φ.org.eolang.string(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 43-61-6E-27-74-20-67-65-74-20-6D-69-6E-20-6E-75-6D-62-65-72-20-66-72-6F-6D-20-65-6D-70-74-79-20-73-65-71-75-65-6E-63-65
+                    )
+                  )
+                ),
+                α1 ↦ ξ.lst.reduced(
+                  α0 ↦ Φ.org.eolang.positive-infinity,
+                  α1 ↦ ⟦
+                    min ↦ ∅,
+                    item ↦ ∅,
+                    φ ↦ ξ.min.gt(
+                      α0 ↦ ξ.item.as-number
+                    ).if(
+                      α0 ↦ ξ.item,
+                      α1 ↦ ξ.min
+                    )
+                  ⟧
+                )
+              )
+            ⟧
+          ⟧,
+          λ ⤍ Package
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}
