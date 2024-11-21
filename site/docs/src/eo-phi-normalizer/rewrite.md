@@ -67,16 +67,16 @@ eo-phi-normalizer rewrite --help
 
 ```console
 Usage: eo-phi-normalizer rewrite [-r|--rules FILE] [-c|--chain] [-j|--json]
-                                   [--tex] [-o|--output-file FILE] [-s|--single]
-                                   [--max-depth INT] [--max-growth-factor INT]
-                                   [FILE] [-d|--dependency-file FILE]
+                                 [--tex] [-o|--output-file FILE] [-s|--single]
+                                 [--max-depth INT] [--max-growth-factor INT]
+                                 [FILE] [-d|--dependency-file FILE]
 
   Rewrite a PHI program.
 
 Available options:
   -r,--rules FILE          FILE with user-defined rules. If unspecified, builtin
                            set of rules is used.
-  -c,--chain               Output transformation steps.
+  -c,--chain               Output rewriting steps.
   -j,--json                Output JSON.
   --tex                    Output LaTeX.
   -o,--output-file FILE    Output to FILE. When this option is not specified,
