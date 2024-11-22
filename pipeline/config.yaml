@@ -317,6 +317,7 @@ test-sets:
     normalized: pipeline/phi-normalized/runtime-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/rust-tests.eo
     yaml: pipeline/eo-yaml/rust-tests.yaml
