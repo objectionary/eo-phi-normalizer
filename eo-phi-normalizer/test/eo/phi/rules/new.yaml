@@ -52,7 +52,7 @@ rules:
         input: ⟦ k ↦ ⟦ x ↦ ξ.t, t ↦ ∅ ⟧(t ↦ ⟦ρ ↦ ⟦⟧⟧) ⟧
         # output: ['⟦ k ↦ ⟦ x ↦ ξ.t, t ↦ ⟦ρ ↦ ⟦⟧⟧ ⟧() ⟧']
         output: ['⟦ k ↦ ⟦ t ↦ ⟦ρ ↦ ⟦⟧⟧, x ↦ ξ.t ⟧() ⟧']
-      - name: Phi Paper - Example E4 without dispatch on y
+      - name: Phi Paper - Example E4
         input: ⟦ k ↦ ⟦ x ↦ ∅, y ↦ ξ.x ⟧(x ↦ ⟦ρ ↦ ⟦⟧⟧).y ⟧
         output: ['⟦ k ↦ ⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧.y ⟧']
       - name: Phi Paper - Example E4 without dispatch on y
