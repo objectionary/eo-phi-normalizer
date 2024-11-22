@@ -8,9 +8,12 @@ and this project adheres to the
 
 ## v2.0.0 - 2024-11-18
 
-### New
+## Breaking changes
 
 - Rename `normalizer` to `eo-phi-normalizer` everywhere ([#494](https://github.com/objectionary/eo-phi-normalizer/pull/494))
+
+### New
+
 - Add `eo-phi-normalizer version` command ([#493](https://github.com/objectionary/eo-phi-normalizer/pull/493))
 - Add `eo-phi-normalizer test` command ([#498](https://github.com/objectionary/eo-phi-normalizer/pull/498))
 
