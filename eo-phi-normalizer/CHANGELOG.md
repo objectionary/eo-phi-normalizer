@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to the
 [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## v2.1.0 - 2024-11-22
+
+## Breaking changes
+
+- Rename `transform` to `rewrite` in the `eo-phi-normalizer` CLI ([#369](https://github.com/objectionary/eo-phi-normalizer/pull/369))
+
+## New
+
+- Add new rules ([#523](https://github.com/objectionary/eo-phi-normalizer/pull/523))
+- Add new rules tests ([#540](https://github.com/objectionary/eo-phi-normalizer/pull/540))
+
+### Documentation and maintenance
+
+- Annotate files with copyright ([#536](https://github.com/objectionary/eo-phi-normalizer/pull/536))
+- Move docs for user-defined rules to a separate page ([#524](https://github.com/objectionary/eo-phi-normalizer/pull/524))
+- Document the release procedure ([#532](https://github.com/objectionary/eo-phi-normalizer/pull/532))
+
 ## v2.0.0 - 2024-11-18
 
 ## Breaking changes
