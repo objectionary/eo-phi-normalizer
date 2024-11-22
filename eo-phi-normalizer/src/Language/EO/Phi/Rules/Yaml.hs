@@ -238,6 +238,7 @@ objectLabelIds = \case
   MetaFunction _ obj -> objectLabelIds obj
   MetaTailContext obj _ -> objectLabelIds obj
   MetaSubstThis obj obj' -> objectLabelIds obj <> objectLabelIds obj'
+  MetaContextualize obj obj' -> objectLabelIds obj <> objectLabelIds obj'
 
 bindingLabelIds :: Binding -> Set LabelId
 bindingLabelIds = \case
@@ -281,6 +282,7 @@ objectMetaIds (MetaObject x) = Set.singleton (MetaIdObject x)
 objectMetaIds (MetaFunction _ obj) = objectMetaIds obj
 objectMetaIds (MetaTailContext obj x) = objectMetaIds obj <> Set.singleton (MetaIdTail x)
 objectMetaIds (MetaSubstThis obj obj') = foldMap objectMetaIds [obj, obj']
+objectMetaIds (MetaContextualize obj obj') = foldMap objectMetaIds [obj, obj']
 
 bindingMetaIds :: Binding -> Set MetaId
 bindingMetaIds (AlphaBinding attr obj) = attrMetaIds attr <> objectMetaIds obj
@@ -309,6 +311,7 @@ objectHasMetavars (MetaObject _) = True
 objectHasMetavars (MetaFunction _ _) = True
 objectHasMetavars MetaTailContext{} = True
 objectHasMetavars (MetaSubstThis _ _) = True -- technically not a metavar, but a substitution
+objectHasMetavars (MetaContextualize _ _) = True
 
 bindingHasMetavars :: Binding -> Bool
 bindingHasMetavars (AlphaBinding attr obj) = attrHasMetavars attr || objectHasMetavars obj
@@ -428,7 +431,8 @@ applySubst subst@Subst{..} = \case
   ThisObject -> ThisObject
   obj@(MetaObject x) -> fromMaybe obj $ lookup x objectMetas
   Termination -> Termination
-  MetaSubstThis obj thisObj -> MetaSubstThis (applySubst subst thisObj) (applySubst subst obj)
+  MetaSubstThis obj thisObj -> MetaSubstThis (applySubst subst obj) (applySubst subst thisObj)
+  MetaContextualize obj thisObj -> MetaContextualize (applySubst subst obj) (applySubst subst thisObj)
   obj@MetaFunction{} -> obj
   MetaTailContext obj c ->
     case lookup c contextMetas of
@@ -506,6 +510,7 @@ matchOneHoleContext ctxId pat obj = matchWhole <> matchPart
     Termination -> []
     -- should cases below be errors?
     MetaSubstThis{} -> []
+    MetaContextualize{} -> []
     MetaObject{} -> []
     MetaTailContext{} -> []
     MetaFunction{} -> []
@@ -529,6 +534,7 @@ evaluateMetaFuncs' (Formation bindings) = Formation <$> mapM evaluateMetaFuncsBi
 evaluateMetaFuncs' (Application obj bindings) = Application <$> evaluateMetaFuncs' obj <*> mapM evaluateMetaFuncsBinding bindings
 evaluateMetaFuncs' (ObjectDispatch obj a) = ObjectDispatch <$> evaluateMetaFuncs' obj <*> pure a
 evaluateMetaFuncs' (MetaSubstThis obj thisObj) = evaluateMetaFuncs' (substThis thisObj obj)
+evaluateMetaFuncs' (MetaContextualize obj thisObj) = evaluateMetaFuncs' (contextualize thisObj obj)
 evaluateMetaFuncs' obj = pure obj
 
 evaluateMetaFuncsBinding :: Binding -> State MetaState Binding
@@ -611,6 +617,7 @@ substThis thisObj = go
     GlobalObject -> GlobalObject
     Termination -> Termination
     obj@MetaTailContext{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
+    obj@MetaContextualize{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
     obj@MetaSubstThis{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
     obj@MetaObject{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
     obj@MetaFunction{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
@@ -628,3 +635,29 @@ substThisBinding obj = \case
   LambdaBinding bytes -> LambdaBinding bytes
   b@MetaBindings{} -> error ("impossible: trying to substitute ξ in " <> printTree b)
   b@MetaDeltaBinding{} -> error ("impossible: trying to substitute ξ in " <> printTree b)
+
+contextualize :: Object -> Object -> Object
+contextualize thisObj = go
+ where
+  go = \case
+    ThisObject -> thisObj -- ξ is substituted
+    obj@(Formation _bindings) -> obj
+    ObjectDispatch obj a -> ObjectDispatch (go obj) a
+    Application obj bindings -> Application (go obj) (map (contextualizeBinding thisObj) bindings)
+    GlobalObject -> GlobalObject -- TODO: Change to what GlobalObject is attached to
+    Termination -> Termination
+    obj@MetaTailContext{} -> error ("impossible: trying to contextualize " <> printTree obj)
+    obj@MetaContextualize{} -> error ("impossible: trying to contextualize " <> printTree obj)
+    obj@MetaSubstThis{} -> error ("impossible: trying to contextualize " <> printTree obj)
+    obj@MetaObject{} -> error ("impossible: trying to contextualize " <> printTree obj)
+    obj@MetaFunction{} -> error ("impossible: trying to contextualize " <> printTree obj)
+
+contextualizeBinding :: Object -> Binding -> Binding
+contextualizeBinding obj = \case
+  AlphaBinding a obj' -> AlphaBinding a (contextualize obj obj')
+  EmptyBinding a -> EmptyBinding a
+  DeltaBinding bytes -> DeltaBinding bytes
+  DeltaEmptyBinding -> DeltaEmptyBinding
+  LambdaBinding bytes -> LambdaBinding bytes
+  b@MetaBindings{} -> error ("impossible: trying to contextualize " <> printTree b)
+  b@MetaDeltaBinding{} -> error ("impossible: trying to contextualize " <> printTree b)

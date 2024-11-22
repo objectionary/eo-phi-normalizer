@@ -552,6 +552,7 @@ wrapRawBytesIn = \case
   ThisObject -> ThisObject
   Termination -> wrapTermination
   obj@MetaSubstThis{} -> obj
+  obj@MetaContextualize{} -> obj
   obj@MetaObject{} -> obj
   obj@MetaTailContext{} -> obj
   obj@MetaFunction{} -> obj

@@ -1,0 +1,244 @@
+# The MIT License (MIT)
+
+# Copyright (c) 2016-2024 Objectionary.com
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+title: "Rule set following Nov 2024 revision"
+rules:
+
+  - name: DOT
+    description: 'Accessing an α-binding'
+    pattern: |
+      ⟦ !τ ↦ !b, !B ⟧.!τ
+    result: |
+      ⌈ !b , ⟦ !τ ↦ !b, !B ⟧ ⌉(ρ ↦ ⟦ !τ ↦ !b, !B ⟧)
+    when:
+      - nf: '!b'
+      - nf: '⟦ !B ⟧' #TODO: change the condition, every object in !B should be in the nf
+    tests:
+      - name: 'Contextualization changes ξ'
+        input: ⟦ a ↦ ξ ⟧.a
+        output: ['⟦ a ↦ ξ ⟧ (ρ ↦ ⟦ a ↦ ξ ⟧)']
+      - name: 'Contextualization applies recursively'
+        input: ⟦ a ↦ ξ.b ⟧.a
+        output: ['⟦ a ↦ ξ.b ⟧.b (ρ ↦ ⟦ a ↦ ξ.b ⟧)']
+      - name: Phi Paper - Example E2
+        input: '⟦ x ↦ ξ.t, t ↦ ∅ ⟧.x'
+        output: ['⟦ x ↦ ξ.t, t ↦ ∅ ⟧.t(ρ ↦ ⟦ x ↦ ξ.t, t ↦ ∅ ⟧)']
+      - name:  Phi Paper - Example E3 - first R_dot
+        input: '⟦ x ↦ ⟦t ↦ ⟦ρ ↦ ⟦⟧⟧⟧.t ⟧.x'
+        output: ['⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧(ρ ↦ ⟦t ↦ ⟦ρ ↦ ⟦⟧⟧⟧) ⟧.x']
+      - name:  Phi Paper - Example E3 - second R_dot
+        input: '⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧ ⟧.x'
+        output: ['⟦ρ ↦ ⟦⟧⟧(ρ ↦ ⟦x ↦ ⟦ρ ↦ ⟦⟧⟧⟧)']
+      - name: Phi Paper - Example E4 - first R_dot
+        input: '⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧.y'
+        # output: ['⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧.x(ρ ↦ ⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧)']
+        output: ['⟦ y ↦ ξ.x, x ↦ ⟦ρ ↦ ⟦⟧⟧ ⟧.x(ρ ↦ ⟦ y ↦ ξ.x, x ↦ ⟦ρ ↦ ⟦⟧⟧ ⟧)']
+      - name: Phi Paper - Example E4 - second R_dot
+        input: ⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧.x(ρ ↦ ⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧)
+        output: ['⟦ρ ↦ ⟦⟧⟧(ρ ↦ ⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧)(ρ ↦ ⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧)']
+
+  - name: COPY
+    description: 'Application of α-binding'
+    pattern: |
+      ⟦ !τ1 ↦ ⟦ !τ2 ↦ ∅, !B1 ⟧(!τ2 ↦ !b, !B2) * !t, !B3 ⟧
+    result: |
+      ⟦ !τ1 ↦ ⟦ !τ2 ↦ ⌈ !b , ⟦ !τ1 ↦ ⟦ !τ2 ↦ ∅, !B1 ⟧(!τ2 ↦ !b, !B2), !B3 ⟧ ⌉, !B1 ⟧(!B2) * !t, !B3 ⟧
+    when:
+      - nf: '!b'
+      - nf: '⟦ !B1 ⟧'
+      - nf: '⟦ !B3 ⟧'
+    tests:
+      - name: Should match
+        input: ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ) ⟧
+        output: ['⟦ a ↦ ⟦ b ↦ ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ) ⟧ ⟧ () ⟧']
+      - name: 'Should match'
+        input: ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ).a ⟧
+        output: ['⟦ a ↦ ⟦ b ↦ ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ) ⟧ ⟧ ().a ⟧']
+      - name: Phi Paper - Example E1
+        input: ⟦ k ↦ ⟦ x ↦ ξ.t, t ↦ ∅ ⟧(t ↦ ⟦ρ ↦ ⟦⟧⟧) ⟧
+        # output: ['⟦ k ↦ ⟦ x ↦ ξ.t, t ↦ ⟦ρ ↦ ⟦⟧⟧ ⟧() ⟧']
+        output: ['⟦ k ↦ ⟦ t ↦ ⟦ρ ↦ ⟦⟧⟧, x ↦ ξ.t ⟧() ⟧']
+      - name: Phi Paper - Example E4 - dispatch on y
+        input: ⟦ k ↦ ⟦ x ↦ ∅, y ↦ ξ.x ⟧(x ↦ ⟦ρ ↦ ⟦⟧⟧).y ⟧
+        output: ['⟦ k ↦ ⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧().y ⟧']
+      - name: Phi Paper - Example E4 - remove dispatch on y
+        input: ⟦ k ↦ ⟦ x ↦ ∅, y ↦ ξ.x ⟧(x ↦ ⟦ρ ↦ ⟦⟧⟧) ⟧
+        output: ['⟦ k ↦ ⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧() ⟧']
+
+  - name: RHO
+    description: 'Application of a ρ-binding'
+    pattern: |
+      ⟦ !τ ↦ ⟦ !B1 ⟧(ρ ↦ !b, !B2) * !t, !B3 ⟧
+    result: |
+      ⟦ !τ ↦ ⟦ !B1, ρ ↦ ⌈ !b , ⟦ !τ ↦ ⟦ !B1 ⟧(ρ ↦ !b, !B2) * !t, !B3 ⟧ ⌉ ⟧(!B2), !B3 ⟧
+    when:
+      - nf: '!b'
+      - absent_attrs:
+          attrs: ['ρ']
+          bindings: ['!B1']
+    tests: []
+
+  - name: phi
+    description: 'Accessing a decorated object'
+    pattern: |
+      ⟦!B ⟧.!τ
+    result: |
+      ⟦!B ⟧.φ.!τ
+    when:
+      - nf: '⟦ !B ⟧'
+      - present_attrs:
+          attrs: ['φ']
+          bindings: ['!B']
+      - absent_attrs:
+          attrs: ['!τ']
+          bindings: ['!B']
+    tests: []
+
+  # there's no B2 in the result
+  - name: STAY
+    description: 'Application of a ρ-binding when ρ already exists'
+    pattern: |
+      ⟦ ρ ↦ !b1, !B1 ⟧ (ρ ↦ !b, !B2)
+    result: |
+      ⟦ ρ ↦ !b1, !B1 ⟧ (!B2)
+    when: []
+    tests:
+      - name: Phi Paper - Example E3 - first R_stay
+        input: ⟦ ρ ↦ ⟦⟧ ⟧(ρ ↦ ⟦ t ↦ ⟦ ρ ↦ ⟦⟧ ⟧ ⟧)(ρ ↦ ⟦ x ↦ ⟦ ρ ↦ ⟦⟧ ⟧(ρ ↦ ⟦ t ↦ ⟦ ρ ↦ ⟦⟧ ⟧ ⟧) ⟧)
+        output: [⟦ ρ ↦ ⟦⟧ ⟧()(ρ ↦ ⟦ x ↦ ⟦ ρ ↦ ⟦⟧ ⟧(ρ ↦ ⟦ t ↦ ⟦ ρ ↦ ⟦⟧ ⟧ ⟧) ⟧)]
+      - name: 'Should match'
+        input: '⟦ ρ ↦ ⟦ c ↦ ∅ ⟧ ⟧ (ρ ↦ ⟦ ⟧, b ↦ ξ)'
+        output: ['⟦ ρ ↦ ⟦ c ↦ ∅ ⟧ ⟧ (b ↦ ξ)']
+
+  - name: OVER
+    description: 'Invalid application (attribute already attached)'
+    pattern: ⟦ !τ ↦ !b1, !B1 ⟧(!τ ↦ !b2, !B2)
+    result: ⊥
+    when:
+      - not_equal: ['!τ', 'ρ']
+    tests:
+      - name: ''
+        input: '⟦ t ↦ ⟦ a ↦ ∅ ⟧ ⟧(t ↦ ⟦ b ↦ ∅ ⟧)'
+        output: ['⊥']
+
+  - name: STOP
+    description: 'Absent attribute access'
+    pattern: |
+      ⟦ !B ⟧.!τ
+    result: |
+      ⊥
+    when:
+      - absent_attrs:
+          attrs: ['!τ', 'φ', 'λ']
+          bindings: ['!B']
+      - nf: '⟦ !B ⟧'
+    tests:
+      - name: 'Accessing nonexistent attribute'
+        input: '⟦ ρ ↦ ⟦ ⟧ ⟧.x'
+        output: ['⊥']
+
+  # Named VOID instead of NULL because NULL is a keyword in yaml
+  - name: VOID
+    description: 'Void attribute access'
+    pattern: |
+      ⟦ !τ ↦ ∅, !B ⟧.!τ
+    result: |
+      ⊥
+    when: []
+    tests:
+      - name: Phi Paper Example E2 second dispatch
+        input: '⟦ x ↦ ξ.t, t ↦ ∅ ⟧.t(ρ ↦ ⟦ x ↦ ξ.t, t ↦ ∅ ⟧)'
+        output: ['⊥(ρ ↦ ⟦ x ↦ ξ.t, t ↦ ∅ ⟧)']
+
+  - name: DUP
+    description: 'Empty application'
+    pattern: |
+      ⟦ !B ⟧()
+    result: |
+      ⟦ !B ⟧
+    when: []
+    tests:
+      - name: Should match
+        input: ⟦ a ↦ ⟦⟧ ⟧()
+        output: ['⟦ a ↦ ⟦⟧ ⟧']
+      - name: Should not match
+        input: ⟦ a ↦ ∅ ⟧(a ↦ ⟦⟧)
+        output: []
+      - name: Should match in subformation
+        input: ⟦ a ↦ ⟦ b ↦ ⟦⟧() ⟧ ⟧
+        output: ['⟦ a ↦ ⟦ b ↦ ⟦⟧ ⟧ ⟧']
+      - name: Should work with empty formation
+        input: ⟦⟧()
+        output: ['⟦⟧']
+
+  - name: MISS
+    description: 'Invalid application (absent attribute)'
+    pattern: ⟦ !B1 ⟧(!τ ↦ !b, !B2)
+    result: ⊥
+    when:
+      - absent_attrs:
+          attrs: ['!τ']
+          bindings: ['!B1']
+      - not_equal: ['!τ', 'ρ']
+    tests:
+      - name: ''
+        input: '⟦ t1 ↦ ⟦ a ↦ ∅ ⟧ ⟧(t ↦ ⟦ b ↦ ∅ ⟧)'
+        output: ['⊥']
+      - name: Should not match if attr is present
+        input: ⟦ t ↦ ⟦⟧ ⟧(t ↦ ⟦ a ↦ ∅ ⟧)
+        output: []
+      - name: Should not match for rho
+        input: ⟦ ⟧(ρ ↦ ⟦ ⟧)
+        output: []
+      - name: Should apply in subformations
+        input: ⟦ a ↦ ⟦ b ↦ ⟦⟧(t ↦ ⟦⟧) ⟧ ⟧
+        output: ['⟦ a ↦ ⟦ b ↦ ⊥ ⟧ ⟧']
+
+  - name: DD
+    description: 'Accessing an attribute on bottom'
+    pattern: |
+      ⊥.!τ
+    result: |
+      ⊥
+    when: []
+    tests:
+      - name: 'Dispatch on bottom is bottom'
+        input: '⊥.a'
+        output: ['⊥']
+      - name: 'Dispatch on anything else is not touched'
+        input: '⟦ ⟧.a'
+        output: []
+
+  - name: DC
+    description: 'Application on bottom is bottom'
+    pattern: |
+      ⊥(!B)
+    result: |
+      ⊥
+    when: []
+    tests:
+      - name: Should apply in subformations
+        input: ⟦ a ↦ ⟦ b ↦ ⊥(t ↦ ⟦⟧, u ↦ ⟦⟧) ⟧ ⟧
+        output: ['⟦ a ↦ ⟦ b ↦ ⊥ ⟧ ⟧']
+      - name: Phi Paper Example E2 last application
+        input: '⊥(ρ ↦ ⟦ x ↦ ξ.t, t ↦ ∅ ⟧)'
+        output: ['⊥']

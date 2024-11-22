@@ -48,16 +48,17 @@ MetaIdBindings. MetaId ::= BindingsMetaId ;
 MetaIdObject.   MetaId ::= ObjectMetaId ;
 MetaIdBytes.    MetaId ::= BytesMetaId ;
 
-Formation.      Object ::= "⟦" [Binding] "⟧" ;
-Application.    Object ::= Object "(" [Binding] ")" ;
-ObjectDispatch. Object ::= Object "." Attribute ;
-GlobalObject.   Object ::= "Φ";
-ThisObject.     Object ::= "ξ";
-Termination.    Object ::= "⊥" ;
-MetaSubstThis.  Object ::= Object "[" "ξ" "↦" Object "]" ;
-MetaObject.     Object ::= ObjectMetaId ;
-MetaTailContext. Object ::= Object "*" TailMetaId ;
-MetaFunction.   Object ::= MetaFunctionName "(" Object ")" ;
+Formation.         Object ::= "⟦" [Binding] "⟧" ;
+Application.       Object ::= Object "(" [Binding] ")" ;
+ObjectDispatch.    Object ::= Object "." Attribute ;
+GlobalObject.      Object ::= "Φ";
+ThisObject.        Object ::= "ξ";
+Termination.       Object ::= "⊥" ;
+MetaSubstThis.     Object ::= Object "[" "ξ" "↦" Object "]" ;
+MetaContextualize. Object ::= "⌈" Object "," Object "⌉" ;
+MetaObject.        Object ::= ObjectMetaId ;
+MetaTailContext.   Object ::= Object "*" TailMetaId ;
+MetaFunction.      Object ::= MetaFunctionName "(" Object ")" ;
 
 AlphaBinding.       Binding ::= Attribute "↦" Object ;
 EmptyBinding.       Binding ::= Attribute "↦" "∅" ;

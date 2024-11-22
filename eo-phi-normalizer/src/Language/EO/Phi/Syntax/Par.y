@@ -61,9 +61,11 @@ import Language.EO.Phi.Syntax.Lex
   '↦'                { PT _ (TS _ 16)               }
   '∅'                { PT _ (TS _ 17)               }
   '⊥'                { PT _ (TS _ 18)               }
-  '⟦'                { PT _ (TS _ 19)               }
-  '⟧'                { PT _ (TS _ 20)               }
-  '⤍'                { PT _ (TS _ 21)               }
+  '⌈'                { PT _ (TS _ 19)               }
+  '⌉'                { PT _ (TS _ 20)               }
+  '⟦'                { PT _ (TS _ 21)               }
+  '⟧'                { PT _ (TS _ 22)               }
+  '⤍'                { PT _ (TS _ 23)               }
   L_Bytes            { PT _ (T_Bytes $$)            }
   L_Function         { PT _ (T_Function $$)         }
   L_LabelId          { PT _ (T_LabelId $$)          }
@@ -128,6 +130,7 @@ Object
   | 'ξ' { Language.EO.Phi.Syntax.Abs.ThisObject }
   | '⊥' { Language.EO.Phi.Syntax.Abs.Termination }
   | Object '[' 'ξ' '↦' Object ']' { Language.EO.Phi.Syntax.Abs.MetaSubstThis $1 $5 }
+  | '⌈' Object ',' Object '⌉' { Language.EO.Phi.Syntax.Abs.MetaContextualize $2 $4 }
   | ObjectMetaId { Language.EO.Phi.Syntax.Abs.MetaObject $1 }
   | Object '*' TailMetaId { Language.EO.Phi.Syntax.Abs.MetaTailContext $1 $3 }
   | MetaFunctionName '(' Object ')' { Language.EO.Phi.Syntax.Abs.MetaFunction $1 $3 }
