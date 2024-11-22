@@ -16,7 +16,7 @@ Available options:
   --version                Show version information
 
 Available commands:
-  transform                Transform a PHI program.
+  rewrite                  Rewrite a PHI program.
   metrics                  Collect metrics for a PHI program.
   dataize                  Dataize a PHI program.
   pipeline                 Run pipeline-related commands.

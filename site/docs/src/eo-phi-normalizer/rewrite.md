@@ -1,4 +1,4 @@
-# `eo-phi-normalizer transform`
+# `eo-phi-normalizer rewrite`
 
 ## `MetaPHI`
 
@@ -62,21 +62,21 @@ The commands in the following sections access files that are available in the pr
 ### `--help`
 
 ```$ as console
-eo-phi-normalizer transform --help
+eo-phi-normalizer rewrite --help
 ```
 
 ```console
-Usage: eo-phi-normalizer transform [-r|--rules FILE] [-c|--chain] [-j|--json]
-                                   [--tex] [-o|--output-file FILE] [-s|--single]
-                                   [--max-depth INT] [--max-growth-factor INT]
-                                   [FILE] [-d|--dependency-file FILE]
+Usage: eo-phi-normalizer rewrite [-r|--rules FILE] [-c|--chain] [-j|--json]
+                                 [--tex] [-o|--output-file FILE] [-s|--single]
+                                 [--max-depth INT] [--max-growth-factor INT]
+                                 [FILE] [-d|--dependency-file FILE]
 
-  Transform a PHI program.
+  Rewrite a PHI program.
 
 Available options:
   -r,--rules FILE          FILE with user-defined rules. If unspecified, builtin
                            set of rules is used.
-  -c,--chain               Output transformation steps.
+  -c,--chain               Output rewriting steps.
   -j,--json                Output JSON.
   --tex                    Output LaTeX.
   -o,--output-file FILE    Output to FILE. When this option is not specified,
@@ -101,36 +101,54 @@ The output may contain multiple numbered results that correspond to different po
 (even if the final result is the same).
 
 ```$ as console
-eo-phi-normalizer transform --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+eo-phi-normalizer rewrite --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
 ```
 
 ```console
 Rule set based on Yegor's draft
 Input:
-{⟦
-  c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)),
-  result ↦ ξ.c.times (x ↦ ⟦
-    Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
+{
+  ⟦
+    c ↦ Φ.org.eolang.float (
+      as-bytes ↦ Φ.org.eolang.bytes (
+        Δ ⤍ 40-39-00-00-00-00-00-00
+      )
+    ),
+    result ↦ ξ.c.times (
+      x ↦ ⟦
+        Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
+      ⟧
+    )
+   .plus (
+      x ↦ ⟦
+        Δ ⤍ 40-40-00-00-00-00-00-00
+      ⟧
+    ),
+    λ ⤍ Package
   ⟧
-  ).plus (x ↦ ⟦
-    Δ ⤍ 40-40-00-00-00-00-00-00
-  ⟧
-),
-  λ ⤍ Package
-⟧}
+}
 ====================================================
 Result 1 out of 1:
-{⟦
-  c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)),
-  result ↦ ξ.c.times (x ↦ ⟦
-    Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
+{
+  ⟦
+    c ↦ Φ.org.eolang.float (
+      as-bytes ↦ Φ.org.eolang.bytes (
+        Δ ⤍ 40-39-00-00-00-00-00-00
+      )
+    ),
+    result ↦ ξ.c.times (
+      x ↦ ⟦
+        Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
+      ⟧
+    )
+   .plus (
+      x ↦ ⟦
+        Δ ⤍ 40-40-00-00-00-00-00-00
+      ⟧
+    ),
+    λ ⤍ Package
   ⟧
-  ).plus (x ↦ ⟦
-    Δ ⤍ 40-40-00-00-00-00-00-00
-  ⟧
-),
-  λ ⤍ Package
-⟧}
+}
 ----------------------------------------------------
 ```
 
@@ -139,53 +157,71 @@ Result 1 out of 1:
 Use `--chain` to see numbered normalization steps for each normalization result.
 
 ```$ as console
-eo-phi-normalizer transform --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+eo-phi-normalizer rewrite --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
 ```
 
 ```console
 Rule set based on Yegor's draft
 Input:
-{⟦
-  c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)),
-  result ↦ ξ.c.times (x ↦ ⟦
-    Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
+{
+  ⟦
+    c ↦ Φ.org.eolang.float (
+      as-bytes ↦ Φ.org.eolang.bytes (
+        Δ ⤍ 40-39-00-00-00-00-00-00
+      )
+    ),
+    result ↦ ξ.c.times (
+      x ↦ ⟦
+        Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
+      ⟧
+    )
+   .plus (
+      x ↦ ⟦
+        Δ ⤍ 40-40-00-00-00-00-00-00
+      ⟧
+    ),
+    λ ⤍ Package
   ⟧
-  ).plus (x ↦ ⟦
-    Δ ⤍ 40-40-00-00-00-00-00-00
-  ⟧
-),
-  λ ⤍ Package
-⟧}
+}
 ====================================================
 Result 1 out of 1:
-[ 1 / 1 ] Normal form: {⟦
-  c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)),
-  result ↦ ξ.c.times (x ↦ ⟦
-    Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
+[ 1 / 1 ] Normal form: {
+  ⟦
+    c ↦ Φ.org.eolang.float (
+      as-bytes ↦ Φ.org.eolang.bytes (
+        Δ ⤍ 40-39-00-00-00-00-00-00
+      )
+    ),
+    result ↦ ξ.c.times (
+      x ↦ ⟦
+        Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
+      ⟧
+    )
+   .plus (
+      x ↦ ⟦
+        Δ ⤍ 40-40-00-00-00-00-00-00
+      ⟧
+    ),
+    λ ⤍ Package
   ⟧
-  ).plus (x ↦ ⟦
-    Δ ⤍ 40-40-00-00-00-00-00-00
-  ⟧
-),
-  λ ⤍ Package
-⟧}
+}
 ----------------------------------------------------
 ```
 
 ### `--json`
 
 ```$ as json
-eo-phi-normalizer transform --json --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+eo-phi-normalizer rewrite --json --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
 ```
 
 ```json
 {
-  "input": "{⟦\n  c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)),\n  result ↦ ξ.c.times (x ↦ ⟦\n    Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD\n  ⟧\n  ).plus (x ↦ ⟦\n    Δ ⤍ 40-40-00-00-00-00-00-00\n  ⟧\n),\n  λ ⤍ Package\n⟧}",
+  "input": "{\n  ⟦\n    c ↦ Φ.org.eolang.float (\n      as-bytes ↦ Φ.org.eolang.bytes (\n        Δ ⤍ 40-39-00-00-00-00-00-00\n      )\n    ),\n    result ↦ ξ.c.times (\n      x ↦ ⟦\n        Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD\n      ⟧\n    )\n   .plus (\n      x ↦ ⟦\n        Δ ⤍ 40-40-00-00-00-00-00-00\n      ⟧\n    ),\n    λ ⤍ Package\n  ⟧\n}",
   "output": [
     [
       [
         "Normal form",
-        "{⟦\n  c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)),\n  result ↦ ξ.c.times (x ↦ ⟦\n    Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD\n  ⟧\n  ).plus (x ↦ ⟦\n    Δ ⤍ 40-40-00-00-00-00-00-00\n  ⟧\n),\n  λ ⤍ Package\n⟧}"
+        "{\n  ⟦\n    c ↦ Φ.org.eolang.float (\n      as-bytes ↦ Φ.org.eolang.bytes (\n        Δ ⤍ 40-39-00-00-00-00-00-00\n      )\n    ),\n    result ↦ ξ.c.times (\n      x ↦ ⟦\n        Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD\n      ⟧\n    )\n   .plus (\n      x ↦ ⟦\n        Δ ⤍ 40-40-00-00-00-00-00-00\n      ⟧\n    ),\n    λ ⤍ Package\n  ⟧\n}"
       ]
     ]
   ]
@@ -195,31 +231,40 @@ eo-phi-normalizer transform --json --chain --rules ./eo-phi-normalizer/test/eo/p
 ### `--single`
 
 ```$ as console
-eo-phi-normalizer transform --single --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+eo-phi-normalizer rewrite --single --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
 ```
 
 ```console
-{⟦
-  c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)),
-  result ↦ ξ.c.times (x ↦ ⟦
-    Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
+{
+  ⟦
+    c ↦ Φ.org.eolang.float (
+      as-bytes ↦ Φ.org.eolang.bytes (
+        Δ ⤍ 40-39-00-00-00-00-00-00
+      )
+    ),
+    result ↦ ξ.c.times (
+      x ↦ ⟦
+        Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
+      ⟧
+    )
+   .plus (
+      x ↦ ⟦
+        Δ ⤍ 40-40-00-00-00-00-00-00
+      ⟧
+    ),
+    λ ⤍ Package
   ⟧
-  ).plus (x ↦ ⟦
-    Δ ⤍ 40-40-00-00-00-00-00-00
-  ⟧
-),
-  λ ⤍ Package
-⟧}
+}
 ```
 
 ### `--single` `--json`
 
 ```$ as console
-eo-phi-normalizer transform --single --json --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+eo-phi-normalizer rewrite --single --json --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
 ```
 
 ```console
-"{⟦\n  c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)),\n  result ↦ ξ.c.times (x ↦ ⟦\n    Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD\n  ⟧\n  ).plus (x ↦ ⟦\n    Δ ⤍ 40-40-00-00-00-00-00-00\n  ⟧\n),\n  λ ⤍ Package\n⟧}"
+"{\n  ⟦\n    c ↦ Φ.org.eolang.float (\n      as-bytes ↦ Φ.org.eolang.bytes (\n        Δ ⤍ 40-39-00-00-00-00-00-00\n      )\n    ),\n    result ↦ ξ.c.times (\n      x ↦ ⟦\n        Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD\n      ⟧\n    )\n   .plus (\n      x ↦ ⟦\n        Δ ⤍ 40-40-00-00-00-00-00-00\n      ⟧\n    ),\n    λ ⤍ Package\n  ⟧\n}"
 ```
 
 ### `--output-file FILE`
@@ -234,9 +279,9 @@ Can be used multiple times to inject multiple dependencies.
 ### `FILE` not specified (read from stdin)
 
 ```$ as console
-cat celsius.phi | eo-phi-normalizer transform --single --json --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml
+cat celsius.phi | eo-phi-normalizer rewrite --single --json --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml
 ```
 
 ```console
-"{⟦\n  c ↦ Φ.org.eolang.float (as-bytes ↦ Φ.org.eolang.bytes (Δ ⤍ 40-39-00-00-00-00-00-00)),\n  result ↦ ξ.c.times (x ↦ ⟦\n    Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD\n  ⟧\n  ).plus (x ↦ ⟦\n    Δ ⤍ 40-40-00-00-00-00-00-00\n  ⟧\n),\n  λ ⤍ Package\n⟧}"
+"{\n  ⟦\n    c ↦ Φ.org.eolang.float (\n      as-bytes ↦ Φ.org.eolang.bytes (\n        Δ ⤍ 40-39-00-00-00-00-00-00\n      )\n    ),\n    result ↦ ξ.c.times (\n      x ↦ ⟦\n        Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD\n      ⟧\n    )\n   .plus (\n      x ↦ ⟦\n        Δ ⤍ 40-40-00-00-00-00-00-00\n      ⟧\n    ),\n    λ ⤍ Package\n  ⟧\n}"
 ```

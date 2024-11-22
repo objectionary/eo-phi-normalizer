@@ -42,8 +42,8 @@ java --version
 
 ```console
 openjdk 21.0.5 2024-10-15 LTS
-OpenJDK Runtime Environment Zulu21.38+21-CA (build 21.0.5+11-LTS)
-OpenJDK 64-Bit Server VM Zulu21.38+21-CA (build 21.0.5+11-LTS, mixed mode, sharing)
+OpenJDK Runtime Environment Zulu21.38+21-CRaC-CA (build 21.0.5+11-LTS)
+OpenJDK 64-Bit Server VM Zulu21.38+21-CRaC-CA (build 21.0.5+11-LTS, mixed mode, sharing)
 ```
 
 ### Windows
@@ -58,7 +58,7 @@ Make `cygpath` available on `PATH`.
 
 The pipeline has several important stages:
 
-- Transform original `EO` programs into filtered `EO` programs, leaving only the specified top-level objects (tests).
+- Rewrite original `EO` programs into filtered `EO` programs, leaving only the specified top-level objects (tests).
 - Translate filtered `EO` programs to initial `PHI` programs.
 - Translate initial `PHI` programs to initial `EO` programs.
 - Test initial `EO` programs.

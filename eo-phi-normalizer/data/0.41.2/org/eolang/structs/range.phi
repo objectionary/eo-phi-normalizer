@@ -1,0 +1,46 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        structs ↦ ⟦
+          range ↦ ⟦
+            start ↦ ∅,
+            end ↦ ∅,
+            φ ↦ Φ.org.eolang.structs.list(
+              α0 ↦ ξ.start.lt(
+                α0 ↦ ξ.end
+              ).if(
+                α0 ↦ ξ.appended(
+                  α0 ↦ Φ.org.eolang.tuple(
+                    α0 ↦ Φ.org.eolang.tuple.empty,
+                    α1 ↦ ξ.start
+                  ),
+                  α1 ↦ ξ.start.next
+                ),
+                α1 ↦ Φ.org.eolang.tuple.empty
+              )
+            ),
+            appended ↦ ⟦
+              acc ↦ ∅,
+              current ↦ ∅,
+              φ ↦ ξ.current.lt(
+                α0 ↦ ξ.ρ.end
+              ).if(
+                α0 ↦ ξ.ρ.appended(
+                  α0 ↦ ξ.acc.with(
+                    α0 ↦ ξ.current
+                  ),
+                  α1 ↦ ξ.current.next
+                ),
+                α1 ↦ ξ.acc
+              )
+            ⟧
+          ⟧,
+          λ ⤍ Package
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

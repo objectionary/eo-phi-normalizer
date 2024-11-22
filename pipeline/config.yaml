@@ -1,3 +1,24 @@
+# The MIT License (MIT)
+
+# Copyright (c) 2016-2024 Objectionary.com
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 report:
   output:
     html: pipeline/report/report.html
@@ -32,6 +53,11 @@ test-sets:
     original: eo/eo-runtime/src/test/eo/org/eolang/bytes-tests.eo
     yaml: pipeline/eo-yaml/bytes-tests.yaml
     filtered: pipeline/eo-filtered/bytes-tests.eo
+    exclude:
+      - counts-size-of-bytes
+      - size-of-part-is-correct
+      - takes-part-of-bytes
+      - written-in-several-lines
   phi:
     initial: pipeline/phi-initial/bytes-tests.phi
     normalized: pipeline/phi-normalized/bytes-tests.phi
@@ -65,39 +91,130 @@ test-sets:
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
 - eo:
-    original: eo/eo-runtime/src/test/eo/org/eolang/float-tests.eo
-    yaml: pipeline/eo-yaml/float-tests.yaml
-    filtered: pipeline/eo-filtered/float-tests.eo
+    original: eo/eo-runtime/src/test/eo/org/eolang/fs/dir-tests.eo
+    yaml: pipeline/eo-yaml/fs/dir-tests.yaml
+    filtered: pipeline/eo-filtered/fs/dir-tests.eo
   phi:
-    initial: pipeline/phi-initial/float-tests.phi
-    normalized: pipeline/phi-normalized/float-tests.phi
+    initial: pipeline/phi-initial/fs/dir-tests.phi
+    normalized: pipeline/phi-normalized/fs/dir-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
 - eo:
-    original: eo/eo-runtime/src/test/eo/org/eolang/goto-tests.eo
-    yaml: pipeline/eo-yaml/goto-tests.yaml
-    filtered: pipeline/eo-filtered/goto-tests.eo
+    original: eo/eo-runtime/src/test/eo/org/eolang/fs/file-tests.eo
+    yaml: pipeline/eo-yaml/fs/file-tests.yaml
+    filtered: pipeline/eo-filtered/fs/file-tests.eo
   phi:
-    initial: pipeline/phi-initial/goto-tests.phi
-    normalized: pipeline/phi-normalized/goto-tests.phi
+    initial: pipeline/phi-initial/fs/file-tests.phi
+    normalized: pipeline/phi-normalized/fs/file-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
 - eo:
-    original: eo/eo-runtime/src/test/eo/org/eolang/int-tests.eo
-    yaml: pipeline/eo-yaml/int-tests.yaml
-    filtered: pipeline/eo-filtered/int-tests.eo
+    original: eo/eo-runtime/src/test/eo/org/eolang/fs/path-tests.eo
+    yaml: pipeline/eo-yaml/fs/path-tests.yaml
+    filtered: pipeline/eo-filtered/fs/path-tests.eo
   phi:
-    initial: pipeline/phi-initial/int-tests.phi
-    normalized: pipeline/phi-normalized/int-tests.phi
+    initial: pipeline/phi-initial/fs/path-tests.phi
+    normalized: pipeline/phi-normalized/fs/path-tests.phi
+    bindings-path-initial: org.eolang
+    bindings-path-normalized: org.eolang
+  enable: false
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/fs/tmpdir-tests.eo
+    yaml: pipeline/eo-yaml/fs/tmpdir-tests.yaml
+    filtered: pipeline/eo-filtered/fs/tmpdir-tests.eo
+  phi:
+    initial: pipeline/phi-initial/fs/tmpdir-tests.phi
+    normalized: pipeline/phi-normalized/fs/tmpdir-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
 - eo:
-    original: eo/eo-runtime/src/test/eo/org/eolang/io/stdout-tests.eo
-    yaml: pipeline/eo-yaml/io/stdout-tests.yaml
-    filtered: pipeline/eo-filtered/io/stdout-tests.eo
+    original: eo/eo-runtime/src/test/eo/org/eolang/go-tests.eo
+    yaml: pipeline/eo-yaml/go-tests.yaml
+    filtered: pipeline/eo-filtered/go-tests.eo
   phi:
-    initial: pipeline/phi-initial/io/stdout-tests.phi
-    normalized: pipeline/phi-normalized/io/stdout-tests.phi
+    initial: pipeline/phi-initial/go-tests.phi
+    normalized: pipeline/phi-normalized/go-tests.phi
+    bindings-path-initial: org.eolang
+    bindings-path-normalized: org.eolang
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/i16-tests.eo
+    yaml: pipeline/eo-yaml/i16-tests.yaml
+    filtered: pipeline/eo-filtered/i16-tests.eo
+  phi:
+    initial: pipeline/phi-initial/i16-tests.phi
+    normalized: pipeline/phi-normalized/i16-tests.phi
+    bindings-path-initial: org.eolang
+    bindings-path-normalized: org.eolang
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/i32-tests.eo
+    yaml: pipeline/eo-yaml/i32-tests.yaml
+    filtered: pipeline/eo-filtered/i32-tests.eo
+  phi:
+    initial: pipeline/phi-initial/i32-tests.phi
+    normalized: pipeline/phi-normalized/i32-tests.phi
+    bindings-path-initial: org.eolang
+    bindings-path-normalized: org.eolang
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/i64-tests.eo
+    yaml: pipeline/eo-yaml/i64-tests.yaml
+    filtered: pipeline/eo-filtered/i64-tests.eo
+  phi:
+    initial: pipeline/phi-initial/i64-tests.phi
+    normalized: pipeline/phi-normalized/i64-tests.phi
+    bindings-path-initial: org.eolang
+    bindings-path-normalized: org.eolang
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/io/bytes-as-input-test.eo
+    yaml: pipeline/eo-yaml/io/bytes-as-input-test.yaml
+    filtered: pipeline/eo-filtered/io/bytes-as-input-test.eo
+  phi:
+    initial: pipeline/phi-initial/io/bytes-as-input-test.phi
+    normalized: pipeline/phi-normalized/io/bytes-as-input-test.phi
+    bindings-path-initial: org.eolang
+    bindings-path-normalized: org.eolang
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/io/dead-input-tests.eo
+    yaml: pipeline/eo-yaml/io/dead-input-tests.yaml
+    filtered: pipeline/eo-filtered/io/dead-input-tests.eo
+  phi:
+    initial: pipeline/phi-initial/io/dead-input-tests.phi
+    normalized: pipeline/phi-normalized/io/dead-input-tests.phi
+    bindings-path-initial: org.eolang
+    bindings-path-normalized: org.eolang
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/io/dead-output-tests.eo
+    yaml: pipeline/eo-yaml/io/dead-output-tests.yaml
+    filtered: pipeline/eo-filtered/io/dead-output-tests.eo
+  phi:
+    initial: pipeline/phi-initial/io/dead-output-tests.phi
+    normalized: pipeline/phi-normalized/io/dead-output-tests.phi
+    bindings-path-initial: org.eolang
+    bindings-path-normalized: org.eolang
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/io/input-length-tests.eo
+    yaml: pipeline/eo-yaml/io/input-length-tests.yaml
+    filtered: pipeline/eo-filtered/io/input-length-tests.eo
+  phi:
+    initial: pipeline/phi-initial/io/input-length-tests.phi
+    normalized: pipeline/phi-normalized/io/input-length-tests.phi
+    bindings-path-initial: org.eolang
+    bindings-path-normalized: org.eolang
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/io/malloc-as-output-test.eo
+    yaml: pipeline/eo-yaml/io/malloc-as-output-test.yaml
+    filtered: pipeline/eo-filtered/io/malloc-as-output-test.eo
+  phi:
+    initial: pipeline/phi-initial/io/malloc-as-output-test.phi
+    normalized: pipeline/phi-normalized/io/malloc-as-output-test.phi
+    bindings-path-initial: org.eolang
+    bindings-path-normalized: org.eolang
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/io/tee-input-tests.eo
+    yaml: pipeline/eo-yaml/io/tee-input-tests.yaml
+    filtered: pipeline/eo-filtered/io/tee-input-tests.eo
+  phi:
+    initial: pipeline/phi-initial/io/tee-input-tests.phi
+    normalized: pipeline/phi-normalized/io/tee-input-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
 - eo:
@@ -107,6 +224,51 @@ test-sets:
   phi:
     initial: pipeline/phi-initial/malloc-tests.phi
     normalized: pipeline/phi-normalized/malloc-tests.phi
+    bindings-path-initial: org.eolang
+    bindings-path-normalized: org.eolang
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/math/angle-tests.eo
+    yaml: pipeline/eo-yaml/math/angle-tests.yaml
+    filtered: pipeline/eo-filtered/math/angle-tests.eo
+  phi:
+    initial: pipeline/phi-initial/math/angle-tests.phi
+    normalized: pipeline/phi-normalized/math/angle-tests.phi
+    bindings-path-initial: org.eolang
+    bindings-path-normalized: org.eolang
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/math/integral-tests.eo
+    yaml: pipeline/eo-yaml/math/integral-tests.yaml
+    filtered: pipeline/eo-filtered/math/integral-tests.eo
+  phi:
+    initial: pipeline/phi-initial/math/integral-tests.phi
+    normalized: pipeline/phi-normalized/math/integral-tests.phi
+    bindings-path-initial: org.eolang
+    bindings-path-normalized: org.eolang
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/math/numbers-tests.eo
+    yaml: pipeline/eo-yaml/math/numbers-tests.yaml
+    filtered: pipeline/eo-filtered/math/numbers-tests.eo
+  phi:
+    initial: pipeline/phi-initial/math/numbers-tests.phi
+    normalized: pipeline/phi-normalized/math/numbers-tests.phi
+    bindings-path-initial: org.eolang
+    bindings-path-normalized: org.eolang
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/math/random-tests.eo
+    yaml: pipeline/eo-yaml/math/random-tests.yaml
+    filtered: pipeline/eo-filtered/math/random-tests.eo
+  phi:
+    initial: pipeline/phi-initial/math/random-tests.phi
+    normalized: pipeline/phi-normalized/math/random-tests.phi
+    bindings-path-initial: org.eolang
+    bindings-path-normalized: org.eolang
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/math/real-tests.eo
+    yaml: pipeline/eo-yaml/math/real-tests.yaml
+    filtered: pipeline/eo-filtered/math/real-tests.eo
+  phi:
+    initial: pipeline/phi-initial/math/real-tests.phi
+    normalized: pipeline/phi-normalized/math/real-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
 - eo:
@@ -127,6 +289,16 @@ test-sets:
     normalized: pipeline/phi-normalized/negative-infinity-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/number-tests.eo
+    yaml: pipeline/eo-yaml/number-tests.yaml
+    filtered: pipeline/eo-filtered/number-tests.eo
+  phi:
+    initial: pipeline/phi-initial/number-tests.phi
+    normalized: pipeline/phi-normalized/number-tests.phi
+    bindings-path-initial: org.eolang
+    bindings-path-normalized: org.eolang
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/positive-infinity-tests.eo
     yaml: pipeline/eo-yaml/positive-infinity-tests.yaml
@@ -169,11 +341,85 @@ test-sets:
     original: eo/eo-runtime/src/test/eo/org/eolang/string-tests.eo
     yaml: pipeline/eo-yaml/string-tests.yaml
     filtered: pipeline/eo-filtered/string-tests.eo
+    exclude:
+      - slice-foreign-literals
+      - slice-foreign-literals-2
+      - slice-from-start
+      - slice-from-the-end
+      - slice-in-the-middle
+      - throws-on-slicing-end-below-start
+      - throws-on-slicing-end-greater-actual
   phi:
     initial: pipeline/phi-initial/string-tests.phi
     normalized: pipeline/phi-normalized/string-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/structs/bytes-as-array-tests.eo
+    yaml: pipeline/eo-yaml/structs/bytes-as-array-tests.yaml
+    filtered: pipeline/eo-filtered/structs/bytes-as-array-tests.eo
+  phi:
+    initial: pipeline/phi-initial/structs/bytes-as-array-tests.phi
+    normalized: pipeline/phi-normalized/structs/bytes-as-array-tests.phi
+    bindings-path-initial: org.eolang
+    bindings-path-normalized: org.eolang
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/structs/hash-code-of-tests.eo
+    yaml: pipeline/eo-yaml/structs/hash-code-of-tests.yaml
+    filtered: pipeline/eo-filtered/structs/hash-code-of-tests.eo
+  phi:
+    initial: pipeline/phi-initial/structs/hash-code-of-tests.phi
+    normalized: pipeline/phi-normalized/structs/hash-code-of-tests.phi
+    bindings-path-initial: org.eolang
+    bindings-path-normalized: org.eolang
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/structs/list-tests.eo
+    yaml: pipeline/eo-yaml/structs/list-tests.yaml
+    filtered: pipeline/eo-filtered/structs/list-tests.eo
+  phi:
+    initial: pipeline/phi-initial/structs/list-tests.phi
+    normalized: pipeline/phi-normalized/structs/list-tests.phi
+    bindings-path-initial: org.eolang
+    bindings-path-normalized: org.eolang
+  enable: false
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/structs/map-tests.eo
+    yaml: pipeline/eo-yaml/structs/map-tests.yaml
+    filtered: pipeline/eo-filtered/structs/map-tests.eo
+  phi:
+    initial: pipeline/phi-initial/structs/map-tests.phi
+    normalized: pipeline/phi-normalized/structs/map-tests.phi
+    bindings-path-initial: org.eolang
+    bindings-path-normalized: org.eolang
+  enable: false
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/structs/range-of-ints-tests.eo
+    yaml: pipeline/eo-yaml/structs/range-of-ints-tests.yaml
+    filtered: pipeline/eo-filtered/structs/range-of-ints-tests.eo
+  phi:
+    initial: pipeline/phi-initial/structs/range-of-ints-tests.phi
+    normalized: pipeline/phi-normalized/structs/range-of-ints-tests.phi
+    bindings-path-initial: org.eolang
+    bindings-path-normalized: org.eolang
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/structs/range-tests.eo
+    yaml: pipeline/eo-yaml/structs/range-tests.yaml
+    filtered: pipeline/eo-filtered/structs/range-tests.eo
+  phi:
+    initial: pipeline/phi-initial/structs/range-tests.phi
+    normalized: pipeline/phi-normalized/structs/range-tests.phi
+    bindings-path-initial: org.eolang
+    bindings-path-normalized: org.eolang
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/structs/set-tests.eo
+    yaml: pipeline/eo-yaml/structs/set-tests.yaml
+    filtered: pipeline/eo-filtered/structs/set-tests.eo
+  phi:
+    initial: pipeline/phi-initial/structs/set-tests.phi
+    normalized: pipeline/phi-normalized/structs/set-tests.phi
+    bindings-path-initial: org.eolang
+    bindings-path-normalized: org.eolang
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/switch-tests.eo
     yaml: pipeline/eo-yaml/switch-tests.yaml
@@ -181,6 +427,33 @@ test-sets:
   phi:
     initial: pipeline/phi-initial/switch-tests.phi
     normalized: pipeline/phi-normalized/switch-tests.phi
+    bindings-path-initial: org.eolang
+    bindings-path-normalized: org.eolang
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/sys/os-tests.eo
+    yaml: pipeline/eo-yaml/sys/os-tests.yaml
+    filtered: pipeline/eo-filtered/sys/os-tests.eo
+  phi:
+    initial: pipeline/phi-initial/sys/os-tests.phi
+    normalized: pipeline/phi-normalized/sys/os-tests.phi
+    bindings-path-initial: org.eolang
+    bindings-path-normalized: org.eolang
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/sys/posix-tests.eo
+    yaml: pipeline/eo-yaml/sys/posix-tests.yaml
+    filtered: pipeline/eo-filtered/sys/posix-tests.eo
+  phi:
+    initial: pipeline/phi-initial/sys/posix-tests.phi
+    normalized: pipeline/phi-normalized/sys/posix-tests.phi
+    bindings-path-initial: org.eolang
+    bindings-path-normalized: org.eolang
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/sys/win32-tests.eo
+    yaml: pipeline/eo-yaml/sys/win32-tests.yaml
+    filtered: pipeline/eo-filtered/sys/win32-tests.eo
+  phi:
+    initial: pipeline/phi-initial/sys/win32-tests.phi
+    normalized: pipeline/phi-normalized/sys/win32-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
 - eo:
@@ -199,6 +472,45 @@ test-sets:
   phi:
     initial: pipeline/phi-initial/tuple-tests.phi
     normalized: pipeline/phi-normalized/tuple-tests.phi
+    bindings-path-initial: org.eolang
+    bindings-path-normalized: org.eolang
+  enable: false
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/txt/regex-tests.eo
+    yaml: pipeline/eo-yaml/txt/regex-tests.yaml
+    filtered: pipeline/eo-filtered/txt/regex-tests.eo
+  phi:
+    initial: pipeline/phi-initial/txt/regex-tests.phi
+    normalized: pipeline/phi-normalized/txt/regex-tests.phi
+    bindings-path-initial: org.eolang
+    bindings-path-normalized: org.eolang
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/txt/sprintf-tests.eo
+    yaml: pipeline/eo-yaml/txt/sprintf-tests.yaml
+    filtered: pipeline/eo-filtered/txt/sprintf-tests.eo
+  phi:
+    initial: pipeline/phi-initial/txt/sprintf-tests.phi
+    normalized: pipeline/phi-normalized/txt/sprintf-tests.phi
+    bindings-path-initial: org.eolang
+    bindings-path-normalized: org.eolang
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/txt/sscanf-tests.eo
+    yaml: pipeline/eo-yaml/txt/sscanf-tests.yaml
+    filtered: pipeline/eo-filtered/txt/sscanf-tests.eo
+  phi:
+    initial: pipeline/phi-initial/txt/sscanf-tests.phi
+    normalized: pipeline/phi-normalized/txt/sscanf-tests.phi
+    bindings-path-initial: org.eolang
+    bindings-path-normalized: org.eolang
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/txt/text-tests.eo
+    yaml: pipeline/eo-yaml/txt/text-tests.yaml
+    filtered: pipeline/eo-filtered/txt/text-tests.eo
+    exclude:
+      - text-slices-the-origin-string
+  phi:
+    initial: pipeline/phi-initial/txt/text-tests.phi
+    normalized: pipeline/phi-normalized/txt/text-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
 - eo:

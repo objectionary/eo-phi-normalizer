@@ -1,0 +1,27 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        io ↦ ⟦
+          stdout ↦ ⟦
+            text ↦ ∅,
+            φ ↦ Φ.org.eolang.seq(
+              α0 ↦ Φ.org.eolang.tuple(
+                α0 ↦ Φ.org.eolang.tuple(
+                  α0 ↦ Φ.org.eolang.tuple.empty,
+                  α1 ↦ Φ.org.eolang.io.console.write(
+                    α0 ↦ ξ.text
+                  )
+                ),
+                α1 ↦ Φ.org.eolang.true
+              )
+            )
+          ⟧,
+          λ ⤍ Package
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

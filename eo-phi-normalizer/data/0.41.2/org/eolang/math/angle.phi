@@ -1,0 +1,79 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        math ↦ ⟦
+          angle ↦ ⟦
+            value ↦ ∅,
+            φ ↦ ξ.value,
+            in-degrees ↦ ξ.ρ.angle(
+              α0 ↦ ξ.ρ.times(
+                α0 ↦ Φ.org.eolang.number(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 40-66-80-00-00-00-00-00
+                  )
+                )
+              ).div(
+                α0 ↦ Φ.org.eolang.math.pi
+              )
+            ),
+            in-radians ↦ ξ.ρ.angle(
+              α0 ↦ ξ.times(
+                α0 ↦ Φ.org.eolang.math.pi
+              ).div(
+                α0 ↦ Φ.org.eolang.number(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 40-66-80-00-00-00-00-00
+                  )
+                )
+              )
+            ),
+            sin ↦ ⟦
+              λ ⤍ Lorg_eolang_math_angle_sin
+            ⟧,
+            cos ↦ ⟦
+              λ ⤍ Lorg_eolang_math_angle_cos
+            ⟧,
+            tan ↦ ⟦
+              cosine ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.ρ.cos
+              ).as-bytes,
+              φ ↦ ξ.cosine.eq(
+                α0 ↦ Φ.org.eolang.number(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 00-00-00-00-00-00-00-00
+                  )
+                )
+              ).if(
+                α0 ↦ Φ.org.eolang.nan,
+                α1 ↦ ξ.ρ.sin.div(
+                  α0 ↦ ξ.cosine
+                )
+              )
+            ⟧,
+            ctan ↦ ⟦
+              sine ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.ρ.sin
+              ).as-bytes,
+              φ ↦ ξ.sine.eq(
+                α0 ↦ Φ.org.eolang.number(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 00-00-00-00-00-00-00-00
+                  )
+                )
+              ).if(
+                α0 ↦ Φ.org.eolang.nan,
+                α1 ↦ ξ.ρ.cos.div(
+                  α0 ↦ ξ.sine
+                )
+              )
+            ⟧
+          ⟧,
+          λ ⤍ Package
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

@@ -1,0 +1,65 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        nan ↦ ⟦
+          φ ↦ Φ.org.eolang.number(
+            α0 ↦ Φ.org.eolang.bytes(
+              Δ ⤍ 7F-F8-00-00-00-00-00-00
+            )
+          ),
+          floor ↦ ξ,
+          neg ↦ ξ,
+          is-nan ↦ Φ.org.eolang.true,
+          is-finite ↦ Φ.org.eolang.false,
+          is-integer ↦ Φ.org.eolang.false,
+          as-i64 ↦ Φ.org.eolang.error(
+            α0 ↦ Φ.org.eolang.string(
+              α0 ↦ Φ.org.eolang.bytes(
+                Δ ⤍ 43-61-6E-27-74-20-63-6F-6E-76-65-72-74-20-4E-61-4E-20-74-6F-20-69-36-34
+              )
+            )
+          ),
+          eq ↦ ⟦
+            φ ↦ Φ.org.eolang.false,
+            x ↦ ∅
+          ⟧,
+          lt ↦ ⟦
+            φ ↦ Φ.org.eolang.false,
+            x ↦ ∅
+          ⟧,
+          lte ↦ ⟦
+            φ ↦ Φ.org.eolang.false,
+            x ↦ ∅
+          ⟧,
+          gt ↦ ⟦
+            φ ↦ Φ.org.eolang.false,
+            x ↦ ∅
+          ⟧,
+          gte ↦ ⟦
+            φ ↦ Φ.org.eolang.false,
+            x ↦ ∅
+          ⟧,
+          times ↦ ⟦
+            φ ↦ ξ.ρ,
+            x ↦ ∅
+          ⟧,
+          plus ↦ ⟦
+            φ ↦ ξ.ρ,
+            x ↦ ∅
+          ⟧,
+          minus ↦ ⟦
+            φ ↦ ξ.ρ,
+            x ↦ ∅
+          ⟧,
+          div ↦ ⟦
+            φ ↦ ξ.ρ,
+            x ↦ ∅
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}
