@@ -4,7 +4,7 @@ Dataization is the process through which data is extracted from a given program/
 
 ## Dataization process
 
-To dataize a given program written in \\( \varphi \\)-calculus, the first step is to normalize it according to the process outlined in [eo-phi-normalizer transform](./transform.md) docs.
+To dataize a given program written in \\( \varphi \\)-calculus, the first step is to normalize it according to the process outlined in [eo-phi-normalizer rewrite](./rewrite.md) docs.
 Then, a single step of dataization is performed according to the following rules in order of priority:
 
 1. If the object is a formation that contains a \\( \Delta \\)-binding and no empty bindings, the bytes attached to it are returned
