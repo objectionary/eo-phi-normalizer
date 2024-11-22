@@ -136,6 +136,7 @@ function normalize {
     export dependency_files
     export PIPELINE_PHI_NORMALIZED_DIR
     export PIPELINE_EO_PHI_NORMALIZER_DIR
+    export PIPELINE_EO_PHI_NORMALIZER_RULES_FILE
 
     function extract {
         yq -pj -oj -r "$1" <<< "$2"
@@ -178,6 +179,7 @@ function normalize {
                 --as-package \
                 --recursive \
                 --wrap-raw-bytes \
+                --rules "$PIPELINE_EO_PHI_NORMALIZER_RULES_FILE" \
                 $dependency_file_options \
                 $atoms \
                 "$initial" \
