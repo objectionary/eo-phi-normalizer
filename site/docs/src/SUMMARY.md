@@ -16,4 +16,5 @@
     - [eo-phi-normalizer pipeline report](./eo-phi-normalizer/pipeline/report.md)
   - [eo-phi-normalizer test](./eo-phi-normalizer/test.md)
   - [eo-phi-normalizer print-rules](./eo-phi-normalizer/print-rules.md)
+- [Release procedure](./release-procedure.md)
 - [Contributing](./contributing.md)
