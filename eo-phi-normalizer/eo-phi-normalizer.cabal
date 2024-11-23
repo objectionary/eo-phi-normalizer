@@ -5,7 +5,7 @@ cabal-version: 1.24
 -- see: https://github.com/sol/hpack
 
 name:           eo-phi-normalizer
-version:        2.0.0
+version:        2.1.0
 synopsis:       Command line normalizer of 𝜑-calculus expressions.
 description:    Please see the README on GitHub at <https://github.com/objectionary/eo-phi-normalizer#readme>
 homepage:       https://github.com/objectionary/eo-phi-normalizer#readme
