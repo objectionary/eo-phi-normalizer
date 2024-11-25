@@ -76,6 +76,7 @@ render d = rend 0 False (map ($ "") $ d []) ""
     ")" : ts -> onNewLine (i - 1) p . showChar ')' . new (i - 1) ts
     [";"] -> char ';'
     ";" : ts -> char ';' . new i ts
+    "." : ts -> rend i p (" ." : ts)
     t : ts@(s : ss)
       | closingOrPunctuation s ->
           (pending . showString t)
