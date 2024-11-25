@@ -311,7 +311,7 @@ jobs:
         uses: jontze/action-mdbook@v3
         with:
           token: ${{secrets.GITHUB_TOKEN}}
-          mdbook-version: "~0.4.40"
+          mdbook-version: "~0.4.43"
           use-linkcheck: true
 
       - name: Run mdbook
