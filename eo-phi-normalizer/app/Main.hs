@@ -586,7 +586,11 @@ main = withUtf8 do
           Just path -> do
             ruleSet <- parseRuleSetFromFile path
             return (False, ruleSet.title, convertRuleNamed <$> ruleSet.rules)
-          Nothing -> return (True, "Yegor's rules (builtin)", [fastYegorInsideOutAsRule])
+          -- Temporary hack while rules are not stabilized.
+          -- Nothing -> return (True, "Yegor's rules (builtin)", [fastYegorInsideOutAsRule])
+          Nothing -> do
+            ruleSet <- parseRuleSetFromFile "eo-phi-normalizer/test/eo/phi/rules/new.yaml"
+            return (False, ruleSet.title, convertRuleNamed <$> ruleSet.rules)
       unless (single || json) $ logStrLn ruleSetTitle
       bindingsWithDeps <- case deepMergePrograms (program' : deps) of
         Left err -> throw (CouldNotMergeDependencies err)
