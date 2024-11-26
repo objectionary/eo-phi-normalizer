@@ -74,7 +74,7 @@ Input:
         Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
       ⟧
     )
-   .plus (
+    .plus (
       x ↦ ⟦
         Δ ⤍ 40-40-00-00-00-00-00-00
       ⟧
@@ -96,7 +96,7 @@ Result 1 out of 1:
         Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
       ⟧
     )
-   .plus (
+    .plus (
       x ↦ ⟦
         Δ ⤍ 40-40-00-00-00-00-00-00
       ⟧
@@ -130,7 +130,7 @@ Input:
         Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
       ⟧
     )
-   .plus (
+    .plus (
       x ↦ ⟦
         Δ ⤍ 40-40-00-00-00-00-00-00
       ⟧
@@ -152,7 +152,7 @@ Result 1 out of 1:
         Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
       ⟧
     )
-   .plus (
+    .plus (
       x ↦ ⟦
         Δ ⤍ 40-40-00-00-00-00-00-00
       ⟧
@@ -171,12 +171,12 @@ eo-phi-normalizer rewrite --json --chain --rules ./eo-phi-normalizer/test/eo/phi
 
 ```json
 {
-  "input": "{\n  ⟦\n    c ↦ Φ.org.eolang.float (\n      as-bytes ↦ Φ.org.eolang.bytes (\n        Δ ⤍ 40-39-00-00-00-00-00-00\n      )\n    ),\n    result ↦ ξ.c.times (\n      x ↦ ⟦\n        Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD\n      ⟧\n    )\n   .plus (\n      x ↦ ⟦\n        Δ ⤍ 40-40-00-00-00-00-00-00\n      ⟧\n    ),\n    λ ⤍ Package\n  ⟧\n}",
+  "input": "{\n  ⟦\n    c ↦ Φ.org.eolang.float (\n      as-bytes ↦ Φ.org.eolang.bytes (\n        Δ ⤍ 40-39-00-00-00-00-00-00\n      )\n    ),\n    result ↦ ξ.c.times (\n      x ↦ ⟦\n        Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD\n      ⟧\n    )\n    .plus (\n      x ↦ ⟦\n        Δ ⤍ 40-40-00-00-00-00-00-00\n      ⟧\n    ),\n    λ ⤍ Package\n  ⟧\n}",
   "output": [
     [
       [
         "Normal form",
-        "{\n  ⟦\n    c ↦ Φ.org.eolang.float (\n      as-bytes ↦ Φ.org.eolang.bytes (\n        Δ ⤍ 40-39-00-00-00-00-00-00\n      )\n    ),\n    result ↦ ξ.c.times (\n      x ↦ ⟦\n        Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD\n      ⟧\n    )\n   .plus (\n      x ↦ ⟦\n        Δ ⤍ 40-40-00-00-00-00-00-00\n      ⟧\n    ),\n    λ ⤍ Package\n  ⟧\n}"
+        "{\n  ⟦\n    c ↦ Φ.org.eolang.float (\n      as-bytes ↦ Φ.org.eolang.bytes (\n        Δ ⤍ 40-39-00-00-00-00-00-00\n      )\n    ),\n    result ↦ ξ.c.times (\n      x ↦ ⟦\n        Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD\n      ⟧\n    )\n    .plus (\n      x ↦ ⟦\n        Δ ⤍ 40-40-00-00-00-00-00-00\n      ⟧\n    ),\n    λ ⤍ Package\n  ⟧\n}"
       ]
     ]
   ]
@@ -202,7 +202,7 @@ eo-phi-normalizer rewrite --single --rules ./eo-phi-normalizer/test/eo/phi/rules
         Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
       ⟧
     )
-   .plus (
+    .plus (
       x ↦ ⟦
         Δ ⤍ 40-40-00-00-00-00-00-00
       ⟧
@@ -219,7 +219,7 @@ eo-phi-normalizer rewrite --single --json --rules ./eo-phi-normalizer/test/eo/ph
 ```
 
 ```console
-"{\n  ⟦\n    c ↦ Φ.org.eolang.float (\n      as-bytes ↦ Φ.org.eolang.bytes (\n        Δ ⤍ 40-39-00-00-00-00-00-00\n      )\n    ),\n    result ↦ ξ.c.times (\n      x ↦ ⟦\n        Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD\n      ⟧\n    )\n   .plus (\n      x ↦ ⟦\n        Δ ⤍ 40-40-00-00-00-00-00-00\n      ⟧\n    ),\n    λ ⤍ Package\n  ⟧\n}"
+"{\n  ⟦\n    c ↦ Φ.org.eolang.float (\n      as-bytes ↦ Φ.org.eolang.bytes (\n        Δ ⤍ 40-39-00-00-00-00-00-00\n      )\n    ),\n    result ↦ ξ.c.times (\n      x ↦ ⟦\n        Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD\n      ⟧\n    )\n    .plus (\n      x ↦ ⟦\n        Δ ⤍ 40-40-00-00-00-00-00-00\n      ⟧\n    ),\n    λ ⤍ Package\n  ⟧\n}"
 ```
 
 ### `--output-file FILE`
@@ -238,5 +238,5 @@ cat celsius.phi | eo-phi-normalizer rewrite --single --json --rules ./eo-phi-nor
 ```
 
 ```console
-"{\n  ⟦\n    c ↦ Φ.org.eolang.float (\n      as-bytes ↦ Φ.org.eolang.bytes (\n        Δ ⤍ 40-39-00-00-00-00-00-00\n      )\n    ),\n    result ↦ ξ.c.times (\n      x ↦ ⟦\n        Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD\n      ⟧\n    )\n   .plus (\n      x ↦ ⟦\n        Δ ⤍ 40-40-00-00-00-00-00-00\n      ⟧\n    ),\n    λ ⤍ Package\n  ⟧\n}"
+"{\n  ⟦\n    c ↦ Φ.org.eolang.float (\n      as-bytes ↦ Φ.org.eolang.bytes (\n        Δ ⤍ 40-39-00-00-00-00-00-00\n      )\n    ),\n    result ↦ ξ.c.times (\n      x ↦ ⟦\n        Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD\n      ⟧\n    )\n    .plus (\n      x ↦ ⟦\n        Δ ⤍ 40-40-00-00-00-00-00-00\n      ⟧\n    ),\n    λ ⤍ Package\n  ⟧\n}"
 ```

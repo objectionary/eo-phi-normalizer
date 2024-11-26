@@ -76,9 +76,14 @@ render d = rend 0 False (map ($ "") $ d []) ""
     ")" : ts -> onNewLine (i - 1) p . showChar ')' . new (i - 1) ts
     [";"] -> char ';'
     ";" : ts -> char ';' . new i ts
-    t : ts@(s : _)
+    "." : ts -> rend i p (" ." : ts)
+    t : ts@(s : ss)
       | closingOrPunctuation s ->
-          pending . showString t . rend i False ts
+          (pending . showString t)
+            . ( case s of
+                  "," -> showChar ',' . new i ss
+                  _ -> rend i False ts
+              )
     t : ts -> pending . space t . rend i False ts
     [] -> id
    where
