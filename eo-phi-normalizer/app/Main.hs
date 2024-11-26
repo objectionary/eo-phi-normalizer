@@ -42,6 +42,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE ViewPatterns #-}
@@ -56,13 +57,14 @@ import Control.Lens.Operators ((?~))
 import Control.Monad (forM, unless, when)
 import Data.Aeson (ToJSON)
 import Data.Aeson.Encode.Pretty (Config (..), Indent (..), defConfig, encodePrettyToTextBuilder')
+import Data.FileEmbed (embedFileRelative)
 import Data.Foldable (forM_)
 import Data.List (intercalate, isPrefixOf)
 import Data.Maybe (fromMaybe)
 import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy as TL (unpack)
 import Data.Version (showVersion)
-import Data.Yaml (decodeFileThrow)
+import Data.Yaml (decodeFileThrow, decodeThrow)
 import GHC.Generics (Generic)
 import Language.EO.Phi (Binding (..), Bytes (Bytes), Object (..), Program (Program), parseProgram, printTree)
 import Language.EO.Phi.Dataize
@@ -586,7 +588,11 @@ main = withUtf8 do
           Just path -> do
             ruleSet <- parseRuleSetFromFile path
             return (False, ruleSet.title, convertRuleNamed <$> ruleSet.rules)
-          Nothing -> return (True, "Yegor's rules (builtin)", [fastYegorInsideOutAsRule])
+          -- Temporary hack while rules are not stabilized.
+          -- Nothing -> return (True, "Yegor's rules (builtin)", [fastYegorInsideOutAsRule])
+          Nothing -> do
+            ruleSet :: RuleSet <- decodeThrow $(embedFileRelative "test/eo/phi/rules/new.yaml")
+            return (False, ruleSet.title, convertRuleNamed <$> ruleSet.rules)
       unless (single || json) $ logStrLn ruleSetTitle
       bindingsWithDeps <- case deepMergePrograms (program' : deps) of
         Left err -> throw (CouldNotMergeDependencies err)
