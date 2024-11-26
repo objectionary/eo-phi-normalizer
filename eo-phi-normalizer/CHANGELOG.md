@@ -8,11 +8,11 @@ and this project adheres to the
 
 ## v2.1.0 - 2024-11-22
 
-## Breaking changes
+### Breaking changes
 
 - Rename `transform` to `rewrite` in the `eo-phi-normalizer` CLI ([#369](https://github.com/objectionary/eo-phi-normalizer/pull/369))
 
-## New
+### New
 
 - Add new rules ([#523](https://github.com/objectionary/eo-phi-normalizer/pull/523))
 - Add new rules tests ([#540](https://github.com/objectionary/eo-phi-normalizer/pull/540))
@@ -25,7 +25,7 @@ and this project adheres to the
 
 ## v2.0.0 - 2024-11-18
 
-## Breaking changes
+### Breaking changes
 
 - Rename `normalizer` to `eo-phi-normalizer` everywhere ([#494](https://github.com/objectionary/eo-phi-normalizer/pull/494))
 
