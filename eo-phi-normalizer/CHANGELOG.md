@@ -6,13 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to the
 [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## v2.2.0 - 2024-11-26
+
+### Breaking changes
+
+- Use rules from `new.yaml` by default ([#555](https://github.com/objectionary/eo-phi-normalizer/pull/555))
+
+### Changes and fixes
+
+- Pretty printing doesn't put enough eols ([#550](https://github.com/objectionary/eo-phi-normalizer/pull/550))
+
+### Documentation and maintenance
+
+- Menu is broken on the site ([#551](https://github.com/objectionary/eo-phi-normalizer/pull/551))
+
 ## v2.1.0 - 2024-11-22
 
-## Breaking changes
+### Breaking changes
 
 - Rename `transform` to `rewrite` in the `eo-phi-normalizer` CLI ([#369](https://github.com/objectionary/eo-phi-normalizer/pull/369))
 
-## New
+### New
 
 - Add new rules ([#523](https://github.com/objectionary/eo-phi-normalizer/pull/523))
 - Add new rules tests ([#540](https://github.com/objectionary/eo-phi-normalizer/pull/540))
@@ -25,7 +39,7 @@ and this project adheres to the
 
 ## v2.0.0 - 2024-11-18
 
-## Breaking changes
+### Breaking changes
 
 - Rename `normalizer` to `eo-phi-normalizer` everywhere ([#494](https://github.com/objectionary/eo-phi-normalizer/pull/494))
 
