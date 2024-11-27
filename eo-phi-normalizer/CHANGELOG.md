@@ -14,11 +14,11 @@ and this project adheres to the
 
 ### Changes and fixes
 
-- Pretty printing doesn't put enough eols ([#550](https://github.com/objectionary/eo-phi-normalizer/pull/550))
+- Fix pretty-printing ([#550](https://github.com/objectionary/eo-phi-normalizer/pull/550))
 
 ### Documentation and maintenance
 
-- Menu is broken on the site ([#551](https://github.com/objectionary/eo-phi-normalizer/pull/551))
+- Fix menu on the site ([#551](https://github.com/objectionary/eo-phi-normalizer/pull/551))
 
 ## v2.1.0 - 2024-11-22
 
