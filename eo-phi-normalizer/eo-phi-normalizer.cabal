@@ -189,6 +189,9 @@ extra-source-files:
     data/0.41.2/org/eolang/txt/sscanf.phi
     data/0.41.2/org/eolang/txt/text.phi
     data/0.41.2/org/eolang/while.phi
+    test/eo/phi/rules/new.yaml
+    test/eo/phi/rules/streams.yaml
+    test/eo/phi/rules/yegor.yaml
 
 source-repository head
   type: git
