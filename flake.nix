@@ -199,9 +199,6 @@
                 let
                   name = "update-markdown";
                   text = ''
-                    # This file was generated automatically.
-                    # You can edit the script in 'flake.nix'
-
                     mdsh
 
                     ${lib.concatMapStringsSep "\n" (x: "mdsh -i site/docs/src/${x} --work_dir .") [
@@ -218,6 +215,8 @@
                       "contributing.md"
                     ]}
 
+                    cp site/docs/docs/markdown/contributing.md CONTRIBUTING.md
+
                     rm celsius.phi
 
                     npm i
@@ -228,8 +227,18 @@
                   stack install
 
                   cat << EOF > scripts/${name}.sh
+                  ${lib.trivial.pipe ./LICENSE.txt [
+                    builtins.readFile
+                    (builtins.split "\n")
+                    (builtins.filter (x: x != [ ]))
+                    (builtins.map (x: "# ${x}"))
+                    (builtins.concatStringsSep "\n")
+                  ]}
+
                   # shellcheck disable=SC2148
 
+                  # This file was generated automatically.
+                  # You can edit the script in 'flake.nix'
                   ${text}
                   EOF
 
