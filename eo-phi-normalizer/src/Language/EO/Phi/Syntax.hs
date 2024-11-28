@@ -63,7 +63,12 @@ render d = rend 0 False (map ($ "") $ d []) ""
     ShowS
   rend i p = \case
     "[" : "]" : ts -> showString "[]" . rend i False ts
-    "(" : ")" : ts -> showString "()" . rend i False ts
+    "(" : ")" : (t : ts) ->
+      (pending . showString "()")
+        . ( case t of
+              "," -> showChar ',' . new i ts
+              _ -> rend i False (t : ts)
+          )
     "⟦" : "⟧" : ts -> showString "⟦ ⟧" . rend i False ts
     "[" : ts -> char '[' . rend i False ts
     "(" : ts -> char '(' . new (i + 1) ts
