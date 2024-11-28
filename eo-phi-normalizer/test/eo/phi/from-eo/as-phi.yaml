@@ -62,3 +62,17 @@ tests:
           ⟧
         ⟧
       }
+  - name: "Prints empty parentheses"
+    input: |
+      {⟦ m ↦ ⟦ x ↦ ⟦ ⟧ ⟧() ⟧}
+    normalized: |
+      {⟦ m ↦ ⟦ x ↦ ⟦ ⟧ ⟧() ⟧}
+    prettified: |
+      {
+        ⟦
+          m ↦ ⟦
+            x ↦ ⟦ ⟧
+          ⟧
+          ()
+        ⟧
+      }
