@@ -27,6 +27,7 @@
 module Language.EO.Test.YamlSpec where
 
 import Control.Monad (forM_)
+import Data.Maybe (fromMaybe)
 import Language.EO.Phi.Dataize.Context (defaultContext)
 import Language.EO.Phi.Rules.Common (applyOneRule)
 import Language.EO.Phi.Rules.Yaml (Rule (..), RuleSet (..), RuleTest (..), RuleTestOption (..), convertRuleNamed)
@@ -40,7 +41,8 @@ spec testPaths = describe "User-defined rules unit tests" do
     describe ruleset.title do
       forM_ ruleset.rules $ \rule -> do
         describe rule.name do
-          forM_ rule.tests $ \ruleTest -> do
+          let tests' = fromMaybe [] rule.tests
+          forM_ tests' $ \ruleTest -> do
             it ruleTest.name $
               let rule' = convertRuleNamed rule
                   resultOneStep = applyOneRule (defaultContext [rule'] ruleTest.input) ruleTest.input

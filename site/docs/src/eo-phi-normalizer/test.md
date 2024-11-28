@@ -61,11 +61,11 @@ User-defined rules unit tests
       Should match in subformation [✔]
       Should work with empty formation [✔]
     OVER
-      Language.EO.Test.YamlSpec[44:13] [✔]
+      Language.EO.Test.YamlSpec[46:13] [✔]
     STOP
       Accessing nonexistent attribute [✔]
     MISS
-      Language.EO.Test.YamlSpec[44:13] [✔]
+      Language.EO.Test.YamlSpec[46:13] [✔]
       Should not match if attr is present [✔]
       Should not match if phi is present [✔]
       Should apply in subformations [✔]
