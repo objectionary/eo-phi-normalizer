@@ -101,8 +101,8 @@ data Rule = Rule
   , pattern :: Object
   , result :: Object
   , fresh :: Maybe [FreshMetaId]
-  , when :: [Condition]
-  , tests :: [RuleTest]
+  , when :: Maybe [Condition]
+  , tests :: Maybe [RuleTest]
   }
   deriving (Generic, FromJSON, Show)
 
@@ -183,7 +183,7 @@ convertRule Rule{..} ctx obj = do
   let pattern' = applySubst contextSubsts pattern
       result' = applySubst contextSubsts result
   subst <- matchObject pattern' obj
-  guard $ all (\cond -> checkCond ctx cond (contextSubsts <> subst)) when
+  guard $ all (\cond -> checkCond ctx cond (contextSubsts <> subst)) (fromMaybe [] when)
   let substFresh = mkFreshSubst ctx result' fresh
       result'' = applySubst (contextSubsts <> subst <> substFresh) result'
       -- TODO #152:30m what context should we pass to evaluate meta funcs?

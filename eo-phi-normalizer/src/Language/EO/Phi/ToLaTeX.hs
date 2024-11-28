@@ -119,7 +119,7 @@ instance ToLatex RuleAttribute where
 instance ToLatex Condition where
   toLatex (IsNF nf) = inMathMode $ toLatex nf <> "\\in\\mathcal{N}"
   toLatex (IsNFInsideFormation nf_inside_formation) =
-    (inMathMode $ toLatex nf_inside_formation) <> " is nf inside formation"
+    inMathMode (toLatex nf_inside_formation) <> " is nf inside formation"
   toLatex (PresentAttrs (AttrsInBindings attrs bindings)) =
     inMathMode $ fold (intersperse ", " (map toLatex attrs)) <> " \\in " <> foldMap toLatex bindings
   toLatex (AbsentAttrs (AttrsInBindings attrs bindings)) =
@@ -147,7 +147,7 @@ instance ToLatex Rule where
       <> inMathMode (toLatex result)
       <> (if not (null when) || isNonEmptyContext context then "\\\\\\text {if }" else mempty)
       <> maybe mempty (\c -> "&" <> toLatex c <> "\\\\") context
-      <> fold (intersperse ",\\\\" (map (("&" <>) . toLatex) when))
+      <> fold (intersperse ",\\\\" (maybe [] (map (("&" <>) . toLatex)) when))
 
 instance ToLatex [Rule] where
   toLatex rules =
@@ -166,7 +166,7 @@ ruleToLatexCompact (Rule name _ context _ pattern result _ when _) =
     <> inMathMode (toLatex result)
     <> (if not (null when) || isNonEmptyContext context then "\\quad\\text {if }" else "")
     <> maybe mempty (\c -> toLatex c <> ", ") context
-    <> fold (intersperse ", " (map toLatex when))
+    <> fold (intersperse ", " (maybe [] (map toLatex) when))
 
 rulesToLatexCompact :: [Rule] -> LaTeX
 rulesToLatexCompact rules =
