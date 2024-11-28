@@ -58,7 +58,7 @@ import Control.Monad (forM, unless, when)
 import Data.Aeson (ToJSON)
 import Data.Aeson.Encode.Pretty (Config (..), Indent (..), defConfig, encodePrettyToTextBuilder')
 import Data.FileEmbed (embedFileRelative)
-import Data.Foldable (forM_)
+import Data.Foldable (Foldable (..), forM_)
 import Data.List (intercalate, isPrefixOf)
 import Data.Maybe (fromMaybe)
 import Data.Text.Internal.Builder (toLazyText)
@@ -593,7 +593,7 @@ main = withUtf8 do
           Nothing -> do
             ruleSet :: RuleSet <- decodeThrow $(embedFileRelative "test/eo/phi/rules/new.yaml")
             return (False, ruleSet.title, convertRuleNamed <$> ruleSet.rules)
-      unless (single || json) $ logStrLn ruleSetTitle
+      unless (single || json || (chain && latex)) $ logStrLn ruleSetTitle
       bindingsWithDeps <- case deepMergePrograms (program' : deps) of
         Left err -> throw (CouldNotMergeDependencies err)
         Right (Program bindingsWithDeps) -> return bindingsWithDeps
@@ -625,10 +625,22 @@ main = withUtf8 do
                 , output = (logEntryToPair . fmap printAsProgramOrAsObject <$>) <$> uniqueResults
                 }
         | chain && latex -> do
-            logStrLn . toLatexString $ Formation bindings
+            logStrLn
+              [fmtTrim|
+                % {ruleSetTitle}
+
+                \\documentclass{{article}}
+                \\usepackage{{eolang}}
+                \\begin{{document}}
+              |]
             forM_ uniqueResults $ \steps -> do
-              forM_ (init steps) $ \LogEntry{..} -> do
-                logStrLn . toLatexString $ logEntryLog
+              let latexLines = toLatexString (Formation bindings) : (toLatexString . (.logEntryLog) <$> steps)
+                  transitions :: [String] = ((\x -> [fmt| \\trans_{{\\rulename{{{logEntryMessage x}}}}} \n|]) <$> steps) <> ["."]
+                  linesCombined :: String = fold $ zipWith (\latexLine transition -> [fmt|{latexLine}{transition}|]) latexLines transitions
+              logStrLn "\\begin{phiquation*}"
+              logStrLn [fmtTrim|{linesCombined}|]
+              logStrLn "\\end{phiquation*}"
+            logStrLn "\n\\end{document}"
         | latex ->
             logStrLn . toLatexString $ logEntryLog (head (head uniqueResults))
         | otherwise -> do
