@@ -50,11 +50,16 @@ rules:
         output: ['⟦ρ ↦ ⟦⟧⟧(ρ ↦ ⟦x ↦ ⟦ρ ↦ ⟦⟧⟧⟧)']
       - name: Phi Paper - Example E4 - first R_dot
         input: '⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧.y'
-        # output: ['⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧.x(ρ ↦ ⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧)']
         output: ['⟦ y ↦ ξ.x, x ↦ ⟦ρ ↦ ⟦⟧⟧ ⟧.x(ρ ↦ ⟦ y ↦ ξ.x, x ↦ ⟦ρ ↦ ⟦⟧⟧ ⟧)']
       - name: Phi Paper - Example E4 - second R_dot
         input: ⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧.x(ρ ↦ ⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧)
         output: ['⟦ρ ↦ ⟦⟧⟧(ρ ↦ ⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧)(ρ ↦ ⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧)']
+      - name: Phi Paper - Example E5 - first R_dot
+        input: ⟦ m ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧.x ⟧
+        output: ['⟦ m ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧.t(ρ ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧) ⟧']
+      - name: Phi Paper - Example E5 - second R_dot
+        input: ⟦ m ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧.φ.t(ρ ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧) ⟧
+        output: ['⟦ m ↦ ⟦ t ↦ ⟦⟧ ⟧(ρ ↦ ⟦ φ ↦ ⟦ t ↦ ⟦⟧ ⟧,x ↦ ξ.t ⟧).t(ρ ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧) ⟧']
 
   - name: COPY
     description: 'Application of α-binding'
@@ -89,13 +94,16 @@ rules:
     pattern: |
       ⟦ !τ ↦ ⟦ !B1 ⟧(ρ ↦ !b, !B2) * !t, !B3 ⟧
     result: |
-      ⟦ !τ ↦ ⟦ !B1, ρ ↦ ⌈ !b , ⟦ !τ ↦ ⟦ !B1 ⟧(ρ ↦ !b, !B2) * !t, !B3 ⟧ ⌉ ⟧(!B2), !B3 ⟧
+      ⟦ !τ ↦ ⟦ !B1, ρ ↦ ⌈ !b , ⟦ !τ ↦ ⟦ !B1 ⟧(ρ ↦ !b, !B2) * !t, !B3 ⟧ ⌉ ⟧(!B2) * !t, !B3 ⟧
     when:
       - nf: '!b'
       - absent_attrs:
           attrs: ['ρ']
           bindings: ['!B1']
-    tests: []
+    tests:
+      - name: Phi Paper - Example E5 - first R_rho
+        input: ⟦ m ↦ ⟦ t ↦ ⟦⟧ ⟧(ρ ↦ ⟦ φ ↦ ⟦ t ↦ ⟦⟧ ⟧,x ↦ ξ.t ⟧).t(ρ ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧) ⟧
+        output: ['⟦ m ↦ ⟦ t ↦ ⟦⟧, ρ ↦ ⟦ φ ↦ ⟦ t ↦ ⟦⟧ ⟧,x ↦ ξ.t ⟧ ⟧().t(ρ ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧) ⟧']
 
   - name: phi
     description: 'Accessing a decorated object'
@@ -111,7 +119,10 @@ rules:
       - absent_attrs:
           attrs: ['!τ']
           bindings: ['!B']
-    tests: []
+    tests:
+      - name: Phi Paper - Example E5 - R_phi
+        input: ⟦ m ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧.t(ρ ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧) ⟧
+        output: ['⟦ m ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧.φ.t(ρ ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧) ⟧']
 
   # there's no B2 in the result
   - name: STAY
@@ -156,8 +167,7 @@ rules:
         input: '⟦ ρ ↦ ⟦ ⟧ ⟧.x'
         output: ['⊥']
 
-  # Named VOID instead of NULL because NULL is a keyword in yaml
-  - name: VOID
+  - name: 'NULL'
     description: 'Void attribute access'
     pattern: |
       ⟦ !τ ↦ ∅, !B ⟧.!τ
@@ -189,6 +199,9 @@ rules:
       - name: Should work with empty formation
         input: ⟦⟧()
         output: ['⟦⟧']
+      - name: Phi Paper - Example E5 - first R_rho
+        input: ⟦ m ↦ ⟦ t ↦ ⟦⟧, ρ ↦ ⟦ φ ↦ ⟦ t ↦ ⟦⟧ ⟧,x ↦ ξ.t ⟧ ⟧().t(ρ ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧) ⟧
+        output: ['⟦ m ↦ ⟦ t ↦ ⟦⟧, ρ ↦ ⟦ φ ↦ ⟦ t ↦ ⟦⟧ ⟧,x ↦ ξ.t ⟧ ⟧.t(ρ ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧) ⟧']
 
   - name: MISS
     description: 'Invalid application (absent attribute)'
