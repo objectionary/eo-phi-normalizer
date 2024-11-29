@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to the
 [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## v2.2.2 - 2024-11-29
+
+### New
+
+- Add `--single-line` option to the `rewrite` command ([#588](https://github.com/objectionary/eo-phi-normalizer/pull/588))
+
+### Changes and fixes
+
+- Fix pretty printing ([#577](https://github.com/objectionary/eo-phi-normalizer/pull/577), [#586](https://github.com/objectionary/eo-phi-normalizer/pull/586), [#589](https://github.com/objectionary/eo-phi-normalizer/pull/589))
+- Allow optional `when` and `tests` keys in rule files ([#578](https://github.com/objectionary/eo-phi-normalizer/pull/578))
+- Improve TeX output ([#579](https://github.com/objectionary/eo-phi-normalizer/pull/579))
+- Fix typo in rule `R_rho` and add more tests ([#587](https://github.com/objectionary/eo-phi-normalizer/pull/587))
+
+### Documentation and maintenance
+
+- Update haskell-actions/run-fourmolu action to v11 ([#516](https://github.com/objectionary/eo-phi-normalizer/pull/516))
+- Update dependency prettier to v3.4.1 ([#552](https://github.com/objectionary/eo-phi-normalizer/pull/552))
+- Update dependency pre-commit to v4 - autoclosed ([#503](https://github.com/objectionary/eo-phi-normalizer/pull/503))
+- Update dependency eolang to ^0.24.0 ([#520](https://github.com/objectionary/eo-phi-normalizer/pull/520))
+- Add `CONTRIBUTE.md` ([#576](https://github.com/objectionary/eo-phi-normalizer/pull/576))
+
 ## v2.2.1 - 2024-11-27
 
 ### Changes and fixes
