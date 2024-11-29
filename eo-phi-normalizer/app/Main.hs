@@ -98,6 +98,7 @@ data CLI'RewritePhi = CLI'RewritePhi
   , rulesPath :: Maybe String
   , outputFile :: Maybe String
   , single :: Bool
+  , singleLine :: Bool
   , json :: Bool
   , latex :: Bool
   , inputFile :: Maybe FilePath
@@ -292,7 +293,10 @@ commandParser =
     json <- jsonSwitch
     latex <- latexSwitch
     outputFile <- outputFileOption
-    single <- switch (long "single" <> short 's' <> help "Output a single expression.")
+    let singleFlag :: String
+        singleFlag = "single"
+    single <- switch (long singleFlag <> short 's' <> help "Output a single expression.")
+    singleLine <- switch (long "single-line" <> short 'l' <> help [fmt|Output a single expression on a single line. Has effect only if the --{singleFlag} is enabled.|])
     maxDepth <-
       let maxValue = 10
        in option auto (long "max-depth" <> metavar.int <> value maxValue <> help [fmt|Maximum depth of rules application. Defaults to {maxValue}.|])
@@ -614,8 +618,10 @@ main = withUtf8 do
               . encodeToJSONString
               . printAsProgramOrAsObject
               $ logEntryLog (head (head uniqueResults))
-        | single ->
+        | single -> do
+            let removeExtraSpaces = unwords . words
             logStrLn
+              . (if singleLine then removeExtraSpaces else id)
               . printAsProgramOrAsObject
               $ logEntryLog (head (head uniqueResults))
         | json ->
