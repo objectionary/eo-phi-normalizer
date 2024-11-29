@@ -64,7 +64,7 @@ render d = rend 0 False (map ($ "") $ d []) ""
   rend i p = \case
     "[" : "]" : ts -> showString "[]" . rend i False ts
     "(" : ")" : (t : ts) -> handleTrailingComma "()" t ts
-    "⟦" : "⟧" : (t : ts) -> handleTrailingComma "⟦ ⟧" t ts
+    "⟦" : "⟧" : (t : ts) -> handleTrailingComma "⟦⟧" t ts
     "[" : ts -> char '[' . rend i False ts
     "(" : ts -> char '(' . new (i + 1) ts
     "{" : "⟦" : ts -> showChar '{' . onNewLine (i + 1) p . showChar '⟦' . new (i + 2) ts
