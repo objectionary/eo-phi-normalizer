@@ -27,6 +27,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GeneralisedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
@@ -39,7 +40,7 @@ import Control.Arrow (Arrow (first))
 import Control.Monad
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as ByteString.Strict
-import Data.Char (toUpper)
+import Data.Char (ord, toUpper)
 import Data.HashMap.Strict qualified as HashMap
 import Data.List (intercalate, minimumBy, nubBy, sortOn)
 import Data.List.NonEmpty (NonEmpty (..), (<|))
@@ -52,6 +53,7 @@ import Language.EO.Phi.Syntax.Abs
 import Language.EO.Phi.Syntax.Lex (Token)
 import Language.EO.Phi.Syntax.Par
 import Numeric (readHex, showHex)
+import PyF (fmt)
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -78,8 +80,11 @@ parseWith parser input = parser tokens
 unsafeParseWith :: ([Token] -> Either String a) -> String -> a
 unsafeParseWith parser input =
   case parseWith parser input of
-    Left parseError -> error (parseError <> "\non input\n" <> input <> "\n")
+    Left parseError -> error (escapeNonASCII parseError <> "\non input\n" <> escapeNonASCII input <> "\n")
     Right object -> object
+ where
+  escapeNonASCII :: String -> String
+  escapeNonASCII = foldMap (\x -> if ord x < 256 then [x] else [fmt|\\{ord x}|])
 
 -- | State of evaluation is not needed yet, but it might be in the future
 type EvaluationState = ()
