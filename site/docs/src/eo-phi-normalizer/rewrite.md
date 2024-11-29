@@ -23,8 +23,9 @@ eo-phi-normalizer rewrite --help
 ```console
 Usage: eo-phi-normalizer rewrite [-r|--rules FILE] [-c|--chain] [-j|--json]
                                  [--tex] [-o|--output-file FILE] [-s|--single]
-                                 [--max-depth INT] [--max-growth-factor INT]
-                                 [FILE] [-d|--dependency-file FILE]
+                                 [-l|--single-line] [--max-depth INT]
+                                 [--max-growth-factor INT] [FILE]
+                                 [-d|--dependency-file FILE]
 
   Rewrite a PHI program.
 
@@ -37,6 +38,8 @@ Available options:
   -o,--output-file FILE    Output to FILE. When this option is not specified,
                            output to stdout.
   -s,--single              Output a single expression.
+  -l,--single-line         Output a single expression on a single line. Has
+                           effect only if the --single is enabled.
   --max-depth INT          Maximum depth of rules application. Defaults to 10.
   --max-growth-factor INT  The factor by which to allow the input term to grow
                            before stopping. Defaults to 10.
@@ -210,6 +213,16 @@ eo-phi-normalizer rewrite --single --rules ./eo-phi-normalizer/test/eo/phi/rules
     λ ⤍ Package
   ⟧
 }
+```
+
+### `--single --single-line`
+
+```$ as console
+eo-phi-normalizer rewrite --single --single-line --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+```
+
+```console
+{ ⟦ c ↦ Φ.org.eolang.float ( as-bytes ↦ Φ.org.eolang.bytes ( Δ ⤍ 40-39-00-00-00-00-00-00 ) ), result ↦ ξ.c.times ( x ↦ ⟦ Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD ⟧ ) .plus ( x ↦ ⟦ Δ ⤍ 40-40-00-00-00-00-00-00 ⟧ ), λ ⤍ Package ⟧ }
 ```
 
 ### `--single` `--json`
