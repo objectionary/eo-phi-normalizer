@@ -212,6 +212,16 @@ eo-phi-normalizer rewrite --single --rules ./eo-phi-normalizer/test/eo/phi/rules
 }
 ```
 
+### `--single --single-line`
+
+```$ as console
+eo-phi-normalizer rewrite --single --single-line --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+```
+
+```console
+{ ⟦ c ↦ Φ.org.eolang.float ( as-bytes ↦ Φ.org.eolang.bytes ( Δ ⤍ 40-39-00-00-00-00-00-00 ) ), result ↦ ξ.c.times ( x ↦ ⟦ Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD ⟧ ) .plus ( x ↦ ⟦ Δ ⤍ 40-40-00-00-00-00-00-00 ⟧ ), λ ⤍ Package ⟧ }
+```
+
 ### `--single` `--json`
 
 ```$ as console
