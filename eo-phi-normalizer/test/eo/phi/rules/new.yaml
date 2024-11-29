@@ -60,6 +60,18 @@ rules:
       - name: Phi Paper - Example E5 - second R_dot
         input: ⟦ m ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧.φ.t(ρ ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧) ⟧
         output: ['⟦ m ↦ ⟦ t ↦ ⟦⟧ ⟧(ρ ↦ ⟦ φ ↦ ⟦ t ↦ ⟦⟧ ⟧,x ↦ ξ.t ⟧).t(ρ ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧) ⟧']
+      - name: Phi Paper - Example E11 - first R_dot
+        input: ⟦ m ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧ ⟧.x.t ⟧
+        output: ['⟦ m ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧(ρ ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧ ⟧).t ⟧']
+      - name: Phi Paper - Example E11 - second R_dot
+        input: ⟦ m ↦ ⟦ t ↦ ξ.ρ.k.ρ.t, ρ ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧ ⟧ ⟧.t ⟧
+        output: ['⟦ m ↦ ⟦ t ↦ ξ.ρ.k.ρ.t, ρ ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧ ⟧ ⟧.ρ.k.ρ.t(ρ ↦ ⟦ t ↦ ξ.ρ.k.ρ.t, ρ ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧ ⟧ ⟧) ⟧']
+      - name: Phi Paper - Example E11 - third R_dot
+        input: ⟦ m ↦ ⟦ t ↦ ξ.ρ.k.ρ.t, ρ ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧ ⟧ ⟧.ρ.k.ρ.t(ρ ↦ ⟦ t ↦ ξ.ρ.k.ρ.t, ρ ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧ ⟧ ⟧) ⟧
+        output: ['⟦ m ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧ ⟧(ρ ↦ ⟦ ρ ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧ ⟧, t ↦ ξ.ρ.k.ρ.t ⟧).k.ρ.t(ρ ↦ ⟦ t ↦ ξ.ρ.k.ρ.t, ρ ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧ ⟧ ⟧) ⟧']
+      - name: Phi Paper - Example E11 - fourth R_dot
+        input: ⟦ m ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧, ρ ↦ ⟦ ρ ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧ ⟧, t ↦ ξ.ρ.k.ρ.t ⟧ ⟧.k.ρ.t(ρ ↦ ⟦ t ↦ ξ.ρ.k.ρ.t, ρ ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧ ⟧ ⟧) ⟧
+        output: ['⟦ m ↦ ⟦⟧(ρ ↦ ⟦ k ↦ ⟦⟧, x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, t ↦ ⟦⟧, ρ ↦ ⟦ ρ ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧ ⟧, t ↦ ξ.ρ.k.ρ.t ⟧ ⟧).ρ.t(ρ ↦ ⟦ t ↦ ξ.ρ.k.ρ.t, ρ ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧ ⟧ ⟧) ⟧']
 
   - name: COPY
     description: 'Application of α-binding'
@@ -80,7 +92,6 @@ rules:
         output: ['⟦ a ↦ ⟦ b ↦ ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ) ⟧ ⟧ ().a ⟧']
       - name: Phi Paper - Example E1
         input: ⟦ k ↦ ⟦ x ↦ ξ.t, t ↦ ∅ ⟧(t ↦ ⟦ρ ↦ ⟦⟧⟧) ⟧
-        # output: ['⟦ k ↦ ⟦ x ↦ ξ.t, t ↦ ⟦ρ ↦ ⟦⟧⟧ ⟧() ⟧']
         output: ['⟦ k ↦ ⟦ t ↦ ⟦ρ ↦ ⟦⟧⟧, x ↦ ξ.t ⟧() ⟧']
       - name: Phi Paper - Example E4 - dispatch on y
         input: ⟦ k ↦ ⟦ x ↦ ∅, y ↦ ξ.x ⟧(x ↦ ⟦ρ ↦ ⟦⟧⟧).y ⟧
@@ -104,6 +115,12 @@ rules:
       - name: Phi Paper - Example E5 - first R_rho
         input: ⟦ m ↦ ⟦ t ↦ ⟦⟧ ⟧(ρ ↦ ⟦ φ ↦ ⟦ t ↦ ⟦⟧ ⟧,x ↦ ξ.t ⟧).t(ρ ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧) ⟧
         output: ['⟦ m ↦ ⟦ t ↦ ⟦⟧, ρ ↦ ⟦ φ ↦ ⟦ t ↦ ⟦⟧ ⟧,x ↦ ξ.t ⟧ ⟧().t(ρ ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧) ⟧']
+      - name: Phi Paper - Example E11 - first R_rho
+        input: ⟦ m ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧(ρ ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧ ⟧).t ⟧
+        output: ['⟦ m ↦ ⟦ t ↦ ξ.ρ.k.ρ.t, ρ ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧ ⟧ ⟧().t ⟧']
+      - name: Phi Paper - Example E11 - second R_rho
+        input: ⟦ m ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧ ⟧(ρ ↦ ⟦ ρ ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧ ⟧, t ↦ ξ.ρ.k.ρ.t ⟧).k.ρ.t(ρ ↦ ⟦ t ↦ ξ.ρ.k.ρ.t, ρ ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧ ⟧ ⟧) ⟧
+        output: ['⟦ m ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧, ρ ↦ ⟦ ρ ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧ ⟧, t ↦ ξ.ρ.k.ρ.t ⟧ ⟧().k.ρ.t(ρ ↦ ⟦ t ↦ ξ.ρ.k.ρ.t, ρ ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧ ⟧ ⟧) ⟧']
 
   - name: phi
     description: 'Accessing a decorated object'
@@ -202,6 +219,12 @@ rules:
       - name: Phi Paper - Example E5 - first R_rho
         input: ⟦ m ↦ ⟦ t ↦ ⟦⟧, ρ ↦ ⟦ φ ↦ ⟦ t ↦ ⟦⟧ ⟧,x ↦ ξ.t ⟧ ⟧().t(ρ ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧) ⟧
         output: ['⟦ m ↦ ⟦ t ↦ ⟦⟧, ρ ↦ ⟦ φ ↦ ⟦ t ↦ ⟦⟧ ⟧,x ↦ ξ.t ⟧ ⟧.t(ρ ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧) ⟧']
+      - name: Phi Paper - Example E11 - first R_dup
+        input: ⟦ m ↦ ⟦ t ↦ ξ.ρ.k.ρ.t, ρ ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧ ⟧ ⟧().t ⟧
+        output: ['⟦ m ↦ ⟦ t ↦ ξ.ρ.k.ρ.t, ρ ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧ ⟧ ⟧.t ⟧']
+      - name: Phi Paper - Example E11 - second R_dup
+        input: ⟦ m ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧, ρ ↦ ⟦ ρ ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧ ⟧, t ↦ ξ.ρ.k.ρ.t ⟧ ⟧().k.ρ.t(ρ ↦ ⟦ t ↦ ξ.ρ.k.ρ.t, ρ ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧ ⟧ ⟧) ⟧
+        output: ['⟦ m ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧, ρ ↦ ⟦ ρ ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧ ⟧, t ↦ ξ.ρ.k.ρ.t ⟧ ⟧.k.ρ.t(ρ ↦ ⟦ t ↦ ξ.ρ.k.ρ.t, ρ ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧ ⟧ ⟧) ⟧']
 
   - name: MISS
     description: 'Invalid application (absent attribute)'
