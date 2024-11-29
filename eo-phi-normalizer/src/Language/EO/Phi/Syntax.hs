@@ -63,13 +63,8 @@ render d = rend 0 False (map ($ "") $ d []) ""
     ShowS
   rend i p = \case
     "[" : "]" : ts -> showString "[]" . rend i False ts
-    "(" : ")" : (t : ts) ->
-      (pending . showString "()")
-        . ( case t of
-              "," -> showChar ',' . new i ts
-              _ -> rend i False (t : ts)
-          )
-    "⟦" : "⟧" : ts -> showString "⟦ ⟧" . rend i False ts
+    "(" : ")" : (t : ts) -> handleTrailingComma "()" t ts
+    "⟦" : "⟧" : (t : ts) -> handleTrailingComma "⟦ ⟧" t ts
     "[" : ts -> char '[' . rend i False ts
     "(" : ts -> char '(' . new (i + 1) ts
     "{" : "⟦" : ts -> showChar '{' . onNewLine (i + 1) p . showChar '⟦' . new (i + 2) ts
@@ -82,19 +77,20 @@ render d = rend 0 False (map ($ "") $ d []) ""
     [";"] -> char ';'
     ";" : ts -> char ';' . new i ts
     "." : ts -> rend i p (" ." : ts)
-    t : ts@(s : ss)
-      | closingOrPunctuation s ->
-          (pending . showString t)
-            . ( case s of
-                  "," -> showChar ',' . new i ss
-                  _ -> rend i False ts
-              )
+    t : (s : ss) | closingOrPunctuation s -> handleTrailingComma t s ss
     t : ts -> pending . space t . rend i False ts
     [] -> id
    where
     -- Output character after pending indentation.
     char :: Char -> ShowS
     char c = pending . showChar c
+
+    handleTrailingComma str t ts =
+      (pending . showString str)
+        . ( case t of
+              "," -> showChar ',' . new i ts
+              _ -> rend i False (t : ts)
+          )
 
     -- Output pending indentation.
     pending :: ShowS
