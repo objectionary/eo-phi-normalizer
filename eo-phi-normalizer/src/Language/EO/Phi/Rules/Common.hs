@@ -71,20 +71,20 @@ instance IsString ObjectHead where fromString = unsafeParseWith pObjectHead
 instance IsString MetaId where fromString = unsafeParseWith pMetaId
 
 parseWith :: ([Token] -> Either String a) -> String -> Either String a
-parseWith parser input = parser tokens
+parseWith parser input = either (\x -> Left (escapeNonASCII [fmt|{x}\non the input:\n{input}|])) Right parsed
  where
   tokens = myLexer input
+  parsed = parser tokens
+  escapeNonASCII :: String -> String
+  escapeNonASCII = foldMap (\x -> if ord x < 256 then [x] else [fmt|\\{ord x}|])
 
 -- | Parse a 'Object' from a 'String'.
 -- May throw an 'error` if input has a syntactical or lexical errors.
 unsafeParseWith :: ([Token] -> Either String a) -> String -> a
 unsafeParseWith parser input =
   case parseWith parser input of
-    Left parseError -> error (escapeNonASCII parseError <> "\non input\n" <> escapeNonASCII input <> "\n")
+    Left parseError -> error parseError
     Right object -> object
- where
-  escapeNonASCII :: String -> String
-  escapeNonASCII = foldMap (\x -> if ord x < 256 then [x] else [fmt|\\{ord x}|])
 
 -- | State of evaluation is not needed yet, but it might be in the future
 type EvaluationState = ()
