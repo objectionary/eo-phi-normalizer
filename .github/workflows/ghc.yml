@@ -55,7 +55,6 @@ jobs:
           pattern: |
             eo-phi-normalizer/**/*.hs
             !${{ env.syntax-dir }}/**/*.hs
-            !eo-phi-normalizer/Setup.hs
 
       - uses: haskell-actions/hlint-setup@v2
 
