@@ -22,7 +22,6 @@
 -- SOFTWARE.
 {- FOURMOLU_ENABLE -}
 
-{-# LANGUAGE CPP #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE OverloadedStrings #-}
@@ -62,13 +61,6 @@ main = withCP65001 . withUtf8 $
       { hookedPrograms = [bnfcProgram]
       , postConf = \args flags packageDesc localBuildInfo -> do
           let
-            isWindows =
-#ifdef mingw32_HOST_OS
-                      True
-#else
-                      False
-#endif
-            -- See the details on the command form in https://github.com/objectionary/eo-phi-normalizer/issues/347#issuecomment-2117097070
             addLicense :: FilePath -> IO ()
             addLicense file = do
               let targetFile = "src/Language/EO/Phi/Syntax/" <> file
