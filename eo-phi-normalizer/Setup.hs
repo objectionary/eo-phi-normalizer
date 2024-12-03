@@ -22,9 +22,9 @@
 -- SOFTWARE.
 {- FOURMOLU_ENABLE -}
 
-{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 
 -- Source: https://github.com/haskell/cabal/issues/6726#issuecomment-918663262
 
@@ -32,18 +32,18 @@
 -- for the parsers included in Ogma.
 module Main (main) where
 
-import Data.List (intercalate)
-import Distribution.Simple (defaultMainWithHooks, hookedPrograms, postConf, preBuild, simpleUserHooks)
-import Distribution.Simple.Program (Program (..), findProgramVersion, simpleProgram)
-import System.Exit (ExitCode (..))
-import System.Process (callCommand)
 import Control.Exception (evaluate)
-import Main.Utf8 (withUtf8)
-import System.IO.CodePage (withCP65001)
 import Data.ByteString as BS (readFile, writeFile)
+import Data.List (intercalate)
 import Data.Text (Text)
 import Data.Text.Encoding (decodeUtf8, encodeUtf8)
+import Distribution.Simple (defaultMainWithHooks, hookedPrograms, postConf, preBuild, simpleUserHooks)
+import Distribution.Simple.Program (Program (..), findProgramVersion, simpleProgram)
+import Main.Utf8 (withUtf8)
 import PyF (fmt)
+import System.Exit (ExitCode (..))
+import System.IO.CodePage (withCP65001)
+import System.Process (callCommand)
 
 readFile' :: FilePath -> IO Text
 readFile' = (decodeUtf8 <$>) . BS.readFile
@@ -55,40 +55,42 @@ writeFile' path = BS.writeFile path . encodeUtf8
 --
 -- All options for bnfc are hard-coded here.
 main :: IO ()
-main = withCP65001 . withUtf8 $
-  defaultMainWithHooks $
-    simpleUserHooks
-      { hookedPrograms = [bnfcProgram]
-      , postConf = \args flags packageDesc localBuildInfo -> do
-          let
-            addLicense :: FilePath -> IO ()
-            addLicense file = do
-              let targetFile = "src/Language/EO/Phi/Syntax/" <> file
-              license <- readFile' "LICENSE"
-              let licenseFormatted = [fmt|{{-\n{license}-}}\n\n|] :: Text
-              code <- readFile' targetFile
-              writeFile' targetFile (licenseFormatted <> code)
+main =
+  withCP65001 . withUtf8 $
+    defaultMainWithHooks $
+      simpleUserHooks
+        { hookedPrograms = [bnfcProgram]
+        , postConf = \args flags packageDesc localBuildInfo -> do
+            let
+              addLicense :: FilePath -> IO ()
+              addLicense file = do
+                let targetFile = "src/Language/EO/Phi/Syntax/" <> file
+                license <- readFile' "LICENSE"
+                let licenseFormatted = [fmt|{{-\n{license}-}}\n\n|] :: Text
+                code <- readFile' targetFile
+                writeFile' targetFile (licenseFormatted <> code)
 
-            -- See the details on the command form in https://github.com/objectionary/eo-phi-normalizer/issues/347#issuecomment-2117097070
-            command = intercalate "; "$
-                [ "set -ex"
-                , "bnfc --haskell -d -p Language.EO.Phi --generic -o src/ grammar/EO/Phi/Syntax.cf"
-                , "cd src/Language/EO/Phi/Syntax"
-                , "alex Lex.x"
-                , "happy Par.y"
-                , "true"
-                ]
+              -- See the details on the command form in https://github.com/objectionary/eo-phi-normalizer/issues/347#issuecomment-2117097070
+              command =
+                intercalate "; " $
+                  [ "set -ex"
+                  , "bnfc --haskell -d -p Language.EO.Phi --generic -o src/ grammar/EO/Phi/Syntax.cf"
+                  , "cd src/Language/EO/Phi/Syntax"
+                  , "alex Lex.x"
+                  , "happy Par.y"
+                  , "true"
+                  ]
 
-            fullCommand = [fmt|bash -c ' {command} '|]
+              fullCommand = [fmt|bash -c ' {command} '|]
 
-          putStrLn fullCommand
+            putStrLn fullCommand
 
-          _ <- callCommand fullCommand
-          _ <- addLicense "Abs.hs"
-          _ <- addLicense "Print.hs"
+            _ <- callCommand fullCommand
+            _ <- addLicense "Abs.hs"
+            _ <- addLicense "Print.hs"
 
-          postConf simpleUserHooks args flags packageDesc localBuildInfo
-      }
+            postConf simpleUserHooks args flags packageDesc localBuildInfo
+        }
 
 -- | NOTE: This should be in Cabal.Distribution.Simple.Program.Builtin.
 bnfcProgram :: Program
