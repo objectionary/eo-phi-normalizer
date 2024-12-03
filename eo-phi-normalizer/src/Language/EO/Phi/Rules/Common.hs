@@ -40,7 +40,7 @@ import Control.Arrow (Arrow (first))
 import Control.Monad
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as ByteString.Strict
-import Data.Char (ord, toUpper)
+import Data.Char (toUpper)
 import Data.HashMap.Strict qualified as HashMap
 import Data.List (intercalate, minimumBy, nubBy, sortOn)
 import Data.List.NonEmpty (NonEmpty (..), (<|))
@@ -71,12 +71,10 @@ instance IsString ObjectHead where fromString = unsafeParseWith pObjectHead
 instance IsString MetaId where fromString = unsafeParseWith pMetaId
 
 parseWith :: ([Token] -> Either String a) -> String -> Either String a
-parseWith parser input = either (\x -> Left (escapeNonASCII [fmt|{x}\non the input:\n{input}|])) Right parsed
+parseWith parser input = either (\x -> Left [fmt|{x}\non the input:\n{input}|]) Right parsed
  where
   tokens = myLexer input
   parsed = parser tokens
-  escapeNonASCII :: String -> String
-  escapeNonASCII = foldMap (\x -> if ord x < 256 then [x] else [fmt|\\{ord x}|])
 
 -- | Parse a 'Object' from a 'String'.
 -- May throw an 'error` if input has a syntactical or lexical errors.
