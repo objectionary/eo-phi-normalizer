@@ -83,7 +83,7 @@ import Language.EO.Phi.Rules.RunYegor (yegorRuleSet)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRuleNamed, parseRuleSetFromFile)
 import Language.EO.Phi.ToLaTeX
 import Language.EO.Test.YamlSpec (spec)
-import Main.Utf8
+import Main.Utf8 (withUtf8)
 import Options.Applicative hiding (metavar)
 import Options.Applicative qualified as Optparse (metavar)
 import Paths_eo_phi_normalizer (version)
@@ -91,6 +91,7 @@ import PyF (fmt, fmtTrim)
 import System.Directory (createDirectoryIfMissing, doesFileExist)
 import System.FilePath (takeDirectory)
 import System.IO (IOMode (WriteMode), getContents', hFlush, hPutStr, hPutStrLn, openFile, stdout)
+import System.IO.CodePage (withCP65001)
 import Test.Hspec.Core.Runner
 
 data CLI'RewritePhi = CLI'RewritePhi
@@ -562,7 +563,7 @@ wrapRawBytesIn = \case
 -- * Main
 
 main :: IO ()
-main = withUtf8 do
+main = (withCP65001 . withUtf8) do
   opts <- customExecParser pprefs (cliOpts (showVersion version))
   let printAsProgramOrAsObject = \case
         Formation bindings' -> printTree $ Program bindings'

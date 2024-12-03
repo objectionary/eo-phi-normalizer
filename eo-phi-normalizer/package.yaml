@@ -53,8 +53,12 @@ custom-setup:
   dependencies:
     - base >= 4.11.0.0 && < 5.0
     - Cabal >= 2.4.0.1 && < 4.0
+    - code-page
     - process >= 1.6.3.0
+    - text
     - PyF
+    - bytestring
+    - with-utf8
 
 build-tools:
   alex: ">= 3.2.4"
@@ -86,6 +90,7 @@ dependencies:
   - hashable
   - unordered-containers
   - containers
+  - code-page
 
 default-extensions:
   - ImportQualifiedPost

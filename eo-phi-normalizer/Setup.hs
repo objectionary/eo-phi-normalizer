@@ -21,8 +21,11 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 {- FOURMOLU_ENABLE -}
+
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 -- Source: https://github.com/haskell/cabal/issues/6726#issuecomment-918663262
 
@@ -33,17 +36,27 @@ module Main (main) where
 import Data.List (intercalate)
 import Distribution.Simple (defaultMainWithHooks, hookedPrograms, postConf, preBuild, simpleUserHooks)
 import Distribution.Simple.Program (Program (..), findProgramVersion, simpleProgram)
-import PyF (fmt)
 import System.Exit (ExitCode (..))
 import System.Process (callCommand)
-import Text.Printf (printf)
 import Control.Exception (evaluate)
+import Main.Utf8 (withUtf8)
+import System.IO.CodePage (withCP65001)
+import Data.ByteString as BS (readFile, writeFile)
+import Data.Text (Text)
+import Data.Text.Encoding (decodeUtf8, encodeUtf8)
+import PyF (fmt)
+
+readFile' :: FilePath -> IO Text
+readFile' = (decodeUtf8 <$>) . BS.readFile
+
+writeFile' :: FilePath -> Text -> IO ()
+writeFile' path = BS.writeFile path . encodeUtf8
 
 -- | Run BNFC, happy, and alex on the grammar before the actual build step.
 --
 -- All options for bnfc are hard-coded here.
 main :: IO ()
-main =
+main = withCP65001 . withUtf8 $
   defaultMainWithHooks $
     simpleUserHooks
       { hookedPrograms = [bnfcProgram]
@@ -58,16 +71,11 @@ main =
             -- See the details on the command form in https://github.com/objectionary/eo-phi-normalizer/issues/347#issuecomment-2117097070
             addLicense :: FilePath -> IO ()
             addLicense file = do
-              let readFile' path = do
-                    content <- readFile path
-                    evaluate (length content)
-                    pure content
-                  targetFile = "src/Language/EO/Phi/Syntax/" <> file
+              let targetFile = "src/Language/EO/Phi/Syntax/" <> file
               license <- readFile' "LICENSE"
-              let licenseFormatted = printf "{-\n%s-}\n\n" license
+              let licenseFormatted = [fmt|{{-\n{license}-}}\n\n|] :: Text
               code <- readFile' targetFile
-              evaluate (length license)
-              writeFile targetFile (licenseFormatted <> code)
+              writeFile' targetFile (licenseFormatted <> code)
 
             command = intercalate "; " $
                 [ "set -ex" ] <>

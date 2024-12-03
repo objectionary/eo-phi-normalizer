@@ -202,7 +202,12 @@ custom-setup
       Cabal >=2.4.0.1 && <4.0
     , PyF
     , base >=4.11.0.0 && <5.0
+    , bytestring
+    , code-page
+    , extra
     , process >=1.6.3.0
+    , text
+    , with-utf8
 
 library
   exposed-modules:
@@ -255,6 +260,7 @@ library
     , blaze-markup
     , bytestring
     , cereal
+    , code-page
     , containers
     , directory
     , file-embed >=0.0.16.0
@@ -297,6 +303,7 @@ executable eo-phi-normalizer
     , blaze-markup
     , bytestring
     , cereal
+    , code-page
     , containers
     , directory
     , eo-phi-normalizer
@@ -371,6 +378,7 @@ test-suite doctests
     , blaze-markup
     , bytestring
     , cereal
+    , code-page
     , containers
     , directory
     , doctest-parallel
@@ -423,6 +431,7 @@ test-suite spec
     , blaze-markup
     , bytestring
     , cereal
+    , code-page
     , containers
     , directory
     , eo-phi-normalizer
