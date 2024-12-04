@@ -39,7 +39,7 @@ mdsh -i site/docs/src/eo-phi-normalizer/print-rules.md --work_dir .
 mdsh -i site/docs/src/eo-phi-normalizer/test.md --work_dir .
 mdsh -i site/docs/src/contributing.md --work_dir .
 
-cp site/docs/docs/markdown/contributing.md CONTRIBUTING.md
+cp site/docs/src/contributing.md CONTRIBUTING.md
 
 rm celsius.phi
 
