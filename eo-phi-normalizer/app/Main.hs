@@ -641,7 +641,7 @@ main = withCorrectLocale do
             logStrLn "\\begin{phiquation*}"
             logStrLn [fmtTrim|{phiExpr}|]
             logStrLn "\\end{phiquation*}"
-      when (null uniqueResults || null (head uniqueResults)) (throw CouldNotNormalize)
+      when (null uniqueResults || null (head uniqueResults)) (throwIO CouldNotNormalize)
       if
         | single && json ->
             logStrLn
