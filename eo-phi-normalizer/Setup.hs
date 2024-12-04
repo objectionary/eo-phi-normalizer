@@ -82,7 +82,8 @@ main =
 
               -- See the details on the command form in https://github.com/objectionary/eo-phi-normalizer/issues/347#issuecomment-2117097070
               command =
-                intercalate "; " $
+                intercalate
+                  "; "
                   [ "set -ex"
                   , "bnfc --haskell -d -p Language.EO.Phi --generic -o src/ grammar/EO/Phi/Syntax.cf"
                   , "cd src/Language/EO/Phi/Syntax"
