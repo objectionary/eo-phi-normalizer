@@ -53,7 +53,7 @@ writeFile' path = BS.writeFile path . encodeUtf8
 
 withCorrectLocale :: IO a -> IO a
 withCorrectLocale act = do
-  let withCorrectLocale' = withCP65001 . Main.Utf8.withUtf8
+  let withCorrectLocale' = withCP65001 . withUtf8
   withCorrectLocale' act
     `catch` ( \(x :: SomeException) ->
                 withCorrectLocale' do
