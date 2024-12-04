@@ -215,7 +215,7 @@
                       "contributing.md"
                     ]}
 
-                    cp site/docs/docs/markdown/contributing.md CONTRIBUTING.md
+                    cp site/docs/src/contributing.md CONTRIBUTING.md
 
                     rm celsius.phi
 
