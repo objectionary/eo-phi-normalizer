@@ -52,8 +52,8 @@ knownAtomsList =
     , \name obj state -> do
         thisStr <- incLogLevel $ dataizeRecursivelyChain True (extractRho obj)
         bytes <- case thisStr of
-          Right bytes -> pure bytes
-          Left _ -> fail "Couldn't find bytes"
+          AsBytes bytes -> pure bytes
+          AsObject _ -> fail "Couldn't find bytes"
         evaluateBinaryDataizationFunChain id bytesToInt wrapBytesInBytes (extractLabel "start") (extractLabel "len") (sliceBytes bytes) name obj state
     )
   , ("Lorg_eolang_bytes_and", evaluateBytesBytesBytesFunChain (.&.))
@@ -78,8 +78,8 @@ knownAtomsList =
     , \name obj state -> do
         thisStr <- incLogLevel $ dataizeRecursivelyChain True (extractRho obj)
         string <- case thisStr of
-          Right bytes -> pure $ bytesToString bytes
-          Left _ -> fail "Couldn't find bytes"
+          AsBytes bytes -> pure $ bytesToString bytes
+          AsObject _ -> fail "Couldn't find bytes"
         evaluateBinaryDataizationFunChain stringToBytes bytesToInt wrapBytesInConstString (extractLabel "start") (extractLabel "len") (\start len -> take len (drop start string)) name obj state
     )
   , -- others
@@ -95,7 +95,7 @@ knownAtomsList =
                       True -> do
                         let (packageBindings, restBindings) = span isPackage bindings
                         bs <- mapM dataizeBindingChain restBindings
-                        logStep "Dataized 'Package' siblings" (Left $ Formation (bs ++ packageBindings))
+                        logStep "Dataized 'Package' siblings" (AsObject $ Formation (bs ++ packageBindings))
                         return (Formation (bs ++ packageBindings), state)
                       False ->
                         return (Formation bindings, state)

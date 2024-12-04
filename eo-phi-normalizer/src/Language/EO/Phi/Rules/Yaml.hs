@@ -635,9 +635,9 @@ substThis thisObj = go
     obj@MetaSubstThis{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
     obj@MetaObject{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
     obj@MetaFunction{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
-    obj@ConstString{} -> go (desugar obj)
-    obj@ConstInt{} -> go (desugar obj)
-    obj@ConstFloat{} -> go (desugar obj)
+    obj@ConstString{} -> obj
+    obj@ConstInt{} -> obj
+    obj@ConstFloat{} -> obj
 
 -- {⟦ x ↦ ⟦ b ↦ ⟦ Δ ⤍ 01- ⟧, φ ↦ ⟦ b ↦ ⟦ Δ ⤍ 02- ⟧, c ↦ ⟦ a ↦ ξ.ρ.ρ.b ⟧.a ⟧.c ⟧.φ, λ ⤍ Package ⟧}
 

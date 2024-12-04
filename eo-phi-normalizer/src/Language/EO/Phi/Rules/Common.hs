@@ -126,9 +126,9 @@ withSubObject f ctx root =
     MetaTailContext{} -> []
     MetaSubstThis _ _ -> []
     MetaContextualize _ _ -> []
-    obj@ConstString{} -> go (desugar obj)
-    obj@ConstInt{} -> go (desugar obj)
-    obj@ConstFloat{} -> go (desugar obj)
+    ConstString{} -> []
+    ConstInt{} -> []
+    ConstFloat{} -> []
 
 -- | Given a unary function that operates only on plain objects,
 -- converts it to a function that operates on named objects
