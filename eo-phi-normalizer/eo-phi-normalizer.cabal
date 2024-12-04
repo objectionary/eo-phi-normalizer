@@ -332,6 +332,7 @@ test-suite doctests
   type: exitcode-stdio-1.0
   main-is: Main.hs
   other-modules:
+      Language.EO.Locale
       Language.EO.Phi
       Language.EO.Phi.Dataize
       Language.EO.Phi.Dataize.Atoms

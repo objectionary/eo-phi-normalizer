@@ -23,9 +23,9 @@
 {- FOURMOLU_ENABLE -}
 module Main where
 
-import Main.Utf8
 import Spec qualified
 import Test.Hspec.Runner
+import Language.EO.Locale (withCorrectLocale)
 
 main :: IO ()
-main = withUtf8 $ hspecWith defaultConfig Spec.spec
+main = withCorrectLocale $ hspecWith defaultConfig Spec.spec

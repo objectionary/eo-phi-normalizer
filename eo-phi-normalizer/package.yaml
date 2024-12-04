@@ -143,7 +143,6 @@ tests:
       - -with-rtsopts=-N
     dependencies:
       - eo-phi-normalizer
-      - with-utf8
       - hspec
       - hspec-discover
       - QuickCheck
