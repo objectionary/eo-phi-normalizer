@@ -51,7 +51,7 @@
 
 module Main (main) where
 
-import Control.Exception (Exception (..), SomeException, catch, throw)
+import Control.Exception (Exception (..), SomeException, catch, throwIO)
 import Control.Lens.Lens ((&))
 import Control.Lens.Operators ((?~))
 import Control.Monad (forM, unless, when)
@@ -67,6 +67,7 @@ import Data.Text.Lazy.Manipulate (toOrdinal)
 import Data.Version (showVersion)
 import Data.Yaml (decodeFileThrow, decodeThrow)
 import GHC.Generics (Generic)
+import Language.EO.Locale (withCorrectLocale)
 import Language.EO.Phi (Binding (..), Bytes (Bytes), Object (..), Program (Program), parseProgram, printTree)
 import Language.EO.Phi.Dataize
 import Language.EO.Phi.Dataize.Context
@@ -84,7 +85,6 @@ import Language.EO.Phi.Rules.RunYegor (yegorRuleSet)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRuleNamed, parseRuleSetFromFile)
 import Language.EO.Phi.ToLaTeX
 import Language.EO.Test.YamlSpec (spec)
-import Main.Utf8
 import Options.Applicative hiding (metavar)
 import Options.Applicative qualified as Optparse (metavar)
 import Paths_eo_phi_normalizer (version)
@@ -470,14 +470,14 @@ getFile = \case
   Just file' ->
     doesFileExist file' >>= \case
       True -> pure (Just file')
-      False -> throw $ FileDoesNotExist file'
+      False -> throwIO $ FileDoesNotExist file'
 
 getProgram :: Maybe FilePath -> IO Program
 getProgram inputFile = do
   inputFile' <- getFile inputFile
-  src <- maybe getContents' readFile inputFile' `catch` (throw . CouldNotRead . show @SomeException)
+  src <- maybe getContents' readFile inputFile' `catch` (throwIO . CouldNotRead . show @SomeException)
   case parseProgram src of
-    Left err -> throw $ CouldNotParse err
+    Left err -> throwIO $ CouldNotParse err
     Right program -> pure program
 
 getLoggers :: Maybe FilePath -> IO (String -> IO (), String -> IO ())
@@ -514,7 +514,7 @@ getMetrics' program bindingsPath = do
 getMetrics :: Maybe String -> Maybe FilePath -> IO ProgramMetrics
 getMetrics bindingsPath inputFile = do
   program <- getProgram inputFile
-  either throw pure (getMetrics' program bindingsPath)
+  either throwIO pure (getMetrics' program bindingsPath)
 
 injectLamdbaPackage :: [Binding] -> [Binding]
 injectLamdbaPackage bs
@@ -567,7 +567,7 @@ wrapRawBytesIn = \case
 -- * Main
 
 main :: IO ()
-main = withUtf8 do
+main = withCorrectLocale do
   opts <- customExecParser pprefs (cliOpts (showVersion version))
   let printAsProgramOrAsObject = \case
         Formation bindings' -> printTree $ Program bindings'
@@ -600,7 +600,7 @@ main = withUtf8 do
             return (False, ruleSet.title, convertRuleNamed <$> ruleSet.rules)
       unless (single || json || latex) $ logStrLn ruleSetTitle
       bindingsWithDeps <- case deepMergePrograms (program' : deps) of
-        Left err -> throw (CouldNotMergeDependencies err)
+        Left err -> throwIO (CouldNotMergeDependencies err)
         Right (Program bindingsWithDeps) -> return bindingsWithDeps
       let Program bindings = program'
           uniqueResults
@@ -629,7 +629,7 @@ main = withUtf8 do
             logStrLn "\\begin{phiquation*}"
             logStrLn [fmtTrim|{phiExpr}|]
             logStrLn "\\end{phiquation*}"
-      when (null uniqueResults || null (head uniqueResults)) (throw CouldNotNormalize)
+      when (null uniqueResults || null (head uniqueResults)) (throwIO CouldNotNormalize)
       if
         | single && json ->
             logStrLn
@@ -690,7 +690,7 @@ main = withUtf8 do
       program' <- getProgram inputFile
       deps <- mapM (getProgram . Just) dependencies
       bindingsWithDeps <- case deepMergePrograms (program' : deps) of
-        Left err -> throw (CouldNotMergeDependencies err)
+        Left err -> throwIO (CouldNotMergeDependencies err)
         Right (Program bindingsWithDeps) -> return bindingsWithDeps
       (builtin, _ruleSetTitle, rules) <-
         case rulesPath of
