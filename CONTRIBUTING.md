@@ -14,12 +14,18 @@ Check open issues ([link](https://github.com/objectionary/eo-phi-normalizer/issu
 
 ## Enter the repository
 
+<!-- `> cat site/docs/src/common/enter-repository.md` -->
+
+<!-- BEGIN mdsh -->
+
 Clone and enter the project repository.
 
 ```sh
 git clone https://github.com/objectionary/eo-phi-normalizer --recurse-submodules
 cd eo-phi-normalizer
 ```
+
+<!-- END mdsh -->
 
 ## Install stack
 
