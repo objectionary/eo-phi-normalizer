@@ -63,6 +63,7 @@ import Data.List (intercalate, isPrefixOf)
 import Data.Maybe (fromMaybe)
 import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy as TL (unpack)
+import Data.Text.Lazy.Manipulate (toOrdinal)
 import Data.Version (showVersion)
 import Data.Yaml (decodeFileThrow, decodeThrow)
 import GHC.Generics (Generic)
@@ -597,7 +598,7 @@ main = withUtf8 do
           Nothing -> do
             ruleSet :: RuleSet <- decodeThrow $(embedFileRelative "test/eo/phi/rules/new.yaml")
             return (False, ruleSet.title, convertRuleNamed <$> ruleSet.rules)
-      unless (single || json || (chain && latex)) $ logStrLn ruleSetTitle
+      unless (single || json || latex) $ logStrLn ruleSetTitle
       bindingsWithDeps <- case deepMergePrograms (program' : deps) of
         Left err -> throw (CouldNotMergeDependencies err)
         Right (Program bindingsWithDeps) -> return bindingsWithDeps
@@ -611,6 +612,23 @@ main = withUtf8 do
             limits = ApplicationLimits maxDepth (maxGrowthFactor * objectSize (Formation bindings))
             ctx = (defaultContext rules (Formation bindingsWithDeps)){builtinRules = builtin} -- IMPORTANT: context contains dependencies!
           totalResults = length uniqueResults
+          inLatexDocument :: IO () -> IO ()
+          inLatexDocument logContent = do
+            logStrLn
+              [fmtTrim|
+                % {ruleSetTitle}
+
+                \\documentclass{{article}}
+                \\usepackage{{eolang}}
+                \\begin{{document}}
+              |]
+            logContent
+            logStrLn "\n\\end{document}"
+          inPhiEquation :: String -> IO ()
+          inPhiEquation phiExpr = do
+            logStrLn "\\begin{phiquation*}"
+            logStrLn [fmtTrim|{phiExpr}|]
+            logStrLn "\\end{phiquation*}"
       when (null uniqueResults || null (head uniqueResults)) (throw CouldNotNormalize)
       if
         | single && json ->
@@ -630,25 +648,29 @@ main = withUtf8 do
                 { input = printTree program'
                 , output = (logEntryToPair . fmap printAsProgramOrAsObject <$>) <$> uniqueResults
                 }
-        | chain && latex -> do
-            logStrLn
-              [fmtTrim|
-                % {ruleSetTitle}
-
-                \\documentclass{{article}}
-                \\usepackage{{eolang}}
-                \\begin{{document}}
-              |]
-            forM_ uniqueResults $ \steps -> do
+        | chain && latex -> inLatexDocument $ do
+            forM_ (zip [1 ..] uniqueResults) $ \(index, steps) -> do
               let latexLines = toLatexString (Formation bindings) : (toLatexString . (.logEntryLog) <$> steps)
                   transitions :: [String] = ((\x -> [fmt| \\trans_{{\\rulename{{{logEntryMessage x}}}}} \n|]) <$> steps) <> ["."]
-                  linesCombined :: String = fold $ zipWith (\latexLine transition -> [fmt|{latexLine}{transition}|]) latexLines transitions
-              logStrLn "\\begin{phiquation*}"
-              logStrLn [fmtTrim|{linesCombined}|]
-              logStrLn "\\end{phiquation*}"
-            logStrLn "\n\\end{document}"
+                  trailingTransitions :: [String] = "" : repeat [fmt|  \\trans |]
+                  linesCombined :: String =
+                    fold $
+                      zipWith3
+                        ( \trailingTrans latexLine transition ->
+                            [fmt|{trailingTrans}{latexLine}{transition}|]
+                        )
+                        trailingTransitions
+                        latexLines
+                        transitions
+              unless (length uniqueResults == 1) $
+                logStrLn
+                  [fmt|\nThis is the {unpack (toOrdinal index)} possible chain of normalizing rewritings:\n|]
+              inPhiEquation linesCombined
         | latex ->
-            logStrLn . toLatexString $ logEntryLog (head (head uniqueResults))
+            inLatexDocument $
+              inPhiEquation $
+                toLatexString $
+                  logEntryLog (head (head uniqueResults))
         | otherwise -> do
             logStrLn "Input:"
             logStrLn (printTree program')

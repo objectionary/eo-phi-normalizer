@@ -76,6 +76,7 @@ dependencies:
   - hspec-core
   - text
   - template-haskell
+  - text-manipulate
   - blaze-html
   - blaze-markup
   - scientific
