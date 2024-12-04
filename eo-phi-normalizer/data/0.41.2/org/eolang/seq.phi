@@ -1,0 +1,65 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        seq ↦ ⟦
+          steps ↦ ∅,
+          φ ↦ ξ.steps.length.eq(
+            α0 ↦ Φ.org.eolang.number(
+              α0 ↦ Φ.org.eolang.bytes(
+                Δ ⤍ 00-00-00-00-00-00-00-00
+              )
+            )
+          ).if(
+            α0 ↦ Φ.org.eolang.true,
+            α1 ↦ ξ.loop(
+              α0 ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-00-00-00-00-00-00-00
+                )
+              )
+            )
+          ),
+          max-len ↦ Φ.org.eolang.dataized(
+            α0 ↦ ξ.steps.length.minus(
+              α0 ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 3F-F0-00-00-00-00-00-00
+                )
+              )
+            )
+          ).as-bytes,
+          loop ↦ ⟦
+            index ↦ ∅,
+            φ ↦ ξ.index.lt(
+              α0 ↦ ξ.ρ.max-len
+            ).and(
+              α0 ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.ρ.steps.at(
+                  α0 ↦ ξ.index
+                )
+              ).as-bool.or(
+                α0 ↦ Φ.org.eolang.true
+              )
+            ).if(
+              α0 ↦ ξ.ρ.loop(
+                α0 ↦ ξ.index.plus(
+                  α0 ↦ Φ.org.eolang.number(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 3F-F0-00-00-00-00-00-00
+                    )
+                  )
+                )
+              ),
+              α1 ↦ ξ.ρ.steps.at(
+                α0 ↦ ξ.index
+              )
+            )
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

@@ -1,0 +1,978 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        txt ↦ ⟦
+          text ↦ ⟦
+            origin ↦ ∅,
+            φ ↦ ξ.origin,
+            is-alphanumeric ↦ ⟦
+              φ ↦ Φ.org.eolang.txt.regex(
+                α0 ↦ Φ.org.eolang.string(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 2F-5E-5B-41-2D-5A-61-2D-7A-30-2D-39-5D-2B-24-2F
+                  )
+                )
+              ).matches(
+                α0 ↦ ξ.ρ.origin
+              )
+            ⟧,
+            is-alpha ↦ ⟦
+              φ ↦ Φ.org.eolang.txt.regex(
+                α0 ↦ Φ.org.eolang.string(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 2F-5E-5B-61-2D-7A-41-2D-5A-5D-2B-24-2F
+                  )
+                )
+              ).matches(
+                α0 ↦ ξ.ρ.origin
+              )
+            ⟧,
+            is-ascii ↦ ⟦
+              φ ↦ Φ.org.eolang.txt.regex(
+                α0 ↦ Φ.org.eolang.string(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 2F-5E-5B-5C-78-30-30-2D-5C-78-37-46-5D-2A-24-2F
+                  )
+                )
+              ).matches(
+                α0 ↦ ξ.ρ.origin
+              )
+            ⟧,
+            slice ↦ ⟦
+              start ↦ ∅,
+              len ↦ ∅,
+              φ ↦ ξ.ρ.ρ.text(
+                α0 ↦ ξ.ρ.origin.slice(
+                  α0 ↦ ξ.start,
+                  α1 ↦ ξ.len
+                )
+              )
+            ⟧,
+            trimmed-left ↦ ⟦
+              len ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.ρ.origin.length
+              ).as-bytes,
+              idx ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.first-non-space-index(
+                  α0 ↦ Φ.org.eolang.number(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 00-00-00-00-00-00-00-00
+                    )
+                  )
+                )
+              ).as-bytes,
+              φ ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-00-00-00-00-00-00-00
+                )
+              ).eq(
+                α0 ↦ ξ.len
+              ).if(
+                α0 ↦ ξ.ρ,
+                α1 ↦ ξ.ρ.slice(
+                  α0 ↦ ξ.idx,
+                  α1 ↦ Φ.org.eolang.number(
+                    α0 ↦ ξ.len
+                  ).minus(
+                    α0 ↦ Φ.org.eolang.number(
+                      α0 ↦ ξ.idx
+                    )
+                  )
+                )
+              ),
+              first-non-space-index ↦ ⟦
+                index ↦ ∅,
+                char ↦ Φ.org.eolang.dataized(
+                  α0 ↦ ξ.ρ.ρ.origin.slice(
+                    α0 ↦ ξ.index,
+                    α1 ↦ Φ.org.eolang.number(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ 3F-F0-00-00-00-00-00-00
+                      )
+                    )
+                  )
+                ).as-bytes,
+                φ ↦ ξ.ρ.len.eq(
+                  α0 ↦ ξ.index
+                ).if(
+                  α0 ↦ ξ.index,
+                  α1 ↦ Φ.org.eolang.string(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 20-
+                    )
+                  ).eq(
+                    α0 ↦ ξ.char
+                  ).if(
+                    α0 ↦ ξ.ρ.first-non-space-index(
+                      α0 ↦ ξ.index.plus(
+                        α0 ↦ Φ.org.eolang.number(
+                          α0 ↦ Φ.org.eolang.bytes(
+                            Δ ⤍ 3F-F0-00-00-00-00-00-00
+                          )
+                        )
+                      )
+                    ),
+                    α1 ↦ ξ.index
+                  )
+                )
+              ⟧
+            ⟧,
+            trimmed-right ↦ ⟦
+              len ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.ρ.origin.length
+              ).as-bytes,
+              φ ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-00-00-00-00-00-00-00
+                )
+              ).eq(
+                α0 ↦ ξ.len
+              ).if(
+                α0 ↦ ξ.ρ,
+                α1 ↦ ξ.ρ.slice(
+                  α0 ↦ Φ.org.eolang.number(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 00-00-00-00-00-00-00-00
+                    )
+                  ),
+                  α1 ↦ ξ.first-non-space-index(
+                    α0 ↦ Φ.org.eolang.number(
+                      α0 ↦ ξ.len
+                    ).plus(
+                      α0 ↦ Φ.org.eolang.number(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ BF-F0-00-00-00-00-00-00
+                        )
+                      )
+                    )
+                  )
+                )
+              ),
+              first-non-space-index ↦ ⟦
+                index ↦ ∅,
+                char ↦ Φ.org.eolang.dataized(
+                  α0 ↦ ξ.ρ.ρ.origin.slice(
+                    α0 ↦ ξ.index,
+                    α1 ↦ Φ.org.eolang.number(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ 3F-F0-00-00-00-00-00-00
+                      )
+                    )
+                  )
+                ).as-bytes,
+                φ ↦ Φ.org.eolang.number(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ BF-F0-00-00-00-00-00-00
+                  )
+                ).eq(
+                  α0 ↦ ξ.index
+                ).if(
+                  α0 ↦ Φ.org.eolang.number(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 00-00-00-00-00-00-00-00
+                    )
+                  ),
+                  α1 ↦ Φ.org.eolang.string(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 20-
+                    )
+                  ).eq(
+                    α0 ↦ ξ.char
+                  ).if(
+                    α0 ↦ ξ.ρ.first-non-space-index(
+                      α0 ↦ ξ.index.plus(
+                        α0 ↦ Φ.org.eolang.number(
+                          α0 ↦ Φ.org.eolang.bytes(
+                            Δ ⤍ BF-F0-00-00-00-00-00-00
+                          )
+                        )
+                      )
+                    ),
+                    α1 ↦ ξ.index.plus(
+                      α0 ↦ Φ.org.eolang.number(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 3F-F0-00-00-00-00-00-00
+                        )
+                      )
+                    )
+                  )
+                )
+              ⟧
+            ⟧,
+            trimmed ↦ ⟦
+              φ ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-00-00-00-00-00-00-00
+                )
+              ).eq(
+                α0 ↦ ξ.ρ.length
+              ).if(
+                α0 ↦ ξ.ρ,
+                α1 ↦ ξ.ρ.trimmed-left.trimmed-right
+              )
+            ⟧,
+            joined ↦ ⟦
+              items ↦ ∅,
+              delimiter ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.ρ.origin
+              ).as-bytes,
+              first ↦ ξ.items.at(
+                α0 ↦ Φ.org.eolang.number(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 00-00-00-00-00-00-00-00
+                  )
+                )
+              ),
+              len ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.items.length
+              ).as-bytes,
+              φ ↦ ξ.ρ.ρ.text(
+                α0 ↦ Φ.org.eolang.number(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 00-00-00-00-00-00-00-00
+                  )
+                ).eq(
+                  α0 ↦ ξ.len
+                ).if(
+                  α0 ↦ Φ.org.eolang.string(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ --
+                    )
+                  ),
+                  α1 ↦ Φ.org.eolang.number(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 3F-F0-00-00-00-00-00-00
+                    )
+                  ).eq(
+                    α0 ↦ ξ.len
+                  ).if(
+                    α0 ↦ ξ.first,
+                    α1 ↦ ξ.first.as-bytes.concat(
+                      α0 ↦ ξ.with-delimiter(
+                        α0 ↦ Φ.org.eolang.string(
+                          α0 ↦ Φ.org.eolang.bytes(
+                            Δ ⤍ --
+                          )
+                        ).as-bytes,
+                        α1 ↦ Φ.org.eolang.number(
+                          α0 ↦ Φ.org.eolang.bytes(
+                            Δ ⤍ 3F-F0-00-00-00-00-00-00
+                          )
+                        )
+                      )
+                    ).as-string
+                  )
+                )
+              ),
+              with-delimiter ↦ ⟦
+                acc ↦ ∅,
+                index ↦ ∅,
+                φ ↦ ξ.ρ.len.eq(
+                  α0 ↦ ξ.index
+                ).if(
+                  α0 ↦ ξ.acc,
+                  α1 ↦ ξ.ρ.with-delimiter(
+                    α0 ↦ ξ.acc.concat(
+                      α0 ↦ ξ.ρ.delimiter.concat(
+                        α0 ↦ ξ.ρ.items.at(
+                          α0 ↦ ξ.index
+                        )
+                      )
+                    ),
+                    α1 ↦ ξ.index.plus(
+                      α0 ↦ Φ.org.eolang.number(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 3F-F0-00-00-00-00-00-00
+                        )
+                      )
+                    )
+                  )
+                )
+              ⟧
+            ⟧,
+            repeated ↦ ⟦
+              times ↦ ∅,
+              bts ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.ρ.origin.as-bytes
+              ).as-bytes,
+              amount ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.times
+              ).as-bytes,
+              φ ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-00-00-00-00-00-00-00
+                )
+              ).gt(
+                α0 ↦ ξ.amount
+              ).if(
+                α0 ↦ Φ.org.eolang.error(
+                  α0 ↦ Φ.org.eolang.txt.sprintf(
+                    α0 ↦ Φ.org.eolang.string(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ 43-61-6E-27-74-20-72-65-70-65-61-74-20-74-65-78-74-20-25-64-20-74-69-6D-65-73
+                      )
+                    ),
+                    α1 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple.empty,
+                      α1 ↦ ξ.amount
+                    )
+                  )
+                ),
+                α1 ↦ ξ.ρ.ρ.text(
+                  α0 ↦ Φ.org.eolang.number(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 00-00-00-00-00-00-00-00
+                    )
+                  ).eq(
+                    α0 ↦ ξ.amount
+                  ).if(
+                    α0 ↦ Φ.org.eolang.string(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ --
+                      )
+                    ),
+                    α1 ↦ ξ.rec-repeated(
+                      α0 ↦ ξ.bts,
+                      α1 ↦ Φ.org.eolang.number(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 3F-F0-00-00-00-00-00-00
+                        )
+                      )
+                    ).as-string
+                  )
+                )
+              ),
+              rec-repeated ↦ ⟦
+                accum ↦ ∅,
+                index ↦ ∅,
+                φ ↦ ξ.ρ.amount.eq(
+                  α0 ↦ ξ.index
+                ).if(
+                  α0 ↦ ξ.accum,
+                  α1 ↦ ξ.ρ.rec-repeated(
+                    α0 ↦ ξ.accum.concat(
+                      α0 ↦ ξ.ρ.bts
+                    ),
+                    α1 ↦ ξ.index.plus(
+                      α0 ↦ Φ.org.eolang.number(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 3F-F0-00-00-00-00-00-00
+                        )
+                      )
+                    )
+                  )
+                )
+              ⟧
+            ⟧,
+            contains ↦ ⟦
+              substring ↦ ∅,
+              φ ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ BF-F0-00-00-00-00-00-00
+                )
+              ).eq(
+                α0 ↦ ξ.ρ.index-of(
+                  α0 ↦ ξ.substring
+                )
+              ).not
+            ⟧,
+            ends-with ↦ ⟦
+              substring ↦ ∅,
+              substr ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.substring
+              ).as-bytes,
+              φ ↦ ξ.ρ.index-of(
+                α0 ↦ ξ.substr
+              ).eq(
+                α0 ↦ ξ.ρ.length.minus(
+                  α0 ↦ ξ.substr.size
+                )
+              )
+            ⟧,
+            starts-with ↦ ⟦
+              substring ↦ ∅,
+              φ ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-00-00-00-00-00-00-00
+                )
+              ).eq(
+                α0 ↦ ξ.ρ.index-of(
+                  α0 ↦ ξ.substring
+                )
+              )
+            ⟧,
+            index-of ↦ ⟦
+              substring ↦ ∅,
+              self-len ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.ρ.origin.as-bytes.size
+              ).as-bytes,
+              substr ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.substring
+              ).as-bytes,
+              sub-len ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.substr.size
+              ).as-bytes,
+              end ↦ Φ.org.eolang.dataized(
+                α0 ↦ Φ.org.eolang.number(
+                  α0 ↦ ξ.self-len
+                ).minus(
+                  α0 ↦ Φ.org.eolang.number(
+                    α0 ↦ ξ.sub-len
+                  )
+                )
+              ).as-bytes,
+              φ ↦ Φ.org.eolang.number(
+                α0 ↦ ξ.sub-len
+              ).gt(
+                α0 ↦ ξ.self-len
+              ).or(
+                α0 ↦ ξ.sub-len.eq(
+                  α0 ↦ ξ.self-len
+                ).and(
+                  α0 ↦ ξ.substr.eq(
+                    α0 ↦ ξ.ρ.origin
+                  ).not
+                )
+              ).if(
+                α0 ↦ Φ.org.eolang.number(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ BF-F0-00-00-00-00-00-00
+                  )
+                ),
+                α1 ↦ ξ.rec-index-of-substr(
+                  α0 ↦ Φ.org.eolang.number(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 00-00-00-00-00-00-00-00
+                    )
+                  )
+                )
+              ),
+              rec-index-of-substr ↦ ⟦
+                idx ↦ ∅,
+                φ ↦ ξ.ρ.end.eq(
+                  α0 ↦ ξ.idx
+                ).if(
+                  α0 ↦ ξ.contains.if(
+                    α0 ↦ ξ.idx,
+                    α1 ↦ Φ.org.eolang.number(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ BF-F0-00-00-00-00-00-00
+                      )
+                    )
+                  ),
+                  α1 ↦ ξ.contains.if(
+                    α0 ↦ ξ.idx,
+                    α1 ↦ ξ.ρ.rec-index-of-substr(
+                      α0 ↦ ξ.idx.plus(
+                        α0 ↦ Φ.org.eolang.number(
+                          α0 ↦ Φ.org.eolang.bytes(
+                            Δ ⤍ 3F-F0-00-00-00-00-00-00
+                          )
+                        )
+                      )
+                    )
+                  )
+                ),
+                contains ↦ ξ.ρ.substr.eq(
+                  α0 ↦ ξ.ρ.ρ.slice(
+                    α0 ↦ ξ.idx,
+                    α1 ↦ ξ.ρ.sub-len
+                  )
+                )
+              ⟧
+            ⟧,
+            last-index-of ↦ ⟦
+              substring ↦ ∅,
+              self-len ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.ρ.origin.as-bytes.size
+              ).as-bytes,
+              substr ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.substring
+              ).as-bytes,
+              sub-len ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.substring.size
+              ).as-bytes,
+              φ ↦ Φ.org.eolang.number(
+                α0 ↦ ξ.sub-len
+              ).gt(
+                α0 ↦ ξ.self-len
+              ).or(
+                α0 ↦ ξ.sub-len.eq(
+                  α0 ↦ ξ.self-len
+                ).and(
+                  α0 ↦ ξ.substr.eq(
+                    α0 ↦ ξ.ρ.origin
+                  ).not
+                )
+              ).if(
+                α0 ↦ Φ.org.eolang.number(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ BF-F0-00-00-00-00-00-00
+                  )
+                ),
+                α1 ↦ ξ.rec-index-of-substr(
+                  α0 ↦ Φ.org.eolang.number(
+                    α0 ↦ ξ.self-len
+                  ).minus(
+                    α0 ↦ Φ.org.eolang.number(
+                      α0 ↦ ξ.sub-len
+                    )
+                  )
+                )
+              ),
+              rec-index-of-substr ↦ ⟦
+                idx ↦ ∅,
+                φ ↦ Φ.org.eolang.number(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 00-00-00-00-00-00-00-00
+                  )
+                ).eq(
+                  α0 ↦ ξ.idx
+                ).if(
+                  α0 ↦ ξ.contains.if(
+                    α0 ↦ ξ.idx,
+                    α1 ↦ Φ.org.eolang.number(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ BF-F0-00-00-00-00-00-00
+                      )
+                    )
+                  ),
+                  α1 ↦ ξ.contains.if(
+                    α0 ↦ ξ.idx,
+                    α1 ↦ ξ.ρ.rec-index-of-substr(
+                      α0 ↦ ξ.idx.plus(
+                        α0 ↦ Φ.org.eolang.number(
+                          α0 ↦ Φ.org.eolang.bytes(
+                            Δ ⤍ BF-F0-00-00-00-00-00-00
+                          )
+                        )
+                      )
+                    )
+                  )
+                ),
+                contains ↦ ξ.ρ.substr.eq(
+                  α0 ↦ ξ.ρ.ρ.slice(
+                    α0 ↦ ξ.idx,
+                    α1 ↦ ξ.ρ.sub-len
+                  )
+                )
+              ⟧
+            ⟧,
+            up-cased ↦ ⟦
+              ascii-z ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.ascii(
+                  α0 ↦ Φ.org.eolang.string(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 7A-
+                    )
+                  )
+                )
+              ).as-bytes,
+              ascii-a ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.ascii(
+                  α0 ↦ Φ.org.eolang.string(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 61-
+                    )
+                  )
+                )
+              ).as-bytes,
+              distance ↦ Φ.org.eolang.number(
+                α0 ↦ ξ.ascii-a
+              ).minus(
+                α0 ↦ ξ.ascii(
+                  α0 ↦ Φ.org.eolang.string(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 41-
+                    )
+                  )
+                )
+              ),
+              φ ↦ ξ.ρ.ρ.text(
+                α0 ↦ Φ.org.eolang.structs.list(
+                  α0 ↦ Φ.org.eolang.structs.bytes-as-array(
+                    α0 ↦ ξ.ρ.origin.as-bytes
+                  )
+                ).reduced(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ --
+                  ),
+                  α1 ↦ ξ.auto-named-attr-at-261-22
+                ).as-string
+              ),
+              ascii ↦ ⟦
+                char ↦ ∅,
+                φ ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-00-00-00-00-00-00
+                ).concat(
+                  α0 ↦ ξ.char.as-bytes
+                ).as-i64.as-number
+              ⟧,
+              auto-named-attr-at-261-22 ↦ ⟦
+                accum ↦ ∅,
+                byte ↦ ∅,
+                ascii-bte ↦ ξ.ρ.ascii(
+                  α0 ↦ ξ.byte
+                ),
+                φ ↦ ξ.accum.concat(
+                  α0 ↦ ξ.ascii-bte.lte(
+                    α0 ↦ ξ.ρ.ascii-z
+                  ).and(
+                    α0 ↦ ξ.ascii-bte.gte(
+                      α0 ↦ ξ.ρ.ascii-a
+                    )
+                  ).if(
+                    α0 ↦ ξ.ascii-bte.minus(
+                      α0 ↦ ξ.ρ.distance
+                    ).as-i64.as-bytes.slice(
+                      α0 ↦ Φ.org.eolang.number(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 40-1C-00-00-00-00-00-00
+                        )
+                      ),
+                      α1 ↦ Φ.org.eolang.number(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 3F-F0-00-00-00-00-00-00
+                        )
+                      )
+                    ),
+                    α1 ↦ ξ.byte
+                  )
+                )
+              ⟧
+            ⟧,
+            low-cased ↦ ⟦
+              ascii-z ↦ ξ.ρ.up-cased.ascii(
+                α0 ↦ Φ.org.eolang.string(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 5A-
+                  )
+                )
+              ),
+              ascii-a ↦ ξ.ρ.up-cased.ascii(
+                α0 ↦ Φ.org.eolang.string(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 41-
+                  )
+                )
+              ),
+              φ ↦ ξ.ρ.ρ.text(
+                α0 ↦ Φ.org.eolang.structs.list(
+                  α0 ↦ Φ.org.eolang.structs.bytes-as-array(
+                    α0 ↦ ξ.ρ.origin.as-bytes
+                  )
+                ).reduced(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ --
+                  ),
+                  α1 ↦ ξ.auto-named-attr-at-294-22
+                ).as-string
+              ),
+              auto-named-attr-at-294-22 ↦ ⟦
+                accum ↦ ∅,
+                byte ↦ ∅,
+                ascii-bte ↦ ξ.ρ.ρ.up-cased.ascii(
+                  α0 ↦ ξ.byte
+                ),
+                φ ↦ ξ.accum.concat(
+                  α0 ↦ ξ.ascii-bte.lte(
+                    α0 ↦ ξ.ρ.ascii-z
+                  ).and(
+                    α0 ↦ ξ.ascii-bte.gte(
+                      α0 ↦ ξ.ρ.ascii-a
+                    )
+                  ).if(
+                    α0 ↦ ξ.ascii-bte.plus(
+                      α0 ↦ ξ.ρ.ρ.up-cased.distance
+                    ).as-i64.as-bytes.slice(
+                      α0 ↦ Φ.org.eolang.number(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 40-1C-00-00-00-00-00-00
+                        )
+                      ),
+                      α1 ↦ Φ.org.eolang.number(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 3F-F0-00-00-00-00-00-00
+                        )
+                      )
+                    ),
+                    α1 ↦ ξ.byte
+                  )
+                )
+              ⟧
+            ⟧,
+            at ↦ ⟦
+              i ↦ ∅,
+              len ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.ρ.length
+              ).as-bytes,
+              idx ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.i
+              ).as-bytes,
+              index ↦ Φ.org.eolang.dataized(
+                α0 ↦ Φ.org.eolang.number(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 00-00-00-00-00-00-00-00
+                  )
+                ).gt(
+                  α0 ↦ ξ.idx
+                ).if(
+                  α0 ↦ Φ.org.eolang.number(
+                    α0 ↦ ξ.len
+                  ).plus(
+                    α0 ↦ ξ.idx
+                  ),
+                  α1 ↦ ξ.idx
+                )
+              ).as-bytes,
+              φ ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-00-00-00-00-00-00-00
+                )
+              ).gt(
+                α0 ↦ ξ.index
+              ).or(
+                α0 ↦ Φ.org.eolang.number(
+                  α0 ↦ ξ.index
+                ).gte(
+                  α0 ↦ ξ.len
+                )
+              ).if(
+                α0 ↦ Φ.org.eolang.error(
+                  α0 ↦ Φ.org.eolang.txt.sprintf(
+                    α0 ↦ Φ.org.eolang.string(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ 47-69-76-65-6E-20-69-6E-64-65-78-20-25-64-20-69-73-20-6F-75-74-20-6F-66-20-74-65-78-74-20-62-6F-75-6E-64-73
+                      )
+                    ),
+                    α1 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple.empty,
+                      α1 ↦ ξ.index
+                    )
+                  )
+                ),
+                α1 ↦ ξ.ρ.slice(
+                  α0 ↦ ξ.index,
+                  α1 ↦ Φ.org.eolang.number(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 3F-F0-00-00-00-00-00-00
+                    )
+                  )
+                )
+              )
+            ⟧,
+            replaced ↦ ⟦
+              target ↦ ∅,
+              replacement ↦ ∅,
+              self-as-bytes ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.ρ.origin
+              ).as-bytes,
+              reinit ↦ Φ.org.eolang.string(
+                α0 ↦ ξ.self-as-bytes
+              ),
+              matched ↦ ξ.target.match(
+                α0 ↦ ξ.reinit
+              ).next,
+              φ ↦ ξ.matched.exists.not.if(
+                α0 ↦ Φ.org.eolang.txt.text(
+                  α0 ↦ ξ.reinit
+                ),
+                α1 ↦ Φ.org.eolang.txt.text(
+                  α0 ↦ ξ.rec-replaced(
+                    α0 ↦ ξ.matched,
+                    α1 ↦ Φ.org.eolang.string(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ --
+                      )
+                    ),
+                    α2 ↦ ξ.matched.start
+                  )
+                )
+              ),
+              rec-replaced ↦ ⟦
+                block ↦ ∅,
+                accum ↦ ∅,
+                start ↦ ∅,
+                φ ↦ ξ.block.exists.if(
+                  α0 ↦ ξ.ρ.rec-replaced(
+                    α0 ↦ ξ.block.next,
+                    α1 ↦ ξ.accum.concat(
+                      α0 ↦ ξ.ρ.reinit.slice(
+                        α0 ↦ ξ.start,
+                        α1 ↦ ξ.block.from.minus(
+                          α0 ↦ ξ.start
+                        )
+                      )
+                    ).concat(
+                      α0 ↦ ξ.ρ.replacement
+                    ),
+                    α2 ↦ ξ.block.to
+                  ),
+                  α1 ↦ ξ.accum.concat(
+                    α0 ↦ ξ.ρ.reinit.slice(
+                      α0 ↦ ξ.start,
+                      α1 ↦ ξ.ρ.reinit.length.minus(
+                        α0 ↦ ξ.start
+                      )
+                    )
+                  ).as-string
+                )
+              ⟧
+            ⟧,
+            as-number ↦ ⟦
+              scanned ↦ Φ.org.eolang.txt.sscanf(
+                α0 ↦ Φ.org.eolang.string(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 25-66
+                  )
+                ),
+                α1 ↦ ξ.ρ.origin
+              ),
+              φ ↦ ξ.scanned.length.eq(
+                α0 ↦ Φ.org.eolang.number(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 00-00-00-00-00-00-00-00
+                  )
+                )
+              ).if(
+                α0 ↦ Φ.org.eolang.error(
+                  α0 ↦ Φ.org.eolang.txt.sprintf(
+                    α0 ↦ Φ.org.eolang.string(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ 43-61-6E-27-74-20-63-6F-6E-76-65-72-74-20-74-65-78-74-20-25-73-20-74-6F-20-6E-75-6D-62-65-72
+                      )
+                    ),
+                    α1 ↦ Φ.org.eolang.tuple(
+                      α0 ↦ Φ.org.eolang.tuple.empty,
+                      α1 ↦ ξ.ρ.origin
+                    )
+                  )
+                ),
+                α1 ↦ ξ.scanned.tail
+              )
+            ⟧,
+            split ↦ ⟦
+              delimiter ↦ ∅,
+              delim ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.delimiter
+              ).as-bytes,
+              self-as-bytes ↦ ξ.ρ.origin.as-bytes,
+              len ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.self-as-bytes.size
+              ).as-bytes,
+              φ ↦ ξ.len.eq(
+                α0 ↦ Φ.org.eolang.number(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 00-00-00-00-00-00-00-00
+                  )
+                )
+              ).if(
+                α0 ↦ Φ.org.eolang.tuple.empty,
+                α1 ↦ ξ.rec-split(
+                  α0 ↦ Φ.org.eolang.tuple.empty,
+                  α1 ↦ Φ.org.eolang.number(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 00-00-00-00-00-00-00-00
+                    )
+                  ),
+                  α2 ↦ Φ.org.eolang.number(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 00-00-00-00-00-00-00-00
+                    )
+                  )
+                )
+              ),
+              rec-split ↦ ⟦
+                accum ↦ ∅,
+                start ↦ ∅,
+                current ↦ ∅,
+                φ ↦ ξ.ρ.len.eq(
+                  α0 ↦ ξ.current
+                ).if(
+                  α0 ↦ ξ.with-substr,
+                  α1 ↦ ξ.ρ.delim.eq(
+                    α0 ↦ ξ.ρ.self-as-bytes.slice(
+                      α0 ↦ ξ.current,
+                      α1 ↦ Φ.org.eolang.number(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 3F-F0-00-00-00-00-00-00
+                        )
+                      )
+                    )
+                  ).if(
+                    α0 ↦ ξ.ρ.rec-split(
+                      α0 ↦ ξ.with-substr,
+                      α1 ↦ ξ.current.plus(
+                        α0 ↦ Φ.org.eolang.number(
+                          α0 ↦ Φ.org.eolang.bytes(
+                            Δ ⤍ 3F-F0-00-00-00-00-00-00
+                          )
+                        )
+                      ),
+                      α2 ↦ ξ.current.plus(
+                        α0 ↦ Φ.org.eolang.number(
+                          α0 ↦ Φ.org.eolang.bytes(
+                            Δ ⤍ 3F-F0-00-00-00-00-00-00
+                          )
+                        )
+                      )
+                    ),
+                    α1 ↦ ξ.ρ.rec-split(
+                      α0 ↦ ξ.accum,
+                      α1 ↦ ξ.start,
+                      α2 ↦ ξ.current.plus(
+                        α0 ↦ Φ.org.eolang.number(
+                          α0 ↦ Φ.org.eolang.bytes(
+                            Δ ⤍ 3F-F0-00-00-00-00-00-00
+                          )
+                        )
+                      )
+                    )
+                  )
+                ),
+                with-substr ↦ ξ.accum.with(
+                  α0 ↦ ξ.ρ.self-as-bytes.slice(
+                    α0 ↦ ξ.start,
+                    α1 ↦ ξ.current.minus(
+                      α0 ↦ ξ.start
+                    )
+                  )
+                )
+              ⟧
+            ⟧,
+            chained ↦ ⟦
+              others ↦ ∅,
+              φ ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-00-00-00-00-00-00-00
+                )
+              ).eq(
+                α0 ↦ ξ.others.length
+              ).if(
+                α0 ↦ ξ.ρ,
+                α1 ↦ ξ.ρ.ρ.text(
+                  α0 ↦ Φ.org.eolang.structs.list(
+                    α0 ↦ ξ.others
+                  ).reduced(
+                    α0 ↦ ξ.ρ.origin.as-bytes,
+                    α1 ↦ ⟦
+                      φ ↦ ξ.accum.concat(
+                        α0 ↦ ξ.str.as-bytes
+                      ),
+                      accum ↦ ∅,
+                      str ↦ ∅
+                    ⟧
+                  ).as-string
+                )
+              )
+            ⟧
+          ⟧,
+          λ ⤍ Package
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

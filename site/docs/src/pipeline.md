@@ -8,7 +8,7 @@
 
 {{ #include ./common/enter-repository.md }}
 
-## Install `normalizer`
+## Install `eo-phi-normalizer`
 
 {{ #include ./common/install.md }}
 
@@ -31,7 +31,7 @@ node --version
 ```
 
 ```console
-v20.16.0
+v20.18.0
 ```
 
 Install [Java](https://www.java.com/en/download/help/download_options.html).
@@ -41,9 +41,9 @@ java --version
 ```
 
 ```console
-openjdk 21.0.4 2024-07-16 LTS
-OpenJDK Runtime Environment Zulu21.36+19-CRaC-CA (build 21.0.4+7-LTS)
-OpenJDK 64-Bit Server VM Zulu21.36+19-CRaC-CA (build 21.0.4+7-LTS, mixed mode, sharing)
+openjdk 21.0.5 2024-10-15 LTS
+OpenJDK Runtime Environment Zulu21.38+21-CRaC-CA (build 21.0.5+11-LTS)
+OpenJDK 64-Bit Server VM Zulu21.38+21-CRaC-CA (build 21.0.5+11-LTS, mixed mode, sharing)
 ```
 
 ### Windows
@@ -58,7 +58,7 @@ Make `cygpath` available on `PATH`.
 
 The pipeline has several important stages:
 
-- Transform original `EO` programs into filtered `EO` programs, leaving only the specified top-level objects (tests).
+- Rewrite original `EO` programs into filtered `EO` programs, leaving only the specified top-level objects (tests).
 - Translate filtered `EO` programs to initial `PHI` programs.
 - Translate initial `PHI` programs to initial `EO` programs.
 - Test initial `EO` programs.
@@ -69,15 +69,15 @@ The pipeline has several important stages:
 
 ### Pipeline configuration
 
-The pipeline is configured via the [pipeline/config.yaml](https://github.com/objectionary/normalizer/blob/master/pipeline/config.yaml) file.
+The pipeline is configured via the [pipeline/config.yaml](https://github.com/objectionary/eo-phi-normalizer/blob/master/pipeline/config.yaml) file.
 
 The configuration file specifies the following:
 
 - `report` - Pipeline report configuration.
   - `js` - Optional path to a `JavaScript` file that should be inlined into the `HTML` report.
-    - If no path is specified, `normalizer` will use [report/main.js](https://github.com/objectionary/normalizer/blob/master/eo-phi-normalizer/report/main.js).
+    - If no path is specified, `eo-phi-normalizer` will use [report/main.js](https://github.com/objectionary/eo-phi-normalizer/blob/master/eo-phi-normalizer/report/main.js).
   - `css` - Optional path to a `CSS` file that should be inlined into the `HTML` report.
-    - If no path is specified, `normalizer` will use [report/styles.css](https://github.com/objectionary/normalizer/blob/master/eo-phi-normalizer/report/styles.css).
+    - If no path is specified, `eo-phi-normalizer` will use [report/styles.css](https://github.com/objectionary/eo-phi-normalizer/blob/master/eo-phi-normalizer/report/styles.css).
   - `output` - Where to write report versions.
     - `html` - The file path of the `HTML` version.
     - `json` - The file path of the `JSON` version.

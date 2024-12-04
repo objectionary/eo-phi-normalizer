@@ -1,3 +1,24 @@
+# The MIT License (MIT)
+
+# Copyright (c) 2016-2024 Objectionary.com
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
 # shellcheck disable=SC2148
 
 set -euxo pipefail
@@ -19,7 +40,7 @@ function generate_eo_tests {
     mkdir_clean "$PIPELINE_EO_YAML_DIR"
     mkdir_clean "$PIPELINE_EO_FILTERED_DIR"
 
-    normalizer pipeline prepare-tests --config "$PIPELINE_CONFIG_FILE"
+    eo-phi-normalizer pipeline prepare-tests --config "$PIPELINE_CONFIG_FILE"
 }
 
 function convert_eo_to_phi {
@@ -35,7 +56,7 @@ function convert_eo_to_phi {
     cd "$PIPELINE_DIR"
 }
 
-function update_normalizer_data_files {
+function update_eo_phi_normalizer_data_files {
 
     print_message "Update data files in eo-phi-normalizer"
 
@@ -43,7 +64,7 @@ function update_normalizer_data_files {
 
     print_message "Update *.phi files"
 
-    local data_directory="$PIPELINE_NORMALIZER_DATA_DIR/$EO"
+    local data_directory="$PIPELINE_EO_PHI_NORMALIZER_DATA_DIR/$EO"
     mkdir_clean "$data_directory"
     cp -r .eoc/phi/org "$data_directory"
 
@@ -107,14 +128,15 @@ function normalize {
     cd "$PIPELINE_PHI_INITIAL_DIR"
 
     local dataize_configs
-    eval "dataize_configs=($(normalizer pipeline print-dataize-configs --single-line --strip-phi-prefix "$PIPELINE_PHI_INITIAL_DIR_RELATIVE/" --config "$PIPELINE_CONFIG_FILE"))"
+    eval "dataize_configs=($(eo-phi-normalizer pipeline print-dataize-configs --single-line --strip-phi-prefix "$PIPELINE_PHI_INITIAL_DIR_RELATIVE/" --config "$PIPELINE_CONFIG_FILE"))"
 
     local dependency_files
     dependency_files="$(find "$PIPELINE_EO_FILTERED_DIR"/.eoc/phi/org/eolang -type f)"
 
     export dependency_files
     export PIPELINE_PHI_NORMALIZED_DIR
-    export PIPELINE_NORMALIZER_DIR
+    export PIPELINE_EO_PHI_NORMALIZER_DIR
+    export PIPELINE_EO_PHI_NORMALIZER_RULES_FILE
 
     function extract {
         yq -pj -oj -r "$1" <<< "$2"
@@ -152,11 +174,12 @@ function normalize {
 
             set -x
             # shellcheck disable=SC2086
-            normalizer dataize \
+            eo-phi-normalizer dataize \
                 --minimize-stuck-terms \
                 --as-package \
                 --recursive \
                 --wrap-raw-bytes \
+                --rules "$PIPELINE_EO_PHI_NORMALIZER_RULES_FILE" \
                 $dependency_file_options \
                 $atoms \
                 "$initial" \
@@ -175,7 +198,7 @@ function generate_report {
 
     cd "$PWD_DIR"
 
-    normalizer pipeline report --config "$PIPELINE_CONFIG_FILE"
+    eo-phi-normalizer pipeline report --config "$PIPELINE_CONFIG_FILE"
 }
 
 function convert_normalized_phi_to_eo {
@@ -203,12 +226,12 @@ function test_with_normalization {
 }
 
 update_pipeline_lock
-install_normalizer
+install_eo_phi_normalizer
 
 if [[ "$PIPELINE_LOCK_CHANGED" = true ]]; then
     generate_eo_tests
     convert_eo_to_phi
-    update_normalizer_data_files
+    update_eo_phi_normalizer_data_files
     convert_phi_to_eo
     test_without_normalization
 fi

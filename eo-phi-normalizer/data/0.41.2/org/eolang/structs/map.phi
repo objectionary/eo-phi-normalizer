@@ -1,0 +1,246 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        structs ↦ ⟦
+          map ↦ ⟦
+            pairs ↦ ∅,
+            φ ↦ ξ.auto-named-attr-at-39-6.initialized,
+            entry ↦ ⟦
+              key ↦ ∅,
+              value ↦ ∅
+            ⟧,
+            initialized ↦ ⟦
+              entries ↦ ∅,
+              initialized ↦ ξ,
+              size ↦ ξ.entries.length,
+              keys ↦ ⟦
+                φ ↦ Φ.org.eolang.structs.list(
+                  α0 ↦ ξ.ρ.entries
+                ).mapped(
+                  α0 ↦ ⟦
+                    φ ↦ ξ.entry.key,
+                    entry ↦ ∅
+                  ⟧
+                )
+              ⟧,
+              values ↦ ⟦
+                φ ↦ Φ.org.eolang.structs.list(
+                  α0 ↦ ξ.ρ.entries
+                ).mapped(
+                  α0 ↦ ⟦
+                    φ ↦ ξ.entry.value,
+                    entry ↦ ∅
+                  ⟧
+                )
+              ⟧,
+              has ↦ ⟦
+                φ ↦ ξ.ρ.found(
+                  α0 ↦ ξ.key
+                ).exists,
+                key ↦ ∅
+              ⟧,
+              found ↦ ⟦
+                key ↦ ∅,
+                hash ↦ Φ.org.eolang.dataized(
+                  α0 ↦ Φ.org.eolang.structs.hash-code-of(
+                    α0 ↦ ξ.key
+                  )
+                ).as-bytes,
+                φ ↦ ξ.ρ.size.eq(
+                  α0 ↦ Φ.org.eolang.number(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 00-00-00-00-00-00-00-00
+                    )
+                  )
+                ).if(
+                  α0 ↦ ξ.not-found,
+                  α1 ↦ ξ.rec-key-search(
+                    α0 ↦ ξ.not-found,
+                    α1 ↦ Φ.org.eolang.number(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ 00-00-00-00-00-00-00-00
+                      )
+                    )
+                  )
+                ),
+                rec-key-search ↦ ⟦
+                  found ↦ ∅,
+                  index ↦ ∅,
+                  entry ↦ ξ.ρ.ρ.entries.at(
+                    α0 ↦ ξ.index
+                  ),
+                  φ ↦ ξ.found.exists.or(
+                    α0 ↦ ξ.ρ.ρ.size.eq(
+                      α0 ↦ ξ.index
+                    )
+                  ).if(
+                    α0 ↦ ξ.found,
+                    α1 ↦ ξ.ρ.rec-key-search(
+                      α0 ↦ ξ.ρ.hash.eq(
+                        α0 ↦ ξ.entry.hash
+                      ).if(
+                        α0 ↦ ξ.auto-named-attr-at-135-54,
+                        α1 ↦ ξ.found
+                      ),
+                      α1 ↦ ξ.index.plus(
+                        α0 ↦ Φ.org.eolang.number(
+                          α0 ↦ Φ.org.eolang.bytes(
+                            Δ ⤍ 3F-F0-00-00-00-00-00-00
+                          )
+                        )
+                      )
+                    )
+                  ),
+                  auto-named-attr-at-135-54 ↦ ⟦
+                    exists ↦ Φ.org.eolang.true,
+                    get ↦ ξ.ρ.entry.value
+                  ⟧
+                ⟧,
+                not-found ↦ ⟦
+                  exists ↦ Φ.org.eolang.false,
+                  get ↦ Φ.org.eolang.error(
+                    α0 ↦ Φ.org.eolang.txt.sprintf(
+                      α0 ↦ Φ.org.eolang.string(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 4F-62-6A-65-63-74-20-62-79-20-68-61-73-68-20-63-6F-64-65-20-25-64-20-66-72-6F-6D-20-67-69-76-65-6E-20-6B-65-79-20-64-6F-65-73-20-6E-6F-74-20-65-78-69-73-74-73
+                        )
+                      ),
+                      α1 ↦ Φ.org.eolang.tuple(
+                        α0 ↦ Φ.org.eolang.tuple.empty,
+                        α1 ↦ ξ.ρ.hash
+                      )
+                    )
+                  )
+                ⟧
+              ⟧,
+              with ↦ ⟦
+                key ↦ ∅,
+                value ↦ ∅,
+                hash ↦ Φ.org.eolang.dataized(
+                  α0 ↦ Φ.org.eolang.structs.hash-code-of(
+                    α0 ↦ ξ.key
+                  )
+                ).as-bytes,
+                φ ↦ ξ.ρ.ρ.ρ.map.initialized(
+                  α0 ↦ Φ.org.eolang.structs.list(
+                    α0 ↦ ξ.ρ.entries
+                  ).filtered(
+                    α0 ↦ ξ.auto-named-attr-at-155-50
+                  ).origin.with(
+                    α0 ↦ ξ.auto-named-attr-at-156-12
+                  )
+                ),
+                auto-named-attr-at-155-50 ↦ ⟦
+                  φ ↦ ξ.ρ.hash.eq(
+                    α0 ↦ ξ.entry.hash
+                  ).not,
+                  entry ↦ ∅
+                ⟧,
+                auto-named-attr-at-156-12 ↦ ⟦
+                  key ↦ ξ.ρ.key,
+                  value ↦ ξ.ρ.value,
+                  hash ↦ ξ.ρ.hash
+                ⟧
+              ⟧,
+              without ↦ ⟦
+                key ↦ ∅,
+                hash ↦ Φ.org.eolang.dataized(
+                  α0 ↦ Φ.org.eolang.structs.hash-code-of(
+                    α0 ↦ ξ.key
+                  )
+                ).as-bytes,
+                φ ↦ ξ.ρ.ρ.ρ.map.initialized(
+                  α0 ↦ Φ.org.eolang.structs.list(
+                    α0 ↦ ξ.ρ.entries
+                  ).filtered(
+                    α0 ↦ ξ.auto-named-attr-at-169-48
+                  ).origin
+                ),
+                auto-named-attr-at-169-48 ↦ ⟦
+                  φ ↦ ξ.ρ.hash.eq(
+                    α0 ↦ ξ.entry.hash
+                  ).not,
+                  entry ↦ ∅
+                ⟧
+              ⟧
+            ⟧,
+            auto-named-attr-at-39-6 ↦ ⟦
+              pairs-size ↦ Φ.org.eolang.dataized(
+                α0 ↦ ξ.ρ.pairs.length
+              ).as-bytes,
+              φ ↦ ξ.ρ.initialized(
+                α0 ↦ ξ.pairs-size.eq(
+                  α0 ↦ Φ.org.eolang.number(
+                    α0 ↦ Φ.org.eolang.bytes(
+                      Δ ⤍ 00-00-00-00-00-00-00-00
+                    )
+                  )
+                ).if(
+                  α0 ↦ Φ.org.eolang.tuple.empty,
+                  α1 ↦ ξ.rec-rebuild(
+                    α0 ↦ Φ.org.eolang.tuple.empty,
+                    α1 ↦ Φ.org.eolang.number(
+                      α0 ↦ Φ.org.eolang.bytes(
+                        Δ ⤍ 00-00-00-00-00-00-00-00
+                      )
+                    ),
+                    α2 ↦ Φ.org.eolang.structs.list(
+                      α0 ↦ Φ.org.eolang.tuple.empty
+                    )
+                  )
+                )
+              ),
+              rec-rebuild ↦ ⟦
+                accum ↦ ∅,
+                index ↦ ∅,
+                hashes ↦ ∅,
+                entry ↦ ξ.ρ.ρ.pairs.at(
+                  α0 ↦ ξ.index
+                ),
+                hash ↦ Φ.org.eolang.dataized(
+                  α0 ↦ Φ.org.eolang.structs.hash-code-of(
+                    α0 ↦ ξ.entry.key
+                  )
+                ).as-bytes,
+                φ ↦ ξ.ρ.pairs-size.eq(
+                  α0 ↦ ξ.index
+                ).if(
+                  α0 ↦ ξ.accum,
+                  α1 ↦ ξ.ρ.rec-rebuild(
+                    α0 ↦ ξ.hashes.contains(
+                      α0 ↦ ξ.hash
+                    ).if(
+                      α0 ↦ ξ.accum,
+                      α1 ↦ ξ.accum.with(
+                        α0 ↦ ξ.auto-named-attr-at-61-18
+                      )
+                    ),
+                    α1 ↦ ξ.index.plus(
+                      α0 ↦ Φ.org.eolang.number(
+                        α0 ↦ Φ.org.eolang.bytes(
+                          Δ ⤍ 3F-F0-00-00-00-00-00-00
+                        )
+                      )
+                    ),
+                    α2 ↦ ξ.hashes.with(
+                      α0 ↦ ξ.hash
+                    )
+                  )
+                ),
+                auto-named-attr-at-61-18 ↦ ⟦
+                  key ↦ ξ.ρ.entry.key,
+                  value ↦ ξ.ρ.entry.value,
+                  hash ↦ ξ.ρ.hash
+                ⟧
+              ⟧
+            ⟧
+          ⟧,
+          λ ⤍ Package
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

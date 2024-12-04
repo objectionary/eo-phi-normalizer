@@ -1,0 +1,51 @@
+{
+  ⟦
+    org ↦ ⟦
+      eolang ↦ ⟦
+        io ↦ ⟦
+          input-length ↦ ⟦
+            input ↦ ∅,
+            chunk ↦ Φ.org.eolang.number(
+              α0 ↦ Φ.org.eolang.bytes(
+                Δ ⤍ 40-B0-00-00-00-00-00-00
+              )
+            ),
+            φ ↦ ξ.rec-read(
+              α0 ↦ ξ.input,
+              α1 ↦ Φ.org.eolang.number(
+                α0 ↦ Φ.org.eolang.bytes(
+                  Δ ⤍ 00-00-00-00-00-00-00-00
+                )
+              )
+            ),
+            rec-read ↦ ⟦
+              input ↦ ∅,
+              length ↦ ∅,
+              read-bytes ↦ ξ.input.read(
+                α0 ↦ ξ.ρ.chunk
+              ).read.ρ,
+              φ ↦ ξ.read-bytes.size.eq(
+                α0 ↦ Φ.org.eolang.number(
+                  α0 ↦ Φ.org.eolang.bytes(
+                    Δ ⤍ 00-00-00-00-00-00-00-00
+                  )
+                )
+              ).if(
+                α0 ↦ ξ.length,
+                α1 ↦ ξ.ρ.rec-read(
+                  α0 ↦ ξ.read-bytes,
+                  α1 ↦ ξ.length.plus(
+                    α0 ↦ ξ.read-bytes.size
+                  )
+                )
+              )
+            ⟧
+          ⟧,
+          λ ⤍ Package
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧
+  ⟧
+}

@@ -1,3 +1,26 @@
+{- FOURMOLU_DISABLE -}
+-- The MIT License (MIT)
+
+-- Copyright (c) 2016-2024 Objectionary.com
+
+-- Permission is hereby granted, free of charge, to any person obtaining a copy
+-- of this software and associated documentation files (the "Software"), to deal
+-- in the Software without restriction, including without limitation the rights
+-- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+-- copies of the Software, and to permit persons to whom the Software is
+-- furnished to do so, subject to the following conditions:
+
+-- The above copyright notice and this permission notice shall be included
+-- in all copies or substantial portions of the Software.
+
+-- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+-- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+-- FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
+-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+-- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+-- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+-- SOFTWARE.
+{- FOURMOLU_ENABLE -}
 {-# LANGUAGE ApplicativeDo #-}
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE ConstraintKinds #-}
@@ -19,6 +42,7 @@
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE TemplateHaskell #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE ViewPatterns #-}
@@ -33,12 +57,14 @@ import Control.Lens.Operators ((?~))
 import Control.Monad (forM, unless, when)
 import Data.Aeson (ToJSON)
 import Data.Aeson.Encode.Pretty (Config (..), Indent (..), defConfig, encodePrettyToTextBuilder')
-import Data.Foldable (forM_)
+import Data.FileEmbed (embedFileRelative)
+import Data.Foldable (Foldable (..), forM_)
 import Data.List (intercalate, isPrefixOf)
 import Data.Maybe (fromMaybe)
 import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy as TL (unpack)
-import Data.Yaml (decodeFileThrow)
+import Data.Version (showVersion)
+import Data.Yaml (decodeFileThrow, decodeThrow)
 import GHC.Generics (Generic)
 import Language.EO.Phi (Binding (..), Bytes (Bytes), Object (..), Program (Program), parseProgram, printTree)
 import Language.EO.Phi.Dataize
@@ -53,21 +79,26 @@ import Language.EO.Phi.Report.Data (makeProgramReport, makeReport)
 import Language.EO.Phi.Report.Html (reportCSS, reportJS, toStringReport)
 import Language.EO.Phi.Rules.Common
 import Language.EO.Phi.Rules.Fast (fastYegorInsideOut, fastYegorInsideOutAsRule)
+import Language.EO.Phi.Rules.RunYegor (yegorRuleSet)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRuleNamed, parseRuleSetFromFile)
 import Language.EO.Phi.ToLaTeX
+import Language.EO.Test.YamlSpec (spec)
 import Main.Utf8
 import Options.Applicative hiding (metavar)
 import Options.Applicative qualified as Optparse (metavar)
+import Paths_eo_phi_normalizer (version)
 import PyF (fmt, fmtTrim)
 import System.Directory (createDirectoryIfMissing, doesFileExist)
 import System.FilePath (takeDirectory)
 import System.IO (IOMode (WriteMode), getContents', hFlush, hPutStr, hPutStrLn, openFile, stdout)
+import Test.Hspec.Core.Runner
 
-data CLI'TransformPhi = CLI'TransformPhi
+data CLI'RewritePhi = CLI'RewritePhi
   { chain :: Bool
   , rulesPath :: Maybe String
   , outputFile :: Maybe String
   , single :: Bool
+  , singleLine :: Bool
   , json :: Bool
   , latex :: Bool
   , inputFile :: Maybe FilePath
@@ -100,6 +131,13 @@ data CLI'MetricsPhi = CLI'MetricsPhi
   }
   deriving stock (Show)
 
+data CLI'PrintRules = CLI'PrintRules
+  { rulesPath :: Maybe String
+  , latex :: Bool
+  , compact :: Bool
+  }
+  deriving stock (Show)
+
 newtype CLI'Pipeline'Report = CLI'Pipeline'Report
   { configFile :: FilePath
   }
@@ -123,11 +161,16 @@ data CLI'Pipeline
   | CLI'Pipeline'PrintDataizeConfigs' CLI'Pipeline'PrintDataizeConfigs
   deriving stock (Show)
 
+newtype CLI'Test = CLI'Test {rulePaths :: [FilePath]}
+  deriving stock (Show)
+
 data CLI
-  = CLI'TransformPhi' CLI'TransformPhi
+  = CLI'RewritePhi' CLI'RewritePhi
   | CLI'DataizePhi' CLI'DataizePhi
   | CLI'MetricsPhi' CLI'MetricsPhi
+  | CLI'PrintRules' CLI'PrintRules
   | CLI'Pipeline' CLI'Pipeline
+  | CLI'Test' CLI'Test
   deriving stock (Show)
 
 data MetavarName = MetavarName
@@ -189,6 +232,9 @@ jsonSwitch = switch (long "json" <> short 'j' <> help "Output JSON.")
 latexSwitch :: Parser Bool
 latexSwitch = switch (long "tex" <> help "Output LaTeX.")
 
+compactSwitch :: Parser Bool
+compactSwitch = switch (long "compact" <> short 'c' <> help "Print rules, each on a single line.")
+
 asPackageSwitch :: Parser Bool
 asPackageSwitch = switch (long "as-package" <> help "Automatically inject (λ → Package) in the program if necessary, to dataize all fields.")
 
@@ -219,10 +265,12 @@ data CommandParser'Pipeline = CommandParser'Pipeline
 
 data CommandParser = CommandParser
   { metrics :: Parser CLI'MetricsPhi
-  , transform :: Parser CLI'TransformPhi
+  , rewrite :: Parser CLI'RewritePhi
   , dataize :: Parser CLI'DataizePhi
   , pipeline :: Parser CLI'Pipeline
   , pipeline' :: CommandParser'Pipeline
+  , printRules :: Parser CLI'PrintRules
+  , test :: Parser CLI'Test
   }
 
 commandParser :: CommandParser
@@ -234,14 +282,21 @@ commandParser =
     outputFile <- outputFileOption
     bindingsPath <- bindingsPathOption
     pure CLI'MetricsPhi{..}
-
-  transform = do
+  printRules = do
+    rulesPath <- optional $ strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. If unspecified, yegor.yaml is rendered.|])
+    latex <- latexSwitch
+    compact <- compactSwitch
+    pure CLI'PrintRules{..}
+  rewrite = do
     rulesPath <- optional $ strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. If unspecified, builtin set of rules is used.|])
-    chain <- switch (long "chain" <> short 'c' <> help "Output transformation steps.")
+    chain <- switch (long "chain" <> short 'c' <> help "Output rewriting steps.")
     json <- jsonSwitch
     latex <- latexSwitch
     outputFile <- outputFileOption
-    single <- switch (long "single" <> short 's' <> help "Output a single expression.")
+    let singleFlag :: String
+        singleFlag = "single"
+    single <- switch (long singleFlag <> short 's' <> help "Output a single expression.")
+    singleLine <- switch (long "single-line" <> short 'l' <> help [fmt|Output a single expression on a single line. Has effect only if the --{singleFlag} is enabled.|])
     maxDepth <-
       let maxValue = 10
        in option auto (long "max-depth" <> metavar.int <> value maxValue <> help [fmt|Maximum depth of rules application. Defaults to {maxValue}.|])
@@ -250,7 +305,7 @@ commandParser =
        in option auto (long "max-growth-factor" <> metavar.int <> value maxValue <> help [fmt|The factor by which to allow the input term to grow before stopping. Defaults to {maxValue}.|])
     inputFile <- inputFileArg
     dependencies <- dependenciesArg
-    pure CLI'TransformPhi{..}
+    pure CLI'RewritePhi{..}
   dataize = do
     rulesPath <- optional $ strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. If unspecified, builtin set of rules is used.|])
     inputFile <- inputFileArg
@@ -285,6 +340,9 @@ commandParser =
           <> command commandNames.pipeline'.prepareTests commandParserInfo.pipeline'.prepareTests
           <> command commandNames.pipeline'.printDataizeConfigs commandParserInfo.pipeline'.printDataizeConfigs
       )
+  test = do
+    rulePaths <- many $ strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules.|])
+    pure CLI'Test{..}
 
 data CommandParserInfo'Pipeline = CommandParserInfo'Pipeline
   { report :: ParserInfo CLI'Pipeline
@@ -294,25 +352,29 @@ data CommandParserInfo'Pipeline = CommandParserInfo'Pipeline
 
 data CommandParserInfo = CommandParserInfo
   { metrics :: ParserInfo CLI
-  , transform :: ParserInfo CLI
+  , rewrite :: ParserInfo CLI
   , dataize :: ParserInfo CLI
+  , printRules :: ParserInfo CLI
   , pipeline :: ParserInfo CLI
   , pipeline' :: CommandParserInfo'Pipeline
+  , test :: ParserInfo CLI
   }
 
 commandParserInfo :: CommandParserInfo
 commandParserInfo =
   CommandParserInfo
     { metrics = info (CLI'MetricsPhi' <$> commandParser.metrics) (progDesc "Collect metrics for a PHI program.")
-    , transform = info (CLI'TransformPhi' <$> commandParser.transform) (progDesc "Transform a PHI program.")
+    , rewrite = info (CLI'RewritePhi' <$> commandParser.rewrite) (progDesc "Rewrite a PHI program.")
     , dataize = info (CLI'DataizePhi' <$> commandParser.dataize) (progDesc "Dataize a PHI program.")
+    , printRules = info (CLI'PrintRules' <$> commandParser.printRules) (progDesc "Print rules in LaTeX format.")
     , pipeline = info (CLI'Pipeline' <$> commandParser.pipeline) (progDesc "Run pipeline-related commands.")
     , pipeline' =
         CommandParserInfo'Pipeline
           { report = info (CLI'Pipeline'Report' <$> commandParser.pipeline'.report) (progDesc "Generate reports about initial and normalized PHI programs.")
           , prepareTests = info (CLI'Pipeline'PrepareTests' <$> commandParser.pipeline'.prepareTests) (progDesc "Prepare EO test files for the pipeline.")
-          , printDataizeConfigs = info (CLI'Pipeline'PrintDataizeConfigs' <$> commandParser.pipeline'.printDataizeConfigs) (progDesc [fmt|Print configs for the `normalizer {commandNames.dataize}` command.|])
+          , printDataizeConfigs = info (CLI'Pipeline'PrintDataizeConfigs' <$> commandParser.pipeline'.printDataizeConfigs) (progDesc [fmt|Print configs for the `{commandNames.dataize}` command.|])
           }
+    , test = info (CLI'Test' <$> commandParser.test) (progDesc "Run unit tests in given files with user-defined rules.")
     }
 
 data CommandNames'Pipeline = CommandNames'Pipeline
@@ -322,19 +384,22 @@ data CommandNames'Pipeline = CommandNames'Pipeline
   }
 
 data CommandNames = CommandNames
-  { transform :: String
+  { rewrite :: String
   , metrics :: String
   , dataize :: String
+  , printRules :: String
   , pipeline :: String
   , pipeline' :: CommandNames'Pipeline
+  , test :: String
   }
 
 commandNames :: CommandNames
 commandNames =
   CommandNames
-    { transform = "transform"
+    { rewrite = "rewrite"
     , metrics = "metrics"
     , dataize = "dataize"
+    , printRules = "print-rules"
     , pipeline = "pipeline"
     , pipeline' =
         CommandNames'Pipeline
@@ -342,21 +407,24 @@ commandNames =
           , prepareTests = "prepare-tests"
           , printDataizeConfigs = "print-dataize-configs"
           }
+    , test = "test"
     }
 
 cli :: Parser CLI
 cli =
   hsubparser
-    ( command commandNames.transform commandParserInfo.transform
+    ( command commandNames.rewrite commandParserInfo.rewrite
         <> command commandNames.metrics commandParserInfo.metrics
         <> command commandNames.dataize commandParserInfo.dataize
         <> command commandNames.pipeline commandParserInfo.pipeline
+        <> command commandNames.printRules commandParserInfo.printRules
+        <> command commandNames.test commandParserInfo.test
     )
 
-cliOpts :: ParserInfo CLI
-cliOpts =
+cliOpts :: String -> ParserInfo CLI
+cliOpts version' =
   info
-    (cli <**> helper)
+    (cli <**> helper <**> simpleVersioner version')
     (fullDesc <> progDesc "Work with PHI expressions.")
 
 data StructuredJSON = StructuredJSON
@@ -413,7 +481,7 @@ getProgram inputFile = do
 
 getLoggers :: Maybe FilePath -> IO (String -> IO (), String -> IO ())
 getLoggers outputFile = do
-  handle <- maybe (pure stdout) (`openFile` WriteMode) outputFile
+  handle <- maybe (pure stdout) (\file -> createDirectoryIfMissing True (takeDirectory file) >> openFile file WriteMode) outputFile
   pure
     ( \x -> hPutStrLn handle x >> hFlush handle
     , \x -> hPutStr handle x >> hFlush handle
@@ -490,6 +558,7 @@ wrapRawBytesIn = \case
   ThisObject -> ThisObject
   Termination -> wrapTermination
   obj@MetaSubstThis{} -> obj
+  obj@MetaContextualize{} -> obj
   obj@MetaObject{} -> obj
   obj@MetaTailContext{} -> obj
   obj@MetaFunction{} -> obj
@@ -498,7 +567,7 @@ wrapRawBytesIn = \case
 
 main :: IO ()
 main = withUtf8 do
-  opts <- customExecParser pprefs cliOpts
+  opts <- customExecParser pprefs (cliOpts (showVersion version))
   let printAsProgramOrAsObject = \case
         Formation bindings' -> printTree $ Program bindings'
         x -> printTree x
@@ -508,18 +577,27 @@ main = withUtf8 do
       -- logStrLn "Computing metrics"
       metrics <- getMetrics bindingsPath inputFile
       logStrLn $ encodeToJSONString metrics
-    CLI'TransformPhi' CLI'TransformPhi{..} -> do
+    CLI'PrintRules' CLI'PrintRules{..} -> do
+      (logStrLn, _) <- getLoggers Nothing
+      rules <- rules <$> maybe (return yegorRuleSet) parseRuleSetFromFile rulesPath
+      let toLatex' = if compact then rulesToLatexCompact else toLatex
+      logStrLn $ show $ toLatex' rules
+    CLI'RewritePhi' CLI'RewritePhi{..} -> do
       program' <- getProgram inputFile
       deps <- mapM (getProgram . Just) dependencies
       (logStrLn, logStr) <- getLoggers outputFile
-      -- logStrLn "Running transform"
+      -- logStrLn "Running rewrite"
       (builtin, ruleSetTitle, rules) <-
         case rulesPath of
           Just path -> do
             ruleSet <- parseRuleSetFromFile path
             return (False, ruleSet.title, convertRuleNamed <$> ruleSet.rules)
-          Nothing -> return (True, "Yegor's rules (builtin)", [fastYegorInsideOutAsRule])
-      unless (single || json) $ logStrLn ruleSetTitle
+          -- Temporary hack while rules are not stabilized.
+          -- Nothing -> return (True, "Yegor's rules (builtin)", [fastYegorInsideOutAsRule])
+          Nothing -> do
+            ruleSet :: RuleSet <- decodeThrow $(embedFileRelative "test/eo/phi/rules/new.yaml")
+            return (False, ruleSet.title, convertRuleNamed <$> ruleSet.rules)
+      unless (single || json || (chain && latex)) $ logStrLn ruleSetTitle
       bindingsWithDeps <- case deepMergePrograms (program' : deps) of
         Left err -> throw (CouldNotMergeDependencies err)
         Right (Program bindingsWithDeps) -> return bindingsWithDeps
@@ -540,8 +618,10 @@ main = withUtf8 do
               . encodeToJSONString
               . printAsProgramOrAsObject
               $ logEntryLog (head (head uniqueResults))
-        | single ->
+        | single -> do
+            let removeExtraSpaces = unwords . words
             logStrLn
+              . (if singleLine then removeExtraSpaces else id)
               . printAsProgramOrAsObject
               $ logEntryLog (head (head uniqueResults))
         | json ->
@@ -551,10 +631,22 @@ main = withUtf8 do
                 , output = (logEntryToPair . fmap printAsProgramOrAsObject <$>) <$> uniqueResults
                 }
         | chain && latex -> do
-            logStrLn . toLatexString $ Formation bindings
+            logStrLn
+              [fmtTrim|
+                % {ruleSetTitle}
+
+                \\documentclass{{article}}
+                \\usepackage{{eolang}}
+                \\begin{{document}}
+              |]
             forM_ uniqueResults $ \steps -> do
-              forM_ (init steps) $ \LogEntry{..} -> do
-                logStrLn . toLatexString $ logEntryLog
+              let latexLines = toLatexString (Formation bindings) : (toLatexString . (.logEntryLog) <$> steps)
+                  transitions :: [String] = ((\x -> [fmt| \\trans_{{\\rulename{{{logEntryMessage x}}}}} \n|]) <$> steps) <> ["."]
+                  linesCombined :: String = fold $ zipWith (\latexLine transition -> [fmt|{latexLine}{transition}|]) latexLines transitions
+              logStrLn "\\begin{phiquation*}"
+              logStrLn [fmtTrim|{linesCombined}|]
+              logStrLn "\\end{phiquation*}"
+            logStrLn "\n\\end{document}"
         | latex ->
             logStrLn . toLatexString $ logEntryLog (head (head uniqueResults))
         | otherwise -> do
@@ -666,3 +758,9 @@ main = withUtf8 do
     CLI'Pipeline' (CLI'Pipeline'PrintDataizeConfigs' CLI'Pipeline'PrintDataizeConfigs{..}) -> do
       config <- decodeFileThrow @_ @PipelineConfig configFile
       PrintConfigs.printDataizeConfigs config phiPrefixesToStrip singleLine
+    CLI'Test' (CLI'Test{..}) ->
+      evalSpec defaultConfig (spec rulePaths)
+        >>= \(config, spec') ->
+          readConfig config []
+            >>= runSpecForest spec'
+            >>= evaluateResult

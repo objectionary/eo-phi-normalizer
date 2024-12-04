@@ -203,14 +203,19 @@
 
                     ${lib.concatMapStringsSep "\n" (x: "mdsh -i site/docs/src/${x} --work_dir .") [
                       "common/celsius.md"
-                      "normalizer.md"
+                      "eo-phi-normalizer.md"
+                      "installation.md"
                       "pipeline.md"
                       "quick-start.md"
-                      "normalizer/dataize.md"
-                      "normalizer/metrics.md"
-                      "normalizer/transform.md"
+                      "eo-phi-normalizer/dataize.md"
+                      "eo-phi-normalizer/metrics.md"
+                      "eo-phi-normalizer/rewrite.md"
+                      "eo-phi-normalizer/print-rules.md"
+                      "eo-phi-normalizer/test.md"
                       "contributing.md"
                     ]}
+
+                    cp site/docs/docs/markdown/contributing.md CONTRIBUTING.md
 
                     rm celsius.phi
 
@@ -222,8 +227,18 @@
                   stack install
 
                   cat << EOF > scripts/${name}.sh
+                  ${lib.trivial.pipe ./LICENSE.txt [
+                    builtins.readFile
+                    (builtins.split "\n")
+                    (builtins.filter (x: x != [ ]))
+                    (builtins.map (x: "# ${x}"))
+                    (builtins.concatStringsSep "\n")
+                  ]}
+
                   # shellcheck disable=SC2148
 
+                  # This file was generated automatically.
+                  # You can edit the script in 'flake.nix'
                   ${text}
                   EOF
 
@@ -276,7 +291,7 @@
                   prefix = "nix run .#";
                   packages = {
                     inherit (self'.packages) pipeline update-markdown site-dev site-build;
-                    normalizer = self'.packages.default;
+                    eo-phi-normalizer = self'.packages.default;
                   };
                 }
               ];
