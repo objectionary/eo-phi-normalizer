@@ -169,6 +169,8 @@ Result 1 out of 1:
 ### `--chain` `--tex`
 
 ```$ as tex
+printf "{⟦ m ↦ ⟦ x ↦ ⟦ t ↦ ⟦ Δ ⤍ 42- ⟧ ⟧.t ⟧.x ⟧}" > bar.phi
+
 eo-phi-normalizer rewrite --chain --tex bar.phi
 ```
 
