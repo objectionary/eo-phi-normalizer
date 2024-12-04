@@ -63,7 +63,7 @@ import Data.List (intercalate, isPrefixOf)
 import Data.Maybe (fromMaybe)
 import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy as TL (unpack)
-import Data.Text.Lazy.Manipulate
+import Data.Text.Lazy.Manipulate (toOrdinal)
 import Data.Version (showVersion)
 import Data.Yaml (decodeFileThrow, decodeThrow)
 import GHC.Generics (Generic)
