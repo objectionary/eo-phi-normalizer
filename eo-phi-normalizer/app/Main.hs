@@ -51,7 +51,7 @@
 
 module Main (main) where
 
-import Control.Exception (Exception (..), SomeException, catch, displayException, throwIO)
+import Control.Exception (Exception (..), SomeException, catch, throwIO)
 import Control.Lens.Lens ((&))
 import Control.Lens.Operators ((?~))
 import Control.Monad (forM, unless, when)
@@ -67,6 +67,7 @@ import Data.Text.Lazy.Manipulate (toOrdinal)
 import Data.Version (showVersion)
 import Data.Yaml (decodeFileThrow, decodeThrow)
 import GHC.Generics (Generic)
+import Language.EO.Locale (withCorrectLocale)
 import Language.EO.Phi (Binding (..), Bytes (Bytes), Object (..), Program (Program), parseProgram, printTree)
 import Language.EO.Phi.Dataize
 import Language.EO.Phi.Dataize.Context
@@ -84,16 +85,13 @@ import Language.EO.Phi.Rules.RunYegor (yegorRuleSet)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRuleNamed, parseRuleSetFromFile)
 import Language.EO.Phi.ToLaTeX
 import Language.EO.Test.YamlSpec (spec)
-import Main.Utf8 (withUtf8)
 import Options.Applicative hiding (metavar)
 import Options.Applicative qualified as Optparse (metavar)
 import Paths_eo_phi_normalizer (version)
 import PyF (fmt, fmtTrim)
 import System.Directory (createDirectoryIfMissing, doesFileExist)
-import System.Exit (ExitCode (ExitFailure), exitWith)
 import System.FilePath (takeDirectory)
 import System.IO (IOMode (WriteMode), getContents', hFlush, hPutStr, hPutStrLn, openFile, stdout)
-import System.IO.CodePage (withCP65001)
 import Test.Hspec.Core.Runner
 
 data CLI'RewritePhi = CLI'RewritePhi
@@ -565,16 +563,6 @@ wrapRawBytesIn = \case
   obj@MetaObject{} -> obj
   obj@MetaTailContext{} -> obj
   obj@MetaFunction{} -> obj
-
-withCorrectLocale :: IO a -> IO a
-withCorrectLocale act = do
-  let withCorrectLocale' = withCP65001 . Main.Utf8.withUtf8
-  withCorrectLocale' act
-    `catch` ( \(x :: SomeException) ->
-                withCorrectLocale' do
-                  putStrLn (displayException x)
-                  exitWith (ExitFailure 1)
-            )
 
 -- * Main
 
