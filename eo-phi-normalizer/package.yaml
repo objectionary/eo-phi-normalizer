@@ -91,6 +91,7 @@ dependencies:
   - unordered-containers
   - containers
   - code-page
+  - with-utf8
 
 default-extensions:
   - ImportQualifiedPost

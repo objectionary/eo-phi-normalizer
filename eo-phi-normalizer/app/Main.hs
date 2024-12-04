@@ -51,7 +51,7 @@
 
 module Main (main) where
 
-import Control.Exception (Exception (..), SomeException, catch, throwIO)
+import Control.Exception (Exception (..), SomeException, catch, throwIO, displayException)
 import Control.Lens.Lens ((&))
 import Control.Lens.Operators ((?~))
 import Control.Monad (forM, unless, when)
@@ -89,6 +89,7 @@ import Options.Applicative qualified as Optparse (metavar)
 import Paths_eo_phi_normalizer (version)
 import PyF (fmt, fmtTrim)
 import System.Directory (createDirectoryIfMissing, doesFileExist)
+import System.Exit (ExitCode (ExitFailure), exitWith)
 import System.FilePath (takeDirectory)
 import System.IO (IOMode (WriteMode), getContents', hFlush, hPutStr, hPutStrLn, openFile, stdout)
 import System.IO.CodePage (withCP65001)
@@ -560,10 +561,20 @@ wrapRawBytesIn = \case
   obj@MetaTailContext{} -> obj
   obj@MetaFunction{} -> obj
 
+withCorrectLocale :: IO a -> IO a
+withCorrectLocale act = do
+  let withCorrectLocale' = withCP65001 . Main.Utf8.withUtf8
+  withCorrectLocale' act
+    `catch` ( \(x :: SomeException) ->
+                withCorrectLocale' do
+                  putStrLn (displayException x)
+                  exitWith (ExitFailure 1)
+            )
+
 -- * Main
 
 main :: IO ()
-main = (withCP65001 . withUtf8) do
+main = withCorrectLocale do
   opts <- customExecParser pprefs (cliOpts (showVersion version))
   let printAsProgramOrAsObject = \case
         Formation bindings' -> printTree $ Program bindings'

@@ -32,7 +32,7 @@
 -- for the parsers included in Ogma.
 module Main (main) where
 
-import Control.Exception (evaluate)
+import Control.Exception (SomeException, catch, displayException, evaluate)
 import Data.ByteString as BS (readFile, writeFile)
 import Data.List (intercalate)
 import Data.Text (Text)
@@ -41,7 +41,7 @@ import Distribution.Simple (defaultMainWithHooks, hookedPrograms, postConf, preB
 import Distribution.Simple.Program (Program (..), findProgramVersion, simpleProgram)
 import Main.Utf8 (withUtf8)
 import PyF (fmt)
-import System.Exit (ExitCode (..))
+import System.Exit (ExitCode (..), exitWith)
 import System.IO.CodePage (withCP65001)
 import System.Process (callCommand)
 
@@ -51,12 +51,22 @@ readFile' = (decodeUtf8 <$>) . BS.readFile
 writeFile' :: FilePath -> Text -> IO ()
 writeFile' path = BS.writeFile path . encodeUtf8
 
+withCorrectLocale :: IO a -> IO a
+withCorrectLocale act = do
+  let withCorrectLocale' = withCP65001 . Main.Utf8.withUtf8
+  withCorrectLocale' act
+    `catch` ( \(x :: SomeException) ->
+                withCorrectLocale' do
+                  putStrLn (displayException x)
+                  exitWith (ExitFailure 1)
+            )
+
 -- | Run BNFC, happy, and alex on the grammar before the actual build step.
 --
 -- All options for bnfc are hard-coded here.
 main :: IO ()
 main =
-  withCP65001 . withUtf8 $
+  withCorrectLocale $
     defaultMainWithHooks $
       simpleUserHooks
         { hookedPrograms = [bnfcProgram]
