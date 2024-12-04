@@ -25,5 +25,4 @@ repos:
         exclude: |
           (?x)^(
             eo-phi-normalizer/src/Language/EO/Phi/Syntax/|
-            eo-phi-normalizer/Setup.hs
           )

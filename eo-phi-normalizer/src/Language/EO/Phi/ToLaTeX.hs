@@ -108,7 +108,7 @@ inMathMode = (" $ " <>) . (<> " $ ")
 instance ToLatex RuleContext where
   toLatex RuleContext{..} =
     maybe mempty (\x -> inMathMode $ toLatex GlobalObject <> " -> " <> toLatex x) global_object
-      <> maybe mempty (\x -> (inMathMode $ toLatex x) <> " is the scope of the redex") current_object
+      <> maybe mempty (\x -> inMathMode (toLatex x) <> " is the scope of the redex") current_object
       <> maybe mempty (\x -> toLatex x <> " is the current attribute") current_attribute
 
 instance ToLatex RuleAttribute where

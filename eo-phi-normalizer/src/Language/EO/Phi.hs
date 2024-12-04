@@ -36,13 +36,12 @@ import Language.EO.Phi.Syntax.Abs qualified as Phi
 import Language.EO.Phi.Syntax.Par qualified as Phi
 
 import Language.EO.Phi.Normalize
+import Language.EO.Phi.Rules.Common (parseWith)
 import Language.EO.Phi.Syntax
 
 -- | Parse a 'Program' or return a parsing error.
 parseProgram :: String -> Either String Phi.Program
-parseProgram input = Phi.pProgram tokens
- where
-  tokens = Phi.myLexer input
+parseProgram = parseWith Phi.pProgram
 
 -- | Parse an 'Object' or return a parsing error.
 parseObject :: String -> Either String Phi.Object

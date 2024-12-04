@@ -55,7 +55,6 @@ jobs:
           pattern: |
             eo-phi-normalizer/**/*.hs
             !${{ env.syntax-dir }}/**/*.hs
-            !eo-phi-normalizer/Setup.hs
 
       - uses: haskell-actions/hlint-setup@v2
 
@@ -104,10 +103,6 @@ jobs:
         with:
           submodules: true
           ref: ${{ github.ref }}
-
-      - name: Set codepage on Windows
-        if: ${{ runner.os == 'Windows' }}
-        run: chcp 65001
 
       - name: Restore Syntax files
         id: restore-syntax-files
@@ -162,10 +157,6 @@ jobs:
         with:
           submodules: true
           ref: ${{ github.ref }}
-
-      - name: Set codepage on Windows
-        if: ${{ runner.os == 'Windows' }}
-        run: chcp 65001
 
       - name: Restore Syntax files
         id: restore-syntax-files

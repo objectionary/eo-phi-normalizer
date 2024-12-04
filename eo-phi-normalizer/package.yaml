@@ -53,8 +53,12 @@ custom-setup:
   dependencies:
     - base >= 4.11.0.0 && < 5.0
     - Cabal >= 2.4.0.1 && < 4.0
+    - code-page
     - process >= 1.6.3.0
+    - text
     - PyF
+    - bytestring
+    - with-utf8
 
 build-tools:
   alex: ">= 3.2.4"
@@ -87,6 +91,8 @@ dependencies:
   - hashable
   - unordered-containers
   - containers
+  - code-page
+  - with-utf8
 
 default-extensions:
   - ImportQualifiedPost
@@ -123,7 +129,6 @@ executables:
       - -rtsopts
       - -with-rtsopts=-N
     dependencies:
-      - with-utf8
       - eo-phi-normalizer
       - optparse-applicative
       - aeson-pretty
@@ -138,7 +143,6 @@ tests:
       - -with-rtsopts=-N
     dependencies:
       - eo-phi-normalizer
-      - with-utf8
       - hspec
       - hspec-discover
       - QuickCheck
