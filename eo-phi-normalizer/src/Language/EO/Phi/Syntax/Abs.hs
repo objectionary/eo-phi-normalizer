@@ -41,7 +41,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 module Language.EO.Phi.Syntax.Abs where
 
-import Prelude (String)
+import Prelude (Double, Integer, String)
 import qualified Prelude as C (Eq, Ord, Show, Read)
 import qualified Data.String
 
@@ -66,6 +66,9 @@ data Object
     | GlobalObject
     | ThisObject
     | Termination
+    | ConstString String
+    | ConstInt Integer
+    | ConstFloat Double
     | MetaSubstThis Object Object
     | MetaContextualize Object Object
     | MetaObject ObjectMetaId

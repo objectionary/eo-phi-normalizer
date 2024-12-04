@@ -67,6 +67,7 @@ import Data.Version (showVersion)
 import Data.Yaml (decodeFileThrow, decodeThrow)
 import GHC.Generics (Generic)
 import Language.EO.Phi (Binding (..), Bytes (Bytes), Object (..), Program (Program), parseProgram, printTree)
+import Language.EO.Phi.Syntax (desugar, wrapBytesInBytes, wrapTermination)
 import Language.EO.Phi.Dataize
 import Language.EO.Phi.Dataize.Context
 import Language.EO.Phi.Dependencies
@@ -562,6 +563,9 @@ wrapRawBytesIn = \case
   obj@MetaObject{} -> obj
   obj@MetaTailContext{} -> obj
   obj@MetaFunction{} -> obj
+  obj@ConstString{} -> wrapRawBytesIn (desugar obj)
+  obj@ConstInt{} -> wrapRawBytesIn (desugar obj)
+  obj@ConstFloat{} -> wrapRawBytesIn (desugar obj)
 
 -- * Main
 

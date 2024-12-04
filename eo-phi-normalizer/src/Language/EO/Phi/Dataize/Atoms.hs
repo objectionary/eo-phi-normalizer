@@ -30,7 +30,7 @@ import Data.Bits
 import Data.List (singleton)
 import Language.EO.Phi.Dataize
 import Language.EO.Phi.Rules.Common
-import Language.EO.Phi.Syntax.Abs
+import Language.EO.Phi.Syntax
 
 knownAtomsList :: [(String, String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState))]
 knownAtomsList =

@@ -46,9 +46,9 @@ import Data.List qualified as List
 import Data.Yaml qualified as Yaml
 import GHC.Generics (Generic)
 import Language.EO.Phi.Dataize.Context (defaultContext)
-import Language.EO.Phi.Rules.Common (ApplicationLimits (..), NamedRule, applyOneRule, defaultApplicationLimits, equalObject, intToBytes, objectSize)
+import Language.EO.Phi.Rules.Common (ApplicationLimits (..), NamedRule, applyOneRule, defaultApplicationLimits, equalObject, objectSize)
 import Language.EO.Phi.Rules.Yaml (convertRuleNamed, parseRuleSetFromFile, rules)
-import Language.EO.Phi.Syntax (printTree)
+import Language.EO.Phi.Syntax (printTree, intToBytes)
 import Language.EO.Phi.Syntax.Abs as Phi
 import Test.Hspec
 import Test.QuickCheck

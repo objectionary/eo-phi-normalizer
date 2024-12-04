@@ -36,11 +36,10 @@ module Language.EO.Phi.Dataize where
 import Data.HashMap.Strict qualified as HashMap
 import Data.List.NonEmpty qualified as NonEmpty
 import Data.Maybe (listToMaybe)
-import Language.EO.Phi (printTree)
 import Language.EO.Phi.Rules.Common
 import Language.EO.Phi.Rules.Fast (fastYegorInsideOut)
 import Language.EO.Phi.Rules.Yaml (substThis)
-import Language.EO.Phi.Syntax.Abs
+import Language.EO.Phi.Syntax
 import PyF (fmt)
 import System.IO.Unsafe (unsafePerformIO)
 
@@ -296,20 +295,3 @@ extractAlpha0 :: Object -> Object
 extractAlpha0 = (`ObjectDispatch` Alpha (AlphaIndex "α0"))
 extractLabel :: String -> Object -> Object
 extractLabel attrName = (`ObjectDispatch` Label (LabelId attrName))
-wrapBytesInInt :: Bytes -> Object
-wrapBytesInInt (Bytes bytes) = [fmt|Φ.org.eolang.int(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes}))|]
-wrapBytesInFloat :: Bytes -> Object
-wrapBytesInFloat (Bytes bytes) = [fmt|Φ.org.eolang.float(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes}))|]
-wrapBytesInString :: Bytes -> Object
-wrapBytesInString (Bytes bytes) = [fmt|Φ.org.eolang.string(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes}))|]
-wrapBytesInBytes :: Bytes -> Object
-wrapBytesInBytes (Bytes bytes) = [fmt|Φ.org.eolang.bytes(Δ ⤍ {bytes})|]
-wrapTermination :: Object
-wrapTermination = [fmt|Φ.org.eolang.error(α0 ↦ Φ.org.eolang.string(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes})))|]
- where
-  Bytes bytes = stringToBytes "unknown error"
-
-wrapBytesAsBool :: Bytes -> Object
-wrapBytesAsBool bytes
-  | bytesToInt bytes == 0 = [fmt|Φ.org.eolang.false|]
-  | otherwise = [fmt|Φ.org.eolang.true|]
