@@ -32,7 +32,7 @@
 -- for the parsers included in Ogma.
 module Main (main) where
 
-import Control.Exception (SomeException, catch, displayException, evaluate)
+import Control.Exception (Handler (..), SomeException, catches, displayException, evaluate)
 import Data.ByteString as BS (readFile, writeFile)
 import Data.List (intercalate)
 import Data.Text (Text)
@@ -55,11 +55,12 @@ withCorrectLocale :: IO a -> IO a
 withCorrectLocale act = do
   let withCorrectLocale' = withCP65001 . withUtf8
   withCorrectLocale' act
-    `catch` ( \(x :: SomeException) ->
-                withCorrectLocale' do
-                  putStrLn (displayException x)
-                  exitWith (ExitFailure 1)
-            )
+    `catches` [ Handler $ \(x :: ExitCode) -> exitWith x
+              , Handler $ \(x :: SomeException) ->
+                  withCorrectLocale' do
+                    putStrLn (displayException x)
+                    exitWith (ExitFailure 1)
+              ]
 
 -- | Run BNFC, happy, and alex on the grammar before the actual build step.
 --

@@ -26,7 +26,7 @@
 
 module Language.EO.Locale where
 
-import Control.Exception (Exception (..), SomeException, catch)
+import Control.Exception (Exception (..), Handler (..), SomeException, catches)
 import Main.Utf8 (withUtf8)
 import System.Exit (ExitCode (..), exitWith)
 import System.IO.CodePage (withCP65001)
@@ -35,8 +35,9 @@ withCorrectLocale :: IO a -> IO a
 withCorrectLocale act = do
   let withCorrectLocale' = withCP65001 . withUtf8
   withCorrectLocale' act
-    `catch` ( \(x :: SomeException) ->
-                withCorrectLocale' do
-                  putStrLn (displayException x)
-                  exitWith (ExitFailure 1)
-            )
+    `catches` [ Handler $ \(x :: ExitCode) -> exitWith x
+              , Handler $ \(x :: SomeException) ->
+                  withCorrectLocale' do
+                    putStrLn (displayException x)
+                    exitWith (ExitFailure 1)
+              ]
