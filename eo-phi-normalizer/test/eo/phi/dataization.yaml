@@ -35,7 +35,7 @@ tests:
               .plus(x ↦ ⟦ Δ ⤍ 40-40-00-00-00-00-00-00 ⟧), // 32.0
       ⟧}
     output:
-      bytes: "40-53-40-00-00-00-00-00" # 77.0
+      object: "77.0"
 
   - name: "Equality of booleans (via equality of bytes)"
     dependencies:
@@ -290,7 +290,7 @@ tests:
         ⟧
       ⟧}
     output:
-      bytes: "00-00-00-00-00-00-00-2A" # == 42
+      object: "42"
 
   - name: "int greater than"
     dependencies:
@@ -392,7 +392,7 @@ tests:
         ⟧
       ⟧}
     output:
-      bytes: "40-51-5A-E1-47-AE-14-7B" # == 69.42
+      object: "69.42"
 
   - name: "float times and plus"
     dependencies:
@@ -411,7 +411,7 @@ tests:
         ⟧
       ⟧}
     output:
-      bytes: "40-51-5A-E1-47-AE-14-7B" # == 69.42
+      object: "69.42"
 
   # Missing float tests: gt, div
 
@@ -429,7 +429,7 @@ tests:
         ⟧
       ⟧}
     output:
-      bytes: "6C-6C-6F-20-77" # == "llo w"
+      object: "\"llo w\""
 
   - name: "string slice"
     dependencies:
@@ -446,7 +446,7 @@ tests:
         ⟧
       ⟧}
     output:
-      bytes: "6C-6C-6F-20-77" # == "llo w"
+      object: "\"llo w\""
 
   - name: "string length (raw bytes)"
     dependencies:
@@ -461,7 +461,7 @@ tests:
         ⟧
       ⟧}
     output:
-      bytes: "00-00-00-00-00-00-00-0B" # == 11
+      object: "11" # == 11
 
   - name: "string length"
     dependencies:
@@ -476,7 +476,7 @@ tests:
         ⟧
       ⟧}
     output:
-      bytes: "00-00-00-00-00-00-00-0B" # == 11
+      object: "11" # == 11
 
   # Missing malloc tests: (all)
   # Missing cage tests: (all)
