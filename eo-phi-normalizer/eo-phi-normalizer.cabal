@@ -5,7 +5,7 @@ cabal-version: 1.24
 -- see: https://github.com/sol/hpack
 
 name:           eo-phi-normalizer
-version:        2.2.1
+version:        2.2.2
 synopsis:       Command line normalizer of 𝜑-calculus expressions.
 description:    Please see the README on GitHub at <https://github.com/objectionary/eo-phi-normalizer#readme>
 homepage:       https://github.com/objectionary/eo-phi-normalizer#readme
@@ -274,6 +274,7 @@ library
     , scientific
     , template-haskell
     , text
+    , text-manipulate
     , unordered-containers
     , with-utf8
     , yaml
@@ -320,6 +321,7 @@ executable eo-phi-normalizer
     , scientific
     , template-haskell
     , text
+    , text-manipulate
     , unordered-containers
     , with-utf8
     , yaml
@@ -395,6 +397,7 @@ test-suite doctests
     , scientific
     , template-haskell
     , text
+    , text-manipulate
     , unordered-containers
     , with-utf8
     , yaml
@@ -449,6 +452,7 @@ test-suite spec
     , scientific
     , template-haskell
     , text
+    , text-manipulate
     , unordered-containers
     , with-utf8
     , yaml

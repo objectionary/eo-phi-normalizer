@@ -63,6 +63,7 @@ import Data.List (intercalate, isPrefixOf)
 import Data.Maybe (fromMaybe)
 import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy as TL (unpack)
+import Data.Text.Lazy.Manipulate (toOrdinal)
 import Data.Version (showVersion)
 import Data.Yaml (decodeFileThrow, decodeThrow)
 import GHC.Generics (Generic)
@@ -100,6 +101,7 @@ data CLI'RewritePhi = CLI'RewritePhi
   , rulesPath :: Maybe String
   , outputFile :: Maybe String
   , single :: Bool
+  , singleLine :: Bool
   , json :: Bool
   , latex :: Bool
   , inputFile :: Maybe FilePath
@@ -294,7 +296,10 @@ commandParser =
     json <- jsonSwitch
     latex <- latexSwitch
     outputFile <- outputFileOption
-    single <- switch (long "single" <> short 's' <> help "Output a single expression.")
+    let singleFlag :: String
+        singleFlag = "single"
+    single <- switch (long singleFlag <> short 's' <> help "Output a single expression.")
+    singleLine <- switch (long "single-line" <> short 'l' <> help [fmt|Output a single expression on a single line. Has effect only if the --{singleFlag} is enabled.|])
     maxDepth <-
       let maxValue = 10
        in option auto (long "max-depth" <> metavar.int <> value maxValue <> help [fmt|Maximum depth of rules application. Defaults to {maxValue}.|])
@@ -605,7 +610,7 @@ main = withCorrectLocale do
           Nothing -> do
             ruleSet :: RuleSet <- decodeThrow $(embedFileRelative "test/eo/phi/rules/new.yaml")
             return (False, ruleSet.title, convertRuleNamed <$> ruleSet.rules)
-      unless (single || json || (chain && latex)) $ logStrLn ruleSetTitle
+      unless (single || json || latex) $ logStrLn ruleSetTitle
       bindingsWithDeps <- case deepMergePrograms (program' : deps) of
         Left err -> throwIO (CouldNotMergeDependencies err)
         Right (Program bindingsWithDeps) -> return bindingsWithDeps
@@ -619,24 +624,8 @@ main = withCorrectLocale do
             limits = ApplicationLimits maxDepth (maxGrowthFactor * objectSize (Formation bindings))
             ctx = (defaultContext rules (Formation bindingsWithDeps)){builtinRules = builtin} -- IMPORTANT: context contains dependencies!
           totalResults = length uniqueResults
-      when (null uniqueResults || null (head uniqueResults)) (throwIO CouldNotNormalize)
-      if
-        | single && json ->
-            logStrLn
-              . encodeToJSONString
-              . printAsProgramOrAsObject
-              $ logEntryLog (head (head uniqueResults))
-        | single ->
-            logStrLn
-              . printAsProgramOrAsObject
-              $ logEntryLog (head (head uniqueResults))
-        | json ->
-            logStrLn . encodeToJSONString $
-              StructuredJSON
-                { input = printTree program'
-                , output = (logEntryToPair . fmap printAsProgramOrAsObject <$>) <$> uniqueResults
-                }
-        | chain && latex -> do
+          inLatexDocument :: IO () -> IO ()
+          inLatexDocument logContent = do
             logStrLn
               [fmtTrim|
                 % {ruleSetTitle}
@@ -645,16 +634,55 @@ main = withCorrectLocale do
                 \\usepackage{{eolang}}
                 \\begin{{document}}
               |]
-            forM_ uniqueResults $ \steps -> do
+            logContent
+            logStrLn "\n\\end{document}"
+          inPhiEquation :: String -> IO ()
+          inPhiEquation phiExpr = do
+            logStrLn "\\begin{phiquation*}"
+            logStrLn [fmtTrim|{phiExpr}|]
+            logStrLn "\\end{phiquation*}"
+      when (null uniqueResults || null (head uniqueResults)) (throw CouldNotNormalize)
+      if
+        | single && json ->
+            logStrLn
+              . encodeToJSONString
+              . printAsProgramOrAsObject
+              $ logEntryLog (head (head uniqueResults))
+        | single -> do
+            let removeExtraSpaces = unwords . words
+            logStrLn
+              . (if singleLine then removeExtraSpaces else id)
+              . printAsProgramOrAsObject
+              $ logEntryLog (head (head uniqueResults))
+        | json ->
+            logStrLn . encodeToJSONString $
+              StructuredJSON
+                { input = printTree program'
+                , output = (logEntryToPair . fmap printAsProgramOrAsObject <$>) <$> uniqueResults
+                }
+        | chain && latex -> inLatexDocument $ do
+            forM_ (zip [1 ..] uniqueResults) $ \(index, steps) -> do
               let latexLines = toLatexString (Formation bindings) : (toLatexString . (.logEntryLog) <$> steps)
                   transitions :: [String] = ((\x -> [fmt| \\trans_{{\\rulename{{{logEntryMessage x}}}}} \n|]) <$> steps) <> ["."]
-                  linesCombined :: String = fold $ zipWith (\latexLine transition -> [fmt|{latexLine}{transition}|]) latexLines transitions
-              logStrLn "\\begin{phiquation*}"
-              logStrLn [fmtTrim|{linesCombined}|]
-              logStrLn "\\end{phiquation*}"
-            logStrLn "\n\\end{document}"
+                  trailingTransitions :: [String] = "" : repeat [fmt|  \\trans |]
+                  linesCombined :: String =
+                    fold $
+                      zipWith3
+                        ( \trailingTrans latexLine transition ->
+                            [fmt|{trailingTrans}{latexLine}{transition}|]
+                        )
+                        trailingTransitions
+                        latexLines
+                        transitions
+              unless (length uniqueResults == 1) $
+                logStrLn
+                  [fmt|\nThis is the {unpack (toOrdinal index)} possible chain of normalizing rewritings:\n|]
+              inPhiEquation linesCombined
         | latex ->
-            logStrLn . toLatexString $ logEntryLog (head (head uniqueResults))
+            inLatexDocument $
+              inPhiEquation $
+                toLatexString $
+                  logEntryLog (head (head uniqueResults))
         | otherwise -> do
             logStrLn "Input:"
             logStrLn (printTree program')
