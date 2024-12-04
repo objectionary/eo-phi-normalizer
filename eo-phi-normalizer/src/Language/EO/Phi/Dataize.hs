@@ -114,6 +114,9 @@ dataizeStepChain (ObjectDispatch obj attr) = incLogLevel $ do
     case obj' of
       Left obj'' -> return (ctx, Left (obj'' `ObjectDispatch` attr))
       Right bytes -> return (ctx, Left (Formation [DeltaBinding bytes] `ObjectDispatch` attr))
+dataizeStepChain obj@ConstString{} = dataizeStepChain (desugar obj)
+dataizeStepChain obj@ConstInt{} = dataizeStepChain (desugar obj)
+dataizeStepChain obj@ConstFloat{} = dataizeStepChain (desugar obj)
 dataizeStepChain obj = do
   logStep "Nothing to dataize" (Left obj)
   ctx <- getContext
@@ -172,8 +175,8 @@ evaluateDataizationFunChain ::
   EvaluationState ->
   DataizeChain (Object, EvaluationState)
 evaluateDataizationFunChain resultToBytes bytesToParam wrapBytes func obj _state = do
-  let o_rho = ObjectDispatch obj Rho
-  let o_a0 = ObjectDispatch obj (Alpha (AlphaIndex "α0"))
+  let o_rho = desugar (ObjectDispatch obj Rho)
+  let o_a0 = desugar (ObjectDispatch obj (Alpha (AlphaIndex "α0")))
   lhs <- incLogLevel $ do
     logStep "Evaluating LHS" (Left o_rho)
     dataizeRecursivelyChain True o_rho
@@ -208,8 +211,8 @@ evaluateBinaryDataizationFunChain ::
   EvaluationState ->
   DataizeChain (Object, EvaluationState)
 evaluateBinaryDataizationFunChain resultToBytes bytesToParam wrapBytes arg1 arg2 func name obj _state = do
-  let lhsArg = arg1 obj
-  let rhsArg = arg2 obj
+  let lhsArg = desugar (arg1 obj)
+  let rhsArg = desugar (arg2 obj)
   lhs <- incLogLevel $ do
     logStep "Evaluating LHS" (Left lhsArg)
     dataizeRecursivelyChain True lhsArg
@@ -251,7 +254,7 @@ evaluateUnaryDataizationFunChain resultToBytes bytesToParam wrapBytes extractArg
 
 -- This should maybe get converted to a type class and some instances?
 evaluateIntIntIntFunChain :: (Int -> Int -> Int) -> String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
-evaluateIntIntIntFunChain = evaluateBinaryDataizationFunChain intToBytes bytesToInt wrapBytesInInt extractRho (extractLabel "x")
+evaluateIntIntIntFunChain = evaluateBinaryDataizationFunChain intToBytes bytesToInt wrapBytesInConstInt extractRho (extractLabel "x")
 
 evaluateIntIntBoolFunChain :: (Int -> Int -> Bool) -> String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
 evaluateIntIntBoolFunChain = evaluateBinaryDataizationFunChain boolToBytes bytesToInt wrapBytesAsBool extractRho (extractLabel "x")
@@ -264,7 +267,7 @@ evaluateBytesBytesFunChain :: (Int -> Int) -> String -> Object -> EvaluationStat
 evaluateBytesBytesFunChain = evaluateUnaryDataizationFunChain intToBytes bytesToInt wrapBytesInBytes extractRho
 
 evaluateFloatFloatFloatFunChain :: (Double -> Double -> Double) -> String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
-evaluateFloatFloatFloatFunChain = evaluateBinaryDataizationFunChain floatToBytes bytesToFloat wrapBytesInFloat extractRho (extractLabel "x")
+evaluateFloatFloatFloatFunChain = evaluateBinaryDataizationFunChain floatToBytes bytesToFloat wrapBytesInConstFloat extractRho (extractLabel "x")
 
 -- | Like `evaluateDataizationFunChain` but specifically for the built-in functions.
 -- This function is not safe. It returns undefined for unknown functions

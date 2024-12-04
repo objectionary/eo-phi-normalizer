@@ -356,6 +356,7 @@ tests:
     dependencies:
       - ./data/0.38.0/org/eolang/bytes.phi
       - ./data/0.38.0/org/eolang/true.phi
+      - ./data/0.38.0/org/eolang/int.phi
       - ./data/0.38.0/org/eolang/false.phi
     input: |
       {⟦
@@ -363,7 +364,7 @@ tests:
           ρ ↦ ⟦ Δ ⤍ 02-24-46-68-8A-AC-CE-F1 ⟧,
           b ↦ ⟦
             ρ ↦ ⟦ Δ ⤍ 11-22-33-44-55-66-77-88 ⟧,
-            x ↦ ⟦ Δ ⤍ 03- ⟧,
+            x ↦ 3,
             λ ⤍ Lorg_eolang_bytes_right
           ⟧,
           λ ⤍ Lorg_eolang_bytes_eq
@@ -374,7 +375,7 @@ tests:
 
   # Missing bytes tests: or, xor, slice, concat
 
-  - name: "float times and plus"
+  - name: "float times and plus (raw bytes)"
     dependencies:
       - ./data/0.38.0/org/eolang/float.phi
       - ./data/0.38.0/org/eolang/bytes.phi
@@ -393,9 +394,28 @@ tests:
     output:
       bytes: "40-51-5A-E1-47-AE-14-7B" # == 69.42
 
+  - name: "float times and plus"
+    dependencies:
+      - ./data/0.38.0/org/eolang/float.phi
+      - ./data/0.38.0/org/eolang/bytes.phi
+    input: |
+      {⟦
+        φ ↦ ⟦
+          x ↦ ⟦
+            x ↦ 5.0,
+            ρ ↦ 13.2,
+            λ ⤍ Lorg_eolang_float_times
+          ⟧,
+          ρ ↦ 3.42,
+          λ ⤍ Lorg_eolang_float_plus
+        ⟧
+      ⟧}
+    output:
+      bytes: "40-51-5A-E1-47-AE-14-7B" # == 69.42
+
   # Missing float tests: gt, div
 
-  - name: "string slice"
+  - name: "string slice (raw bytes)"
     dependencies:
       - ./data/0.38.0/org/eolang/string.phi
       - ./data/0.38.0/org/eolang/bytes.phi
@@ -411,7 +431,24 @@ tests:
     output:
       bytes: "6C-6C-6F-20-77" # == "llo w"
 
-  - name: "string length"
+  - name: "string slice"
+    dependencies:
+      - ./data/0.38.0/org/eolang/string.phi
+      - ./data/0.38.0/org/eolang/int.phi
+      - ./data/0.38.0/org/eolang/bytes.phi
+    input: |
+      {⟦
+        φ ↦ ⟦
+          start ↦ 2,
+          len ↦ 5,
+          ρ ↦ "Hello world",
+          λ ⤍ Lorg_eolang_string_slice
+        ⟧
+      ⟧}
+    output:
+      bytes: "6C-6C-6F-20-77" # == "llo w"
+
+  - name: "string length (raw bytes)"
     dependencies:
       - ./data/0.38.0/org/eolang/string.phi
       - ./data/0.38.0/org/eolang/int.phi
@@ -420,6 +457,21 @@ tests:
       {⟦
         φ ↦ ⟦
           ρ ↦ ⟦ Δ ⤍ 48-65-6C-6C-6F-20-77-6F-72-6C-64 ⟧, // == "Hello world"
+          λ ⤍ Lorg_eolang_string_length
+        ⟧
+      ⟧}
+    output:
+      bytes: "00-00-00-00-00-00-00-0B" # == 11
+
+  - name: "string length"
+    dependencies:
+      - ./data/0.38.0/org/eolang/string.phi
+      - ./data/0.38.0/org/eolang/int.phi
+      - ./data/0.38.0/org/eolang/bytes.phi
+    input: |
+      {⟦
+        φ ↦ ⟦
+          ρ ↦ "Hello world",
           λ ⤍ Lorg_eolang_string_length
         ⟧
       ⟧}

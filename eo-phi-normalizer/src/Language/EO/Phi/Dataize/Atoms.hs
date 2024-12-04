@@ -72,7 +72,7 @@ knownAtomsList =
   , ("Lorg_eolang_float_plus", evaluateFloatFloatFloatFunChain (+))
   , ("Lorg_eolang_float_div", evaluateFloatFloatFloatFunChain (/))
   , -- string
-    ("Lorg_eolang_string_length", evaluateUnaryDataizationFunChain intToBytes bytesToString wrapBytesInInt extractRho length)
+    ("Lorg_eolang_string_length", evaluateUnaryDataizationFunChain intToBytes bytesToString wrapBytesInConstInt extractRho length)
   ,
     ( "Lorg_eolang_string_slice"
     , \name obj state -> do
@@ -80,7 +80,7 @@ knownAtomsList =
         string <- case thisStr of
           Right bytes -> pure $ bytesToString bytes
           Left _ -> fail "Couldn't find bytes"
-        evaluateBinaryDataizationFunChain stringToBytes bytesToInt wrapBytesInString (extractLabel "start") (extractLabel "len") (\start len -> take len (drop start string)) name obj state
+        evaluateBinaryDataizationFunChain stringToBytes bytesToInt wrapBytesInConstString (extractLabel "start") (extractLabel "len") (\start len -> take len (drop start string)) name obj state
     )
   , -- others
     ("Lorg_eolang_dataized", evaluateUnaryDataizationFunChain id id wrapBytesInBytes (extractLabel "target") id)

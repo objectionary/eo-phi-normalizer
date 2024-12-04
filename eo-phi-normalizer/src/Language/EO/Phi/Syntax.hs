@@ -46,6 +46,9 @@ module Language.EO.Phi.Syntax (
   bytesToBool,
 
   -- * Wrapping 'Bytes' into 'Object'
+  wrapBytesInConstInt,
+  wrapBytesInConstFloat,
+  wrapBytesInConstString,
   wrapBytesInBytes,
   wrapBytesInInt,
   wrapBytesInFloat,
@@ -118,6 +121,15 @@ wrapTermination :: Object
 wrapTermination = [fmt|Φ.org.eolang.error(α0 ↦ Φ.org.eolang.string(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes})))|]
  where
   Bytes bytes = stringToBytes "unknown error"
+
+wrapBytesInConstInt :: Bytes -> Object
+wrapBytesInConstInt bytes = [fmt|Φ.org.eolang.int(as-bytes ↦ {bytesToInt bytes})|]
+
+wrapBytesInConstFloat :: Bytes -> Object
+wrapBytesInConstFloat bytes = [fmt|Φ.org.eolang.float(as-bytes ↦ {bytesToFloat bytes})|]
+
+wrapBytesInConstString :: Bytes -> Object
+wrapBytesInConstString bytes = [fmt|Φ.org.eolang.string(as-bytes ↦ {show (bytesToString bytes)})|]
 
 wrapBytesAsBool :: Bytes -> Object
 wrapBytesAsBool bytes
