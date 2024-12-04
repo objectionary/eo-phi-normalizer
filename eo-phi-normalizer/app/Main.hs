@@ -663,8 +663,8 @@ main = withUtf8 do
                         latexLines
                         transitions
               unless (length uniqueResults == 1) $
-                logStrLn $
-                  "\nThis is the " <> unpack (toOrdinal index) <> " possible chain of normalizing rewritings:\n"
+                logStrLn
+                  [fmt|\nThis is the {unpack (toOrdinal index)} possible chain of normalizing rewritings:\n|]
               inPhiEquation linesCombined
         | latex ->
             inLatexDocument $
