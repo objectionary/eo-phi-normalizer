@@ -41,7 +41,7 @@ mdsh -i site/docs/src/contributing.md --work_dir .
 
 cp site/docs/src/contributing.md CONTRIBUTING.md
 
-rm celsius.phi
+rm celsius.phi bar.phi
 
 npm i
 npx prettier -w "**/*.md"

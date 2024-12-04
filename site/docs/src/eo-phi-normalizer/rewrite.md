@@ -166,6 +166,51 @@ Result 1 out of 1:
 ----------------------------------------------------
 ```
 
+### `--chain` `--tex`
+
+```$ as tex
+printf "{⟦ m ↦ ⟦ x ↦ ⟦ t ↦ ⟦ Δ ⤍ 42- ⟧ ⟧.t ⟧.x ⟧}" > bar.phi
+
+eo-phi-normalizer rewrite --chain --tex bar.phi
+```
+
+```tex
+% Rule set following Nov 2024 revision
+
+\documentclass{article}
+\usepackage{eolang}
+\begin{document}
+
+
+This is the 1st possible chain of normalizing rewritings:
+
+\begin{phiquation*}
+[[ m -> [[ x -> [[ t -> [[ D> 42- ]] ]].t ]].x ]] \trans_{\rulename{DOT}}
+  \trans [[ m -> [[ x -> [[ D> 42- ]]( ^ -> [[ t -> [[ D> 42- ]] ]] ) ]].x ]] \trans_{\rulename{DOT}}
+  \trans [[ m -> [[ D> 42- ]]( ^ -> [[ t -> [[ D> 42- ]] ]] )( ^ -> [[ x -> [[ D> 42- ]]( ^ -> [[ t -> [[ D> 42- ]] ]] ) ]] ) ]] \trans_{\rulename{RHO}}
+  \trans [[ m -> [[ D> 42-, ^ -> [[ t -> [[ D> 42- ]] ]] ]](  )( ^ -> [[ x -> [[ D> 42- ]]( ^ -> [[ t -> [[ D> 42- ]] ]] ) ]] ) ]] \trans_{\rulename{DUP}}
+  \trans [[ m -> [[ D> 42-, ^ -> [[ t -> [[ D> 42- ]] ]] ]]( ^ -> [[ x -> [[ D> 42- ]]( ^ -> [[ t -> [[ D> 42- ]] ]] ) ]] ) ]] \trans_{\rulename{STAY}}
+  \trans [[ m -> [[ ^ -> [[ t -> [[ D> 42- ]] ]], D> 42- ]](  ) ]] \trans_{\rulename{DUP}}
+  \trans [[ m -> [[ ^ -> [[ t -> [[ D> 42- ]] ]], D> 42- ]] ]] \trans_{\rulename{Normal form}}
+  \trans [[ m -> [[ ^ -> [[ t -> [[ D> 42- ]] ]], D> 42- ]] ]].
+\end{phiquation*}
+
+This is the 2nd possible chain of normalizing rewritings:
+
+\begin{phiquation*}
+[[ m -> [[ x -> [[ t -> [[ D> 42- ]] ]].t ]].x ]] \trans_{\rulename{DOT}}
+  \trans [[ m -> [[ x -> [[ D> 42- ]]( ^ -> [[ t -> [[ D> 42- ]] ]] ) ]].x ]] \trans_{\rulename{RHO}}
+  \trans [[ m -> [[ x -> [[ D> 42-, ^ -> [[ t -> [[ D> 42- ]] ]] ]](  ) ]].x ]] \trans_{\rulename{DUP}}
+  \trans [[ m -> [[ x -> [[ D> 42-, ^ -> [[ t -> [[ D> 42- ]] ]] ]] ]].x ]] \trans_{\rulename{DOT}}
+  \trans [[ m -> [[ D> 42-, ^ -> [[ t -> [[ D> 42- ]] ]] ]]( ^ -> [[ x -> [[ D> 42-, ^ -> [[ t -> [[ D> 42- ]] ]] ]] ]] ) ]] \trans_{\rulename{STAY}}
+  \trans [[ m -> [[ ^ -> [[ t -> [[ D> 42- ]] ]], D> 42- ]](  ) ]] \trans_{\rulename{DUP}}
+  \trans [[ m -> [[ ^ -> [[ t -> [[ D> 42- ]] ]], D> 42- ]] ]] \trans_{\rulename{Normal form}}
+  \trans [[ m -> [[ ^ -> [[ t -> [[ D> 42- ]] ]], D> 42- ]] ]].
+\end{phiquation*}
+
+\end{document}
+```
+
 ### `--json`
 
 ```$ as json
@@ -233,6 +278,26 @@ eo-phi-normalizer rewrite --single --json --rules ./eo-phi-normalizer/test/eo/ph
 
 ```console
 "{\n  ⟦\n    c ↦ Φ.org.eolang.float (\n      as-bytes ↦ Φ.org.eolang.bytes (\n        Δ ⤍ 40-39-00-00-00-00-00-00\n      )\n    ),\n    result ↦ ξ.c.times (\n      x ↦ ⟦\n        Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD\n      ⟧\n    )\n    .plus (\n      x ↦ ⟦\n        Δ ⤍ 40-40-00-00-00-00-00-00\n      ⟧\n    ),\n    λ ⤍ Package\n  ⟧\n}"
+```
+
+### `--tex`
+
+```$ as tex
+eo-phi-normalizer rewrite --tex bar.phi
+```
+
+```tex
+% Rule set following Nov 2024 revision
+
+\documentclass{article}
+\usepackage{eolang}
+\begin{document}
+
+\begin{phiquation*}
+[[ m -> [[ ^ -> [[ t -> [[ D> 42- ]] ]], D> 42- ]] ]]
+\end{phiquation*}
+
+\end{document}
 ```
 
 ### `--output-file FILE`
