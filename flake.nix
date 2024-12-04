@@ -199,7 +199,7 @@
                 let
                   name = "update-markdown";
                   text = ''
-                    mdsh
+                    set -ex
 
                     ${lib.concatMapStringsSep "\n" (x: "mdsh -i site/docs/src/${x} --work_dir .") [
                       "common/celsius.md"

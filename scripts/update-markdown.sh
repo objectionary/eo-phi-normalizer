@@ -25,7 +25,7 @@
 
 # This file was generated automatically.
 # You can edit the script in 'flake.nix'
-mdsh
+set -ex
 
 mdsh -i site/docs/src/common/celsius.md --work_dir .
 mdsh -i site/docs/src/eo-phi-normalizer.md --work_dir .
