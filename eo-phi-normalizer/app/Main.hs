@@ -67,7 +67,6 @@ import Data.Version (showVersion)
 import Data.Yaml (decodeFileThrow, decodeThrow)
 import GHC.Generics (Generic)
 import Language.EO.Phi (Binding (..), Bytes (Bytes), Object (..), Program (Program), parseProgram, printTree)
-import Language.EO.Phi.Syntax (desugar, wrapBytesInBytes, wrapTermination)
 import Language.EO.Phi.Dataize
 import Language.EO.Phi.Dataize.Context
 import Language.EO.Phi.Dependencies
@@ -82,6 +81,7 @@ import Language.EO.Phi.Rules.Common
 import Language.EO.Phi.Rules.Fast (fastYegorInsideOut, fastYegorInsideOutAsRule)
 import Language.EO.Phi.Rules.RunYegor (yegorRuleSet)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRuleNamed, parseRuleSetFromFile)
+import Language.EO.Phi.Syntax (desugar, wrapBytesInBytes, wrapTermination)
 import Language.EO.Phi.ToLaTeX
 import Language.EO.Test.YamlSpec (spec)
 import Main.Utf8
