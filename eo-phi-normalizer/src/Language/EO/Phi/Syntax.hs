@@ -64,6 +64,7 @@ module Language.EO.Phi.Syntax (
   chunksOf,
   paddedLeftChunksOf,
   normalizeBytes,
+  parseWith,
 ) where
 
 import Data.ByteString (ByteString)
