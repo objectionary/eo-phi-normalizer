@@ -42,7 +42,7 @@ and this project adheres to the
 - Update dependency prettier to v3.4.1 ([#552](https://github.com/objectionary/eo-phi-normalizer/pull/552))
 - Update dependency pre-commit to v4 - autoclosed ([#503](https://github.com/objectionary/eo-phi-normalizer/pull/503))
 - Update dependency eolang to ^0.24.0 ([#520](https://github.com/objectionary/eo-phi-normalizer/pull/520))
-- Add `CONTRIBUTE.md` ([#576](https://github.com/objectionary/eo-phi-normalizer/pull/576))
+- Add `CONTRIBUTING.md` ([#576](https://github.com/objectionary/eo-phi-normalizer/pull/576))
 
 ## v2.2.1 - 2024-11-27
 
