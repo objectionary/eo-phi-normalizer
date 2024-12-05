@@ -51,7 +51,7 @@
 
 module Main (main) where
 
-import Control.Exception (Exception (..), SomeException, catch, throw)
+import Control.Exception (Exception (..), SomeException, catch, throwIO)
 import Control.Lens.Lens ((&))
 import Control.Lens.Operators ((?~))
 import Control.Monad (forM, unless, when)
@@ -63,9 +63,11 @@ import Data.List (intercalate, isPrefixOf)
 import Data.Maybe (fromMaybe)
 import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy as TL (unpack)
+import Data.Text.Lazy.Manipulate (toOrdinal)
 import Data.Version (showVersion)
 import Data.Yaml (decodeFileThrow, decodeThrow)
 import GHC.Generics (Generic)
+import Language.EO.Locale (withCorrectLocale)
 import Language.EO.Phi (Binding (..), Bytes (Bytes), Object (..), Program (Program), parseProgram, printTree)
 import Language.EO.Phi.Dataize
 import Language.EO.Phi.Dataize.Context
@@ -84,7 +86,6 @@ import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRuleNamed, par
 import Language.EO.Phi.Syntax (desugar, wrapBytesInBytes, wrapTermination)
 import Language.EO.Phi.ToLaTeX
 import Language.EO.Test.YamlSpec (spec)
-import Main.Utf8
 import Options.Applicative hiding (metavar)
 import Options.Applicative qualified as Optparse (metavar)
 import Paths_eo_phi_normalizer (version)
@@ -470,14 +471,14 @@ getFile = \case
   Just file' ->
     doesFileExist file' >>= \case
       True -> pure (Just file')
-      False -> throw $ FileDoesNotExist file'
+      False -> throwIO $ FileDoesNotExist file'
 
 getProgram :: Maybe FilePath -> IO Program
 getProgram inputFile = do
   inputFile' <- getFile inputFile
-  src <- maybe getContents' readFile inputFile' `catch` (throw . CouldNotRead . show @SomeException)
+  src <- maybe getContents' readFile inputFile' `catch` (throwIO . CouldNotRead . show @SomeException)
   case parseProgram src of
-    Left err -> throw $ CouldNotParse err
+    Left err -> throwIO $ CouldNotParse err
     Right program -> pure program
 
 getLoggers :: Maybe FilePath -> IO (String -> IO (), String -> IO ())
@@ -514,7 +515,7 @@ getMetrics' program bindingsPath = do
 getMetrics :: Maybe String -> Maybe FilePath -> IO ProgramMetrics
 getMetrics bindingsPath inputFile = do
   program <- getProgram inputFile
-  either throw pure (getMetrics' program bindingsPath)
+  either throwIO pure (getMetrics' program bindingsPath)
 
 injectLamdbaPackage :: [Binding] -> [Binding]
 injectLamdbaPackage bs
@@ -570,7 +571,7 @@ wrapRawBytesIn = \case
 -- * Main
 
 main :: IO ()
-main = withUtf8 do
+main = withCorrectLocale do
   opts <- customExecParser pprefs (cliOpts (showVersion version))
   let printAsProgramOrAsObject = \case
         Formation bindings' -> printTree $ Program bindings'
@@ -601,9 +602,9 @@ main = withUtf8 do
           Nothing -> do
             ruleSet :: RuleSet <- decodeThrow $(embedFileRelative "test/eo/phi/rules/new.yaml")
             return (False, ruleSet.title, convertRuleNamed <$> ruleSet.rules)
-      unless (single || json || (chain && latex)) $ logStrLn ruleSetTitle
+      unless (single || json || latex) $ logStrLn ruleSetTitle
       bindingsWithDeps <- case deepMergePrograms (program' : deps) of
-        Left err -> throw (CouldNotMergeDependencies err)
+        Left err -> throwIO (CouldNotMergeDependencies err)
         Right (Program bindingsWithDeps) -> return bindingsWithDeps
       let Program bindings = program'
           uniqueResults
@@ -615,7 +616,24 @@ main = withUtf8 do
             limits = ApplicationLimits maxDepth (maxGrowthFactor * objectSize (Formation bindings))
             ctx = (defaultContext rules (Formation bindingsWithDeps)){builtinRules = builtin} -- IMPORTANT: context contains dependencies!
           totalResults = length uniqueResults
-      when (null uniqueResults || null (head uniqueResults)) (throw CouldNotNormalize)
+          inLatexDocument :: IO () -> IO ()
+          inLatexDocument logContent = do
+            logStrLn
+              [fmtTrim|
+                % {ruleSetTitle}
+
+                \\documentclass{{article}}
+                \\usepackage{{eolang}}
+                \\begin{{document}}
+              |]
+            logContent
+            logStrLn "\n\\end{document}"
+          inPhiEquation :: String -> IO ()
+          inPhiEquation phiExpr = do
+            logStrLn "\\begin{phiquation*}"
+            logStrLn [fmtTrim|{phiExpr}|]
+            logStrLn "\\end{phiquation*}"
+      when (null uniqueResults || null (head uniqueResults)) (throwIO CouldNotNormalize)
       if
         | single && json ->
             logStrLn
@@ -634,25 +652,29 @@ main = withUtf8 do
                 { input = printTree program'
                 , output = (logEntryToPair . fmap printAsProgramOrAsObject <$>) <$> uniqueResults
                 }
-        | chain && latex -> do
-            logStrLn
-              [fmtTrim|
-                % {ruleSetTitle}
-
-                \\documentclass{{article}}
-                \\usepackage{{eolang}}
-                \\begin{{document}}
-              |]
-            forM_ uniqueResults $ \steps -> do
+        | chain && latex -> inLatexDocument $ do
+            forM_ (zip [1 ..] uniqueResults) $ \(index, steps) -> do
               let latexLines = toLatexString (Formation bindings) : (toLatexString . (.logEntryLog) <$> steps)
                   transitions :: [String] = ((\x -> [fmt| \\trans_{{\\rulename{{{logEntryMessage x}}}}} \n|]) <$> steps) <> ["."]
-                  linesCombined :: String = fold $ zipWith (\latexLine transition -> [fmt|{latexLine}{transition}|]) latexLines transitions
-              logStrLn "\\begin{phiquation*}"
-              logStrLn [fmtTrim|{linesCombined}|]
-              logStrLn "\\end{phiquation*}"
-            logStrLn "\n\\end{document}"
+                  trailingTransitions :: [String] = "" : repeat [fmt|  \\trans |]
+                  linesCombined :: String =
+                    fold $
+                      zipWith3
+                        ( \trailingTrans latexLine transition ->
+                            [fmt|{trailingTrans}{latexLine}{transition}|]
+                        )
+                        trailingTransitions
+                        latexLines
+                        transitions
+              unless (length uniqueResults == 1) $
+                logStrLn
+                  [fmt|\nThis is the {unpack (toOrdinal index)} possible chain of normalizing rewritings:\n|]
+              inPhiEquation linesCombined
         | latex ->
-            logStrLn . toLatexString $ logEntryLog (head (head uniqueResults))
+            inLatexDocument $
+              inPhiEquation $
+                toLatexString $
+                  logEntryLog (head (head uniqueResults))
         | otherwise -> do
             logStrLn "Input:"
             logStrLn (printTree program')
@@ -672,7 +694,7 @@ main = withUtf8 do
       program' <- getProgram inputFile
       deps <- mapM (getProgram . Just) dependencies
       bindingsWithDeps <- case deepMergePrograms (program' : deps) of
-        Left err -> throw (CouldNotMergeDependencies err)
+        Left err -> throwIO (CouldNotMergeDependencies err)
         Right (Program bindingsWithDeps) -> return bindingsWithDeps
       (builtin, _ruleSetTitle, rules) <-
         case rulesPath of

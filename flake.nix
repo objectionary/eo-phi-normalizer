@@ -199,7 +199,7 @@
                 let
                   name = "update-markdown";
                   text = ''
-                    mdsh
+                    set -ex
 
                     ${lib.concatMapStringsSep "\n" (x: "mdsh -i site/docs/src/${x} --work_dir .") [
                       "common/celsius.md"
@@ -215,7 +215,7 @@
                       "contributing.md"
                     ]}
 
-                    cp site/docs/docs/markdown/contributing.md CONTRIBUTING.md
+                    cp site/docs/src/contributing.md CONTRIBUTING.md
 
                     rm celsius.phi
 

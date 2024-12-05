@@ -21,7 +21,9 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 {- FOURMOLU_ENABLE -}
-{-# LANGUAGE CPP #-}
+
+{-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 
 -- Source: https://github.com/haskell/cabal/issues/6726#issuecomment-918663262
@@ -30,65 +32,77 @@
 -- for the parsers included in Ogma.
 module Main (main) where
 
+import Control.Exception (Handler (..), SomeException, catches, displayException, evaluate)
+import Data.ByteString as BS (readFile, writeFile)
 import Data.List (intercalate)
+import Data.Text (Text)
+import Data.Text.Encoding (decodeUtf8, encodeUtf8)
 import Distribution.Simple (defaultMainWithHooks, hookedPrograms, postConf, preBuild, simpleUserHooks)
 import Distribution.Simple.Program (Program (..), findProgramVersion, simpleProgram)
+import Main.Utf8 (withUtf8)
 import PyF (fmt)
-import System.Exit (ExitCode (..))
+import System.Exit (ExitCode (..), exitWith)
+import System.IO.CodePage (withCP65001)
 import System.Process (callCommand)
-import Text.Printf (printf)
-import Control.Exception (evaluate)
+
+readFile' :: FilePath -> IO Text
+readFile' = (decodeUtf8 <$>) . BS.readFile
+
+writeFile' :: FilePath -> Text -> IO ()
+writeFile' path = BS.writeFile path . encodeUtf8
+
+withCorrectLocale :: IO a -> IO a
+withCorrectLocale act = do
+  let withCorrectLocale' = withCP65001 . withUtf8
+  withCorrectLocale' act
+    `catches` [ Handler $ \(x :: ExitCode) -> exitWith x
+              , Handler $ \(x :: SomeException) ->
+                  withCorrectLocale' do
+                    putStrLn (displayException x)
+                    exitWith (ExitFailure 1)
+              ]
 
 -- | Run BNFC, happy, and alex on the grammar before the actual build step.
 --
 -- All options for bnfc are hard-coded here.
 main :: IO ()
 main =
-  defaultMainWithHooks $
-    simpleUserHooks
-      { hookedPrograms = [bnfcProgram]
-      , postConf = \args flags packageDesc localBuildInfo -> do
-          let
-            isWindows =
-#ifdef mingw32_HOST_OS
-                      True
-#else
-                      False
-#endif
-            -- See the details on the command form in https://github.com/objectionary/eo-phi-normalizer/issues/347#issuecomment-2117097070
-            addLicense :: FilePath -> IO ()
-            addLicense file = do
-              let readFile' path = do
-                    content <- readFile path
-                    evaluate (length content)
-                    pure content
-                  targetFile = "src/Language/EO/Phi/Syntax/" <> file
-              license <- readFile' "LICENSE"
-              let licenseFormatted = printf "{-\n%s-}\n\n" license
-              code <- readFile' targetFile
-              evaluate (length license)
-              writeFile targetFile (licenseFormatted <> code)
+  withCorrectLocale $
+    defaultMainWithHooks $
+      simpleUserHooks
+        { hookedPrograms = [bnfcProgram]
+        , postConf = \args flags packageDesc localBuildInfo -> do
+            let
+              addLicense :: FilePath -> IO ()
+              addLicense file = do
+                let targetFile = "src/Language/EO/Phi/Syntax/" <> file
+                license <- readFile' "LICENSE"
+                let licenseFormatted = [fmt|{{-\n{license}-}}\n\n|] :: Text
+                code <- readFile' targetFile
+                writeFile' targetFile (licenseFormatted <> code)
 
-            command = intercalate "; " $
-                [ "set -ex" ] <>
-                [ "chcp.com" | isWindows ] <>
-                [ "chcp.com 65001" | isWindows ] <>
-                [ "bnfc --haskell -d -p Language.EO.Phi --generic -o src/ grammar/EO/Phi/Syntax.cf"] <>
-                [ "cd src/Language/EO/Phi/Syntax" ] <>
-                [ "alex Lex.x" ] <>
-                [ "happy Par.y" ] <>
-                [ "true" ]
+              -- See the details on the command form in https://github.com/objectionary/eo-phi-normalizer/issues/347#issuecomment-2117097070
+              command =
+                intercalate
+                  "; "
+                  [ "set -ex"
+                  , "bnfc --haskell -d -p Language.EO.Phi --generic -o src/ grammar/EO/Phi/Syntax.cf"
+                  , "cd src/Language/EO/Phi/Syntax"
+                  , "alex Lex.x"
+                  , "happy Par.y"
+                  , "true"
+                  ]
 
-            fullCommand = [fmt|bash -c ' {command} '|]
+              fullCommand = [fmt|bash -c ' {command} '|]
 
-          putStrLn fullCommand
+            putStrLn fullCommand
 
-          _ <- callCommand fullCommand
-          _ <- addLicense "Abs.hs"
-          _ <- addLicense "Print.hs"
+            _ <- callCommand fullCommand
+            _ <- addLicense "Abs.hs"
+            _ <- addLicense "Print.hs"
 
-          postConf simpleUserHooks args flags packageDesc localBuildInfo
-      }
+            postConf simpleUserHooks args flags packageDesc localBuildInfo
+        }
 
 -- | NOTE: This should be in Cabal.Distribution.Simple.Program.Builtin.
 bnfcProgram :: Program

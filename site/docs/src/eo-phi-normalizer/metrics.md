@@ -18,7 +18,7 @@ eo-phi-normalizer metrics --help
 
 ```console
 Usage: eo-phi-normalizer metrics [FILE] [-o|--output-file FILE]
-                          [-b|--bindings-path PATH]
+                                 [-b|--bindings-path PATH]
 
   Collect metrics for a PHI program.
 
@@ -44,10 +44,10 @@ eo-phi-normalizer metrics celsius.phi
 {
   "bindings-by-path-metrics": null,
   "program-metrics": {
-    "applications": 3,
-    "dataless": 6,
-    "dispatches": 6,
-    "formations": 8
+    "applications": 4,
+    "dataless": 1,
+    "dispatches": 9,
+    "formations": 3
   }
 }
 ```
@@ -62,10 +62,10 @@ cat celsius.phi | eo-phi-normalizer metrics
 {
   "bindings-by-path-metrics": null,
   "program-metrics": {
-    "applications": 3,
-    "dataless": 6,
-    "dispatches": 6,
-    "formations": 8
+    "applications": 4,
+    "dataless": 1,
+    "dispatches": 9,
+    "formations": 3
   }
 }
 ```
@@ -73,7 +73,7 @@ cat celsius.phi | eo-phi-normalizer metrics
 ### `--bindings-path`
 
 ```$ as console
-eo-phi-normalizer metrics --bindings-path org.eolang celsius.phi
+eo-phi-normalizer metrics --bindings-path '' celsius.phi
 ```
 
 ```console
@@ -82,21 +82,30 @@ eo-phi-normalizer metrics --bindings-path org.eolang celsius.phi
     "bindings-metrics": [
       {
         "metrics": {
-          "applications": 0,
-          "dataless": 3,
-          "dispatches": 0,
-          "formations": 3
+          "applications": 2,
+          "dataless": 0,
+          "dispatches": 6,
+          "formations": 0
         },
-        "name": "float"
+        "name": "c"
+      },
+      {
+        "metrics": {
+          "applications": 2,
+          "dataless": 0,
+          "dispatches": 3,
+          "formations": 2
+        },
+        "name": "result"
       }
     ],
-    "path": "org.eolang"
+    "path": ""
   },
   "program-metrics": {
-    "applications": 3,
-    "dataless": 6,
-    "dispatches": 6,
-    "formations": 8
+    "applications": 4,
+    "dataless": 1,
+    "dispatches": 9,
+    "formations": 3
   }
 }
 ```

@@ -21,11 +21,23 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 {- FOURMOLU_ENABLE -}
-module Main where
+{-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE ScopedTypeVariables #-}
 
-import Language.EO.Locale (withCorrectLocale)
-import Spec qualified
-import Test.Hspec.Runner
+module Language.EO.Locale where
 
-main :: IO ()
-main = withCorrectLocale $ hspecWith defaultConfig Spec.spec
+import Control.Exception (Exception (..), Handler (..), SomeException, catches)
+import Main.Utf8 (withUtf8)
+import System.Exit (ExitCode (..), exitWith)
+import System.IO.CodePage (withCP65001)
+
+withCorrectLocale :: IO a -> IO a
+withCorrectLocale act = do
+  let withCorrectLocale' = withCP65001 . withUtf8
+  withCorrectLocale' act
+    `catches` [ Handler $ \(x :: ExitCode) -> exitWith x
+              , Handler $ \(x :: SomeException) ->
+                  withCorrectLocale' do
+                    putStrLn (displayException x)
+                    exitWith (ExitFailure 1)
+              ]
