@@ -455,14 +455,15 @@ instance IsString ObjectHead where fromString = unsafeParseWith pObjectHead
 instance IsString MetaId where fromString = unsafeParseWith pMetaId
 
 parseWith :: ([Token] -> Either String a) -> String -> Either String a
-parseWith parser input = parser tokens
+parseWith parser input = either (\x -> Left [fmt|{x}\non the input:\n{input}|]) Right parsed
  where
   tokens = myLexer input
+  parsed = parser tokens
 
 -- | Parse a 'Object' from a 'String'.
 -- May throw an 'error` if input has a syntactical or lexical errors.
 unsafeParseWith :: ([Token] -> Either String a) -> String -> a
 unsafeParseWith parser input =
   case parseWith parser input of
-    Left parseError -> error (parseError <> "\non input\n" <> input <> "\n")
+    Left parseError -> error parseError
     Right object -> object
