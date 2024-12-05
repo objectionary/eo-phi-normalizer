@@ -44,10 +44,10 @@ eo-phi-normalizer metrics celsius.phi
 {
   "bindings-by-path-metrics": null,
   "program-metrics": {
-    "applications": 4,
+    "applications": 3,
     "dataless": 1,
-    "dispatches": 9,
-    "formations": 3
+    "dispatches": 6,
+    "formations": 1
   }
 }
 ```
@@ -62,10 +62,10 @@ cat celsius.phi | eo-phi-normalizer metrics
 {
   "bindings-by-path-metrics": null,
   "program-metrics": {
-    "applications": 4,
+    "applications": 3,
     "dataless": 1,
-    "dispatches": 9,
-    "formations": 3
+    "dispatches": 6,
+    "formations": 1
   }
 }
 ```
@@ -82,9 +82,9 @@ eo-phi-normalizer metrics --bindings-path '' celsius.phi
     "bindings-metrics": [
       {
         "metrics": {
-          "applications": 2,
+          "applications": 1,
           "dataless": 0,
-          "dispatches": 6,
+          "dispatches": 3,
           "formations": 0
         },
         "name": "c"
@@ -94,7 +94,7 @@ eo-phi-normalizer metrics --bindings-path '' celsius.phi
           "applications": 2,
           "dataless": 0,
           "dispatches": 3,
-          "formations": 2
+          "formations": 0
         },
         "name": "result"
       }
@@ -102,10 +102,10 @@ eo-phi-normalizer metrics --bindings-path '' celsius.phi
     "path": ""
   },
   "program-metrics": {
-    "applications": 4,
+    "applications": 3,
     "dataless": 1,
-    "dispatches": 9,
-    "formations": 3
+    "dispatches": 6,
+    "formations": 1
   }
 }
 ```

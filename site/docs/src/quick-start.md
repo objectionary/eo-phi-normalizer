@@ -20,9 +20,7 @@ eo-phi-normalizer dataize \
 ```console
 {
   ⟦
-    c ↦ ⟦
-      Δ ⤍ 40-39-00-00-00-00-00-00
-    ⟧,
+    c ↦ 25.0,
     result ↦ 77.0,
     λ ⤍ Package
   ⟧
