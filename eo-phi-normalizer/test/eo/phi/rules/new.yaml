@@ -23,18 +23,6 @@
 title: "Rule set following Nov 2024 revision"
 rules:
 
-  - name: Phi
-    description: 'Φ-dispatch'
-    context:
-      global_object: '!b'
-    pattern: |
-      Φ
-    result: |
-      !b
-    when:
-      - apply_in_subformations: false
-    tests: []
-
   - name: DOT
     description: 'Accessing an α-binding'
     pattern: |
