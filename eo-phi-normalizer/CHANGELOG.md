@@ -6,6 +6,23 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to the
 [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## v2.3.0 - 2024-12-05
+
+### Breaking changes
+
+- Fix issues related to LaTeX ([#598](https://github.com/objectionary/eo-phi-normalizer/pull/598))
+- Support syntax for constant objects (strings, ints, floats) ([#602](https://github.com/objectionary/eo-phi-normalizer/pull/602))
+
+### Changes and fixes
+
+- Set the correct locale automatically ([#590](https://github.com/objectionary/eo-phi-normalizer/pull/590), [#609](https://github.com/objectionary/eo-phi-normalizer/pull/609), [#611](https://github.com/objectionary/eo-phi-normalizer/pull/611))
+
+### Documentation and maintenance
+
+- Fix site generation ([#612](https://github.com/objectionary/eo-phi-normalizer/pull/612))
+- Add examples to `rewrite` docs ([#608](https://github.com/objectionary/eo-phi-normalizer/pull/608))
+- chore(deps): update dependency prettier to v3.4.2 ([#597](https://github.com/objectionary/eo-phi-normalizer/pull/597))
+
 ## v2.2.2 - 2024-11-29
 
 ### New
