@@ -52,10 +52,9 @@ import Data.String (IsString (..))
 import Data.Yaml qualified as Yaml
 import GHC.Generics (Generic)
 
-import Language.EO.Phi (printTree)
 import Language.EO.Phi.Rules.Common (Context (..), NamedRule)
 import Language.EO.Phi.Rules.Common qualified as Common
-import Language.EO.Phi.Syntax.Abs
+import Language.EO.Phi.Syntax
 import PyF (fmt)
 
 -- $setup
@@ -239,6 +238,9 @@ objectLabelIds = \case
   MetaTailContext obj _ -> objectLabelIds obj
   MetaSubstThis obj obj' -> objectLabelIds obj <> objectLabelIds obj'
   MetaContextualize obj obj' -> objectLabelIds obj <> objectLabelIds obj'
+  obj@ConstString{} -> objectLabelIds (desugar obj)
+  obj@ConstInt{} -> objectLabelIds (desugar obj)
+  obj@ConstFloat{} -> objectLabelIds (desugar obj)
 
 bindingLabelIds :: Binding -> Set LabelId
 bindingLabelIds = \case
@@ -283,6 +285,9 @@ objectMetaIds (MetaFunction _ obj) = objectMetaIds obj
 objectMetaIds (MetaTailContext obj x) = objectMetaIds obj <> Set.singleton (MetaIdTail x)
 objectMetaIds (MetaSubstThis obj obj') = foldMap objectMetaIds [obj, obj']
 objectMetaIds (MetaContextualize obj obj') = foldMap objectMetaIds [obj, obj']
+objectMetaIds obj@ConstString{} = objectMetaIds (desugar obj)
+objectMetaIds obj@ConstInt{} = objectMetaIds (desugar obj)
+objectMetaIds obj@ConstFloat{} = objectMetaIds (desugar obj)
 
 bindingMetaIds :: Binding -> Set MetaId
 bindingMetaIds (AlphaBinding attr obj) = attrMetaIds attr <> objectMetaIds obj
@@ -312,6 +317,9 @@ objectHasMetavars (MetaFunction _ _) = True
 objectHasMetavars MetaTailContext{} = True
 objectHasMetavars (MetaSubstThis _ _) = True -- technically not a metavar, but a substitution
 objectHasMetavars (MetaContextualize _ _) = True
+objectHasMetavars obj@ConstString{} = objectHasMetavars (desugar obj)
+objectHasMetavars obj@ConstInt{} = objectHasMetavars (desugar obj)
+objectHasMetavars obj@ConstFloat{} = objectHasMetavars (desugar obj)
 
 bindingHasMetavars :: Binding -> Bool
 bindingHasMetavars (AlphaBinding attr obj) = attrHasMetavars attr || objectHasMetavars obj
@@ -440,6 +448,9 @@ applySubst subst@Subst{..} = \case
       Just OneHoleContext{..} ->
         let holeSubst = mempty{objectMetas = [(holeMetaId, applySubst subst obj)]}
          in applySubst holeSubst contextObject
+  obj@ConstString{} -> applySubst subst (desugar obj)
+  obj@ConstInt{} -> applySubst subst (desugar obj)
+  obj@ConstFloat{} -> applySubst subst (desugar obj)
 
 applySubstAttr :: Subst -> Attribute -> Attribute
 applySubstAttr Subst{..} = \case
@@ -508,6 +519,9 @@ matchOneHoleContext ctxId pat obj = matchWhole <> matchPart
     GlobalObject -> []
     ThisObject -> []
     Termination -> []
+    ConstString{} -> []
+    ConstInt{} -> []
+    ConstFloat{} -> []
     -- should cases below be errors?
     MetaSubstThis{} -> []
     MetaContextualize{} -> []
@@ -621,6 +635,9 @@ substThis thisObj = go
     obj@MetaSubstThis{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
     obj@MetaObject{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
     obj@MetaFunction{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
+    obj@ConstString{} -> obj
+    obj@ConstInt{} -> obj
+    obj@ConstFloat{} -> obj
 
 -- {⟦ x ↦ ⟦ b ↦ ⟦ Δ ⤍ 01- ⟧, φ ↦ ⟦ b ↦ ⟦ Δ ⤍ 02- ⟧, c ↦ ⟦ a ↦ ξ.ρ.ρ.b ⟧.a ⟧.c ⟧.φ, λ ⤍ Package ⟧}
 
@@ -651,6 +668,9 @@ contextualize thisObj = go
     obj@MetaSubstThis{} -> error ("impossible: trying to contextualize " <> printTree obj)
     obj@MetaObject{} -> error ("impossible: trying to contextualize " <> printTree obj)
     obj@MetaFunction{} -> error ("impossible: trying to contextualize " <> printTree obj)
+    obj@ConstString{} -> go (desugar obj)
+    obj@ConstInt{} -> go (desugar obj)
+    obj@ConstFloat{} -> go (desugar obj)
 
 contextualizeBinding :: Object -> Binding -> Binding
 contextualizeBinding obj = \case

@@ -27,9 +27,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GeneralisedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
-{-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
 
@@ -38,51 +36,16 @@ module Language.EO.Phi.Rules.Common where
 import Control.Applicative (Alternative ((<|>)), asum)
 import Control.Arrow (Arrow (first))
 import Control.Monad
-import Data.ByteString (ByteString)
-import Data.ByteString qualified as ByteString.Strict
-import Data.Char (toUpper)
 import Data.HashMap.Strict qualified as HashMap
-import Data.List (intercalate, minimumBy, nubBy, sortOn)
+import Data.List (minimumBy, nubBy, sortOn)
 import Data.List.NonEmpty (NonEmpty (..), (<|))
 import Data.Ord (comparing)
-import Data.Serialize qualified as Serialize
-import Data.String (IsString (..))
-import Data.Text qualified as Text
-import Data.Text.Encoding qualified as Text
-import Language.EO.Phi.Syntax.Abs
-import Language.EO.Phi.Syntax.Lex (Token)
-import Language.EO.Phi.Syntax.Par
-import Numeric (readHex, showHex)
-import PyF (fmt)
+import Language.EO.Phi.Syntax
 
 -- $setup
 -- >>> :set -XOverloadedStrings
 -- >>> :set -XOverloadedLists
 -- >>> import Language.EO.Phi.Syntax
-
-instance IsString Program where fromString = unsafeParseWith pProgram
-instance IsString Object where fromString = unsafeParseWith pObject
-instance IsString Binding where fromString = unsafeParseWith pBinding
-instance IsString Attribute where fromString = unsafeParseWith pAttribute
-instance IsString RuleAttribute where fromString = unsafeParseWith pRuleAttribute
-instance IsString PeeledObject where fromString = unsafeParseWith pPeeledObject
-instance IsString ObjectHead where fromString = unsafeParseWith pObjectHead
-
-instance IsString MetaId where fromString = unsafeParseWith pMetaId
-
-parseWith :: ([Token] -> Either String a) -> String -> Either String a
-parseWith parser input = either (\x -> Left [fmt|{x}\non the input:\n{input}|]) Right parsed
- where
-  tokens = myLexer input
-  parsed = parser tokens
-
--- | Parse a 'Object' from a 'String'.
--- May throw an 'error` if input has a syntactical or lexical errors.
-unsafeParseWith :: ([Token] -> Either String a) -> String -> a
-unsafeParseWith parser input =
-  case parseWith parser input of
-    Left parseError -> error parseError
-    Right object -> object
 
 -- | State of evaluation is not needed yet, but it might be in the future
 type EvaluationState = ()
@@ -139,28 +102,32 @@ isEmptyBinding _ = False
 withSubObject :: (Context -> Object -> [(String, Object)]) -> Context -> Object -> [(String, Object)]
 withSubObject f ctx root =
   f ctx root
-    <|> case root of
-      Formation bindings ->
-        propagateName1 Formation
-          <$> withSubObjectBindings f ((extendContextWith root subctx){insideFormation = True, insideAbstractFormation = isAbstract}) bindings
-       where
-        isAbstract = any isEmptyBinding bindings
-      Application obj bindings ->
-        asum
-          [ propagateName2 Application <$> withSubObject f subctx obj <*> pure bindings
-          , propagateName1 (Application obj) <$> withSubObjectBindings f subctx bindings
-          ]
-      ObjectDispatch obj a -> propagateName2 ObjectDispatch <$> withSubObject f subctx obj <*> pure a
-      GlobalObject{} -> []
-      ThisObject{} -> []
-      Termination -> []
-      MetaObject _ -> []
-      MetaFunction _ _ -> []
-      MetaTailContext{} -> []
-      MetaSubstThis _ _ -> []
-      MetaContextualize _ _ -> []
+    <|> go root
  where
   subctx = ctx{insideSubObject = True}
+  go = \case
+    Formation bindings ->
+      propagateName1 Formation
+        <$> withSubObjectBindings f ((extendContextWith root subctx){insideFormation = True, insideAbstractFormation = isAbstract}) bindings
+     where
+      isAbstract = any isEmptyBinding bindings
+    Application obj bindings ->
+      asum
+        [ propagateName2 Application <$> withSubObject f subctx obj <*> pure bindings
+        , propagateName1 (Application obj) <$> withSubObjectBindings f subctx bindings
+        ]
+    ObjectDispatch obj a -> propagateName2 ObjectDispatch <$> withSubObject f subctx obj <*> pure a
+    GlobalObject{} -> []
+    ThisObject{} -> []
+    Termination -> []
+    MetaObject _ -> []
+    MetaFunction _ _ -> []
+    MetaTailContext{} -> []
+    MetaSubstThis _ _ -> []
+    MetaContextualize _ _ -> []
+    ConstString{} -> []
+    ConstInt{} -> []
+    ConstFloat{} -> []
 
 -- | Given a unary function that operates only on plain objects,
 -- converts it to a function that operates on named objects
@@ -228,6 +195,9 @@ objectSize = \case
   MetaSubstThis{} -> 1 -- should be impossible
   MetaContextualize{} -> 1 -- should be impossible
   MetaTailContext{} -> 1 -- should be impossible
+  obj@ConstString{} -> objectSize (desugar obj)
+  obj@ConstInt{} -> objectSize (desugar obj)
+  obj@ConstFloat{} -> objectSize (desugar obj)
 
 bindingSize :: Binding -> Int
 bindingSize = \case
@@ -420,222 +390,6 @@ objectBindings (Formation bs) = bs
 objectBindings (Application obj bs) = objectBindings obj ++ bs
 objectBindings (ObjectDispatch obj _attr) = objectBindings obj
 objectBindings _ = []
-
-padLeft :: Int -> [Char] -> [Char]
-padLeft n s = replicate (n - length s) '0' ++ s
-
--- | Split a list into chunks of given size.
--- All lists in the result are guaranteed to have length less than or equal to the given size.
---
--- >>> chunksOf 2 "012345678"
--- ["01","23","45","67","8"]
---
--- See 'paddedLeftChunksOf' for a version with padding to guarantee exact chunk size.
-chunksOf :: Int -> [a] -> [[a]]
-chunksOf _ [] = []
-chunksOf n xs = chunk : chunksOf n leftover
- where
-  (chunk, leftover) = splitAt n xs
-
--- | Split a list into chunks of given size,
--- padding on the left if necessary.
--- All lists in the result are guaranteed to have given size.
---
--- >>> paddedLeftChunksOf '0' 2 "1234567"
--- ["01","23","45","67"]
--- >>> paddedLeftChunksOf '0' 2 "123456"
--- ["12","34","56"]
---
--- prop> n > 0  ==>  all (\chunk -> length chunk == n) (paddedLeftChunksOf c n s)
-paddedLeftChunksOf :: a -> Int -> [a] -> [[a]]
-paddedLeftChunksOf padSymbol n xs
-  | padSize == n = chunksOf n xs
-  | otherwise = chunksOf n (replicate padSize padSymbol ++ xs)
- where
-  len = length xs
-  padSize = n - len `mod` n
-
--- | Normalize the bytestring representation to fit valid 'Bytes' token.
---
--- >>> normalizeBytes "238714ABCDEF"
--- "23-87-14-AB-CD-EF"
---
--- >>> normalizeBytes "0238714ABCDEF"
--- "00-23-87-14-AB-CD-EF"
---
--- >>> normalizeBytes "4"
--- "04-"
-normalizeBytes :: String -> String
-normalizeBytes = withDashes . paddedLeftChunksOf '0' 2 . map toUpper
- where
-  withDashes = \case
-    [] -> "00-"
-    [byte] -> byte <> "-"
-    bytes -> intercalate "-" bytes
-
--- | Concatenate 'Bytes'.
--- FIXME: we should really use 'ByteString' instead of the underlying 'String' representation.
---
--- >>> concatBytes "00-" "01-02"
--- Bytes "00-01-02"
---
--- >>> concatBytes "03-04" "01-02"
--- Bytes "03-04-01-02"
---
--- >>> concatBytes "03-04" "01-"
--- Bytes "03-04-01"
-concatBytes :: Bytes -> Bytes -> Bytes
-concatBytes (Bytes xs) (Bytes zs) = Bytes (normalizeBytes (filter (/= '-') (xs <> zs)))
-
--- | Select a slice (section) of 'Bytes'.
---
--- >>> sliceBytes "12-34-56" 1 1
--- Bytes "34-"
---
--- >>> sliceBytes "12-34-56" 1 0
--- Bytes "00-"
---
--- >>> sliceBytes "12-34-56" 0 2
--- Bytes "12-34"
-sliceBytes :: Bytes -> Int -> Int -> Bytes
-sliceBytes (Bytes bytes) start len = Bytes $ normalizeBytes $ take (2 * len) (drop (2 * start) (filter (/= '-') bytes))
-
--- | Convert an 'Int' into 'Bytes' representation.
---
--- >>> intToBytes 7
--- Bytes "00-00-00-00-00-00-00-07"
--- >>> intToBytes (3^33)
--- Bytes "00-13-BF-EF-A6-5A-BB-83"
--- >>> intToBytes (-1)
--- Bytes "FF-FF-FF-FF-FF-FF-FF-FF"
-intToBytes :: Int -> Bytes
-intToBytes n = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "")) $ ByteString.Strict.unpack $ Serialize.encode n
-
--- | Parse 'Bytes' as 'Int'.
---
--- >>> bytesToInt "00-13-BF-EF-A6-5A-BB-83"
--- 5559060566555523
--- >>> bytesToInt "AB-"
--- 171
---
--- May error on invalid 'Bytes':
---
--- >>> bytesToInt "s"
--- *** Exception: Prelude.head: empty list
--- ...
--- ...
--- ...
--- ...
--- ...
--- ...
-bytesToInt :: Bytes -> Int
-bytesToInt (Bytes (dropWhile (== '0') . filter (/= '-') -> bytes))
-  | null bytes = 0
-  | otherwise = fst $ head $ readHex bytes
-
--- | Convert 'Bool' to 'Bytes'.
---
--- >>> boolToBytes False
--- Bytes "00-"
--- >>> boolToBytes True
--- Bytes "01-"
-boolToBytes :: Bool -> Bytes
-boolToBytes True = Bytes "01-"
-boolToBytes False = Bytes "00-"
-
--- | Interpret 'Bytes' as 'Bool'.
---
--- Zero is interpreted as 'False'.
---
--- >>> bytesToBool "00-"
--- False
---
--- >>> bytesToBool "00-00"
--- False
---
--- Everything else is interpreted as 'True'.
---
--- >>> bytesToBool "01-"
--- True
---
--- >>> bytesToBool "00-01"
--- True
---
--- >>> bytesToBool "AB-CD"
--- True
-bytesToBool :: Bytes -> Bool
-bytesToBool (Bytes (dropWhile (== '0') . filter (/= '-') -> [])) = False
-bytesToBool _ = True
-
--- | Encode 'String' as 'Bytes'.
---
--- >>> stringToBytes "Hello, world!"
--- Bytes "48-65-6C-6C-6F-2C-20-77-6F-72-6C-64-21"
---
--- >>> stringToBytes "Привет, мир!"
--- Bytes "D0-9F-D1-80-D0-B8-D0-B2-D0-B5-D1-82-2C-20-D0-BC-D0-B8-D1-80-21"
---
--- >>> stringToBytes  "hello, 大家!"
--- Bytes "68-65-6C-6C-6F-2C-20-E5-A4-A7-E5-AE-B6-21"
-stringToBytes :: String -> Bytes
-stringToBytes s = bytestringToBytes $ Text.encodeUtf8 (Text.pack s)
-
-bytestringToBytes :: ByteString -> Bytes
-bytestringToBytes = Bytes . normalizeBytes . foldMap (padLeft 2 . (`showHex` "")) . ByteString.Strict.unpack
-
-bytesToByteString :: Bytes -> ByteString
-bytesToByteString (Bytes bytes) = ByteString.Strict.pack (go (filter (/= '-') bytes))
- where
-  go [] = []
-  go (x : y : xs) = fst (head (readHex [x, y])) : go xs
-  go [_] = error "impossible: partial byte"
-
--- | Decode 'String' from 'Bytes'.
---
--- >>> bytesToString "48-65-6C-6C-6F-2C-20-77-6F-72-6C-64-21"
--- "Hello, world!"
-bytesToString :: Bytes -> String
-bytesToString = Text.unpack . Text.decodeUtf8 . bytesToByteString
-
--- | Encode 'Double' as 'Bytes' following IEEE754.
---
--- Note: it is called "float" in EO, but it actually occupies 8 bytes so it corresponds to 'Double'.
---
--- >>> floatToBytes 0
--- Bytes "00-00-00-00-00-00-00-00"
---
--- >>> floatToBytes (-0.1)
--- Bytes "BF-B9-99-99-99-99-99-9A"
---
--- >>> floatToBytes (1/0)       -- Infinity
--- Bytes "7F-F0-00-00-00-00-00-00"
---
--- >>> floatToBytes (asin 2) `elem` ["FF-F8-00-00-00-00-00-00", "7F-F8-00-00-00-00-00-00"]  -- sNaN or qNaN
--- True
-floatToBytes :: Double -> Bytes
-floatToBytes f = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "")) $ ByteString.Strict.unpack $ Serialize.encode f
-
--- | Decode 'Double' from 'Bytes' following IEEE754.
---
--- >>> bytesToFloat "00-00-00-00-00-00-00-00"
--- 0.0
---
--- >>> bytesToFloat "BF-B9-99-99-99-99-99-9A"
--- -0.1
---
--- >>> bytesToFloat "7F-F0-00-00-00-00-00-00"
--- Infinity
---
--- >>> bytesToFloat "FF-F8-00-00-00-00-00-00"
--- NaN
-bytesToFloat :: Bytes -> Double
-bytesToFloat (Bytes bytes) =
-  case Serialize.decode $ ByteString.Strict.pack $ map (fst . head . readHex) $ words (map dashToSpace bytes) of
-    Left msg -> error msg
-    Right x -> x
- where
-  dashToSpace '-' = ' '
-  dashToSpace c = c
 
 isRhoBinding :: Binding -> Bool
 isRhoBinding (AlphaBinding Rho _) = True

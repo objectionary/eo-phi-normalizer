@@ -29,7 +29,7 @@ module Language.EO.Phi.Rules.Fast where
 import Data.List.NonEmpty qualified as NonEmpty
 import Language.EO.Phi.Rules.Common
 import Language.EO.Phi.Rules.Yaml qualified as Yaml
-import Language.EO.Phi.Syntax.Abs
+import Language.EO.Phi.Syntax
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -211,3 +211,6 @@ fastYegorInsideOut ctx = \case
   MetaObject{} -> error "impossible MetaObject!"
   MetaTailContext{} -> error "impossible MetaTailContext!"
   MetaFunction{} -> error "impossible MetaFunction!"
+  obj@ConstString{} -> obj -- fastYegorInsideOut ctx (desugar obj)
+  obj@ConstInt{} -> obj -- fastYegorInsideOut ctx (desugar obj)
+  obj@ConstFloat{} -> obj -- fastYegorInsideOut ctx (desugar obj)

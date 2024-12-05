@@ -89,6 +89,18 @@ $s [$u # [\t \n \r \  \! \' \( \) \, \. \: \; \? \[ \] \{ \| \} \⟦ \⟧]] *
 $l $i*
     { tok (eitherResIdent TV) }
 
+-- String
+\" ([$u # [\" \\ \n]] | (\\ (\" | \\ | \' | n | t | r | f)))* \"
+    { tok (TL . unescapeInitTail) }
+
+-- Integer
+$d+
+    { tok TI }
+
+-- Double
+$d+ \. $d+ (e (\-)? $d+)?
+    { tok TD }
+
 {
 -- | Create a token with position.
 tok :: (String -> Tok) -> (Posn -> String -> Token)

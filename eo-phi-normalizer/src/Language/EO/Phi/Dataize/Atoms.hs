@@ -30,7 +30,7 @@ import Data.Bits
 import Data.List (singleton)
 import Language.EO.Phi.Dataize
 import Language.EO.Phi.Rules.Common
-import Language.EO.Phi.Syntax.Abs
+import Language.EO.Phi.Syntax
 
 knownAtomsList :: [(String, String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState))]
 knownAtomsList =
@@ -52,8 +52,8 @@ knownAtomsList =
     , \name obj state -> do
         thisStr <- incLogLevel $ dataizeRecursivelyChain True (extractRho obj)
         bytes <- case thisStr of
-          Right bytes -> pure bytes
-          Left _ -> fail "Couldn't find bytes"
+          AsBytes bytes -> pure bytes
+          AsObject _ -> fail "Couldn't find bytes"
         evaluateBinaryDataizationFunChain id bytesToInt wrapBytesInBytes (extractLabel "start") (extractLabel "len") (sliceBytes bytes) name obj state
     )
   , ("Lorg_eolang_bytes_and", evaluateBytesBytesBytesFunChain (.&.))
@@ -72,15 +72,15 @@ knownAtomsList =
   , ("Lorg_eolang_float_plus", evaluateFloatFloatFloatFunChain (+))
   , ("Lorg_eolang_float_div", evaluateFloatFloatFloatFunChain (/))
   , -- string
-    ("Lorg_eolang_string_length", evaluateUnaryDataizationFunChain intToBytes bytesToString wrapBytesInInt extractRho length)
+    ("Lorg_eolang_string_length", evaluateUnaryDataizationFunChain intToBytes bytesToString wrapBytesInConstInt extractRho length)
   ,
     ( "Lorg_eolang_string_slice"
     , \name obj state -> do
         thisStr <- incLogLevel $ dataizeRecursivelyChain True (extractRho obj)
         string <- case thisStr of
-          Right bytes -> pure $ bytesToString bytes
-          Left _ -> fail "Couldn't find bytes"
-        evaluateBinaryDataizationFunChain stringToBytes bytesToInt wrapBytesInString (extractLabel "start") (extractLabel "len") (\start len -> take len (drop start string)) name obj state
+          AsBytes bytes -> pure $ bytesToString bytes
+          AsObject _ -> fail "Couldn't find bytes"
+        evaluateBinaryDataizationFunChain stringToBytes bytesToInt wrapBytesInConstString (extractLabel "start") (extractLabel "len") (\start len -> take len (drop start string)) name obj state
     )
   , -- others
     ("Lorg_eolang_dataized", evaluateUnaryDataizationFunChain id id wrapBytesInBytes (extractLabel "target") id)
@@ -95,7 +95,7 @@ knownAtomsList =
                       True -> do
                         let (packageBindings, restBindings) = span isPackage bindings
                         bs <- mapM dataizeBindingChain restBindings
-                        logStep "Dataized 'Package' siblings" (Left $ Formation (bs ++ packageBindings))
+                        logStep "Dataized 'Package' siblings" (AsObject $ Formation (bs ++ packageBindings))
                         return (Formation (bs ++ packageBindings), state)
                       False ->
                         return (Formation bindings, state)

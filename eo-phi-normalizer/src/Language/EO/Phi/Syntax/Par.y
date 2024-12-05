@@ -66,6 +66,9 @@ import Language.EO.Phi.Syntax.Lex
   '⟦'                { PT _ (TS _ 21)               }
   '⟧'                { PT _ (TS _ 22)               }
   '⤍'                { PT _ (TS _ 23)               }
+  L_doubl            { PT _ (TD $$)                 }
+  L_integ            { PT _ (TI $$)                 }
+  L_quoted           { PT _ (TL $$)                 }
   L_Bytes            { PT _ (T_Bytes $$)            }
   L_Function         { PT _ (T_Function $$)         }
   L_LabelId          { PT _ (T_LabelId $$)          }
@@ -78,6 +81,15 @@ import Language.EO.Phi.Syntax.Lex
   L_MetaFunctionName { PT _ (T_MetaFunctionName $$) }
 
 %%
+
+Double  :: { Double }
+Double   : L_doubl  { (read $1) :: Double }
+
+Integer :: { Integer }
+Integer  : L_integ  { (read $1) :: Integer }
+
+String  :: { String }
+String   : L_quoted { $1 }
 
 Bytes :: { Language.EO.Phi.Syntax.Abs.Bytes }
 Bytes  : L_Bytes { Language.EO.Phi.Syntax.Abs.Bytes $1 }
@@ -129,6 +141,9 @@ Object
   | 'Φ' { Language.EO.Phi.Syntax.Abs.GlobalObject }
   | 'ξ' { Language.EO.Phi.Syntax.Abs.ThisObject }
   | '⊥' { Language.EO.Phi.Syntax.Abs.Termination }
+  | String { Language.EO.Phi.Syntax.Abs.ConstString $1 }
+  | Integer { Language.EO.Phi.Syntax.Abs.ConstInt $1 }
+  | Double { Language.EO.Phi.Syntax.Abs.ConstFloat $1 }
   | Object '[' 'ξ' '↦' Object ']' { Language.EO.Phi.Syntax.Abs.MetaSubstThis $1 $5 }
   | '⌈' Object ',' Object '⌉' { Language.EO.Phi.Syntax.Abs.MetaContextualize $2 $4 }
   | ObjectMetaId { Language.EO.Phi.Syntax.Abs.MetaObject $1 }
