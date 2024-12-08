@@ -34,4 +34,5 @@
 1. A proof of confluence of φ-calculus.
    - A proof of confluence of φ-calculus is implemented in the [proof](https://github.com/objectionary/proof) repository.
    - The proof documentation is available [here](https://www.objectionary.com/proof/docs/Minimal/Term.html).
+1. 10 tests for the proof ([link](https://github.com/objectionary/proof/blob/master/Minimal/Examples.lean)).
 1. The approved patent application ([link](https://www.overleaf.com/project/66912652c058ec418f5b3e50)).
