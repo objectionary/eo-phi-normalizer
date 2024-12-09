@@ -116,7 +116,7 @@ desugarBinding = \case
 wrapBytesInInt :: Bytes -> Object
 wrapBytesInInt (Bytes bytes) = [fmt|Φ.org.eolang.int(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes}))|]
 wrapBytesInFloat :: Bytes -> Object
-wrapBytesInFloat (Bytes bytes) = [fmt|Φ.org.eolang.float(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes}))|]
+wrapBytesInFloat (Bytes bytes) = [fmt|Φ.org.eolang.number(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes}))|]
 wrapBytesInString :: Bytes -> Object
 wrapBytesInString (Bytes bytes) = [fmt|Φ.org.eolang.string(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes}))|]
 wrapBytesInBytes :: Bytes -> Object
@@ -135,9 +135,9 @@ wrapBytesInConstInt bytes@(Bytes bs)
 
 wrapBytesInConstFloat :: Bytes -> Object
 wrapBytesInConstFloat bytes@(Bytes bs)
-  | x == 0 = [fmt|Φ.org.eolang.float(as-bytes ↦ 0.0)|]
-  | x > 0 && isDoubleFinite x == 1 = [fmt|Φ.org.eolang.float(as-bytes ↦ {printf "%f" x :: String})|]
-  | otherwise = [fmt|Φ.org.eolang.float(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bs}))|]
+  | x == 0 = [fmt|Φ.org.eolang.number(as-bytes ↦ 0.0)|]
+  | x > 0 && isDoubleFinite x == 1 = [fmt|Φ.org.eolang.number(as-bytes ↦ {printf "%f" x :: String})|]
+  | otherwise = [fmt|Φ.org.eolang.number(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bs}))|]
  where
   x = bytesToFloat bytes
 
