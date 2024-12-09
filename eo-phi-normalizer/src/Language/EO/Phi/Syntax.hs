@@ -81,6 +81,8 @@ import Language.EO.Phi.Syntax.Par
 import Language.EO.Phi.Syntax.Print qualified as Phi
 import Numeric (readHex, showHex)
 import PyF (fmt)
+import Text.Printf (printf)
+import Text.Read (readMaybe)
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -134,7 +136,7 @@ wrapBytesInConstFloat :: Bytes -> Object
 wrapBytesInConstFloat bytes@(Bytes bs)
   | x == 0 = [fmt|Φ.org.eolang.float(as-bytes ↦ 0.0)|]
   | x < 0 = [fmt|Φ.org.eolang.float(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bs}))|]
-  | otherwise = [fmt|Φ.org.eolang.float(as-bytes ↦ {x})|]
+  | otherwise = [fmt|Φ.org.eolang.float(as-bytes ↦ {printf "%f" x :: String})|]
  where
   x = bytesToFloat bytes
 
@@ -161,9 +163,19 @@ shrinkDots [] = []
 shrinkDots (' ' : '.' : ' ' : cs) = '.' : shrinkDots cs
 shrinkDots (c : cs) = c : shrinkDots cs
 
+readFloat :: String -> Maybe Double
+readFloat s | '.' `elem` s = readMaybe s
+readFloat _ = Nothing
+
+fixFloat :: String -> String
+fixFloat s =
+  case readFloat s of
+    Just x -> printf "%f" x
+    Nothing -> s
+
 -- | Copy of 'Phi.render', except no indentation is made for curly braces.
 render :: Phi.Doc -> String
-render d = rend 0 False (map ($ "") $ d []) ""
+render d = rend 0 False (map (fixFloat . ($ "")) $ d []) ""
  where
   rend ::
     Int ->
