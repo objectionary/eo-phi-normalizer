@@ -53,6 +53,9 @@ module Language.EO.Phi.Syntax (
 
   -- * Wrapping 'Bytes' into 'Object'
   wrapBytesInConstInt,
+  wrapBytesInConstInt64,
+  wrapBytesInConstInt32,
+  wrapBytesInConstInt16,
   wrapBytesInConstFloat,
   wrapBytesInConstString,
   wrapBytesInBytes,
@@ -134,9 +137,26 @@ wrapTermination = [fmt|Φ.org.eolang.error(α0 ↦ Φ.org.eolang.string(as-bytes
   Bytes bytes = stringToBytes "unknown error"
 
 wrapBytesInConstInt :: Bytes -> Object
-wrapBytesInConstInt bytes@(Bytes bs)
+wrapBytesInConstInt = wrapBytesInConstInt64
+
+wrapBytesInConstInt64 :: Bytes -> Object
+wrapBytesInConstInt64 bytes@(Bytes bs)
   | n < 0 = [fmt|Φ.org.eolang.i64(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bs}))|]
   | otherwise = [fmt|Φ.org.eolang.i64(as-bytes ↦ {n})|]
+ where
+  n = bytesToInt bytes
+
+wrapBytesInConstInt32 :: Bytes -> Object
+wrapBytesInConstInt32 bytes@(Bytes bs)
+  | n < 0 = [fmt|Φ.org.eolang.i32(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bs}))|]
+  | otherwise = [fmt|Φ.org.eolang.i32(as-bytes ↦ {n})|]
+ where
+  n = bytesToInt bytes
+
+wrapBytesInConstInt16 :: Bytes -> Object
+wrapBytesInConstInt16 bytes@(Bytes bs)
+  | n < 0 = [fmt|Φ.org.eolang.i16(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bs}))|]
+  | otherwise = [fmt|Φ.org.eolang.i16(as-bytes ↦ {n})|]
  where
   n = bytesToInt bytes
 

@@ -60,7 +60,7 @@ knownAtomsList =
         bytes <- case thisStr of
           AsBytes bytes -> pure bytes
           AsObject _ -> fail "Couldn't find bytes"
-        evaluateBinaryDataizationFunChain id bytesToInt wrapBytesInBytes (extractLabel "start") (extractLabel "len") (sliceBytes bytes) name obj state
+        evaluateBinaryDataizationFunChain id bytesToFloat wrapBytesInBytes (extractLabel "start") (extractLabel "len") (\start len -> sliceBytes bytes (floor start) (floor len)) name obj state
     )
   , ("Lorg_eolang_bytes_xor", evaluateBytesBytesBytesFunChain (.^.))
   , -- deprecated
@@ -119,7 +119,7 @@ knownAtomsList =
   , ("Lorg_eolang_math_real_sqrt", evaluateUnaryDataizationFunChain floatToBytes bytesToFloat wrapBytesInConstFloat extractRho sqrt)
   , ("Lorg_eolang_number_as_i64", evaluateUnaryDataizationFunChain int64ToBytes bytesToFloat wrapBytesInConstInt extractRho round)
   , ("Lorg_eolang_number_div", evaluateFloatFloatFloatFunChain (/))
-  , ("Lorg_eolang_number_floor", evaluateUnaryDataizationFunChain intToBytes bytesToFloat wrapBytesInConstInt extractRho floor)
+  , ("Lorg_eolang_number_floor", evaluateUnaryDataizationFunChain int64ToBytes bytesToFloat wrapBytesInConstInt extractRho floor)
   , ("Lorg_eolang_number_gt", evaluateBinaryDataizationFunChain boolToBytes bytesToFloat wrapBytesInBytes extractRho (extractLabel "x") (>))
   , ("Lorg_eolang_number_plus", evaluateFloatFloatFloatFunChain (+))
   , ("Lorg_eolang_number_times", evaluateFloatFloatFloatFunChain (*))
@@ -133,7 +133,7 @@ knownAtomsList =
         string <- case thisStr of
           AsBytes bytes -> pure $ bytesToString bytes
           AsObject _ -> fail "Couldn't find bytes"
-        evaluateBinaryDataizationFunChain stringToBytes bytesToInt wrapBytesInConstString (extractLabel "start") (extractLabel "len") (\start len -> take len (drop start string)) name obj state
+        evaluateBinaryDataizationFunChain stringToBytes bytesToFloat wrapBytesInConstString (extractLabel "start") (extractLabel "len") (\start len -> take (floor len) (drop (floor start) string)) name obj state
     )
   , -- others
     -- , ("Lorg_eolang_sys_os_name", _)

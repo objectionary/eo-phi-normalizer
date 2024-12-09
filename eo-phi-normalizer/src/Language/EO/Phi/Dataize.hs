@@ -65,7 +65,7 @@ pattern AsObject obj <- (desugarAsBytes -> Left obj)
 
 -- | Perform one step of dataization to the object (if possible).
 dataizeStep :: Context -> Object -> (Context, Either Object Bytes)
-dataizeStep ctx obj = snd $ head $ runChain (dataizeStepChain obj) ctx -- FIXME: head is bad
+dataizeStep ctx obj = snd $ head $ runChain (dataizeStepChain DataizeAll obj) ctx -- FIXME: head is bad
 
 dataizeStep' :: Context -> Object -> Either Object Bytes
 dataizeStep' ctx obj = snd (dataizeStep ctx obj)
@@ -75,12 +75,15 @@ dataizeRecursively :: Context -> Object -> Either Object Bytes
 dataizeRecursively ctx obj = snd $ dataizeRecursivelyChain' ctx obj
 
 dataizeStepChain' :: Context -> Object -> ([LogEntry (Either Object Bytes)], Either Object Bytes)
-dataizeStepChain' ctx obj = snd <$> head (runChain (dataizeStepChain obj) ctx) -- FIXME: head is bad
+dataizeStepChain' ctx obj = snd <$> head (runChain (dataizeStepChain DataizeAll obj) ctx) -- FIXME: head is bad
+
+data DataizeStepMode = DataizeOnlyLambda | DataizeAll
 
 -- | Perform one step of dataization to the object (if possible), reporting back individiual steps.
-dataizeStepChain :: Object -> DataizeChain (Context, Either Object Bytes)
-dataizeStepChain obj@(Formation bs)
-  | Just (DeltaBinding bytes) <- listToMaybe [b | b@(DeltaBinding _) <- bs]
+dataizeStepChain :: DataizeStepMode -> Object -> DataizeChain (Context, Either Object Bytes)
+dataizeStepChain mode obj@(Formation bs)
+  | DataizeAll <- mode
+  , Just (DeltaBinding bytes) <- listToMaybe [b | b@(DeltaBinding _) <- bs]
   , not hasEmpty = do
       logStep "Found bytes" (AsBytes bytes)
       ctx <- getContext
@@ -102,7 +105,8 @@ dataizeStepChain obj@(Formation bs)
             Just ((obj', _state), _alts) -> do
               ctx <- getContext
               return (ctx, AsObject obj')
-  | Just (AlphaBinding Phi decoratee) <- listToMaybe [b | b@(AlphaBinding Phi _) <- bs]
+  | DataizeAll <- mode
+  , Just (AlphaBinding Phi decoratee) <- listToMaybe [b | b@(AlphaBinding Phi _) <- bs]
   , not hasEmpty = do
       let decoratee' = substThis obj decoratee
       logStep "Dataizing inside phi" (AsObject decoratee')
@@ -119,22 +123,22 @@ dataizeStepChain obj@(Formation bs)
   isEmpty _ = False
   hasEmpty = any isEmpty bs
 -- IMPORTANT: dataize the object being copied IF normalization is stuck on it!
-dataizeStepChain (Application obj bindings) = incLogLevel $ do
+dataizeStepChain _mode (Application obj bindings) = incLogLevel $ do
   logStep "Dataizing inside application" (AsObject obj)
   modifyContext (\c -> c{dataizePackage = False}) $ do
-    (ctx, obj') <- dataizeStepChain obj
+    (ctx, obj') <- dataizeStepChain DataizeOnlyLambda obj
     case obj' of
       Left obj'' -> return (ctx, AsObject (obj'' `Application` bindings))
       Right bytes -> return (ctx, AsObject (Formation [DeltaBinding bytes] `Application` bindings))
 -- IMPORTANT: dataize the object being dispatched IF normalization is stuck on it!
-dataizeStepChain (ObjectDispatch obj attr) = incLogLevel $ do
+dataizeStepChain _mode (ObjectDispatch obj attr) = incLogLevel $ do
   logStep "Dataizing inside dispatch" (AsObject obj)
   modifyContext (\c -> c{dataizePackage = False}) $ do
-    (ctx, obj') <- dataizeStepChain obj
+    (ctx, obj') <- dataizeStepChain DataizeOnlyLambda obj
     case obj' of
       Left obj'' -> return (ctx, AsObject (obj'' `ObjectDispatch` attr))
       Right bytes -> return (ctx, AsObject (Formation [DeltaBinding bytes] `ObjectDispatch` attr))
-dataizeStepChain obj = do
+dataizeStepChain _mode obj = do
   logStep "Nothing to dataize" (AsObject obj)
   ctx <- getContext
   return (ctx, AsObject obj)
@@ -166,7 +170,7 @@ dataizeRecursivelyChain = fmap minimizeObject' . go
       Just (normObj, _alternatives)
         | normObj == obj && normalizeRequired -> return (AsObject obj)
         | otherwise -> do
-            (ctx', step) <- dataizeStepChain normObj
+            (ctx', step) <- dataizeStepChain DataizeAll normObj
             case step of
               (AsObject stillObj)
                 | stillObj == normObj && ctx `sameContext` ctx' -> do

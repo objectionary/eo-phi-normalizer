@@ -422,8 +422,8 @@ tests:
     input: |
       {⟦
         φ ↦ ⟦
-          start ↦ ⟦ Δ ⤍ 02- ⟧,
-          len ↦ ⟦ Δ ⤍ 05- ⟧,
+          start ↦ ⟦ Δ ⤍ 40-00-00-00-00-00-00-00 ⟧,      // 2.0
+          len ↦ ⟦ Δ ⤍ 40-14-00-00-00-00-00-00 ⟧,        // 5.0
           ρ ↦ ⟦ Δ ⤍ 48-65-6C-6C-6F-20-77-6F-72-6C-64 ⟧, // == "Hello world"
           λ ⤍ Lorg_eolang_string_slice
         ⟧
@@ -439,8 +439,8 @@ tests:
     input: |
       {⟦
         φ ↦ ⟦
-          start ↦ 2,
-          len ↦ 5,
+          start ↦ 2.0,
+          len ↦ 5.0,
           ρ ↦ "Hello world",
           λ ⤍ Lorg_eolang_string_slice
         ⟧
