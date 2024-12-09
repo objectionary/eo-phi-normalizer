@@ -124,10 +124,18 @@ wrapTermination = [fmt|Φ.org.eolang.error(α0 ↦ Φ.org.eolang.string(as-bytes
   Bytes bytes = stringToBytes "unknown error"
 
 wrapBytesInConstInt :: Bytes -> Object
-wrapBytesInConstInt bytes = [fmt|Φ.org.eolang.int(as-bytes ↦ {bytesToInt bytes})|]
+wrapBytesInConstInt bytes@(Bytes bs)
+  | n < 0 = [fmt|Φ.org.eolang.int(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bs}))|]
+  | otherwise = [fmt|Φ.org.eolang.int(as-bytes ↦ {n})|]
+ where
+  n = bytesToInt bytes
 
 wrapBytesInConstFloat :: Bytes -> Object
-wrapBytesInConstFloat bytes = [fmt|Φ.org.eolang.float(as-bytes ↦ {bytesToFloat bytes})|]
+wrapBytesInConstFloat bytes@(Bytes bs)
+  | x < 0 = [fmt|Φ.org.eolang.float(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bs}))|]
+  | otherwise = [fmt|Φ.org.eolang.float(as-bytes ↦ {x})|]
+ where
+  x = bytesToFloat bytes
 
 wrapBytesInConstString :: Bytes -> Object
 wrapBytesInConstString bytes = [fmt|Φ.org.eolang.string(as-bytes ↦ {show (bytesToString bytes)})|]
