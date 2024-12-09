@@ -75,6 +75,7 @@ import Data.Serialize qualified as Serialize
 import Data.String (IsString (fromString))
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as Text
+import GHC.Float (isDoubleFinite)
 import Language.EO.Phi.Syntax.Abs
 import Language.EO.Phi.Syntax.Lex (Token)
 import Language.EO.Phi.Syntax.Par
@@ -135,8 +136,8 @@ wrapBytesInConstInt bytes@(Bytes bs)
 wrapBytesInConstFloat :: Bytes -> Object
 wrapBytesInConstFloat bytes@(Bytes bs)
   | x == 0 = [fmt|Φ.org.eolang.float(as-bytes ↦ 0.0)|]
-  | x < 0 = [fmt|Φ.org.eolang.float(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bs}))|]
-  | otherwise = [fmt|Φ.org.eolang.float(as-bytes ↦ {printf "%f" x :: String})|]
+  | x > 0 && isDoubleFinite x == 1 = [fmt|Φ.org.eolang.float(as-bytes ↦ {printf "%f" x :: String})|]
+  | otherwise = [fmt|Φ.org.eolang.float(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bs}))|]
  where
   x = bytesToFloat bytes
 
