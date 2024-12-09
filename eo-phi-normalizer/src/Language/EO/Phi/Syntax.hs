@@ -114,7 +114,7 @@ desugarBinding = \case
 -- MetaSubstThis
 
 wrapBytesInInt :: Bytes -> Object
-wrapBytesInInt (Bytes bytes) = [fmt|Φ.org.eolang.int(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes}))|]
+wrapBytesInInt (Bytes bytes) = [fmt|Φ.org.eolang.i64(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes}))|]
 wrapBytesInFloat :: Bytes -> Object
 wrapBytesInFloat (Bytes bytes) = [fmt|Φ.org.eolang.number(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes}))|]
 wrapBytesInString :: Bytes -> Object
@@ -128,8 +128,8 @@ wrapTermination = [fmt|Φ.org.eolang.error(α0 ↦ Φ.org.eolang.string(as-bytes
 
 wrapBytesInConstInt :: Bytes -> Object
 wrapBytesInConstInt bytes@(Bytes bs)
-  | n < 0 = [fmt|Φ.org.eolang.int(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bs}))|]
-  | otherwise = [fmt|Φ.org.eolang.int(as-bytes ↦ {n})|]
+  | n < 0 = [fmt|Φ.org.eolang.i64(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bs}))|]
+  | otherwise = [fmt|Φ.org.eolang.i64(as-bytes ↦ {n})|]
  where
   n = bytesToInt bytes
 
