@@ -132,6 +132,7 @@ wrapBytesInConstInt bytes@(Bytes bs)
 
 wrapBytesInConstFloat :: Bytes -> Object
 wrapBytesInConstFloat bytes@(Bytes bs)
+  | x == 0 = [fmt|Φ.org.eolang.float(as-bytes ↦ 0.0)|]
   | x < 0 = [fmt|Φ.org.eolang.float(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bs}))|]
   | otherwise = [fmt|Φ.org.eolang.float(as-bytes ↦ {x})|]
  where
