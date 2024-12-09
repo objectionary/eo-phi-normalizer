@@ -250,6 +250,49 @@ evaluateBinaryDataizationFunChain resultToBytes bytesToParam wrapBytes arg1 arg2
       fail (name <> ": Couldn't find bytes in RHS: " <> printTree (hideRho r))
   return (result, ())
 
+evaluatePartialBinaryDataizationFunChain ::
+  -- | How to convert the result back to bytes
+  (res -> Bytes) ->
+  -- | How to interpret the bytes in terms of the given data type
+  (Bytes -> a) ->
+  -- | How to wrap the bytes in an object
+  (Bytes -> Object) ->
+  -- | Extract the 1st argument to be dataized
+  (Object -> Object) ->
+  -- | Extract the 2nd argument to be dataized
+  (Object -> Object) ->
+  -- | A binary function on the argument
+  (a -> a -> Maybe res) ->
+  -- | Name of the atom.
+  String ->
+  Object ->
+  EvaluationState ->
+  DataizeChain (Object, EvaluationState)
+evaluatePartialBinaryDataizationFunChain resultToBytes bytesToParam wrapBytes arg1 arg2 func name obj _state = do
+  let lhsArg = arg1 obj
+  let rhsArg = arg2 obj
+  lhs <- incLogLevel $ do
+    logStep "Evaluating LHS" (AsObject lhsArg)
+    dataizeRecursivelyChain True lhsArg
+  rhs <- incLogLevel $ do
+    logStep "Evaluating RHS" (AsObject rhsArg)
+    dataizeRecursivelyChain True rhsArg
+  result <- case (lhs, rhs) of
+    (AsBytes l, AsBytes r) -> do
+      case resultToBytes <$> bytesToParam l `func` bytesToParam r of
+        Nothing -> fail (name <> ": throws an error")
+        Just bytes -> do
+          let resultObj = wrapBytes bytes
+          logStep "Evaluated function" (AsObject resultObj)
+          return resultObj
+    (AsObject _l, AsObject _r) ->
+      fail (name <> ": Couldn't find bytes in both LHS and RHS")
+    (AsObject l, _) -> do
+      fail (name <> ": Couldn't find bytes in LHS: " <> printTree (hideRho l))
+    (_, AsObject r) -> do
+      fail (name <> ": Couldn't find bytes in RHS: " <> printTree (hideRho r))
+  return (result, ())
+
 -- | Unary functions operate on the given object without any additional parameters
 evaluateUnaryDataizationFunChain ::
   -- | How to convert the result back to bytes
@@ -272,6 +315,9 @@ evaluateUnaryDataizationFunChain resultToBytes bytesToParam wrapBytes extractArg
 -- This should maybe get converted to a type class and some instances?
 evaluateIntIntIntFunChain :: (Int -> Int -> Int) -> String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
 evaluateIntIntIntFunChain = evaluateBinaryDataizationFunChain intToBytes bytesToInt wrapBytesInConstInt extractRho (extractLabel "x")
+
+evaluateIntIntMaybeIntFunChain :: (Int -> Int -> Maybe Int) -> String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
+evaluateIntIntMaybeIntFunChain = evaluatePartialBinaryDataizationFunChain intToBytes bytesToInt wrapBytesInConstInt extractRho (extractLabel "x")
 
 evaluateIntIntBoolFunChain :: (Int -> Int -> Bool) -> String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
 evaluateIntIntBoolFunChain = evaluateBinaryDataizationFunChain boolToBytes bytesToInt wrapBytesAsBool extractRho (extractLabel "x")

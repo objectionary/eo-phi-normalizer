@@ -101,7 +101,7 @@ knownAtomsList =
     ("Lorg_eolang_i16_as_i32", evaluateUnaryDataizationFunChain intToBytes bytesToInt wrapBytesInConstInt extractRho id)
   , ("Lorg_eolang_i32_as_i64", evaluateUnaryDataizationFunChain intToBytes bytesToInt wrapBytesInConstInt extractRho id)
   , ("Lorg_eolang_i64_as_number", evaluateUnaryDataizationFunChain floatToBytes bytesToInt wrapBytesInConstInt extractRho fromIntegral)
-  , ("Lorg_eolang_i64_div", evaluateIntIntIntFunChain div)
+  , ("Lorg_eolang_i64_div", evaluateIntIntMaybeIntFunChain (\x y -> if y == 0 then Nothing else Just (x `quot` y)))
   , ("Lorg_eolang_i64_gt", evaluateIntIntBoolFunChain (>))
   , ("Lorg_eolang_i64_plus", evaluateIntIntIntFunChain (+))
   , ("Lorg_eolang_i64_times", evaluateIntIntIntFunChain (*))
