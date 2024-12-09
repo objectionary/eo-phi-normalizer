@@ -35,12 +35,18 @@ module Language.EO.Phi.Syntax (
 
   -- * Conversion to 'Bytes'
   intToBytes,
+  int64ToBytes,
+  int32ToBytes,
+  int16ToBytes,
   floatToBytes,
   boolToBytes,
   stringToBytes,
 
   -- * Conversion from 'Bytes'
   bytesToInt,
+  bytesToInt64,
+  bytesToInt32,
+  bytesToInt16,
   bytesToFloat,
   bytesToString,
   bytesToBool,
@@ -70,6 +76,7 @@ module Language.EO.Phi.Syntax (
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as ByteString.Strict
 import Data.Char (isSpace, toUpper)
+import Data.Int
 import Data.List (intercalate)
 import Data.Serialize qualified as Serialize
 import Data.String (IsString (fromString))
@@ -344,6 +351,39 @@ sliceBytes (Bytes bytes) start len = Bytes $ normalizeBytes $ take (2 * len) (dr
 intToBytes :: Int -> Bytes
 intToBytes n = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "")) $ ByteString.Strict.unpack $ Serialize.encode n
 
+-- | Convert an 'Int64' into 'Bytes' representation.
+--
+-- >>> int64ToBytes 7
+-- Bytes "00-00-00-00-00-00-00-07"
+-- >>> int64ToBytes (3^33)
+-- Bytes "00-13-BF-EF-A6-5A-BB-83"
+-- >>> int64ToBytes (-1)
+-- Bytes "FF-FF-FF-FF-FF-FF-FF-FF"
+int64ToBytes :: Int64 -> Bytes
+int64ToBytes n = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "")) $ ByteString.Strict.unpack $ Serialize.encode n
+
+-- | Convert an 'Int32' into 'Bytes' representation.
+--
+-- >>> int32ToBytes 7
+-- Bytes "00-00-00-07"
+-- >>> int32ToBytes (3^33)
+-- Bytes "A6-5A-BB-83"
+-- >>> int32ToBytes (-1)
+-- Bytes "FF-FF-FF-FF"
+int32ToBytes :: Int32 -> Bytes
+int32ToBytes n = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "")) $ ByteString.Strict.unpack $ Serialize.encode n
+
+-- | Convert an 'Int16' into 'Bytes' representation.
+--
+-- >>> int16ToBytes 7
+-- Bytes "00-07"
+-- >>> int16ToBytes (3^33)
+-- Bytes "BB-83"
+-- >>> int16ToBytes (-1)
+-- Bytes "FF-FF"
+int16ToBytes :: Int16 -> Bytes
+int16ToBytes n = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "")) $ ByteString.Strict.unpack $ Serialize.encode n
+
 -- | Parse 'Bytes' as 'Int'.
 --
 -- >>> bytesToInt "00-13-BF-EF-A6-5A-BB-83"
@@ -363,6 +403,72 @@ intToBytes n = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "")) $ B
 -- ...
 bytesToInt :: Bytes -> Int
 bytesToInt (Bytes (dropWhile (== '0') . filter (/= '-') -> bytes))
+  | null bytes = 0
+  | otherwise = fst $ head $ readHex bytes
+
+-- | Parse 'Bytes' as 'Int64'.
+--
+-- >>> bytesToInt64 "00-13-BF-EF-A6-5A-BB-83"
+-- 5559060566555523
+-- >>> bytesToInt64 "AB-"
+-- 171
+--
+-- May error on invalid 'Bytes':
+--
+-- >>> bytesToInt64 "s"
+-- *** Exception: Prelude.head: empty list
+-- ...
+-- ...
+-- ...
+-- ...
+-- ...
+-- ...
+bytesToInt64 :: Bytes -> Int64
+bytesToInt64 (Bytes (dropWhile (== '0') . filter (/= '-') -> bytes))
+  | null bytes = 0
+  | otherwise = fst $ head $ readHex bytes
+
+-- | Parse 'Bytes' as 'Int32'.
+--
+-- >>> bytesToInt32 "A6-5A-BB-83"
+-- -1504003197
+-- >>> bytesToInt32 "AB-"
+-- 171
+--
+-- May error on invalid 'Bytes':
+--
+-- >>> bytesToInt32 "s"
+-- *** Exception: Prelude.head: empty list
+-- ...
+-- ...
+-- ...
+-- ...
+-- ...
+-- ...
+bytesToInt32 :: Bytes -> Int32
+bytesToInt32 (Bytes (dropWhile (== '0') . filter (/= '-') -> bytes))
+  | null bytes = 0
+  | otherwise = fst $ head $ readHex bytes
+
+-- | Parse 'Bytes' as 'Int16'.
+--
+-- >>> bytesToInt16 "BB-83"
+-- -17533
+-- >>> bytesToInt16 "AB-"
+-- 171
+--
+-- May error on invalid 'Bytes':
+--
+-- >>> bytesToInt16 "s"
+-- *** Exception: Prelude.head: empty list
+-- ...
+-- ...
+-- ...
+-- ...
+-- ...
+-- ...
+bytesToInt16 :: Bytes -> Int16
+bytesToInt16 (Bytes (dropWhile (== '0') . filter (/= '-') -> bytes))
   | null bytes = 0
   | otherwise = fst $ head $ readHex bytes
 
