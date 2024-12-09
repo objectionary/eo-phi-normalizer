@@ -142,7 +142,11 @@ wrapBytesInConstFloat bytes@(Bytes bs)
   x = bytesToFloat bytes
 
 wrapBytesInConstString :: Bytes -> Object
-wrapBytesInConstString bytes = [fmt|Φ.org.eolang.string(as-bytes ↦ {show (bytesToString bytes)})|]
+wrapBytesInConstString bytes@(Bytes bs)
+  | '\\' `elem` s = [fmt|Φ.org.eolang.string(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bs}))|]
+  | otherwise = [fmt|Φ.org.eolang.string(as-bytes ↦ {s})|]
+ where
+  s = show (bytesToString bytes)
 
 wrapBytesAsBool :: Bytes -> Object
 wrapBytesAsBool bytes
