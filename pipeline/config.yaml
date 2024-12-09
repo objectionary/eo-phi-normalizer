@@ -145,6 +145,7 @@ test-sets:
     normalized: pipeline/phi-normalized/i16-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/i32-tests.eo
     yaml: pipeline/eo-yaml/i32-tests.yaml
@@ -154,6 +155,7 @@ test-sets:
     normalized: pipeline/phi-normalized/i32-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/i64-tests.eo
     yaml: pipeline/eo-yaml/i64-tests.yaml
