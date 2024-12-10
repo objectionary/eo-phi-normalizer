@@ -65,7 +65,7 @@ pattern AsObject obj <- (desugarAsBytes -> Left obj)
 
 -- | Perform one step of dataization to the object (if possible).
 dataizeStep :: Context -> Object -> (Context, Either Object Bytes)
-dataizeStep ctx obj = snd $ head $ runChain (dataizeStepChain obj) ctx -- FIXME: head is bad
+dataizeStep ctx obj = snd $ head $ runChain (dataizeStepChain DataizeAll obj) ctx -- FIXME: head is bad
 
 dataizeStep' :: Context -> Object -> Either Object Bytes
 dataizeStep' ctx obj = snd (dataizeStep ctx obj)
@@ -75,12 +75,15 @@ dataizeRecursively :: Context -> Object -> Either Object Bytes
 dataizeRecursively ctx obj = snd $ dataizeRecursivelyChain' ctx obj
 
 dataizeStepChain' :: Context -> Object -> ([LogEntry (Either Object Bytes)], Either Object Bytes)
-dataizeStepChain' ctx obj = snd <$> head (runChain (dataizeStepChain obj) ctx) -- FIXME: head is bad
+dataizeStepChain' ctx obj = snd <$> head (runChain (dataizeStepChain DataizeAll obj) ctx) -- FIXME: head is bad
+
+data DataizeStepMode = DataizeOnlyLambda | DataizeAll
 
 -- | Perform one step of dataization to the object (if possible), reporting back individiual steps.
-dataizeStepChain :: Object -> DataizeChain (Context, Either Object Bytes)
-dataizeStepChain obj@(Formation bs)
-  | Just (DeltaBinding bytes) <- listToMaybe [b | b@(DeltaBinding _) <- bs]
+dataizeStepChain :: DataizeStepMode -> Object -> DataizeChain (Context, Either Object Bytes)
+dataizeStepChain mode obj@(Formation bs)
+  | DataizeAll <- mode
+  , Just (DeltaBinding bytes) <- listToMaybe [b | b@(DeltaBinding _) <- bs]
   , not hasEmpty = do
       logStep "Found bytes" (AsBytes bytes)
       ctx <- getContext
@@ -102,7 +105,8 @@ dataizeStepChain obj@(Formation bs)
             Just ((obj', _state), _alts) -> do
               ctx <- getContext
               return (ctx, AsObject obj')
-  | Just (AlphaBinding Phi decoratee) <- listToMaybe [b | b@(AlphaBinding Phi _) <- bs]
+  | DataizeAll <- mode
+  , Just (AlphaBinding Phi decoratee) <- listToMaybe [b | b@(AlphaBinding Phi _) <- bs]
   , not hasEmpty = do
       let decoratee' = substThis obj decoratee
       logStep "Dataizing inside phi" (AsObject decoratee')
@@ -119,22 +123,22 @@ dataizeStepChain obj@(Formation bs)
   isEmpty _ = False
   hasEmpty = any isEmpty bs
 -- IMPORTANT: dataize the object being copied IF normalization is stuck on it!
-dataizeStepChain (Application obj bindings) = incLogLevel $ do
+dataizeStepChain _mode (Application obj bindings) = incLogLevel $ do
   logStep "Dataizing inside application" (AsObject obj)
   modifyContext (\c -> c{dataizePackage = False}) $ do
-    (ctx, obj') <- dataizeStepChain obj
+    (ctx, obj') <- dataizeStepChain DataizeOnlyLambda obj
     case obj' of
       Left obj'' -> return (ctx, AsObject (obj'' `Application` bindings))
       Right bytes -> return (ctx, AsObject (Formation [DeltaBinding bytes] `Application` bindings))
 -- IMPORTANT: dataize the object being dispatched IF normalization is stuck on it!
-dataizeStepChain (ObjectDispatch obj attr) = incLogLevel $ do
+dataizeStepChain _mode (ObjectDispatch obj attr) = incLogLevel $ do
   logStep "Dataizing inside dispatch" (AsObject obj)
   modifyContext (\c -> c{dataizePackage = False}) $ do
-    (ctx, obj') <- dataizeStepChain obj
+    (ctx, obj') <- dataizeStepChain DataizeOnlyLambda obj
     case obj' of
       Left obj'' -> return (ctx, AsObject (obj'' `ObjectDispatch` attr))
       Right bytes -> return (ctx, AsObject (Formation [DeltaBinding bytes] `ObjectDispatch` attr))
-dataizeStepChain obj = do
+dataizeStepChain _mode obj = do
   logStep "Nothing to dataize" (AsObject obj)
   ctx <- getContext
   return (ctx, AsObject obj)
@@ -166,7 +170,7 @@ dataizeRecursivelyChain = fmap minimizeObject' . go
       Just (normObj, _alternatives)
         | normObj == obj && normalizeRequired -> return (AsObject obj)
         | otherwise -> do
-            (ctx', step) <- dataizeStepChain normObj
+            (ctx', step) <- dataizeStepChain DataizeAll normObj
             case step of
               (AsObject stillObj)
                 | stillObj == normObj && ctx `sameContext` ctx' -> do
@@ -250,6 +254,49 @@ evaluateBinaryDataizationFunChain resultToBytes bytesToParam wrapBytes arg1 arg2
       fail (name <> ": Couldn't find bytes in RHS: " <> printTree (hideRho r))
   return (result, ())
 
+evaluatePartialBinaryDataizationFunChain ::
+  -- | How to convert the result back to bytes
+  (res -> Bytes) ->
+  -- | How to interpret the bytes in terms of the given data type
+  (Bytes -> a) ->
+  -- | How to wrap the bytes in an object
+  (Bytes -> Object) ->
+  -- | Extract the 1st argument to be dataized
+  (Object -> Object) ->
+  -- | Extract the 2nd argument to be dataized
+  (Object -> Object) ->
+  -- | A binary function on the argument
+  (a -> a -> Maybe res) ->
+  -- | Name of the atom.
+  String ->
+  Object ->
+  EvaluationState ->
+  DataizeChain (Object, EvaluationState)
+evaluatePartialBinaryDataizationFunChain resultToBytes bytesToParam wrapBytes arg1 arg2 func name obj _state = do
+  let lhsArg = arg1 obj
+  let rhsArg = arg2 obj
+  lhs <- incLogLevel $ do
+    logStep "Evaluating LHS" (AsObject lhsArg)
+    dataizeRecursivelyChain True lhsArg
+  rhs <- incLogLevel $ do
+    logStep "Evaluating RHS" (AsObject rhsArg)
+    dataizeRecursivelyChain True rhsArg
+  result <- case (lhs, rhs) of
+    (AsBytes l, AsBytes r) -> do
+      case resultToBytes <$> bytesToParam l `func` bytesToParam r of
+        Nothing -> fail (name <> ": throws an error")
+        Just bytes -> do
+          let resultObj = wrapBytes bytes
+          logStep "Evaluated function" (AsObject resultObj)
+          return resultObj
+    (AsObject _l, AsObject _r) ->
+      fail (name <> ": Couldn't find bytes in both LHS and RHS")
+    (AsObject l, _) -> do
+      fail (name <> ": Couldn't find bytes in LHS: " <> printTree (hideRho l))
+    (_, AsObject r) -> do
+      fail (name <> ": Couldn't find bytes in RHS: " <> printTree (hideRho r))
+  return (result, ())
+
 -- | Unary functions operate on the given object without any additional parameters
 evaluateUnaryDataizationFunChain ::
   -- | How to convert the result back to bytes
@@ -272,6 +319,9 @@ evaluateUnaryDataizationFunChain resultToBytes bytesToParam wrapBytes extractArg
 -- This should maybe get converted to a type class and some instances?
 evaluateIntIntIntFunChain :: (Int -> Int -> Int) -> String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
 evaluateIntIntIntFunChain = evaluateBinaryDataizationFunChain intToBytes bytesToInt wrapBytesInConstInt extractRho (extractLabel "x")
+
+evaluateIntIntMaybeIntFunChain :: (Int -> Int -> Maybe Int) -> String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
+evaluateIntIntMaybeIntFunChain = evaluatePartialBinaryDataizationFunChain intToBytes bytesToInt wrapBytesInConstInt extractRho (extractLabel "x")
 
 evaluateIntIntBoolFunChain :: (Int -> Int -> Bool) -> String -> Object -> EvaluationState -> DataizeChain (Object, EvaluationState)
 evaluateIntIntBoolFunChain = evaluateBinaryDataizationFunChain boolToBytes bytesToInt wrapBytesAsBool extractRho (extractLabel "x")

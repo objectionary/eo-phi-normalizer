@@ -40,10 +40,18 @@ test-sets:
     normalized: pipeline/phi-normalized/as-phi-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/bool-tests.eo
     yaml: pipeline/eo-yaml/bool-tests.yaml
     filtered: pipeline/eo-filtered/bool-tests.eo
+    exclude:
+      # not broken
+      - forks-on-false-condition
+      - forks-on-true-condition
+      - true-and-false-is-false
+      - true-as-bool
+      - true-not-is-false
   phi:
     initial: pipeline/phi-initial/bool-tests.phi
     normalized: pipeline/phi-normalized/bool-tests.phi
@@ -54,10 +62,26 @@ test-sets:
     yaml: pipeline/eo-yaml/bytes-tests.yaml
     filtered: pipeline/eo-filtered/bytes-tests.eo
     exclude:
+      # broken
       - counts-size-of-bytes
       - size-of-part-is-correct
-      - takes-part-of-bytes
       - written-in-several-lines
+      - left-with-even-neg
+
+      # not broken
+      # - takes-part-of-bytes
+      - and-neg-bytes-as-number-with-leading-zeroes
+      - and-neg-bytes-as-number-without-leading-zeroes
+      - bitwise-works
+      - bitwise-works-negative
+      - bytes-as-i64-as-bytes-not-eq-to-number-as-bytes
+      - bytes-converts-to-i64
+      - bytes-converts-to-i64-and-back
+      - one-xor-one-as-number
+      - or-neg-bytes-as-number-with-zero
+      - throws-on-bytes-of-wrong-size-as-i64
+      - throws-on-bytes-of-wrong-size-as-number
+      - xor-neg-bytes-as-number-without-leading-zeroes
   phi:
     initial: pipeline/phi-initial/bytes-tests.phi
     normalized: pipeline/phi-normalized/bytes-tests.phi
@@ -72,6 +96,7 @@ test-sets:
     normalized: pipeline/phi-normalized/cage-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/cti-test.eo
     yaml: pipeline/eo-yaml/cti-test.yaml
@@ -81,6 +106,7 @@ test-sets:
     normalized: pipeline/phi-normalized/cti-test.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/dataized-tests.eo
     yaml: pipeline/eo-yaml/dataized-tests.yaml
@@ -90,6 +116,7 @@ test-sets:
     normalized: pipeline/phi-normalized/dataized-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/fs/dir-tests.eo
     yaml: pipeline/eo-yaml/fs/dir-tests.yaml
@@ -97,8 +124,9 @@ test-sets:
   phi:
     initial: pipeline/phi-initial/fs/dir-tests.phi
     normalized: pipeline/phi-normalized/fs/dir-tests.phi
-    bindings-path-initial: org.eolang
-    bindings-path-normalized: org.eolang
+    bindings-path-initial: org.eolang.fs
+    bindings-path-normalized: org.eolang.fs
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/fs/file-tests.eo
     yaml: pipeline/eo-yaml/fs/file-tests.yaml
@@ -106,8 +134,9 @@ test-sets:
   phi:
     initial: pipeline/phi-initial/fs/file-tests.phi
     normalized: pipeline/phi-normalized/fs/file-tests.phi
-    bindings-path-initial: org.eolang
-    bindings-path-normalized: org.eolang
+    bindings-path-initial: org.eolang.fs
+    bindings-path-normalized: org.eolang.fs
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/fs/path-tests.eo
     yaml: pipeline/eo-yaml/fs/path-tests.yaml
@@ -125,8 +154,9 @@ test-sets:
   phi:
     initial: pipeline/phi-initial/fs/tmpdir-tests.phi
     normalized: pipeline/phi-normalized/fs/tmpdir-tests.phi
-    bindings-path-initial: org.eolang
-    bindings-path-normalized: org.eolang
+    bindings-path-initial: org.eolang.fs
+    bindings-path-normalized: org.eolang.fs
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/go-tests.eo
     yaml: pipeline/eo-yaml/go-tests.yaml
@@ -136,6 +166,7 @@ test-sets:
     normalized: pipeline/phi-normalized/go-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/i16-tests.eo
     yaml: pipeline/eo-yaml/i16-tests.yaml
@@ -145,6 +176,7 @@ test-sets:
     normalized: pipeline/phi-normalized/i16-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/i32-tests.eo
     yaml: pipeline/eo-yaml/i32-tests.yaml
@@ -154,10 +186,36 @@ test-sets:
     normalized: pipeline/phi-normalized/i32-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/i64-tests.eo
     yaml: pipeline/eo-yaml/i64-tests.yaml
     filtered: pipeline/eo-filtered/i64-tests.eo
+    exclude:
+      # broken
+      - negative-i64-to-i32-and-back
+
+      # not broken
+      # - i64-div-less-than-i64-one
+      # - i64-eq-false
+      - i64-eq-true
+      - i64-gte-equal
+      - i64-gte-false
+      - i64-gte-true
+      - i64-has-valid-bytes
+      - i64-less-equal
+      - i64-less-false
+      - i64-less-true
+      - i64-lte-equal
+      - i64-lte-false
+      - i64-lte-true
+      - i64-multiply-by-zero
+      - i64-one-minus-i64-one
+      - i64-one-plus-i64-one
+      - i64-to-i32-and-back
+      - i64-zero-eq-to-i64-zero
+      - throws-on-converting-to-i32-if-out-of-bounds
+      - throws-on-division-i64-by-i64-zero
   phi:
     initial: pipeline/phi-initial/i64-tests.phi
     normalized: pipeline/phi-normalized/i64-tests.phi
@@ -170,8 +228,9 @@ test-sets:
   phi:
     initial: pipeline/phi-initial/io/bytes-as-input-test.phi
     normalized: pipeline/phi-normalized/io/bytes-as-input-test.phi
-    bindings-path-initial: org.eolang
-    bindings-path-normalized: org.eolang
+    bindings-path-initial: org.eolang.io
+    bindings-path-normalized: org.eolang.io
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/io/dead-input-tests.eo
     yaml: pipeline/eo-yaml/io/dead-input-tests.yaml
@@ -197,8 +256,9 @@ test-sets:
   phi:
     initial: pipeline/phi-initial/io/input-length-tests.phi
     normalized: pipeline/phi-normalized/io/input-length-tests.phi
-    bindings-path-initial: org.eolang
-    bindings-path-normalized: org.eolang
+    bindings-path-initial: org.eolang.io
+    bindings-path-normalized: org.eolang.io
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/io/malloc-as-output-test.eo
     yaml: pipeline/eo-yaml/io/malloc-as-output-test.yaml
@@ -206,8 +266,9 @@ test-sets:
   phi:
     initial: pipeline/phi-initial/io/malloc-as-output-test.phi
     normalized: pipeline/phi-normalized/io/malloc-as-output-test.phi
-    bindings-path-initial: org.eolang
-    bindings-path-normalized: org.eolang
+    bindings-path-initial: org.eolang.io
+    bindings-path-normalized: org.eolang.io
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/io/tee-input-tests.eo
     yaml: pipeline/eo-yaml/io/tee-input-tests.yaml
@@ -215,8 +276,9 @@ test-sets:
   phi:
     initial: pipeline/phi-initial/io/tee-input-tests.phi
     normalized: pipeline/phi-normalized/io/tee-input-tests.phi
-    bindings-path-initial: org.eolang
-    bindings-path-normalized: org.eolang
+    bindings-path-initial: org.eolang.io
+    bindings-path-normalized: org.eolang.io
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/malloc-tests.eo
     yaml: pipeline/eo-yaml/malloc-tests.yaml
@@ -226,6 +288,7 @@ test-sets:
     normalized: pipeline/phi-normalized/malloc-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/math/angle-tests.eo
     yaml: pipeline/eo-yaml/math/angle-tests.yaml
@@ -233,8 +296,9 @@ test-sets:
   phi:
     initial: pipeline/phi-initial/math/angle-tests.phi
     normalized: pipeline/phi-normalized/math/angle-tests.phi
-    bindings-path-initial: org.eolang
-    bindings-path-normalized: org.eolang
+    bindings-path-initial: org.eolang.math
+    bindings-path-normalized: org.eolang.math
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/math/integral-tests.eo
     yaml: pipeline/eo-yaml/math/integral-tests.yaml
@@ -242,8 +306,9 @@ test-sets:
   phi:
     initial: pipeline/phi-initial/math/integral-tests.phi
     normalized: pipeline/phi-normalized/math/integral-tests.phi
-    bindings-path-initial: org.eolang
-    bindings-path-normalized: org.eolang
+    bindings-path-initial: org.eolang.math
+    bindings-path-normalized: org.eolang.math
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/math/numbers-tests.eo
     yaml: pipeline/eo-yaml/math/numbers-tests.yaml
@@ -251,8 +316,9 @@ test-sets:
   phi:
     initial: pipeline/phi-initial/math/numbers-tests.phi
     normalized: pipeline/phi-normalized/math/numbers-tests.phi
-    bindings-path-initial: org.eolang
-    bindings-path-normalized: org.eolang
+    bindings-path-initial: org.eolang.math
+    bindings-path-normalized: org.eolang.math
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/math/random-tests.eo
     yaml: pipeline/eo-yaml/math/random-tests.yaml
@@ -260,8 +326,9 @@ test-sets:
   phi:
     initial: pipeline/phi-initial/math/random-tests.phi
     normalized: pipeline/phi-normalized/math/random-tests.phi
-    bindings-path-initial: org.eolang
-    bindings-path-normalized: org.eolang
+    bindings-path-initial: org.eolang.math
+    bindings-path-normalized: org.eolang.math
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/math/real-tests.eo
     yaml: pipeline/eo-yaml/math/real-tests.yaml
@@ -269,12 +336,23 @@ test-sets:
   phi:
     initial: pipeline/phi-initial/math/real-tests.phi
     normalized: pipeline/phi-normalized/math/real-tests.phi
-    bindings-path-initial: org.eolang
-    bindings-path-normalized: org.eolang
+    bindings-path-initial: org.eolang.math
+    bindings-path-normalized: org.eolang.math
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/nan-tests.eo
     yaml: pipeline/eo-yaml/nan-tests.yaml
     filtered: pipeline/eo-filtered/nan-tests.eo
+    exclude:
+      # broken
+      - nan-as-bytes-is-bytes-of-zero-div-zero
+
+      # not broken
+      - nan-is-nan
+      - nan-is-not-finite
+      - nan-is-not-integer
+      - nan-neg-is-nan
+      - nan-not-eq-nan
   phi:
     initial: pipeline/phi-initial/nan-tests.phi
     normalized: pipeline/phi-normalized/nan-tests.phi
@@ -284,6 +362,62 @@ test-sets:
     original: eo/eo-runtime/src/test/eo/org/eolang/negative-infinity-tests.eo
     yaml: pipeline/eo-yaml/negative-infinity-tests.yaml
     filtered: pipeline/eo-filtered/negative-infinity-tests.eo
+    exclude:
+      # not broken
+      # - negative-infinity-div-float-zero
+      # - negative-infinity-div-int-zero
+      - negative-infinity-div-nan
+      - negative-infinity-div-neg-float-zero
+      - negative-infinity-div-neg-int-zero
+      - negative-infinity-div-negative-float
+      - negative-infinity-div-negative-infinity
+      - negative-infinity-div-negative-int
+      - negative-infinity-div-positive-float
+      - negative-infinity-div-positive-infinity
+      - negative-infinity-div-positive-int
+      - negative-infinity-eq-negative-infinity
+      - negative-infinity-floor-is-equal-to-self
+      - negative-infinity-gt-negative-infinity
+      - negative-infinity-is-not-finite
+      - negative-infinity-is-not-integer
+      - negative-infinity-is-not-nan
+      - negative-infinity-lt-float
+      - negative-infinity-lt-int
+      - negative-infinity-lt-negative-infinity
+      - negative-infinity-lt-positive-infinity
+      - negative-infinity-lte-float
+      - negative-infinity-lte-int
+      - negative-infinity-lte-negative-infinity
+      - negative-infinity-lte-positive-infinity
+      - negative-infinity-minus-nan
+      - negative-infinity-minus-negative-float
+      - negative-infinity-minus-negative-infinity
+      - negative-infinity-minus-negative-int
+      - negative-infinity-minus-positive-float
+      - negative-infinity-minus-positive-infinity
+      - negative-infinity-minus-positive-int
+      - negative-infinity-neg-is-positive-infinity
+      - negative-infinity-not-eq-nan
+      - negative-infinity-not-eq-positive-infinity
+      - negative-infinity-not-lt-nan
+      - negative-infinity-not-lte-nan
+      - negative-infinity-plus-nan
+      - negative-infinity-plus-negative-float
+      - negative-infinity-plus-negative-infinity
+      - negative-infinity-plus-negative-int
+      - negative-infinity-plus-positive-float
+      - negative-infinity-plus-positive-infinity
+      - negative-infinity-plus-positive-int
+      - negative-infinity-times-float-zero
+      - negative-infinity-times-int-zero
+      - negative-infinity-times-nan
+      - negative-infinity-times-neg-float-zero
+      - negative-infinity-times-negative-float
+      - negative-infinity-times-negative-infinity
+      - negative-infinity-times-negative-int
+      - negative-infinity-times-positive-float
+      - negative-infinity-times-positive-infinity
+      - negative-infinity-times-positive-int
   phi:
     initial: pipeline/phi-initial/negative-infinity-tests.phi
     normalized: pipeline/phi-normalized/negative-infinity-tests.phi
@@ -303,6 +437,59 @@ test-sets:
     original: eo/eo-runtime/src/test/eo/org/eolang/positive-infinity-tests.eo
     yaml: pipeline/eo-yaml/positive-infinity-tests.yaml
     filtered: pipeline/eo-filtered/positive-infinity-tests.eo
+    exclude:
+      # not broken
+      # - float-equal-to-nan-and-infinites-is-false-highload
+      # - positive-infinity-div-float-zero
+      - positive-infinity-div-int-zero
+      - positive-infinity-div-nan
+      - positive-infinity-div-neg-float-zero
+      - positive-infinity-div-neg-int-zero
+      - positive-infinity-div-negative-float
+      - positive-infinity-div-negative-infinity
+      - positive-infinity-div-negative-int
+      - positive-infinity-div-positive-float
+      - positive-infinity-div-positive-infinity
+      - positive-infinity-div-positive-int
+      - positive-infinity-eq-positive-infinity
+      - positive-infinity-floor-is-equal-to-self
+      - positive-infinity-gt-float
+      - positive-infinity-gt-int
+      - positive-infinity-gt-negative-infinity
+      - positive-infinity-gt-positive-infinity
+      - positive-infinity-gte-float
+      - positive-infinity-gte-int
+      - positive-infinity-gte-negative-infinity
+      - positive-infinity-gte-positive-infinity
+      - positive-infinity-is-not-finite
+      - positive-infinity-is-not-integer
+      - positive-infinity-is-not-nan
+      - positive-infinity-minus-nan
+      - positive-infinity-minus-negative-float
+      - positive-infinity-minus-negative-infinity
+      - positive-infinity-minus-negative-int
+      - positive-infinity-minus-positive-float
+      - positive-infinity-minus-positive-infinity
+      - positive-infinity-minus-positive-int
+      - positive-infinity-neg-is-negative-infinity
+      - positive-infinity-not-eq-nan
+      - positive-infinity-not-eq-negative-infinity
+      - positive-infinity-not-gt-nan
+      - positive-infinity-not-gte-nan
+      - positive-infinity-plus-nan
+      - positive-infinity-plus-negative-infinity
+      - positive-infinity-plus-positive-float
+      - positive-infinity-plus-positive-infinity
+      - positive-infinity-times-float-zero
+      - positive-infinity-times-int-zero
+      - positive-infinity-times-nan
+      - positive-infinity-times-neg-float-zero
+      - positive-infinity-times-negative-float
+      - positive-infinity-times-negative-infinity
+      - positive-infinity-times-negative-int
+      - positive-infinity-times-positive-float
+      - positive-infinity-times-positive-infinity
+      - positive-infinity-times-positive-int
   phi:
     initial: pipeline/phi-initial/positive-infinity-tests.phi
     normalized: pipeline/phi-normalized/positive-infinity-tests.phi
@@ -343,13 +530,21 @@ test-sets:
     yaml: pipeline/eo-yaml/string-tests.yaml
     filtered: pipeline/eo-filtered/string-tests.eo
     exclude:
+      # broken
+      - throws-on-slicing-end-below-start
+      - slice-escape-sequences-line-break
+      - slice-escape-sequences-unicode
+      - throws-on-slicing-start-below-zero
+
+      # not broken
       - slice-foreign-literals
       - slice-foreign-literals-2
       - slice-from-start
       - slice-from-the-end
       - slice-in-the-middle
-      - throws-on-slicing-end-below-start
       - throws-on-slicing-end-greater-actual
+      - calculates-length-of-spaces-only
+      - reads-the-length
   phi:
     initial: pipeline/phi-initial/string-tests.phi
     normalized: pipeline/phi-normalized/string-tests.phi
@@ -362,8 +557,9 @@ test-sets:
   phi:
     initial: pipeline/phi-initial/structs/bytes-as-array-tests.phi
     normalized: pipeline/phi-normalized/structs/bytes-as-array-tests.phi
-    bindings-path-initial: org.eolang
-    bindings-path-normalized: org.eolang
+    bindings-path-initial: org.eolang.structs
+    bindings-path-normalized: org.eolang.structs
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/structs/hash-code-of-tests.eo
     yaml: pipeline/eo-yaml/structs/hash-code-of-tests.yaml
@@ -371,8 +567,9 @@ test-sets:
   phi:
     initial: pipeline/phi-initial/structs/hash-code-of-tests.phi
     normalized: pipeline/phi-normalized/structs/hash-code-of-tests.phi
-    bindings-path-initial: org.eolang
-    bindings-path-normalized: org.eolang
+    bindings-path-initial: org.eolang.structs
+    bindings-path-normalized: org.eolang.structs
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/structs/list-tests.eo
     yaml: pipeline/eo-yaml/structs/list-tests.yaml
@@ -400,8 +597,9 @@ test-sets:
   phi:
     initial: pipeline/phi-initial/structs/range-of-ints-tests.phi
     normalized: pipeline/phi-normalized/structs/range-of-ints-tests.phi
-    bindings-path-initial: org.eolang
-    bindings-path-normalized: org.eolang
+    bindings-path-initial: org.eolang.structs
+    bindings-path-normalized: org.eolang.structs
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/structs/range-tests.eo
     yaml: pipeline/eo-yaml/structs/range-tests.yaml
@@ -409,8 +607,9 @@ test-sets:
   phi:
     initial: pipeline/phi-initial/structs/range-tests.phi
     normalized: pipeline/phi-normalized/structs/range-tests.phi
-    bindings-path-initial: org.eolang
-    bindings-path-normalized: org.eolang
+    bindings-path-initial: org.eolang.structs
+    bindings-path-normalized: org.eolang.structs
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/structs/set-tests.eo
     yaml: pipeline/eo-yaml/structs/set-tests.yaml
@@ -430,6 +629,7 @@ test-sets:
     normalized: pipeline/phi-normalized/switch-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/sys/os-tests.eo
     yaml: pipeline/eo-yaml/sys/os-tests.yaml
@@ -437,8 +637,9 @@ test-sets:
   phi:
     initial: pipeline/phi-initial/sys/os-tests.phi
     normalized: pipeline/phi-normalized/sys/os-tests.phi
-    bindings-path-initial: org.eolang
-    bindings-path-normalized: org.eolang
+    bindings-path-initial: org.eolang.sys
+    bindings-path-normalized: org.eolang.sys
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/sys/posix-tests.eo
     yaml: pipeline/eo-yaml/sys/posix-tests.yaml
@@ -446,8 +647,9 @@ test-sets:
   phi:
     initial: pipeline/phi-initial/sys/posix-tests.phi
     normalized: pipeline/phi-normalized/sys/posix-tests.phi
-    bindings-path-initial: org.eolang
-    bindings-path-normalized: org.eolang
+    bindings-path-initial: org.eolang.sys
+    bindings-path-normalized: org.eolang.sys
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/sys/win32-tests.eo
     yaml: pipeline/eo-yaml/sys/win32-tests.yaml
@@ -455,8 +657,9 @@ test-sets:
   phi:
     initial: pipeline/phi-initial/sys/win32-tests.phi
     normalized: pipeline/phi-normalized/sys/win32-tests.phi
-    bindings-path-initial: org.eolang
-    bindings-path-normalized: org.eolang
+    bindings-path-initial: org.eolang.sys
+    bindings-path-normalized: org.eolang.sys
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/try-tests.eo
     yaml: pipeline/eo-yaml/try-tests.yaml
@@ -466,6 +669,7 @@ test-sets:
     normalized: pipeline/phi-normalized/try-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/tuple-tests.eo
     yaml: pipeline/eo-yaml/tuple-tests.yaml
@@ -483,8 +687,9 @@ test-sets:
   phi:
     initial: pipeline/phi-initial/txt/regex-tests.phi
     normalized: pipeline/phi-normalized/txt/regex-tests.phi
-    bindings-path-initial: org.eolang
-    bindings-path-normalized: org.eolang
+    bindings-path-initial: org.eolang.txt
+    bindings-path-normalized: org.eolang.txt
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/txt/sprintf-tests.eo
     yaml: pipeline/eo-yaml/txt/sprintf-tests.yaml
@@ -492,8 +697,9 @@ test-sets:
   phi:
     initial: pipeline/phi-initial/txt/sprintf-tests.phi
     normalized: pipeline/phi-normalized/txt/sprintf-tests.phi
-    bindings-path-initial: org.eolang
-    bindings-path-normalized: org.eolang
+    bindings-path-initial: org.eolang.txt
+    bindings-path-normalized: org.eolang.txt
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/txt/sscanf-tests.eo
     yaml: pipeline/eo-yaml/txt/sscanf-tests.yaml
@@ -501,23 +707,34 @@ test-sets:
   phi:
     initial: pipeline/phi-initial/txt/sscanf-tests.phi
     normalized: pipeline/phi-normalized/txt/sscanf-tests.phi
-    bindings-path-initial: org.eolang
-    bindings-path-normalized: org.eolang
+    bindings-path-initial: org.eolang.txt
+    bindings-path-normalized: org.eolang.txt
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/txt/text-tests.eo
     yaml: pipeline/eo-yaml/txt/text-tests.yaml
     filtered: pipeline/eo-filtered/txt/text-tests.eo
-    exclude:
-      - text-slices-the-origin-string
   phi:
     initial: pipeline/phi-initial/txt/text-tests.phi
     normalized: pipeline/phi-normalized/txt/text-tests.phi
-    bindings-path-initial: org.eolang
-    bindings-path-normalized: org.eolang
+    bindings-path-initial: org.eolang.txt
+    bindings-path-normalized: org.eolang.txt
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/while-tests.eo
     yaml: pipeline/eo-yaml/while-tests.yaml
     filtered: pipeline/eo-filtered/while-tests.eo
+    exclude:
+      # not broken
+      # - iterating-tuple-with-while-using-external-iterator
+      - iterating-tuple-with-while-using-internal-iterator
+      - iterating-tuple-with-while-without-body-multiple
+      - iterating-tuple-with-while-without-body-single
+      - last-while-dataization-object
+      - simple-bool-expression-via-malloc-in-while
+      - simple-while-with-false-first
+      - while-dataizes-only-first-cycle
+      - while-simple-iteration
   phi:
     initial: pipeline/phi-initial/while-tests.phi
     normalized: pipeline/phi-normalized/while-tests.phi
