@@ -179,7 +179,7 @@ function normalize {
                 --as-package \
                 --recursive \
                 --wrap-raw-bytes \
-                --rules "$PIPELINE_EO_PHI_NORMALIZER_RULES_FILE" \
+                $PIPELINE_EO_PHI_NORMALIZER_RULES \
                 $dependency_file_options \
                 $atoms \
                 "$initial" \

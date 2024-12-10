@@ -35,18 +35,27 @@ module Language.EO.Phi.Syntax (
 
   -- * Conversion to 'Bytes'
   intToBytes,
+  int64ToBytes,
+  int32ToBytes,
+  int16ToBytes,
   floatToBytes,
   boolToBytes,
   stringToBytes,
 
   -- * Conversion from 'Bytes'
   bytesToInt,
+  bytesToInt64,
+  bytesToInt32,
+  bytesToInt16,
   bytesToFloat,
   bytesToString,
   bytesToBool,
 
   -- * Wrapping 'Bytes' into 'Object'
   wrapBytesInConstInt,
+  wrapBytesInConstInt64,
+  wrapBytesInConstInt32,
+  wrapBytesInConstInt16,
   wrapBytesInConstFloat,
   wrapBytesInConstString,
   wrapBytesInBytes,
@@ -70,17 +79,21 @@ module Language.EO.Phi.Syntax (
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as ByteString.Strict
 import Data.Char (isSpace, toUpper)
+import Data.Int
 import Data.List (intercalate)
 import Data.Serialize qualified as Serialize
 import Data.String (IsString (fromString))
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as Text
+import GHC.Float (isDoubleFinite)
 import Language.EO.Phi.Syntax.Abs
 import Language.EO.Phi.Syntax.Lex (Token)
 import Language.EO.Phi.Syntax.Par
 import Language.EO.Phi.Syntax.Print qualified as Phi
 import Numeric (readHex, showHex)
 import PyF (fmt)
+import Text.Printf (printf)
+import Text.Read (readMaybe)
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -111,9 +124,9 @@ desugarBinding = \case
 -- MetaSubstThis
 
 wrapBytesInInt :: Bytes -> Object
-wrapBytesInInt (Bytes bytes) = [fmt|Φ.org.eolang.int(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes}))|]
+wrapBytesInInt (Bytes bytes) = [fmt|Φ.org.eolang.i64(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes}))|]
 wrapBytesInFloat :: Bytes -> Object
-wrapBytesInFloat (Bytes bytes) = [fmt|Φ.org.eolang.float(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes}))|]
+wrapBytesInFloat (Bytes bytes) = [fmt|Φ.org.eolang.number(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes}))|]
 wrapBytesInString :: Bytes -> Object
 wrapBytesInString (Bytes bytes) = [fmt|Φ.org.eolang.string(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes}))|]
 wrapBytesInBytes :: Bytes -> Object
@@ -124,13 +137,43 @@ wrapTermination = [fmt|Φ.org.eolang.error(α0 ↦ Φ.org.eolang.string(as-bytes
   Bytes bytes = stringToBytes "unknown error"
 
 wrapBytesInConstInt :: Bytes -> Object
-wrapBytesInConstInt bytes = [fmt|Φ.org.eolang.int(as-bytes ↦ {bytesToInt bytes})|]
+wrapBytesInConstInt = wrapBytesInConstInt64
+
+wrapBytesInConstInt64 :: Bytes -> Object
+wrapBytesInConstInt64 bytes@(Bytes bs)
+  | n < 0 = [fmt|Φ.org.eolang.i64(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bs}))|]
+  | otherwise = [fmt|Φ.org.eolang.i64(as-bytes ↦ {n})|]
+ where
+  n = bytesToInt bytes
+
+wrapBytesInConstInt32 :: Bytes -> Object
+wrapBytesInConstInt32 bytes@(Bytes bs)
+  | n < 0 = [fmt|Φ.org.eolang.i32(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bs}))|]
+  | otherwise = [fmt|Φ.org.eolang.i32(as-bytes ↦ {n})|]
+ where
+  n = bytesToInt bytes
+
+wrapBytesInConstInt16 :: Bytes -> Object
+wrapBytesInConstInt16 bytes@(Bytes bs)
+  | n < 0 = [fmt|Φ.org.eolang.i16(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bs}))|]
+  | otherwise = [fmt|Φ.org.eolang.i16(as-bytes ↦ {n})|]
+ where
+  n = bytesToInt bytes
 
 wrapBytesInConstFloat :: Bytes -> Object
-wrapBytesInConstFloat bytes = [fmt|Φ.org.eolang.float(as-bytes ↦ {bytesToFloat bytes})|]
+wrapBytesInConstFloat bytes@(Bytes bs)
+  | x == 0 = [fmt|Φ.org.eolang.number(as-bytes ↦ 0.0)|]
+  | x > 0 && isDoubleFinite x == 1 = [fmt|Φ.org.eolang.number(as-bytes ↦ {printf "%f" x :: String})|]
+  | otherwise = [fmt|Φ.org.eolang.number(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bs}))|]
+ where
+  x = bytesToFloat bytes
 
 wrapBytesInConstString :: Bytes -> Object
-wrapBytesInConstString bytes = [fmt|Φ.org.eolang.string(as-bytes ↦ {show (bytesToString bytes)})|]
+wrapBytesInConstString bytes@(Bytes bs)
+  | '\\' `elem` s = [fmt|Φ.org.eolang.string(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bs}))|]
+  | otherwise = [fmt|Φ.org.eolang.string(as-bytes ↦ {s})|]
+ where
+  s = show (bytesToString bytes)
 
 wrapBytesAsBool :: Bytes -> Object
 wrapBytesAsBool bytes
@@ -152,9 +195,19 @@ shrinkDots [] = []
 shrinkDots (' ' : '.' : ' ' : cs) = '.' : shrinkDots cs
 shrinkDots (c : cs) = c : shrinkDots cs
 
+readFloat :: String -> Maybe Double
+readFloat s | '.' `elem` s = readMaybe s
+readFloat _ = Nothing
+
+fixFloat :: String -> String
+fixFloat s =
+  case readFloat s of
+    Just x -> printf "%f" x
+    Nothing -> s
+
 -- | Copy of 'Phi.render', except no indentation is made for curly braces.
 render :: Phi.Doc -> String
-render d = rend 0 False (map ($ "") $ d []) ""
+render d = rend 0 False (map (fixFloat . ($ "")) $ d []) ""
  where
   rend ::
     Int ->
@@ -318,6 +371,39 @@ sliceBytes (Bytes bytes) start len = Bytes $ normalizeBytes $ take (2 * len) (dr
 intToBytes :: Int -> Bytes
 intToBytes n = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "")) $ ByteString.Strict.unpack $ Serialize.encode n
 
+-- | Convert an 'Int64' into 'Bytes' representation.
+--
+-- >>> int64ToBytes 7
+-- Bytes "00-00-00-00-00-00-00-07"
+-- >>> int64ToBytes (3^33)
+-- Bytes "00-13-BF-EF-A6-5A-BB-83"
+-- >>> int64ToBytes (-1)
+-- Bytes "FF-FF-FF-FF-FF-FF-FF-FF"
+int64ToBytes :: Int64 -> Bytes
+int64ToBytes n = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "")) $ ByteString.Strict.unpack $ Serialize.encode n
+
+-- | Convert an 'Int32' into 'Bytes' representation.
+--
+-- >>> int32ToBytes 7
+-- Bytes "00-00-00-07"
+-- >>> int32ToBytes (3^33)
+-- Bytes "A6-5A-BB-83"
+-- >>> int32ToBytes (-1)
+-- Bytes "FF-FF-FF-FF"
+int32ToBytes :: Int32 -> Bytes
+int32ToBytes n = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "")) $ ByteString.Strict.unpack $ Serialize.encode n
+
+-- | Convert an 'Int16' into 'Bytes' representation.
+--
+-- >>> int16ToBytes 7
+-- Bytes "00-07"
+-- >>> int16ToBytes (3^33)
+-- Bytes "BB-83"
+-- >>> int16ToBytes (-1)
+-- Bytes "FF-FF"
+int16ToBytes :: Int16 -> Bytes
+int16ToBytes n = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "")) $ ByteString.Strict.unpack $ Serialize.encode n
+
 -- | Parse 'Bytes' as 'Int'.
 --
 -- >>> bytesToInt "00-13-BF-EF-A6-5A-BB-83"
@@ -337,6 +423,72 @@ intToBytes n = Bytes $ normalizeBytes $ foldMap (padLeft 2 . (`showHex` "")) $ B
 -- ...
 bytesToInt :: Bytes -> Int
 bytesToInt (Bytes (dropWhile (== '0') . filter (/= '-') -> bytes))
+  | null bytes = 0
+  | otherwise = fst $ head $ readHex bytes
+
+-- | Parse 'Bytes' as 'Int64'.
+--
+-- >>> bytesToInt64 "00-13-BF-EF-A6-5A-BB-83"
+-- 5559060566555523
+-- >>> bytesToInt64 "AB-"
+-- 171
+--
+-- May error on invalid 'Bytes':
+--
+-- >>> bytesToInt64 "s"
+-- *** Exception: Prelude.head: empty list
+-- ...
+-- ...
+-- ...
+-- ...
+-- ...
+-- ...
+bytesToInt64 :: Bytes -> Int64
+bytesToInt64 (Bytes (dropWhile (== '0') . filter (/= '-') -> bytes))
+  | null bytes = 0
+  | otherwise = fst $ head $ readHex bytes
+
+-- | Parse 'Bytes' as 'Int32'.
+--
+-- >>> bytesToInt32 "A6-5A-BB-83"
+-- -1504003197
+-- >>> bytesToInt32 "AB-"
+-- 171
+--
+-- May error on invalid 'Bytes':
+--
+-- >>> bytesToInt32 "s"
+-- *** Exception: Prelude.head: empty list
+-- ...
+-- ...
+-- ...
+-- ...
+-- ...
+-- ...
+bytesToInt32 :: Bytes -> Int32
+bytesToInt32 (Bytes (dropWhile (== '0') . filter (/= '-') -> bytes))
+  | null bytes = 0
+  | otherwise = fst $ head $ readHex bytes
+
+-- | Parse 'Bytes' as 'Int16'.
+--
+-- >>> bytesToInt16 "BB-83"
+-- -17533
+-- >>> bytesToInt16 "AB-"
+-- 171
+--
+-- May error on invalid 'Bytes':
+--
+-- >>> bytesToInt16 "s"
+-- *** Exception: Prelude.head: empty list
+-- ...
+-- ...
+-- ...
+-- ...
+-- ...
+-- ...
+bytesToInt16 :: Bytes -> Int16
+bytesToInt16 (Bytes (dropWhile (== '0') . filter (/= '-') -> bytes))
   | null bytes = 0
   | otherwise = fst $ head $ readHex bytes
 
