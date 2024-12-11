@@ -183,7 +183,7 @@ function commit_and_push_if_changed {
 export -f commit_and_push_if_changed
 
 function eo {
-    npx eoc --parser="$EO" --home-tag="0.41.1" --batch --no-color "$@"
+    npx eoc --parser="$EO" --home-tag="$EO" --batch --no-color "$@"
 }
 
 export -f eo
