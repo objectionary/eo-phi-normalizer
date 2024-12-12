@@ -364,7 +364,7 @@ applyRulesChainWith limits@ApplicationLimits{..} obj
       ctx <- getContext
       if isNF ctx obj
         then do
-          logStep "Normal form" obj
+          logStep "NF" obj
           return obj
         else do
           (ruleName, obj') <- choose (applyOneRule ctx obj)
