@@ -125,7 +125,7 @@ Input:
 }
 ====================================================
 Result 1 out of 1:
-[ 1 / 1 ] Normal form: {
+[ 1 / 1 ] NF: {
   ⟦
     c ↦ Φ.org.eolang.float (
       as-bytes ↦ 25.0
@@ -167,7 +167,7 @@ This is the 1st possible chain of normalizing rewritings:
   \trans [[ m -> [[ D> 42-, ^ -> [[ t -> [[ D> 42- ]] ]] ]](  )( ^ -> [[ x -> [[ D> 42- ]]( ^ -> [[ t -> [[ D> 42- ]] ]] ) ]] ) ]] \trans_{\rulename{DUP}}
   \trans [[ m -> [[ D> 42-, ^ -> [[ t -> [[ D> 42- ]] ]] ]]( ^ -> [[ x -> [[ D> 42- ]]( ^ -> [[ t -> [[ D> 42- ]] ]] ) ]] ) ]] \trans_{\rulename{STAY}}
   \trans [[ m -> [[ ^ -> [[ t -> [[ D> 42- ]] ]], D> 42- ]](  ) ]] \trans_{\rulename{DUP}}
-  \trans [[ m -> [[ ^ -> [[ t -> [[ D> 42- ]] ]], D> 42- ]] ]] \trans_{\rulename{Normal form}}
+  \trans [[ m -> [[ ^ -> [[ t -> [[ D> 42- ]] ]], D> 42- ]] ]] \trans_{\rulename{NF}}
   \trans [[ m -> [[ ^ -> [[ t -> [[ D> 42- ]] ]], D> 42- ]] ]].
 \end{phiquation*}
 
@@ -180,7 +180,7 @@ This is the 2nd possible chain of normalizing rewritings:
   \trans [[ m -> [[ x -> [[ D> 42-, ^ -> [[ t -> [[ D> 42- ]] ]] ]] ]].x ]] \trans_{\rulename{DOT}}
   \trans [[ m -> [[ D> 42-, ^ -> [[ t -> [[ D> 42- ]] ]] ]]( ^ -> [[ x -> [[ D> 42-, ^ -> [[ t -> [[ D> 42- ]] ]] ]] ]] ) ]] \trans_{\rulename{STAY}}
   \trans [[ m -> [[ ^ -> [[ t -> [[ D> 42- ]] ]], D> 42- ]](  ) ]] \trans_{\rulename{DUP}}
-  \trans [[ m -> [[ ^ -> [[ t -> [[ D> 42- ]] ]], D> 42- ]] ]] \trans_{\rulename{Normal form}}
+  \trans [[ m -> [[ ^ -> [[ t -> [[ D> 42- ]] ]], D> 42- ]] ]] \trans_{\rulename{NF}}
   \trans [[ m -> [[ ^ -> [[ t -> [[ D> 42- ]] ]], D> 42- ]] ]].
 \end{phiquation*}
 
@@ -199,7 +199,7 @@ eo-phi-normalizer rewrite --json --chain --rules ./eo-phi-normalizer/test/eo/phi
   "output": [
     [
       [
-        "Normal form",
+        "NF",
         "{\n  ⟦\n    c ↦ Φ.org.eolang.float (\n      as-bytes ↦ 25.0\n    ),\n    result ↦ ξ.c.times (\n      x ↦ 1.8\n    )\n    .plus (\n      x ↦ 32.0\n    ),\n    λ ⤍ Package\n  ⟧\n}"
       ]
     ]

@@ -125,7 +125,7 @@ Evaluating lambda 'Package' : ⟦
   as-bytes ↦ 25.0
 )
 
- Normal form: ⟦
+ NF: ⟦
   c ↦ Φ.org.eolang.float (
     as-bytes ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
@@ -544,7 +544,7 @@ Evaluating lambda 'Package' : ⟦
   x ↦ 32.0
 )
 
- Normal form: ⟦
+ NF: ⟦
   c ↦ Φ.org.eolang.float (
     as-bytes ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
