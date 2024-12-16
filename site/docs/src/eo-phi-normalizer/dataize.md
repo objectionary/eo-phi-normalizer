@@ -99,21 +99,21 @@ Evaluating lambda 'Package' : ⟦
 
  Phi: ⟦
   c ↦ Φ.org.eolang.float (
-    as-bytes ↦ Φ.org.eolang.float (
+    as-bytes ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-39-00-00-00-00-00-00
       )
     )
   ),
   result ↦ ξ.c.times (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
       )
     )
   )
   .plus (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-40-00-00-00-00-00-00
       )
@@ -125,23 +125,23 @@ Evaluating lambda 'Package' : ⟦
   as-bytes ↦ 25.0
 )
 
- Normal form: ⟦
+ NF: ⟦
   c ↦ Φ.org.eolang.float (
-    as-bytes ↦ Φ.org.eolang.float (
+    as-bytes ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-39-00-00-00-00-00-00
       )
     )
   ),
   result ↦ ξ.c.times (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
       )
     )
   )
   .plus (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-40-00-00-00-00-00-00
       )
@@ -155,21 +155,21 @@ Evaluating lambda 'Package' : ⟦
 
   Dataizing inside application: ⟦
   c ↦ Φ.org.eolang.float (
-    as-bytes ↦ Φ.org.eolang.float (
+    as-bytes ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-39-00-00-00-00-00-00
       )
     )
   ),
   result ↦ ξ.c.times (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
       )
     )
   )
   .plus (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-40-00-00-00-00-00-00
       )
@@ -180,21 +180,21 @@ Evaluating lambda 'Package' : ⟦
 .org.eolang.float
    Dataizing inside dispatch: ⟦
   c ↦ Φ.org.eolang.float (
-    as-bytes ↦ Φ.org.eolang.float (
+    as-bytes ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-39-00-00-00-00-00-00
       )
     )
   ),
   result ↦ ξ.c.times (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
       )
     )
   )
   .plus (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-40-00-00-00-00-00-00
       )
@@ -205,21 +205,21 @@ Evaluating lambda 'Package' : ⟦
 .org.eolang
     Dataizing inside dispatch: ⟦
   c ↦ Φ.org.eolang.float (
-    as-bytes ↦ Φ.org.eolang.float (
+    as-bytes ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-39-00-00-00-00-00-00
       )
     )
   ),
   result ↦ ξ.c.times (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
       )
     )
   )
   .plus (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-40-00-00-00-00-00-00
       )
@@ -230,21 +230,21 @@ Evaluating lambda 'Package' : ⟦
 .org
      Dataizing inside dispatch: ⟦
   c ↦ Φ.org.eolang.float (
-    as-bytes ↦ Φ.org.eolang.float (
+    as-bytes ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-39-00-00-00-00-00-00
       )
     )
   ),
   result ↦ ξ.c.times (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
       )
     )
   )
   .plus (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-40-00-00-00-00-00-00
       )
@@ -255,21 +255,21 @@ Evaluating lambda 'Package' : ⟦
 
      Evaluating lambda 'Package' : ⟦
   c ↦ Φ.org.eolang.float (
-    as-bytes ↦ Φ.org.eolang.float (
+    as-bytes ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-39-00-00-00-00-00-00
       )
     )
   ),
   result ↦ ξ.c.times (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
       )
     )
   )
   .plus (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-40-00-00-00-00-00-00
       )
@@ -280,21 +280,21 @@ Evaluating lambda 'Package' : ⟦
 
  Dataization changed nothing: ⟦
   c ↦ Φ.org.eolang.float (
-    as-bytes ↦ Φ.org.eolang.float (
+    as-bytes ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-39-00-00-00-00-00-00
       )
     )
   ),
   result ↦ ξ.c.times (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
       )
     )
   )
   .plus (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-40-00-00-00-00-00-00
       )
@@ -315,21 +315,21 @@ Evaluating lambda 'Package' : ⟦
 
  xi: ⟦
   c ↦ Φ.org.eolang.float (
-    as-bytes ↦ Φ.org.eolang.float (
+    as-bytes ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-39-00-00-00-00-00-00
       )
     )
   ),
   result ↦ ξ.c.times (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
       )
     )
   )
   .plus (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-40-00-00-00-00-00-00
       )
@@ -345,7 +345,7 @@ Evaluating lambda 'Package' : ⟦
 )
 
  DOT: Φ.org.eolang.float (
-  as-bytes ↦ Φ.org.eolang.float (
+  as-bytes ↦ Φ.org.eolang.number (
     as-bytes ↦ Φ.org.eolang.bytes (
       Δ ⤍ 40-39-00-00-00-00-00-00
     )
@@ -360,21 +360,21 @@ Evaluating lambda 'Package' : ⟦
 
  Phi: ⟦
   c ↦ Φ.org.eolang.float (
-    as-bytes ↦ Φ.org.eolang.float (
+    as-bytes ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-39-00-00-00-00-00-00
       )
     )
   ),
   result ↦ ξ.c.times (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
       )
     )
   )
   .plus (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-40-00-00-00-00-00-00
       )
@@ -383,7 +383,7 @@ Evaluating lambda 'Package' : ⟦
   λ ⤍ Package
 ⟧
 .org.eolang.float (
-  as-bytes ↦ Φ.org.eolang.float (
+  as-bytes ↦ Φ.org.eolang.number (
     as-bytes ↦ Φ.org.eolang.bytes (
       Δ ⤍ 40-39-00-00-00-00-00-00
     )
@@ -398,83 +398,21 @@ Evaluating lambda 'Package' : ⟦
 
  Phi: ⟦
   c ↦ Φ.org.eolang.float (
-    as-bytes ↦ Φ.org.eolang.float (
+    as-bytes ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-39-00-00-00-00-00-00
       )
     )
   ),
   result ↦ ξ.c.times (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
       )
     )
   )
   .plus (
-    x ↦ Φ.org.eolang.float (
-      as-bytes ↦ Φ.org.eolang.bytes (
-        Δ ⤍ 40-40-00-00-00-00-00-00
-      )
-    )
-  ),
-  λ ⤍ Package
-⟧
-.org.eolang.float (
-  as-bytes ↦ ⟦
-    c ↦ Φ.org.eolang.float (
-      as-bytes ↦ Φ.org.eolang.float (
-        as-bytes ↦ Φ.org.eolang.bytes (
-          Δ ⤍ 40-39-00-00-00-00-00-00
-        )
-      )
-    ),
-    result ↦ ξ.c.times (
-      x ↦ Φ.org.eolang.float (
-        as-bytes ↦ Φ.org.eolang.bytes (
-          Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
-        )
-      )
-    )
-    .plus (
-      x ↦ Φ.org.eolang.float (
-        as-bytes ↦ Φ.org.eolang.bytes (
-          Δ ⤍ 40-40-00-00-00-00-00-00
-        )
-      )
-    ),
-    λ ⤍ Package
-  ⟧
-  .org.eolang.float (
-    as-bytes ↦ Φ.org.eolang.bytes (
-      Δ ⤍ 40-39-00-00-00-00-00-00
-    )
-  )
-)
-.times (
-  x ↦ 1.8
-)
-.plus (
-  x ↦ 32.0
-)
-
- Phi: ⟦
-  c ↦ Φ.org.eolang.float (
-    as-bytes ↦ Φ.org.eolang.float (
-      as-bytes ↦ Φ.org.eolang.bytes (
-        Δ ⤍ 40-39-00-00-00-00-00-00
-      )
-    )
-  ),
-  result ↦ ξ.c.times (
-    x ↦ Φ.org.eolang.float (
-      as-bytes ↦ Φ.org.eolang.bytes (
-        Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
-      )
-    )
-  )
-  .plus (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-40-00-00-00-00-00-00
       )
@@ -485,21 +423,21 @@ Evaluating lambda 'Package' : ⟦
 .org.eolang.float (
   as-bytes ↦ ⟦
     c ↦ Φ.org.eolang.float (
-      as-bytes ↦ Φ.org.eolang.float (
+      as-bytes ↦ Φ.org.eolang.number (
         as-bytes ↦ Φ.org.eolang.bytes (
           Δ ⤍ 40-39-00-00-00-00-00-00
         )
       )
     ),
     result ↦ ξ.c.times (
-      x ↦ Φ.org.eolang.float (
+      x ↦ Φ.org.eolang.number (
         as-bytes ↦ Φ.org.eolang.bytes (
           Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
         )
       )
     )
     .plus (
-      x ↦ Φ.org.eolang.float (
+      x ↦ Φ.org.eolang.number (
         as-bytes ↦ Φ.org.eolang.bytes (
           Δ ⤍ 40-40-00-00-00-00-00-00
         )
@@ -507,24 +445,86 @@ Evaluating lambda 'Package' : ⟦
     ),
     λ ⤍ Package
   ⟧
-  .org.eolang.float (
+  .org.eolang.number (
+    as-bytes ↦ Φ.org.eolang.bytes (
+      Δ ⤍ 40-39-00-00-00-00-00-00
+    )
+  )
+)
+.times (
+  x ↦ 1.8
+)
+.plus (
+  x ↦ 32.0
+)
+
+ Phi: ⟦
+  c ↦ Φ.org.eolang.float (
+    as-bytes ↦ Φ.org.eolang.number (
+      as-bytes ↦ Φ.org.eolang.bytes (
+        Δ ⤍ 40-39-00-00-00-00-00-00
+      )
+    )
+  ),
+  result ↦ ξ.c.times (
+    x ↦ Φ.org.eolang.number (
+      as-bytes ↦ Φ.org.eolang.bytes (
+        Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
+      )
+    )
+  )
+  .plus (
+    x ↦ Φ.org.eolang.number (
+      as-bytes ↦ Φ.org.eolang.bytes (
+        Δ ⤍ 40-40-00-00-00-00-00-00
+      )
+    )
+  ),
+  λ ⤍ Package
+⟧
+.org.eolang.float (
+  as-bytes ↦ ⟦
+    c ↦ Φ.org.eolang.float (
+      as-bytes ↦ Φ.org.eolang.number (
+        as-bytes ↦ Φ.org.eolang.bytes (
+          Δ ⤍ 40-39-00-00-00-00-00-00
+        )
+      )
+    ),
+    result ↦ ξ.c.times (
+      x ↦ Φ.org.eolang.number (
+        as-bytes ↦ Φ.org.eolang.bytes (
+          Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
+        )
+      )
+    )
+    .plus (
+      x ↦ Φ.org.eolang.number (
+        as-bytes ↦ Φ.org.eolang.bytes (
+          Δ ⤍ 40-40-00-00-00-00-00-00
+        )
+      )
+    ),
+    λ ⤍ Package
+  ⟧
+  .org.eolang.number (
     as-bytes ↦ ⟦
       c ↦ Φ.org.eolang.float (
-        as-bytes ↦ Φ.org.eolang.float (
+        as-bytes ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 40-39-00-00-00-00-00-00
           )
         )
       ),
       result ↦ ξ.c.times (
-        x ↦ Φ.org.eolang.float (
+        x ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
           )
         )
       )
       .plus (
-        x ↦ Φ.org.eolang.float (
+        x ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 40-40-00-00-00-00-00-00
           )
@@ -544,23 +544,23 @@ Evaluating lambda 'Package' : ⟦
   x ↦ 32.0
 )
 
- Normal form: ⟦
+ NF: ⟦
   c ↦ Φ.org.eolang.float (
-    as-bytes ↦ Φ.org.eolang.float (
+    as-bytes ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-39-00-00-00-00-00-00
       )
     )
   ),
   result ↦ ξ.c.times (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
       )
     )
   )
   .plus (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-40-00-00-00-00-00-00
       )
@@ -571,21 +571,21 @@ Evaluating lambda 'Package' : ⟦
 .org.eolang.float (
   as-bytes ↦ ⟦
     c ↦ Φ.org.eolang.float (
-      as-bytes ↦ Φ.org.eolang.float (
+      as-bytes ↦ Φ.org.eolang.number (
         as-bytes ↦ Φ.org.eolang.bytes (
           Δ ⤍ 40-39-00-00-00-00-00-00
         )
       )
     ),
     result ↦ ξ.c.times (
-      x ↦ Φ.org.eolang.float (
+      x ↦ Φ.org.eolang.number (
         as-bytes ↦ Φ.org.eolang.bytes (
           Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
         )
       )
     )
     .plus (
-      x ↦ Φ.org.eolang.float (
+      x ↦ Φ.org.eolang.number (
         as-bytes ↦ Φ.org.eolang.bytes (
           Δ ⤍ 40-40-00-00-00-00-00-00
         )
@@ -593,24 +593,24 @@ Evaluating lambda 'Package' : ⟦
     ),
     λ ⤍ Package
   ⟧
-  .org.eolang.float (
+  .org.eolang.number (
     as-bytes ↦ ⟦
       c ↦ Φ.org.eolang.float (
-        as-bytes ↦ Φ.org.eolang.float (
+        as-bytes ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 40-39-00-00-00-00-00-00
           )
         )
       ),
       result ↦ ξ.c.times (
-        x ↦ Φ.org.eolang.float (
+        x ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
           )
         )
       )
       .plus (
-        x ↦ Φ.org.eolang.float (
+        x ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 40-40-00-00-00-00-00-00
           )
@@ -632,21 +632,21 @@ Evaluating lambda 'Package' : ⟦
 
   Dataizing inside application: ⟦
   c ↦ Φ.org.eolang.float (
-    as-bytes ↦ Φ.org.eolang.float (
+    as-bytes ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-39-00-00-00-00-00-00
       )
     )
   ),
   result ↦ ξ.c.times (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
       )
     )
   )
   .plus (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-40-00-00-00-00-00-00
       )
@@ -657,21 +657,21 @@ Evaluating lambda 'Package' : ⟦
 .org.eolang.float (
   as-bytes ↦ ⟦
     c ↦ Φ.org.eolang.float (
-      as-bytes ↦ Φ.org.eolang.float (
+      as-bytes ↦ Φ.org.eolang.number (
         as-bytes ↦ Φ.org.eolang.bytes (
           Δ ⤍ 40-39-00-00-00-00-00-00
         )
       )
     ),
     result ↦ ξ.c.times (
-      x ↦ Φ.org.eolang.float (
+      x ↦ Φ.org.eolang.number (
         as-bytes ↦ Φ.org.eolang.bytes (
           Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
         )
       )
     )
     .plus (
-      x ↦ Φ.org.eolang.float (
+      x ↦ Φ.org.eolang.number (
         as-bytes ↦ Φ.org.eolang.bytes (
           Δ ⤍ 40-40-00-00-00-00-00-00
         )
@@ -679,24 +679,24 @@ Evaluating lambda 'Package' : ⟦
     ),
     λ ⤍ Package
   ⟧
-  .org.eolang.float (
+  .org.eolang.number (
     as-bytes ↦ ⟦
       c ↦ Φ.org.eolang.float (
-        as-bytes ↦ Φ.org.eolang.float (
+        as-bytes ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 40-39-00-00-00-00-00-00
           )
         )
       ),
       result ↦ ξ.c.times (
-        x ↦ Φ.org.eolang.float (
+        x ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
           )
         )
       )
       .plus (
-        x ↦ Φ.org.eolang.float (
+        x ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 40-40-00-00-00-00-00-00
           )
@@ -715,21 +715,21 @@ Evaluating lambda 'Package' : ⟦
 .plus
    Dataizing inside dispatch: ⟦
   c ↦ Φ.org.eolang.float (
-    as-bytes ↦ Φ.org.eolang.float (
+    as-bytes ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-39-00-00-00-00-00-00
       )
     )
   ),
   result ↦ ξ.c.times (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
       )
     )
   )
   .plus (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-40-00-00-00-00-00-00
       )
@@ -740,21 +740,21 @@ Evaluating lambda 'Package' : ⟦
 .org.eolang.float (
   as-bytes ↦ ⟦
     c ↦ Φ.org.eolang.float (
-      as-bytes ↦ Φ.org.eolang.float (
+      as-bytes ↦ Φ.org.eolang.number (
         as-bytes ↦ Φ.org.eolang.bytes (
           Δ ⤍ 40-39-00-00-00-00-00-00
         )
       )
     ),
     result ↦ ξ.c.times (
-      x ↦ Φ.org.eolang.float (
+      x ↦ Φ.org.eolang.number (
         as-bytes ↦ Φ.org.eolang.bytes (
           Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
         )
       )
     )
     .plus (
-      x ↦ Φ.org.eolang.float (
+      x ↦ Φ.org.eolang.number (
         as-bytes ↦ Φ.org.eolang.bytes (
           Δ ⤍ 40-40-00-00-00-00-00-00
         )
@@ -762,24 +762,24 @@ Evaluating lambda 'Package' : ⟦
     ),
     λ ⤍ Package
   ⟧
-  .org.eolang.float (
+  .org.eolang.number (
     as-bytes ↦ ⟦
       c ↦ Φ.org.eolang.float (
-        as-bytes ↦ Φ.org.eolang.float (
+        as-bytes ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 40-39-00-00-00-00-00-00
           )
         )
       ),
       result ↦ ξ.c.times (
-        x ↦ Φ.org.eolang.float (
+        x ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
           )
         )
       )
       .plus (
-        x ↦ Φ.org.eolang.float (
+        x ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 40-40-00-00-00-00-00-00
           )
@@ -798,21 +798,21 @@ Evaluating lambda 'Package' : ⟦
 
     Dataizing inside application: ⟦
   c ↦ Φ.org.eolang.float (
-    as-bytes ↦ Φ.org.eolang.float (
+    as-bytes ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-39-00-00-00-00-00-00
       )
     )
   ),
   result ↦ ξ.c.times (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
       )
     )
   )
   .plus (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-40-00-00-00-00-00-00
       )
@@ -823,21 +823,21 @@ Evaluating lambda 'Package' : ⟦
 .org.eolang.float (
   as-bytes ↦ ⟦
     c ↦ Φ.org.eolang.float (
-      as-bytes ↦ Φ.org.eolang.float (
+      as-bytes ↦ Φ.org.eolang.number (
         as-bytes ↦ Φ.org.eolang.bytes (
           Δ ⤍ 40-39-00-00-00-00-00-00
         )
       )
     ),
     result ↦ ξ.c.times (
-      x ↦ Φ.org.eolang.float (
+      x ↦ Φ.org.eolang.number (
         as-bytes ↦ Φ.org.eolang.bytes (
           Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
         )
       )
     )
     .plus (
-      x ↦ Φ.org.eolang.float (
+      x ↦ Φ.org.eolang.number (
         as-bytes ↦ Φ.org.eolang.bytes (
           Δ ⤍ 40-40-00-00-00-00-00-00
         )
@@ -845,24 +845,24 @@ Evaluating lambda 'Package' : ⟦
     ),
     λ ⤍ Package
   ⟧
-  .org.eolang.float (
+  .org.eolang.number (
     as-bytes ↦ ⟦
       c ↦ Φ.org.eolang.float (
-        as-bytes ↦ Φ.org.eolang.float (
+        as-bytes ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 40-39-00-00-00-00-00-00
           )
         )
       ),
       result ↦ ξ.c.times (
-        x ↦ Φ.org.eolang.float (
+        x ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
           )
         )
       )
       .plus (
-        x ↦ Φ.org.eolang.float (
+        x ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 40-40-00-00-00-00-00-00
           )
@@ -878,21 +878,21 @@ Evaluating lambda 'Package' : ⟦
 .times
      Dataizing inside dispatch: ⟦
   c ↦ Φ.org.eolang.float (
-    as-bytes ↦ Φ.org.eolang.float (
+    as-bytes ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-39-00-00-00-00-00-00
       )
     )
   ),
   result ↦ ξ.c.times (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
       )
     )
   )
   .plus (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-40-00-00-00-00-00-00
       )
@@ -903,21 +903,21 @@ Evaluating lambda 'Package' : ⟦
 .org.eolang.float (
   as-bytes ↦ ⟦
     c ↦ Φ.org.eolang.float (
-      as-bytes ↦ Φ.org.eolang.float (
+      as-bytes ↦ Φ.org.eolang.number (
         as-bytes ↦ Φ.org.eolang.bytes (
           Δ ⤍ 40-39-00-00-00-00-00-00
         )
       )
     ),
     result ↦ ξ.c.times (
-      x ↦ Φ.org.eolang.float (
+      x ↦ Φ.org.eolang.number (
         as-bytes ↦ Φ.org.eolang.bytes (
           Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
         )
       )
     )
     .plus (
-      x ↦ Φ.org.eolang.float (
+      x ↦ Φ.org.eolang.number (
         as-bytes ↦ Φ.org.eolang.bytes (
           Δ ⤍ 40-40-00-00-00-00-00-00
         )
@@ -925,24 +925,24 @@ Evaluating lambda 'Package' : ⟦
     ),
     λ ⤍ Package
   ⟧
-  .org.eolang.float (
+  .org.eolang.number (
     as-bytes ↦ ⟦
       c ↦ Φ.org.eolang.float (
-        as-bytes ↦ Φ.org.eolang.float (
+        as-bytes ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 40-39-00-00-00-00-00-00
           )
         )
       ),
       result ↦ ξ.c.times (
-        x ↦ Φ.org.eolang.float (
+        x ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
           )
         )
       )
       .plus (
-        x ↦ Φ.org.eolang.float (
+        x ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 40-40-00-00-00-00-00-00
           )
@@ -958,21 +958,21 @@ Evaluating lambda 'Package' : ⟦
 
       Dataizing inside application: ⟦
   c ↦ Φ.org.eolang.float (
-    as-bytes ↦ Φ.org.eolang.float (
+    as-bytes ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-39-00-00-00-00-00-00
       )
     )
   ),
   result ↦ ξ.c.times (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
       )
     )
   )
   .plus (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-40-00-00-00-00-00-00
       )
@@ -983,21 +983,21 @@ Evaluating lambda 'Package' : ⟦
 .org.eolang.float
        Dataizing inside dispatch: ⟦
   c ↦ Φ.org.eolang.float (
-    as-bytes ↦ Φ.org.eolang.float (
+    as-bytes ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-39-00-00-00-00-00-00
       )
     )
   ),
   result ↦ ξ.c.times (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
       )
     )
   )
   .plus (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-40-00-00-00-00-00-00
       )
@@ -1008,21 +1008,21 @@ Evaluating lambda 'Package' : ⟦
 .org.eolang
         Dataizing inside dispatch: ⟦
   c ↦ Φ.org.eolang.float (
-    as-bytes ↦ Φ.org.eolang.float (
+    as-bytes ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-39-00-00-00-00-00-00
       )
     )
   ),
   result ↦ ξ.c.times (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
       )
     )
   )
   .plus (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-40-00-00-00-00-00-00
       )
@@ -1033,21 +1033,21 @@ Evaluating lambda 'Package' : ⟦
 .org
          Dataizing inside dispatch: ⟦
   c ↦ Φ.org.eolang.float (
-    as-bytes ↦ Φ.org.eolang.float (
+    as-bytes ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-39-00-00-00-00-00-00
       )
     )
   ),
   result ↦ ξ.c.times (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
       )
     )
   )
   .plus (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-40-00-00-00-00-00-00
       )
@@ -1058,21 +1058,21 @@ Evaluating lambda 'Package' : ⟦
 
          Evaluating lambda 'Package' : ⟦
   c ↦ Φ.org.eolang.float (
-    as-bytes ↦ Φ.org.eolang.float (
+    as-bytes ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-39-00-00-00-00-00-00
       )
     )
   ),
   result ↦ ξ.c.times (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
       )
     )
   )
   .plus (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-40-00-00-00-00-00-00
       )
@@ -1083,21 +1083,21 @@ Evaluating lambda 'Package' : ⟦
 
  Dataization changed nothing: ⟦
   c ↦ Φ.org.eolang.float (
-    as-bytes ↦ Φ.org.eolang.float (
+    as-bytes ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-39-00-00-00-00-00-00
       )
     )
   ),
   result ↦ ξ.c.times (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
       )
     )
   )
   .plus (
-    x ↦ Φ.org.eolang.float (
+    x ↦ Φ.org.eolang.number (
       as-bytes ↦ Φ.org.eolang.bytes (
         Δ ⤍ 40-40-00-00-00-00-00-00
       )
@@ -1108,21 +1108,21 @@ Evaluating lambda 'Package' : ⟦
 .org.eolang.float (
   as-bytes ↦ ⟦
     c ↦ Φ.org.eolang.float (
-      as-bytes ↦ Φ.org.eolang.float (
+      as-bytes ↦ Φ.org.eolang.number (
         as-bytes ↦ Φ.org.eolang.bytes (
           Δ ⤍ 40-39-00-00-00-00-00-00
         )
       )
     ),
     result ↦ ξ.c.times (
-      x ↦ Φ.org.eolang.float (
+      x ↦ Φ.org.eolang.number (
         as-bytes ↦ Φ.org.eolang.bytes (
           Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
         )
       )
     )
     .plus (
-      x ↦ Φ.org.eolang.float (
+      x ↦ Φ.org.eolang.number (
         as-bytes ↦ Φ.org.eolang.bytes (
           Δ ⤍ 40-40-00-00-00-00-00-00
         )
@@ -1130,24 +1130,24 @@ Evaluating lambda 'Package' : ⟦
     ),
     λ ⤍ Package
   ⟧
-  .org.eolang.float (
+  .org.eolang.number (
     as-bytes ↦ ⟦
       c ↦ Φ.org.eolang.float (
-        as-bytes ↦ Φ.org.eolang.float (
+        as-bytes ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 40-39-00-00-00-00-00-00
           )
         )
       ),
       result ↦ ξ.c.times (
-        x ↦ Φ.org.eolang.float (
+        x ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
           )
         )
       )
       .plus (
-        x ↦ Φ.org.eolang.float (
+        x ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 40-40-00-00-00-00-00-00
           )
@@ -1170,21 +1170,21 @@ Evaluating lambda 'Package' : ⟦
 Dataized 'Package' siblings: ⟦
   c ↦ ⟦
     c ↦ Φ.org.eolang.float (
-      as-bytes ↦ Φ.org.eolang.float (
+      as-bytes ↦ Φ.org.eolang.number (
         as-bytes ↦ Φ.org.eolang.bytes (
           Δ ⤍ 40-39-00-00-00-00-00-00
         )
       )
     ),
     result ↦ ξ.c.times (
-      x ↦ Φ.org.eolang.float (
+      x ↦ Φ.org.eolang.number (
         as-bytes ↦ Φ.org.eolang.bytes (
           Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
         )
       )
     )
     .plus (
-      x ↦ Φ.org.eolang.float (
+      x ↦ Φ.org.eolang.number (
         as-bytes ↦ Φ.org.eolang.bytes (
           Δ ⤍ 40-40-00-00-00-00-00-00
         )
@@ -1197,21 +1197,21 @@ Dataized 'Package' siblings: ⟦
   ),
   result ↦ ⟦
     c ↦ Φ.org.eolang.float (
-      as-bytes ↦ Φ.org.eolang.float (
+      as-bytes ↦ Φ.org.eolang.number (
         as-bytes ↦ Φ.org.eolang.bytes (
           Δ ⤍ 40-39-00-00-00-00-00-00
         )
       )
     ),
     result ↦ ξ.c.times (
-      x ↦ Φ.org.eolang.float (
+      x ↦ Φ.org.eolang.number (
         as-bytes ↦ Φ.org.eolang.bytes (
           Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
         )
       )
     )
     .plus (
-      x ↦ Φ.org.eolang.float (
+      x ↦ Φ.org.eolang.number (
         as-bytes ↦ Φ.org.eolang.bytes (
           Δ ⤍ 40-40-00-00-00-00-00-00
         )
@@ -1222,21 +1222,21 @@ Dataized 'Package' siblings: ⟦
   .org.eolang.float (
     as-bytes ↦ ⟦
       c ↦ Φ.org.eolang.float (
-        as-bytes ↦ Φ.org.eolang.float (
+        as-bytes ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 40-39-00-00-00-00-00-00
           )
         )
       ),
       result ↦ ξ.c.times (
-        x ↦ Φ.org.eolang.float (
+        x ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
           )
         )
       )
       .plus (
-        x ↦ Φ.org.eolang.float (
+        x ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 40-40-00-00-00-00-00-00
           )
@@ -1244,24 +1244,24 @@ Dataized 'Package' siblings: ⟦
       ),
       λ ⤍ Package
     ⟧
-    .org.eolang.float (
+    .org.eolang.number (
       as-bytes ↦ ⟦
         c ↦ Φ.org.eolang.float (
-          as-bytes ↦ Φ.org.eolang.float (
+          as-bytes ↦ Φ.org.eolang.number (
             as-bytes ↦ Φ.org.eolang.bytes (
               Δ ⤍ 40-39-00-00-00-00-00-00
             )
           )
         ),
         result ↦ ξ.c.times (
-          x ↦ Φ.org.eolang.float (
+          x ↦ Φ.org.eolang.number (
             as-bytes ↦ Φ.org.eolang.bytes (
               Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
             )
           )
         )
         .plus (
-          x ↦ Φ.org.eolang.float (
+          x ↦ Φ.org.eolang.number (
             as-bytes ↦ Φ.org.eolang.bytes (
               Δ ⤍ 40-40-00-00-00-00-00-00
             )
@@ -1307,21 +1307,21 @@ eo-phi-normalizer dataize --recursive --rules eo-phi-normalizer/test/eo/phi/rule
   ⟦
     c ↦ ⟦
       c ↦ Φ.org.eolang.float (
-        as-bytes ↦ Φ.org.eolang.float (
+        as-bytes ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 40-39-00-00-00-00-00-00
           )
         )
       ),
       result ↦ ξ.c.times (
-        x ↦ Φ.org.eolang.float (
+        x ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
           )
         )
       )
       .plus (
-        x ↦ Φ.org.eolang.float (
+        x ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 40-40-00-00-00-00-00-00
           )
@@ -1334,21 +1334,21 @@ eo-phi-normalizer dataize --recursive --rules eo-phi-normalizer/test/eo/phi/rule
     ),
     result ↦ ⟦
       c ↦ Φ.org.eolang.float (
-        as-bytes ↦ Φ.org.eolang.float (
+        as-bytes ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 40-39-00-00-00-00-00-00
           )
         )
       ),
       result ↦ ξ.c.times (
-        x ↦ Φ.org.eolang.float (
+        x ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
           )
         )
       )
       .plus (
-        x ↦ Φ.org.eolang.float (
+        x ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 40-40-00-00-00-00-00-00
           )
@@ -1359,21 +1359,21 @@ eo-phi-normalizer dataize --recursive --rules eo-phi-normalizer/test/eo/phi/rule
     .org.eolang.float (
       as-bytes ↦ ⟦
         c ↦ Φ.org.eolang.float (
-          as-bytes ↦ Φ.org.eolang.float (
+          as-bytes ↦ Φ.org.eolang.number (
             as-bytes ↦ Φ.org.eolang.bytes (
               Δ ⤍ 40-39-00-00-00-00-00-00
             )
           )
         ),
         result ↦ ξ.c.times (
-          x ↦ Φ.org.eolang.float (
+          x ↦ Φ.org.eolang.number (
             as-bytes ↦ Φ.org.eolang.bytes (
               Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
             )
           )
         )
         .plus (
-          x ↦ Φ.org.eolang.float (
+          x ↦ Φ.org.eolang.number (
             as-bytes ↦ Φ.org.eolang.bytes (
               Δ ⤍ 40-40-00-00-00-00-00-00
             )
@@ -1381,24 +1381,24 @@ eo-phi-normalizer dataize --recursive --rules eo-phi-normalizer/test/eo/phi/rule
         ),
         λ ⤍ Package
       ⟧
-      .org.eolang.float (
+      .org.eolang.number (
         as-bytes ↦ ⟦
           c ↦ Φ.org.eolang.float (
-            as-bytes ↦ Φ.org.eolang.float (
+            as-bytes ↦ Φ.org.eolang.number (
               as-bytes ↦ Φ.org.eolang.bytes (
                 Δ ⤍ 40-39-00-00-00-00-00-00
               )
             )
           ),
           result ↦ ξ.c.times (
-            x ↦ Φ.org.eolang.float (
+            x ↦ Φ.org.eolang.number (
               as-bytes ↦ Φ.org.eolang.bytes (
                 Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
               )
             )
           )
           .plus (
-            x ↦ Φ.org.eolang.float (
+            x ↦ Φ.org.eolang.number (
               as-bytes ↦ Φ.org.eolang.bytes (
                 Δ ⤍ 40-40-00-00-00-00-00-00
               )
@@ -1487,21 +1487,21 @@ cat celsius.phi | eo-phi-normalizer dataize --recursive --rules ./eo-phi-normali
   ⟦
     c ↦ ⟦
       c ↦ Φ.org.eolang.float (
-        as-bytes ↦ Φ.org.eolang.float (
+        as-bytes ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 40-39-00-00-00-00-00-00
           )
         )
       ),
       result ↦ ξ.c.times (
-        x ↦ Φ.org.eolang.float (
+        x ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
           )
         )
       )
       .plus (
-        x ↦ Φ.org.eolang.float (
+        x ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 40-40-00-00-00-00-00-00
           )
@@ -1514,21 +1514,21 @@ cat celsius.phi | eo-phi-normalizer dataize --recursive --rules ./eo-phi-normali
     ),
     result ↦ ⟦
       c ↦ Φ.org.eolang.float (
-        as-bytes ↦ Φ.org.eolang.float (
+        as-bytes ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 40-39-00-00-00-00-00-00
           )
         )
       ),
       result ↦ ξ.c.times (
-        x ↦ Φ.org.eolang.float (
+        x ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
           )
         )
       )
       .plus (
-        x ↦ Φ.org.eolang.float (
+        x ↦ Φ.org.eolang.number (
           as-bytes ↦ Φ.org.eolang.bytes (
             Δ ⤍ 40-40-00-00-00-00-00-00
           )
@@ -1539,21 +1539,21 @@ cat celsius.phi | eo-phi-normalizer dataize --recursive --rules ./eo-phi-normali
     .org.eolang.float (
       as-bytes ↦ ⟦
         c ↦ Φ.org.eolang.float (
-          as-bytes ↦ Φ.org.eolang.float (
+          as-bytes ↦ Φ.org.eolang.number (
             as-bytes ↦ Φ.org.eolang.bytes (
               Δ ⤍ 40-39-00-00-00-00-00-00
             )
           )
         ),
         result ↦ ξ.c.times (
-          x ↦ Φ.org.eolang.float (
+          x ↦ Φ.org.eolang.number (
             as-bytes ↦ Φ.org.eolang.bytes (
               Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
             )
           )
         )
         .plus (
-          x ↦ Φ.org.eolang.float (
+          x ↦ Φ.org.eolang.number (
             as-bytes ↦ Φ.org.eolang.bytes (
               Δ ⤍ 40-40-00-00-00-00-00-00
             )
@@ -1561,24 +1561,24 @@ cat celsius.phi | eo-phi-normalizer dataize --recursive --rules ./eo-phi-normali
         ),
         λ ⤍ Package
       ⟧
-      .org.eolang.float (
+      .org.eolang.number (
         as-bytes ↦ ⟦
           c ↦ Φ.org.eolang.float (
-            as-bytes ↦ Φ.org.eolang.float (
+            as-bytes ↦ Φ.org.eolang.number (
               as-bytes ↦ Φ.org.eolang.bytes (
                 Δ ⤍ 40-39-00-00-00-00-00-00
               )
             )
           ),
           result ↦ ξ.c.times (
-            x ↦ Φ.org.eolang.float (
+            x ↦ Φ.org.eolang.number (
               as-bytes ↦ Φ.org.eolang.bytes (
                 Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
               )
             )
           )
           .plus (
-            x ↦ Φ.org.eolang.float (
+            x ↦ Φ.org.eolang.number (
               as-bytes ↦ Φ.org.eolang.bytes (
                 Δ ⤍ 40-40-00-00-00-00-00-00
               )
