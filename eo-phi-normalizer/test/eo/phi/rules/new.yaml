@@ -31,7 +31,8 @@ rules:
       ⌈ !b , ⟦ !τ ↦ !b, !B ⟧ ⌉(ρ ↦ ⟦ !τ ↦ !b, !B ⟧)
     when:
       - nf: '!b'
-      - nf: '⟦ !B ⟧' #TODO: change the condition, every object in !B should be in the nf
+      # TODO #636:30min Change the condition, every object in !B should be in the nf
+      - nf: '⟦ !B ⟧'
     tests:
       - name: 'Contextualization changes ξ'
         input: ⟦ a ↦ ξ ⟧.a
@@ -80,7 +81,6 @@ rules:
         output: ['⟦ a ↦ ⟦ b ↦ ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ) ⟧ ⟧ ().a ⟧']
       - name: Phi Paper - Example E1
         input: ⟦ k ↦ ⟦ x ↦ ξ.t, t ↦ ∅ ⟧(t ↦ ⟦ρ ↦ ⟦⟧⟧) ⟧
-        # output: ['⟦ k ↦ ⟦ x ↦ ξ.t, t ↦ ⟦ρ ↦ ⟦⟧⟧ ⟧() ⟧']
         output: ['⟦ k ↦ ⟦ t ↦ ⟦ρ ↦ ⟦⟧⟧, x ↦ ξ.t ⟧() ⟧']
       - name: Phi Paper - Example E4 - dispatch on y
         input: ⟦ k ↦ ⟦ x ↦ ∅, y ↦ ξ.x ⟧(x ↦ ⟦ρ ↦ ⟦⟧⟧).y ⟧
@@ -124,7 +124,7 @@ rules:
         input: ⟦ m ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧.t(ρ ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧) ⟧
         output: ['⟦ m ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧.φ.t(ρ ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧) ⟧']
 
-  # there's no B2 in the result
+  # TODO #636:30min There's no B2 in the result
   - name: STAY
     description: 'Application of a ρ-binding when ρ already exists'
     pattern: |
