@@ -12,9 +12,9 @@ Currently, the `eo-phi-normalizer` supports rules defined in an unpublished pape
 
 ![Rules](media/rules.jpg)
 
-## yegor.yaml
+## new.yaml
 
-The rules are defined in [yegor.yaml](https://github.com/objectionary/eo-phi-normalizer/blob/master/eo-phi-normalizer/test/eo/phi/rules/yegor.yaml).
+The rules are defined in [new.yaml](https://github.com/objectionary/eo-phi-normalizer/blob/master/eo-phi-normalizer/test/eo/phi/rules/new.yaml).
 
 Each rule has the following structure:
 
