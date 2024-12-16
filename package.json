@@ -1,7 +1,7 @@
 {
     "name": "eo-phi-normalizer",
     "devDependencies": {
-        "eolang": "^0.24.0",
+        "eolang": "^0.28.0",
         "prettier": "^3.2.5"
     }
 }
