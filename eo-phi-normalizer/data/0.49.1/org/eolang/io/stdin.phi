@@ -1,0 +1,45 @@
+{⟦
+  org ↦ ⟦
+    eolang ↦ ⟦
+      io ↦ ⟦
+        stdin ↦ ⟦
+          φ ↦ ξ.all-lines,
+          all-lines ↦ ⟦
+            φ ↦ ξ.rec-read(ξ.ρ.next-line, Φ̇.bytes(⟦ Δ ⤍ -- ⟧), Φ̇.true),
+            separator ↦ Φ̇.dataized(Φ̇.sys.line-separator).as-bytes,
+            rec-read(line, buffer, first) ↦ ⟦
+              φ ↦ ξ.line.length.eq(0).if(
+                Φ̇.string(ξ.buffer),
+                ξ.ρ.rec-read(
+                  ξ.ρ.ρ.next-line,
+                  ξ.first.if(
+                    ξ.buffer.concat(ξ.line), ξ.buffer.concat(ξ.ρ.separator).concat(ξ.line)
+                  ),
+                  Φ̇.false
+                )
+              )
+            ⟧
+          ⟧,
+          next-line ↦ ⟦
+            first ↦ Φ̇.io.console.read(1).self,
+            φ ↦ ξ.first.as-bytes.size.eq(0).if(
+              "", ξ.rec-read(ξ.first, Φ̇.bytes(⟦ Δ ⤍ -- ⟧))
+            ),
+            rec-read(input, buffer) ↦ ⟦
+              char ↦ ξ.input.as-bytes,
+              next ↦ ξ.input.read(1).self,
+              φ ↦ ξ.char.eq(Φ̇.bytes(⟦ Δ ⤍ -- ⟧)).or(
+                ξ.char.eq("\r").and(ξ.next.as-bytes.eq("\n")).or(ξ.char.eq("\n"))
+              ).if(
+                Φ̇.string(ξ.buffer), ξ.ρ.rec-read(ξ.next, ξ.buffer.concat(ξ.char))
+              )
+            ⟧
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}
