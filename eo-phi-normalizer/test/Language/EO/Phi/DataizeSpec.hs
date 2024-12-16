@@ -62,7 +62,7 @@ getProgram inputFile = do
 spec :: Spec
 spec = do
   DataizeTestGroup{..} <- runIO (dataizationTests "test/eo/phi/dataization.yaml")
-  ruleset <- runIO $ parseRuleSetFromFile "test/eo/phi/rules/yegor.yaml"
+  ruleset <- runIO $ parseRuleSetFromFile "test/eo/phi/rules/new.yaml"
   let rules = map convertRuleNamed ruleset.rules
   describe title $
     forM_ tests $

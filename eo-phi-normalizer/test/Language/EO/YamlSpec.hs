@@ -31,7 +31,6 @@ import Test.Hspec (Spec)
 spec :: Spec
 spec =
   Test.spec
-    [ "test/eo/phi/rules/yegor.yaml"
-    , "test/eo/phi/rules/new.yaml"
+    [ "test/eo/phi/rules/new.yaml"
     , "test/eo/phi/rules/streams.yaml"
     ]

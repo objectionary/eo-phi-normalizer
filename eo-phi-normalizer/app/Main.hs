@@ -275,6 +275,8 @@ data CommandParser = CommandParser
   , test :: Parser CLI'Test
   }
 
+rulesFile = "new.yaml"
+
 commandParser :: CommandParser
 commandParser =
   CommandParser{..}
@@ -285,7 +287,7 @@ commandParser =
     bindingsPath <- bindingsPathOption
     pure CLI'MetricsPhi{..}
   printRules = do
-    rulesPath <- optional $ strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. If unspecified, yegor.yaml is rendered.|])
+    rulesPath <- optional $ strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. If unspecified, {rulesFile} is rendered.|])
     latex <- latexSwitch
     compact <- compactSwitch
     pure CLI'PrintRules{..}
@@ -600,7 +602,7 @@ main = withCorrectLocale do
           -- Temporary hack while rules are not stabilized.
           -- Nothing -> return (True, "Yegor's rules (builtin)", [fastYegorInsideOutAsRule])
           Nothing -> do
-            ruleSet :: RuleSet <- decodeThrow $(embedFileRelative "test/eo/phi/rules/new.yaml")
+            ruleSet :: RuleSet <- decodeThrow $(embedFileRelative [fmt|test/eo/phi/rules/{rulesFile}|])
             return (False, ruleSet.title, convertRuleNamed <$> ruleSet.rules)
       unless (single || json || latex) $ logStrLn ruleSetTitle
       bindingsWithDeps <- case deepMergePrograms (program' : deps) of
