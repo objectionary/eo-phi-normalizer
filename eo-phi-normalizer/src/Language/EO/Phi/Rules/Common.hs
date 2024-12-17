@@ -27,6 +27,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GeneralisedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
@@ -41,6 +42,8 @@ import Data.List (minimumBy, nubBy, sortOn)
 import Data.List.NonEmpty (NonEmpty (..), (<|))
 import Data.Ord (comparing)
 import Language.EO.Phi.Syntax
+import Language.EO.Phi.Syntax.Print qualified as Phi
+import PyF (fmt)
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -183,28 +186,34 @@ defaultApplicationLimits sourceTermSize =
     , maxTermSize = sourceTermSize * 10000
     }
 
+errorExpected :: (Phi.Print a) => a -> String -> b
+errorExpected obj what = error [fmt|impossible: expected {what}, but got:\n{printTree obj}|]
+
+errorExpectedDesugared :: (Phi.Print a) => a -> b
+errorExpectedDesugared obj = errorExpected obj "a desugared object"
+
+errorExpectedWithoutMetavars :: (Phi.Print a) => a -> b
+errorExpectedWithoutMetavars obj = errorExpected obj "an object without metavariables"
+
 objectSize :: Object -> Int
 objectSize = \case
   Formation bindings -> 1 + sum (map bindingSize bindings)
   Application obj bindings -> 1 + objectSize obj + sum (map bindingSize bindings)
   ObjectDispatch obj _attr -> 1 + objectSize obj
   GlobalObject -> 1
-  -- TODO #617:30m
-  -- @fizruk, why desugar here and not assume the object is desugared?
-  -- Is it because we sometimes bounce between sugared and desugared versions?
-  --
-  -- Should we introduce a smart constructor with a desugared object inside?
-  obj@GlobalObjectPhiOrg -> objectSize (desugar obj)
   ThisObject -> 1
   Termination -> 1
-  obj@MetaObject{} -> error ("impossible: expected a desugared object, but got: " <> printTree obj)
-  obj@MetaFunction{} -> error ("impossible: expected a desugared object, but got: " <> printTree obj)
-  obj@MetaSubstThis{} -> error ("impossible: expected a desugared object, but got: " <> printTree obj)
-  obj@MetaContextualize{} -> error ("impossible: expected a desugared object, but got: " <> printTree obj)
-  obj@MetaTailContext{} -> error ("impossible: expected a desugared object, but got: " <> printTree obj)
-  obj@ConstString{} -> objectSize (desugar obj)
-  obj@ConstInt{} -> objectSize (desugar obj)
-  obj@ConstFloat{} -> objectSize (desugar obj)
+  -- Sugar
+  obj@GlobalObjectPhiOrg -> errorExpectedDesugared obj
+  obj@ConstString{} -> errorExpectedDesugared obj
+  obj@ConstInt{} -> errorExpectedDesugared obj
+  obj@ConstFloat{} -> errorExpectedDesugared obj
+  -- Metavariables
+  obj@MetaObject{} -> errorExpectedWithoutMetavars obj
+  obj@MetaFunction{} -> errorExpectedWithoutMetavars obj
+  obj@MetaSubstThis{} -> errorExpectedWithoutMetavars obj
+  obj@MetaContextualize{} -> errorExpectedWithoutMetavars obj
+  obj@MetaTailContext{} -> errorExpectedWithoutMetavars obj
 
 bindingSize :: Binding -> Int
 bindingSize = \case
@@ -213,8 +222,9 @@ bindingSize = \case
   DeltaBinding _bytes -> 1
   DeltaEmptyBinding -> 1
   LambdaBinding _lam -> 1
-  obj@MetaDeltaBinding{} -> error ("impossible: expected a desugared object, but got: " <> printTree obj)
-  obj@MetaBindings{} -> error ("impossible: expected a desugared object, but got: " <> printTree obj)
+  -- Metavariables
+  obj@MetaDeltaBinding{} -> errorExpectedDesugared obj
+  obj@MetaBindings{} -> errorExpectedDesugared obj
 
 -- | A variant of `applyRules` with a maximum application depth.
 applyRulesWith :: ApplicationLimits -> Context -> Object -> [Object]

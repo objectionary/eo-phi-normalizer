@@ -205,14 +205,15 @@ fastYegorInsideOut ctx = \case
                       AlphaBinding a (fastYegorInsideOut ctx' objA)
                     _ -> binding
           ]
-  -- TODO #617:30m Should this be error?
-  obj@GlobalObjectPhiOrg -> fastYegorInsideOut ctx (desugar obj)
   Termination -> Termination
-  MetaSubstThis{} -> error "impossible MetaSubstThis!"
-  MetaContextualize{} -> error "impossible MetaContextualize!"
-  MetaObject{} -> error "impossible MetaObject!"
-  MetaTailContext{} -> error "impossible MetaTailContext!"
-  MetaFunction{} -> error "impossible MetaFunction!"
-  obj@ConstString{} -> obj -- fastYegorInsideOut ctx (desugar obj)
-  obj@ConstInt{} -> obj -- fastYegorInsideOut ctx (desugar obj)
-  obj@ConstFloat{} -> obj -- fastYegorInsideOut ctx (desugar obj)
+  -- Sugar
+  obj@GlobalObjectPhiOrg -> errorExpectedDesugared obj
+  obj@ConstString{} -> errorExpectedDesugared obj
+  obj@ConstInt{} -> errorExpectedDesugared obj
+  obj@ConstFloat{} -> errorExpectedDesugared obj
+  -- Metavariables
+  obj@MetaSubstThis{} -> errorExpectedWithoutMetavars obj
+  obj@MetaContextualize{} -> errorExpectedWithoutMetavars obj
+  obj@MetaObject{} -> errorExpectedWithoutMetavars obj
+  obj@MetaTailContext{} -> errorExpectedWithoutMetavars obj
+  obj@MetaFunction{} -> errorExpectedWithoutMetavars obj

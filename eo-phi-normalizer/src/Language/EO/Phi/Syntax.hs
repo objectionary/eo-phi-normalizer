@@ -21,6 +21,8 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 {- FOURMOLU_ENABLE -}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
@@ -29,7 +31,6 @@
 
 module Language.EO.Phi.Syntax (
   module Language.EO.Phi.Syntax.Abs,
-  desugar,
   printTree,
   shrinkDots,
 
@@ -86,6 +87,7 @@ import Data.String (IsString (fromString))
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as Text
 import GHC.Float (isDoubleFinite)
+import Language.EO.Phi.Sugar (Desugarable (..), desugarSugared, desugarUnsafe, sugarUnsafe)
 import Language.EO.Phi.Syntax.Abs
 import Language.EO.Phi.Syntax.Lex (Token)
 import Language.EO.Phi.Syntax.Par
@@ -99,30 +101,43 @@ import Text.Read (readMaybe)
 -- >>> :set -XOverloadedStrings
 -- >>> :set -XOverloadedLists
 
-desugar :: Object -> Object
-desugar = \case
-  ConstString string -> wrapBytesInString (stringToBytes string)
-  ConstInt n -> wrapBytesInInt (intToBytes (fromInteger n))
-  ConstFloat x -> wrapBytesInFloat (floatToBytes x)
-  Formation bindings -> Formation (map desugarBinding bindings)
-  Application obj bindings -> Application (desugar obj) (map desugarBinding bindings)
-  ObjectDispatch obj a -> ObjectDispatch (desugar obj) a
-  GlobalObject -> GlobalObject
-  GlobalObjectPhiOrg -> ObjectDispatch (ObjectDispatch GlobalObject (Label (LabelId "org"))) (Label (LabelId "eolang"))
-  ThisObject -> ThisObject
-  Termination -> Termination
-  MetaSubstThis obj this -> MetaSubstThis (desugar obj) (desugar this)
-  obj@MetaObject{} -> obj
-  MetaContextualize obj1 obj2 -> MetaContextualize (desugar obj1) (desugar obj2)
-  MetaTailContext obj metaId -> MetaTailContext (desugar obj) metaId
-  MetaFunction name obj -> MetaFunction name (desugar obj)
+-- >>> "77.0" :: Object
+-- Application (ObjectDispatch (ObjectDispatch (ObjectDispatch GlobalObject (Label (LabelId "org"))) (Label (LabelId "eolang"))) (Label (LabelId "number"))) [AlphaBinding (Label (LabelId "as-bytes")) (Application (ObjectDispatch (ObjectDispatch (ObjectDispatch GlobalObject (Label (LabelId "org"))) (Label (LabelId "eolang"))) (Label (LabelId "bytes"))) [DeltaBinding (Bytes "40-53-40-00-00-00-00-00")])]
 
-desugarBinding :: Binding -> Binding
-desugarBinding = \case
-  AlphaBinding a obj -> AlphaBinding a (desugar obj)
-  binding -> binding
+instance Desugarable Object where
+  desugar s =
+    case desugarUnsafe s of
+      Formation bindings -> Formation (map desugarSugared bindings)
+      Application obj bindings -> Application (desugarSugared obj) (map desugarSugared bindings)
+      ObjectDispatch obj a -> ObjectDispatch (desugarSugared obj) a
+      GlobalObject -> GlobalObject
+      ThisObject -> ThisObject
+      Termination -> Termination
+      MetaSubstThis obj this -> MetaSubstThis (desugarSugared obj) (desugarSugared this)
+      obj@MetaObject{} -> obj
+      MetaContextualize obj1 obj2 -> MetaContextualize (desugarSugared obj1) (desugarSugared obj2)
+      MetaTailContext obj metaId -> MetaTailContext (desugarSugared obj) metaId
+      MetaFunction name obj -> MetaFunction name (desugarSugared obj)
+      -- Sugar
+      GlobalObjectPhiOrg -> "Φ.org.eolang"
+      ConstString string -> wrapBytesInString (stringToBytes string)
+      ConstInt n -> wrapBytesInInt (intToBytes (fromInteger n))
+      ConstFloat x -> wrapBytesInFloat (floatToBytes x)
 
--- MetaSubstThis
+instance Desugarable Binding where
+  desugar s =
+    case desugarUnsafe s of
+      AlphaBinding a obj -> AlphaBinding a (desugarSugared obj)
+      binding -> binding
+
+instance Desugarable Program where
+  desugar s =
+    case desugarUnsafe s of
+      Program bindings -> Program (fmap desugarSugared bindings)
+
+-- TODO #617:30m Define other instances
+instance {-# OVERLAPPABLE #-} Desugarable a where
+  desugar = desugarUnsafe
 
 wrapBytesInInt :: Bytes -> Object
 wrapBytesInInt (Bytes bytes) = [fmt|Φ.org.eolang.i64(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes}))|]
@@ -607,15 +622,15 @@ instance IsString ObjectHead where fromString = unsafeParseWith pObjectHead
 
 instance IsString MetaId where fromString = unsafeParseWith pMetaId
 
-parseWith :: ([Token] -> Either String a) -> String -> Either String a
-parseWith parser input = either (\x -> Left [fmt|{x}\non the input:\n{input}|]) Right parsed
+parseWith :: (Desugarable a) => ([Token] -> Either String a) -> String -> Either String a
+parseWith parser input = either (\x -> Left [fmt|{x}\non the input:\n{input}|]) (Right . desugar . sugarUnsafe) parsed
  where
   tokens = myLexer input
   parsed = parser tokens
 
--- | Parse a 'Object' from a 'String'.
+-- | Parse an 'Object' from a 'String'.
 -- May throw an 'error` if input has a syntactical or lexical errors.
-unsafeParseWith :: ([Token] -> Either String a) -> String -> a
+unsafeParseWith :: (Desugarable a) => ([Token] -> Either String a) -> String -> a
 unsafeParseWith parser input =
   case parseWith parser input of
     Left parseError -> error parseError
