@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -Wno-redundant-constraints #-}
 
-module Language.EO.Phi.Sugar (desugarUnsafe, sugarUnsafe, desugarSugared, Sugared, Desugarable(..), Sugarable(..)) where
+module Language.EO.Phi.Sugar (desugarUnsafe, sugarUnsafe, desugarSugared, Sugared, Desugarable (..), Sugarable (..)) where
 
 newtype Sugared a = Sugared a
 
