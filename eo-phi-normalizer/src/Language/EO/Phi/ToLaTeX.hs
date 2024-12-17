@@ -76,6 +76,7 @@ instance ToLatex Object where
   toLatex (ObjectDispatch obj attr) =
     toLatex obj <> "." <> toLatex attr
   toLatex GlobalObject = "Q"
+  toLatex GlobalObjectPhiOrg = "QQ"
   toLatex ThisObject = "\\xi"
   toLatex Termination = "\\dead"
   toLatex (MetaObject (ObjectMetaId metaId)) = LaTeX metaId

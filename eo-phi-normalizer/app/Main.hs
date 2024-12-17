@@ -556,9 +556,10 @@ wrapRawBytesIn = \case
       ]
   ObjectDispatch obj a ->
     ObjectDispatch (wrapRawBytesIn obj) a
-  GlobalObject -> GlobalObject
-  ThisObject -> ThisObject
   Termination -> wrapTermination
+  obj@GlobalObject -> obj
+  obj@GlobalObjectPhiOrg -> obj
+  obj@ThisObject -> obj
   obj@MetaSubstThis{} -> obj
   obj@MetaContextualize{} -> obj
   obj@MetaObject{} -> obj

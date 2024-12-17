@@ -228,6 +228,7 @@ usedLabelIds Context{..} = objectLabelIds globalObject
 objectLabelIds :: Object -> Set LabelId
 objectLabelIds = \case
   GlobalObject -> mempty
+  obj@GlobalObjectPhiOrg -> objectLabelIds (desugar obj)
   ThisObject -> mempty
   Formation bindings -> foldMap bindingLabelIds bindings
   ObjectDispatch obj a -> objectLabelIds obj <> attrLabelIds a
@@ -278,6 +279,7 @@ objectMetaIds (Formation bindings) = foldMap bindingMetaIds bindings
 objectMetaIds (Application object bindings) = objectMetaIds object <> foldMap bindingMetaIds bindings
 objectMetaIds (ObjectDispatch object attr) = objectMetaIds object <> attrMetaIds attr
 objectMetaIds GlobalObject = mempty
+objectMetaIds GlobalObjectPhiOrg = mempty
 objectMetaIds ThisObject = mempty
 objectMetaIds Termination = mempty
 objectMetaIds (MetaObject x) = Set.singleton (MetaIdObject x)
@@ -310,6 +312,7 @@ objectHasMetavars (Formation bindings) = any bindingHasMetavars bindings
 objectHasMetavars (Application object bindings) = objectHasMetavars object || any bindingHasMetavars bindings
 objectHasMetavars (ObjectDispatch object attr) = objectHasMetavars object || attrHasMetavars attr
 objectHasMetavars GlobalObject = False
+objectHasMetavars GlobalObjectPhiOrg = False
 objectHasMetavars ThisObject = False
 objectHasMetavars Termination = False
 objectHasMetavars (MetaObject _) = True
@@ -436,6 +439,7 @@ applySubst subst@Subst{..} = \case
   ObjectDispatch obj a ->
     ObjectDispatch (applySubst subst obj) (applySubstAttr subst a)
   GlobalObject -> GlobalObject
+  obj@GlobalObjectPhiOrg -> applySubst subst (desugar obj)
   ThisObject -> ThisObject
   obj@(MetaObject x) -> fromMaybe obj $ lookup x objectMetas
   Termination -> Termination
@@ -522,7 +526,8 @@ matchOneHoleContext ctxId pat obj = matchWhole <> matchPart
     ConstString{} -> []
     ConstInt{} -> []
     ConstFloat{} -> []
-    -- should cases below be errors?
+    -- TODO #617:30m Should cases below be errors?
+    GlobalObjectPhiOrg -> []
     MetaSubstThis{} -> []
     MetaContextualize{} -> []
     MetaObject{} -> []
@@ -629,6 +634,7 @@ substThis thisObj = go
     Application obj bindings -> Application (go obj) (map (substThisBinding thisObj) bindings)
     ObjectDispatch obj a -> ObjectDispatch (go obj) a
     GlobalObject -> GlobalObject
+    obj@GlobalObjectPhiOrg -> go (desugar obj)
     Termination -> Termination
     obj@MetaTailContext{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
     obj@MetaContextualize{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
@@ -662,6 +668,7 @@ contextualize thisObj = go
     ObjectDispatch obj a -> ObjectDispatch (go obj) a
     Application obj bindings -> Application (go obj) (map (contextualizeBinding thisObj) bindings)
     GlobalObject -> GlobalObject -- TODO: Change to what GlobalObject is attached to
+    obj@GlobalObjectPhiOrg -> go (desugar obj) -- TODO: Change to what GlobalObject is attached to
     Termination -> Termination
     obj@MetaTailContext{} -> error ("impossible: trying to contextualize " <> printTree obj)
     obj@MetaContextualize{} -> error ("impossible: trying to contextualize " <> printTree obj)

@@ -71,6 +71,7 @@ peelObject = \case
   Application object bindings -> peelObject object `followedBy` ActionApplication bindings
   ObjectDispatch object attr -> peelObject object `followedBy` ActionDispatch attr
   GlobalObject -> PeeledObject HeadGlobal []
+  obj@GlobalObjectPhiOrg -> peelObject (desugar obj)
   ThisObject -> PeeledObject HeadThis []
   Termination -> PeeledObject HeadTermination []
   MetaObject _ -> PeeledObject HeadTermination []

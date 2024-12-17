@@ -29,7 +29,7 @@ tests:
     input: |
       {⟦
         c ↦ Φ.org.eolang.number(
-          as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ 40-39-00-00-00-00-00-00)
+          as-bytes ↦ Φ̇.bytes(Δ ⤍ 40-39-00-00-00-00-00-00)
         ), // 25.0
         φ ↦ ξ.c.times(x ↦ ⟦ Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD ⟧)  // 1.8
               .plus(x ↦ ⟦ Δ ⤍ 40-40-00-00-00-00-00-00 ⟧), // 32.0
@@ -43,7 +43,7 @@ tests:
       - ./data/0.41.2/org/eolang/true.phi
       - ./data/0.41.2/org/eolang/false.phi
     input: |
-      {⟦ φ ↦ Φ.org.eolang.true.eq(α0 ↦ Φ.org.eolang.true) ⟧}
+      {⟦ φ ↦ Φ.org.eolang.true.eq(α0 ↦ Φ̇.true) ⟧}
     output:
       bytes: "01-"
 

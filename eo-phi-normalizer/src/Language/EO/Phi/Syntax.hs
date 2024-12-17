@@ -108,6 +108,7 @@ desugar = \case
   Application obj bindings -> Application (desugar obj) (map desugarBinding bindings)
   ObjectDispatch obj a -> ObjectDispatch (desugar obj) a
   GlobalObject -> GlobalObject
+  GlobalObjectPhiOrg -> ObjectDispatch (ObjectDispatch GlobalObject (Label (LabelId "org"))) (Label (LabelId "eolang"))
   ThisObject -> ThisObject
   Termination -> Termination
   MetaSubstThis obj this -> MetaSubstThis (desugar obj) (desugar this)

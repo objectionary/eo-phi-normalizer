@@ -205,6 +205,8 @@ fastYegorInsideOut ctx = \case
                       AlphaBinding a (fastYegorInsideOut ctx' objA)
                     _ -> binding
           ]
+  -- TODO #617:30m Should this be error?
+  obj@GlobalObjectPhiOrg -> fastYegorInsideOut ctx (desugar obj)
   Termination -> Termination
   MetaSubstThis{} -> error "impossible MetaSubstThis!"
   MetaContextualize{} -> error "impossible MetaContextualize!"

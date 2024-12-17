@@ -118,6 +118,7 @@ withSubObject f ctx root =
         ]
     ObjectDispatch obj a -> propagateName2 ObjectDispatch <$> withSubObject f subctx obj <*> pure a
     GlobalObject{} -> []
+    GlobalObjectPhiOrg{} -> []
     ThisObject{} -> []
     Termination -> []
     MetaObject _ -> []
@@ -188,13 +189,19 @@ objectSize = \case
   Application obj bindings -> 1 + objectSize obj + sum (map bindingSize bindings)
   ObjectDispatch obj _attr -> 1 + objectSize obj
   GlobalObject -> 1
+  -- TODO #617:30m
+  -- @fizruk, why desugar here and not assume the object is desugared?
+  -- Is it because we sometimes bounce between sugared and desugared versions?
+  --
+  -- Should we introduce a smart constructor with a desugared object inside?
+  obj@GlobalObjectPhiOrg -> objectSize (desugar obj)
   ThisObject -> 1
   Termination -> 1
-  MetaObject{} -> 1 -- should be impossible
-  MetaFunction{} -> 1 -- should be impossible
-  MetaSubstThis{} -> 1 -- should be impossible
-  MetaContextualize{} -> 1 -- should be impossible
-  MetaTailContext{} -> 1 -- should be impossible
+  obj@MetaObject{} -> error ("impossible: expected a desugared object, but got: " <> printTree obj)
+  obj@MetaFunction{} -> error ("impossible: expected a desugared object, but got: " <> printTree obj)
+  obj@MetaSubstThis{} -> error ("impossible: expected a desugared object, but got: " <> printTree obj)
+  obj@MetaContextualize{} -> error ("impossible: expected a desugared object, but got: " <> printTree obj)
+  obj@MetaTailContext{} -> error ("impossible: expected a desugared object, but got: " <> printTree obj)
   obj@ConstString{} -> objectSize (desugar obj)
   obj@ConstInt{} -> objectSize (desugar obj)
   obj@ConstFloat{} -> objectSize (desugar obj)
@@ -206,8 +213,8 @@ bindingSize = \case
   DeltaBinding _bytes -> 1
   DeltaEmptyBinding -> 1
   LambdaBinding _lam -> 1
-  MetaDeltaBinding{} -> 1 -- should be impossible
-  MetaBindings{} -> 1 -- should be impossible
+  obj@MetaDeltaBinding{} -> error ("impossible: expected a desugared object, but got: " <> printTree obj)
+  obj@MetaBindings{} -> error ("impossible: expected a desugared object, but got: " <> printTree obj)
 
 -- | A variant of `applyRules` with a maximum application depth.
 applyRulesWith :: ApplicationLimits -> Context -> Object -> [Object]
