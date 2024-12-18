@@ -76,7 +76,7 @@ Similar to `--rules` for the `transform` subcommand, this argument accepts the p
 If the `--chain` argument is passed, all the intermediate steps of normalization + dataization are printed to the console (or the output file if chosen).
 
 ```$ as console
-eo-phi-normalizer dataize --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+eo-phi-normalizer dataize --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/new.yaml celsius.phi
 ```
 
 ```console
@@ -1299,7 +1299,7 @@ Can be used multiple times to inject multiple dependencies.
 Applies the normalization+dataization process recursively until it reaches bytes or no longer modifies the object (stalls).
 
 ```$ as console
-eo-phi-normalizer dataize --recursive --rules eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+eo-phi-normalizer dataize --recursive --rules eo-phi-normalizer/test/eo/phi/rules/new.yaml celsius.phi
 ```
 
 ```console
@@ -1429,7 +1429,7 @@ Can be combined with `--chain` to print all the intermediate steps of both norma
 Enable an atom by name.
 
 ```$ as console
-eo-phi-normalizer dataize --minimize-stuck-terms --recursive --enable-atom "Lorg_eolang_dataized" --rules eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+eo-phi-normalizer dataize --minimize-stuck-terms --recursive --enable-atom "Lorg_eolang_dataized" --rules eo-phi-normalizer/test/eo/phi/rules/new.yaml celsius.phi
 ```
 
 ```console
@@ -1454,7 +1454,7 @@ eo-phi-normalizer dataize --minimize-stuck-terms --recursive --enable-atom "Lorg
 Disable an atom by name.
 
 ```$ as console
-eo-phi-normalizer dataize --minimize-stuck-terms --recursive --disable-atom "Lorg_eolang_dataized" --rules eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+eo-phi-normalizer dataize --minimize-stuck-terms --recursive --disable-atom "Lorg_eolang_dataized" --rules eo-phi-normalizer/test/eo/phi/rules/new.yaml celsius.phi
 ```
 
 ```console
@@ -1479,7 +1479,7 @@ eo-phi-normalizer dataize --minimize-stuck-terms --recursive --disable-atom "Lor
 If no argument is given for the input file, `stdin` is consumed until `EOF`.
 
 ```$ as console
-cat celsius.phi | eo-phi-normalizer dataize --recursive --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml
+cat celsius.phi | eo-phi-normalizer dataize --recursive --rules ./eo-phi-normalizer/test/eo/phi/rules/new.yaml
 ```
 
 ```console

@@ -167,7 +167,7 @@ tests:
       object: |
         ⟦ a ↦ ⟦ Δ ⤍ 01- ⟧, b ↦ ⟦ Δ ⤍ 01- ⟧, c ↦ ⟦ Δ ⤍ 01- ⟧, d ↦ ⟦ Δ ⤍ 01- ⟧, λ ⤍ Package ⟧
 
-  # FIXME: fails
+  # TODO #636:30min fails
   # - name: "cross-reference (1)"
   #   dependencies: []
   #   input: |
@@ -176,7 +176,7 @@ tests:
   #     object: |
   #       NOT ⟦ x ↦ ⊥, λ ⤍ Package ⟧
 
-  # FIXME: fails
+  # TODO #636:30min fails
   # - name: "cross-reference (2)"
   #   dependencies: []
   #   input: |
@@ -185,7 +185,7 @@ tests:
   #     object: |
   #       NOT ⟦ x ↦ ⊥, λ ⤍ Package ⟧
 
-  # FIXME: fails
+  # TODO #636:30min fails
   # - name: "cross-reference + dispatch (1)"
   #   dependencies: []
   #   input: |
@@ -194,7 +194,7 @@ tests:
   #     object: |
   #       NOT ⟦ x ↦ ⊥, λ ⤍ Package ⟧
 
-  # FIXME: fails
+  # TODO #636:30min fails
   # - name: "cross-reference + dispatch (1)"
   #   dependencies: []
   #   input: |
@@ -203,7 +203,7 @@ tests:
   #     object: |
   #       NOT ⟦ x ↦ ⊥, λ ⤍ Package ⟧
 
-  # FIXME: fails
+  # TODO #636:30min fails
   # - name: "cross-reference + dispatch (2)"
   #   dependencies: []
   #   input: |
@@ -212,7 +212,7 @@ tests:
   #     object: |
   #       NOT ⟦ x ↦ ⊥, λ ⤍ Package ⟧
 
-  # FIXME: fails
+  # TODO #636:30min fails
   # - name: "cross-reference + dispatch (3)"
   #   dependencies: []
   #   input: |
@@ -221,7 +221,7 @@ tests:
   #     object: |
   #       NOT ⟦ x ↦ ⊥, λ ⤍ Package ⟧
 
-  # FIXME: fails
+  # TODO #636:30min fails
   # - name: "interleaving ρ and other dispatches"
   #   dependencies: []
   #   input: |
@@ -309,7 +309,7 @@ tests:
     output:
       bytes: "00-"
 
-  # Missing int tests: div
+  # TODO #636:30min Missing int tests: div
 
   - name: "bitwise and"
     dependencies:
@@ -373,7 +373,7 @@ tests:
     output:
       bytes: "01-"
 
-  # Missing bytes tests: or, xor, slice, concat
+  # TODO #636:30min Missing bytes tests: or, xor, slice, concat
 
   - name: "float times and plus (raw bytes)"
     dependencies:
@@ -413,7 +413,7 @@ tests:
     output:
       object: "69.42"
 
-  # Missing float tests: gt, div
+  # TODO #636:30min Missing float tests: gt, div
 
   - name: "string slice (raw bytes)"
     dependencies:
@@ -478,7 +478,10 @@ tests:
     output:
       object: "11" # == 11
 
-  # Missing malloc tests: (all)
-  # Missing cage tests: (all)
-  # Missing io tests: (all)
-  # Other missing tests: dataized, error, seq, as_phi, rust, try
+  # TODO #636:30min Missing malloc tests: (all)
+  
+  # TODO #636:30min Missing cage tests: (all)
+
+  # TODO #636:30min Missing io tests: (all)
+
+  # TODO #636:30min Other missing tests: dataized, error, seq, as_phi, rust, try

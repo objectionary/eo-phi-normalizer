@@ -21,7 +21,7 @@ Available options:
 ### Run tests in a file
 
 ```console
-eo-phi-normalizer test --rules eo-phi-normalizer/test/eo/phi/rules/yegor.yaml
+eo-phi-normalizer test --rules eo-phi-normalizer/test/eo/phi/rules/new.yaml
 ```
 
 <!--
@@ -29,7 +29,7 @@ The command output is modified to make documentation generation reproducible.
 
 The full command is hidden to not show unnecessary details in the documentation.
 
-`$ eo-phi-normalizer test --rules eo-phi-normalizer/test/eo/phi/rules/yegor.yaml | sed -e 's/\(Finished in\) \([0-9]\.[0-9]\+\)/\1 0.0062/'` as console -->
+`$ eo-phi-normalizer test --rules eo-phi-normalizer/test/eo/phi/rules/new.yaml | sed -e 's/\(Finished in\) \([0-9]\.[0-9]\+\)/\1 0.0062/'` as console -->
 
 ```console
 User-defined rules unit tests
