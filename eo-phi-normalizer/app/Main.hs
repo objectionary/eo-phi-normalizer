@@ -79,7 +79,7 @@ import Language.EO.Phi.Pipeline.Dataize.PrintConfigs as PrintConfigs
 import Language.EO.Phi.Pipeline.EOTests.PrepareTests as PrepareTests
 import Language.EO.Phi.Report.Data (makeProgramReport, makeReport)
 import Language.EO.Phi.Report.Html (reportCSS, reportJS, toStringReport)
-import Language.EO.Phi.Rules.Common
+import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), Context (..), LogEntry (..), applyRulesChainWith', applyRulesWith, objectSize)
 import Language.EO.Phi.Rules.Fast (fastYegorInsideOut, fastYegorInsideOutAsRule)
 import Language.EO.Phi.Rules.RunYegor (yegorRuleSet)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRuleNamed, parseRuleSetFromFile)
@@ -275,6 +275,7 @@ data CommandParser = CommandParser
   , test :: Parser CLI'Test
   }
 
+rulesFile :: String
 rulesFile = "new.yaml"
 
 commandParser :: CommandParser
@@ -603,7 +604,7 @@ main = withCorrectLocale do
           -- Temporary hack while rules are not stabilized.
           -- Nothing -> return (True, "Yegor's rules (builtin)", [fastYegorInsideOutAsRule])
           Nothing -> do
-            ruleSet :: RuleSet <- decodeThrow $(embedFileRelative [fmt|test/eo/phi/rules/{rulesFile}|])
+            ruleSet :: RuleSet <- decodeThrow $(embedFileRelative "test/eo/phi/rules/new.yaml")
             return (False, ruleSet.title, convertRuleNamed <$> ruleSet.rules)
       unless (single || json || latex) $ logStrLn ruleSetTitle
       bindingsWithDeps <- case deepMergePrograms (program' : deps) of
