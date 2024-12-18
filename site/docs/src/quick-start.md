@@ -11,7 +11,7 @@ Dataize the program recursively.
 ```$ as console
 eo-phi-normalizer dataize \
   --recursive \
-  --rules eo-phi-normalizer/test/eo/phi/rules/yegor.yaml \
+  --rules eo-phi-normalizer/test/eo/phi/rules/new.yaml \
   --dependency-file 'eo-phi-normalizer/data/0.38.0/org/eolang/float.phi' \
   --dependency-file 'eo-phi-normalizer/data/0.38.0/org/eolang/bytes.phi' \
   celsius.phi

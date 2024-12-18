@@ -1,0 +1,34 @@
+{⟦
+  org ↦ ⟦
+    eolang ↦ ⟦
+      io ↦ ⟦
+        tee-input(input, output) ↦ ⟦
+          read(size) ↦ ⟦
+            φ ↦ ξ.input-block(ξ.ρ.input, ξ.ρ.output, Φ̇.bytes(⟦ Δ ⤍ -- ⟧)).read(
+              ξ.size
+            ).self,
+            input-block(input, output, buffer) ↦ ⟦
+              self ↦ ξ,
+              φ ↦ ξ.buffer,
+              read(size) ↦ ⟦
+                read-bytes ↦ ξ.ρ.input.read(ξ.size).read.ρ,
+                written-bytes ↦ ξ.ρ.output.write(ξ.read-bytes).write.ρ,
+                φ ↦ Φ̇.seq(
+                  Φ̇.tuple(
+                    Φ̇.tuple(Φ̇.tuple.empty, ξ.written-bytes),
+                    ξ.ρ.ρ.input-block(
+                      ξ.read-bytes, ξ.written-bytes, ξ.read-bytes.as-bytes
+                    )
+                  )
+                ).self
+              ⟧
+            ⟧
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

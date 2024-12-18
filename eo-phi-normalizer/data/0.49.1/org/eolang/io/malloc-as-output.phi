@@ -1,0 +1,30 @@
+{⟦
+  org ↦ ⟦
+    eolang ↦ ⟦
+      io ↦ ⟦
+        malloc-as-output(allocated) ↦ ⟦
+          write(buffer) ↦ ⟦
+            φ ↦ ξ.output-block(0).write(ξ.buffer).self,
+            output-block(offset) ↦ ⟦
+              self ↦ ξ,
+              φ ↦ Φ̇.true,
+              write(buffer) ↦ ⟦
+                φ ↦ Φ̇.seq(
+                  Φ̇.tuple(
+                    Φ̇.tuple(
+                      Φ̇.tuple.empty, ξ.ρ.ρ.ρ.allocated.write(ξ.ρ.offset, ξ.buffer)
+                    ),
+                    ξ.ρ.ρ.output-block(ξ.ρ.offset.plus(ξ.buffer.size))
+                  )
+                ).self
+              ⟧
+            ⟧
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

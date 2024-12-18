@@ -1,0 +1,14 @@
+{⟦
+  org ↦ ⟦
+    eolang ↦ ⟦
+      txt ↦ ⟦
+        sprintf(format, args) ↦ ⟦
+          λ ⤍ Lorg_eolang_txt_sprintf
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

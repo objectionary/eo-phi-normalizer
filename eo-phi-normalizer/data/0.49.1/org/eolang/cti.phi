@@ -1,0 +1,11 @@
+{⟦
+  org ↦ ⟦
+    eolang ↦ ⟦
+      cti(delegate, level, message) ↦ ⟦
+        φ ↦ ξ.delegate
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

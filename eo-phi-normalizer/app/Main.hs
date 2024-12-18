@@ -79,11 +79,11 @@ import Language.EO.Phi.Pipeline.Dataize.PrintConfigs as PrintConfigs
 import Language.EO.Phi.Pipeline.EOTests.PrepareTests as PrepareTests
 import Language.EO.Phi.Report.Data (makeProgramReport, makeReport)
 import Language.EO.Phi.Report.Html (reportCSS, reportJS, toStringReport)
-import Language.EO.Phi.Rules.Common
+import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), Context (..), LogEntry (..), applyRulesChainWith', applyRulesWith, errorExpectedDesugared, objectSize)
 import Language.EO.Phi.Rules.Fast (fastYegorInsideOut, fastYegorInsideOutAsRule)
 import Language.EO.Phi.Rules.RunYegor (yegorRuleSet)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRuleNamed, parseRuleSetFromFile)
-import Language.EO.Phi.Syntax (desugar, wrapBytesInBytes, wrapTermination)
+import Language.EO.Phi.Syntax (wrapBytesInBytes, wrapTermination)
 import Language.EO.Phi.ToLaTeX
 import Language.EO.Test.YamlSpec (spec)
 import Options.Applicative hiding (metavar)
@@ -275,6 +275,9 @@ data CommandParser = CommandParser
   , test :: Parser CLI'Test
   }
 
+rulesFile :: String
+rulesFile = "new.yaml"
+
 commandParser :: CommandParser
 commandParser =
   CommandParser{..}
@@ -285,7 +288,7 @@ commandParser =
     bindingsPath <- bindingsPathOption
     pure CLI'MetricsPhi{..}
   printRules = do
-    rulesPath <- optional $ strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. If unspecified, yegor.yaml is rendered.|])
+    rulesPath <- optional $ strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. If unspecified, {rulesFile} is rendered.|])
     latex <- latexSwitch
     compact <- compactSwitch
     pure CLI'PrintRules{..}
@@ -556,17 +559,19 @@ wrapRawBytesIn = \case
       ]
   ObjectDispatch obj a ->
     ObjectDispatch (wrapRawBytesIn obj) a
-  GlobalObject -> GlobalObject
-  ThisObject -> ThisObject
   Termination -> wrapTermination
+  obj@GlobalObject -> obj
+  obj@ThisObject -> obj
   obj@MetaSubstThis{} -> obj
   obj@MetaContextualize{} -> obj
   obj@MetaObject{} -> obj
   obj@MetaTailContext{} -> obj
   obj@MetaFunction{} -> obj
-  obj@ConstString{} -> wrapRawBytesIn (desugar obj)
-  obj@ConstInt{} -> wrapRawBytesIn (desugar obj)
-  obj@ConstFloat{} -> wrapRawBytesIn (desugar obj)
+  -- Sugar
+  obj@GlobalObjectPhiOrg -> errorExpectedDesugared obj
+  obj@ConstString{} -> errorExpectedDesugared obj
+  obj@ConstInt{} -> errorExpectedDesugared obj
+  obj@ConstFloat{} -> errorExpectedDesugared obj
 
 -- * Main
 

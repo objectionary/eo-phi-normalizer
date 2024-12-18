@@ -1,0 +1,39 @@
+{⟦
+  org ↦ ⟦
+    eolang ↦ ⟦
+      fs ↦ ⟦
+        tmpdir ↦ ⟦
+          φ ↦ Φ̇.fs.dir(Φ̇.fs.file(Φ̇.string(ξ.os-tmp-dir))),
+          os-tmp-dir ↦ Φ̇.dataized(ξ.os-tmp-dir-1).as-bytes,
+          os-tmp-dir-1 ↦ ⟦
+            tmpdir ↦ Φ̇.dataized(Φ̇.sys.getenv("TMPDIR")).as-bytes,
+            tmp ↦ Φ̇.dataized(Φ̇.sys.getenv("TMP")).as-bytes,
+            temp ↦ Φ̇.dataized(Φ̇.sys.getenv("TEMP")).as-bytes,
+            tempdir ↦ Φ̇.dataized(Φ̇.sys.getenv("TEMPDIR")).as-bytes,
+            userprofile ↦ Φ̇.dataized(Φ̇.sys.getenv("USERPROFILE")).as-bytes,
+            φ ↦ Φ̇.sys.os.is-windows.if(
+              ξ.tmp.eq("").if(
+                ξ.temp.eq("").if(
+                  ξ.userprofile.eq("").if("C:\\Windows", ξ.userprofile), ξ.temp
+                ),
+                ξ.tmp
+              ),
+              ξ.tmpdir.eq("").if(
+                ξ.tmp.eq("").if(
+                  ξ.temp.eq("").if(
+                    ξ.tempdir.eq("").if("/tmp", ξ.tempdir), ξ.temp
+                  ),
+                  ξ.tmp
+                ),
+                ξ.tmpdir
+              )
+            )
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

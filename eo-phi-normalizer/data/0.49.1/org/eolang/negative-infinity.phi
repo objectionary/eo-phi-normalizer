@@ -1,0 +1,61 @@
+{⟦
+  org ↦ ⟦
+    eolang ↦ ⟦
+      negative-infinity ↦ ⟦
+        φ ↦ Φ̇.number(Φ̇.bytes(⟦ Δ ⤍ FF-F0-00-00-00-00-00-00 ⟧)),
+        floor ↦ ξ,
+        neg ↦ Φ̇.positive-infinity,
+        is-nan ↦ Φ̇.false,
+        is-finite ↦ Φ̇.false,
+        is-integer ↦ Φ̇.false,
+        as-i64 ↦ Φ̇.error("Can't convert negative infinity to i64"),
+        eq(x) ↦ ⟦
+          φ ↦ ξ.ρ.as-bytes.eq(ξ.x.as-bytes)
+        ⟧,
+        lt(x) ↦ ⟦
+          value ↦ Φ̇.dataized(ξ.x).as-bytes,
+          φ ↦ Φ̇.number(ξ.value).is-nan.or(ξ.ρ.eq(ξ.value)).not
+        ⟧,
+        lte(x) ↦ ⟦
+          value ↦ Φ̇.dataized(ξ.x).as-bytes,
+          φ ↦ Φ̇.number(ξ.value).is-nan.not
+        ⟧,
+        gt(x) ↦ ⟦
+          φ ↦ Φ̇.false
+        ⟧,
+        gte(x) ↦ ⟦
+          φ ↦ ξ.ρ.eq(ξ.x)
+        ⟧,
+        times(x) ↦ ⟦
+          value ↦ Φ̇.dataized(ξ.x).as-bytes,
+          num ↦ Φ̇.number(ξ.value),
+          φ ↦ ξ.num.is-nan.or(ξ.num.eq(0)).if(
+            Φ̇.nan, ξ.num.gt(0).if(ξ.ρ, Φ̇.positive-infinity)
+          )
+        ⟧,
+        plus(x) ↦ ⟦
+          value ↦ Φ̇.dataized(ξ.x).as-bytes,
+          φ ↦ Φ̇.number(ξ.value).is-nan.or(ξ.value.eq(Φ̇.positive-infinity)).if(
+            Φ̇.nan, ξ.ρ
+          )
+        ⟧,
+        minus(x) ↦ ⟦
+          value ↦ Φ̇.dataized(ξ.x).as-bytes,
+          φ ↦ Φ̇.number(ξ.value).is-nan.or(ξ.value.eq(ξ.ρ)).if(Φ̇.nan, ξ.ρ)
+        ⟧,
+        div(x) ↦ ⟦
+          value ↦ Φ̇.dataized(ξ.x).as-bytes,
+          num ↦ Φ̇.number(ξ.value),
+          φ ↦ ξ.num.is-nan.or(ξ.num.is-finite.not).if(
+            Φ̇.nan,
+            ξ.value.eq(-0.as-bytes).or(0.gt(ξ.value)).if(
+              Φ̇.positive-infinity, ξ.ρ
+            )
+          )
+        ⟧
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

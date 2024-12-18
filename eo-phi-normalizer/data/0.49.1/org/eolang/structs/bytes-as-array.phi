@@ -1,0 +1,23 @@
+{⟦
+  org ↦ ⟦
+    eolang ↦ ⟦
+      structs ↦ ⟦
+        bytes-as-array(bts) ↦ ⟦
+          bytes-size ↦ Φ̇.dataized(ξ.bts.size).as-bytes,
+          φ ↦ ξ.slice-byte(Φ̇.tuple.empty, 0),
+          slice-byte(tup, index) ↦ ⟦
+            φ ↦ ξ.index.lt(ξ.ρ.bytes-size).if(
+              ξ.ρ.slice-byte(
+                ξ.tup.with(ξ.ρ.bts.slice(ξ.index, 1)), ξ.index.plus(1)
+              ),
+              ξ.tup
+            )
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

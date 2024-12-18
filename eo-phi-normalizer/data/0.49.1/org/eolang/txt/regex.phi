@@ -1,0 +1,56 @@
+{⟦
+  org ↦ ⟦
+    eolang ↦ ⟦
+      txt ↦ ⟦
+        regex(expression) ↦ ⟦
+          φ ↦ ξ.compiled,
+          compiled ↦ ⟦
+            λ ⤍ Lorg_eolang_txt_regex_compiled
+          ⟧,
+          pattern(serialized) ↦ ⟦
+            matches(txt) ↦ ⟦
+              φ ↦ ξ.ρ.match(ξ.txt).next.exists
+            ⟧,
+            match(txt) ↦ ⟦
+              next ↦ ξ.matched-from-index(1, 0).matched,
+              matched-from-index(position, start) ↦ ⟦
+                λ ⤍ Lorg_eolang_txt_regex_pattern_match_matched_from_index
+              ⟧,
+              matched(position, start, from, to, groups) ↦ ⟦
+                matched ↦ ξ,
+                groups-count ↦ ξ.groups.length,
+                exists ↦ ξ.start.gte(0),
+                next ↦ ξ.exists.if(
+                  ξ.ρ.matched-from-index(ξ.position.plus(1), ξ.to).matched,
+                  Φ̇.error("Matched block does not exist, can't get next")
+                ),
+                text ↦ ξ.exists.if(
+                  ξ.group(0), Φ̇.error("Matched block does not exist, can't get text")
+                ),
+                group(index) ↦ ⟦
+                  φ ↦ ξ.ρ.groups.at(ξ.index)
+                ⟧
+              ⟧,
+              not-matched(position) ↦ ⟦
+                φ ↦ ξ.ρ.matched(
+                  ξ.position,
+                  -1,
+                  Φ̇.error(
+                    "Matched block does not exist, can't get 'from' position"
+                  ),
+                  Φ̇.error(
+                    "Matched block does not exist, can't get 'to' position"
+                  ),
+                  Φ̇.error("Matched block does not exist, can't get groups")
+                )
+              ⟧
+            ⟧
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

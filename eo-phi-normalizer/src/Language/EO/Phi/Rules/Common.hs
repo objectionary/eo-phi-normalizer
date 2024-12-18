@@ -27,6 +27,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GeneralisedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
@@ -41,6 +42,8 @@ import Data.List (minimumBy, nubBy, sortOn)
 import Data.List.NonEmpty (NonEmpty (..), (<|))
 import Data.Ord (comparing)
 import Language.EO.Phi.Syntax
+import Language.EO.Phi.Syntax.Print qualified as Phi
+import PyF (fmt)
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -118,6 +121,7 @@ withSubObject f ctx root =
         ]
     ObjectDispatch obj a -> propagateName2 ObjectDispatch <$> withSubObject f subctx obj <*> pure a
     GlobalObject{} -> []
+    GlobalObjectPhiOrg{} -> []
     ThisObject{} -> []
     Termination -> []
     MetaObject _ -> []
@@ -182,6 +186,15 @@ defaultApplicationLimits sourceTermSize =
     , maxTermSize = sourceTermSize * 10000
     }
 
+errorExpected :: (Phi.Print a) => a -> String -> b
+errorExpected obj what = error [fmt|impossible: expected {what}, but got:\n{printTree obj}|]
+
+errorExpectedDesugared :: (Phi.Print a) => a -> b
+errorExpectedDesugared obj = errorExpected obj "a desugared object"
+
+errorExpectedWithoutMetavars :: (Phi.Print a) => a -> b
+errorExpectedWithoutMetavars obj = errorExpected obj "an object without metavariables"
+
 objectSize :: Object -> Int
 objectSize = \case
   Formation bindings -> 1 + sum (map bindingSize bindings)
@@ -190,14 +203,17 @@ objectSize = \case
   GlobalObject -> 1
   ThisObject -> 1
   Termination -> 1
-  MetaObject{} -> 1 -- should be impossible
-  MetaFunction{} -> 1 -- should be impossible
-  MetaSubstThis{} -> 1 -- should be impossible
-  MetaContextualize{} -> 1 -- should be impossible
-  MetaTailContext{} -> 1 -- should be impossible
-  obj@ConstString{} -> objectSize (desugar obj)
-  obj@ConstInt{} -> objectSize (desugar obj)
-  obj@ConstFloat{} -> objectSize (desugar obj)
+  -- Sugar
+  obj@GlobalObjectPhiOrg -> errorExpectedDesugared obj
+  obj@ConstString{} -> errorExpectedDesugared obj
+  obj@ConstInt{} -> errorExpectedDesugared obj
+  obj@ConstFloat{} -> errorExpectedDesugared obj
+  -- Metavariables
+  obj@MetaObject{} -> errorExpectedWithoutMetavars obj
+  obj@MetaFunction{} -> errorExpectedWithoutMetavars obj
+  obj@MetaSubstThis{} -> errorExpectedWithoutMetavars obj
+  obj@MetaContextualize{} -> errorExpectedWithoutMetavars obj
+  obj@MetaTailContext{} -> errorExpectedWithoutMetavars obj
 
 bindingSize :: Binding -> Int
 bindingSize = \case
@@ -206,8 +222,9 @@ bindingSize = \case
   DeltaBinding _bytes -> 1
   DeltaEmptyBinding -> 1
   LambdaBinding _lam -> 1
-  MetaDeltaBinding{} -> 1 -- should be impossible
-  MetaBindings{} -> 1 -- should be impossible
+  -- Metavariables
+  obj@MetaDeltaBinding{} -> errorExpectedDesugared obj
+  obj@MetaBindings{} -> errorExpectedDesugared obj
 
 -- | A variant of `applyRules` with a maximum application depth.
 applyRulesWith :: ApplicationLimits -> Context -> Object -> [Object]

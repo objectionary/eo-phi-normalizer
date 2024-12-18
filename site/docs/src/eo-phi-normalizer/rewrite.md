@@ -53,13 +53,13 @@ Available options:
 
 ### `--rules FILE`
 
-Normalize a 𝜑-expression from `celsius.phi` using the rules from a given file (e.g. [yegor.yaml](#yegoryaml)).
+Normalize a 𝜑-expression from `celsius.phi` using the rules from a given file.
 
 The output may contain multiple numbered results that correspond to different possible rule application sequences
 (even if the final result is the same).
 
 ```$ as console
-eo-phi-normalizer rewrite --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+eo-phi-normalizer rewrite --rules ./eo-phi-normalizer/test/eo/phi/rules/new.yaml celsius.phi
 ```
 
 ```console
@@ -103,7 +103,7 @@ Result 1 out of 1:
 Use `--chain` to see numbered normalization steps for each normalization result.
 
 ```$ as console
-eo-phi-normalizer rewrite --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+eo-phi-normalizer rewrite --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/new.yaml celsius.phi
 ```
 
 ```console
@@ -190,7 +190,7 @@ This is the 2nd possible chain of normalizing rewritings:
 ### `--json`
 
 ```$ as json
-eo-phi-normalizer rewrite --json --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+eo-phi-normalizer rewrite --json --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/new.yaml celsius.phi
 ```
 
 ```json
@@ -210,7 +210,7 @@ eo-phi-normalizer rewrite --json --chain --rules ./eo-phi-normalizer/test/eo/phi
 ### `--single`
 
 ```$ as console
-eo-phi-normalizer rewrite --single --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+eo-phi-normalizer rewrite --single --rules ./eo-phi-normalizer/test/eo/phi/rules/new.yaml celsius.phi
 ```
 
 ```console
@@ -233,7 +233,7 @@ eo-phi-normalizer rewrite --single --rules ./eo-phi-normalizer/test/eo/phi/rules
 ### `--single --single-line`
 
 ```$ as console
-eo-phi-normalizer rewrite --single --single-line --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+eo-phi-normalizer rewrite --single --single-line --rules ./eo-phi-normalizer/test/eo/phi/rules/new.yaml celsius.phi
 ```
 
 ```console
@@ -243,7 +243,7 @@ eo-phi-normalizer rewrite --single --single-line --rules ./eo-phi-normalizer/tes
 ### `--single` `--json`
 
 ```$ as console
-eo-phi-normalizer rewrite --single --json --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml celsius.phi
+eo-phi-normalizer rewrite --single --json --rules ./eo-phi-normalizer/test/eo/phi/rules/new.yaml celsius.phi
 ```
 
 ```console
@@ -282,7 +282,7 @@ Can be used multiple times to inject multiple dependencies.
 ### `FILE` not specified (read from stdin)
 
 ```$ as console
-cat celsius.phi | eo-phi-normalizer rewrite --single --json --rules ./eo-phi-normalizer/test/eo/phi/rules/yegor.yaml
+cat celsius.phi | eo-phi-normalizer rewrite --single --json --rules ./eo-phi-normalizer/test/eo/phi/rules/new.yaml
 ```
 
 ```console

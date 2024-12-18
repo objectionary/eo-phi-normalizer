@@ -330,8 +330,7 @@ parseTests = Yaml.decodeFileThrow
 spec :: Spec
 spec =
   forM_
-    [ ("Old Yegor's rules", "test/eo/phi/rules/yegor.yaml")
-    , ("New Yegor's rules", "test/eo/phi/rules/new.yaml")
+    [ ("New Yegor's rules", "test/eo/phi/rules/new.yaml")
     ]
     $ \(name, rulesFile) -> do
       ruleset <- runIO $ parseRuleSetFromFile rulesFile

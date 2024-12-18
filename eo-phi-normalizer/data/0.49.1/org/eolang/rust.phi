@@ -1,0 +1,11 @@
+{⟦
+  org ↦ ⟦
+    eolang ↦ ⟦
+      rust(code, portal, params) ↦ ⟦
+        λ ⤍ Lorg_eolang_rust
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

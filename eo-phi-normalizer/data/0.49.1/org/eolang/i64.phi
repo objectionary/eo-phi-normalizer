@@ -1,0 +1,59 @@
+{⟦
+  org ↦ ⟦
+    eolang ↦ ⟦
+      i64(as-bytes) ↦ ⟦
+        φ ↦ ξ.as-bytes,
+        as-i64 ↦ ξ,
+        neg ↦ ξ.times(-1.as-i64),
+        as-i16 ↦ ξ.as-i32.as-i16,
+        as-i32 ↦ ⟦
+          left ↦ ξ.ρ.as-bytes.slice(0, 4).as-bytes,
+          φ ↦ ξ.left.eq(Φ̇.bytes(⟦ Δ ⤍ 00-00-00-00 ⟧)).or(
+            ξ.left.eq(Φ̇.bytes(⟦ Δ ⤍ FF-FF-FF-FF ⟧))
+          ).if(
+            Φ̇.i32(ξ.ρ.as-bytes.slice(4, 4)),
+            Φ̇.error(
+              Φ̇.txt.sprintf(
+                "Can't convert i64 number %d to i32 because it's out of i32 bounds",
+                Φ̇.tuple(Φ̇.tuple.empty, ξ.ρ.as-number)
+              )
+            )
+          )
+        ⟧,
+        as-number ↦ ⟦
+          λ ⤍ Lorg_eolang_i64_as_number
+        ⟧,
+        lt(x) ↦ ⟦
+          value ↦ Φ̇.dataized(ξ.x).as-bytes,
+          φ ↦ 0.as-i64.gt(ξ.ρ.minus(ξ.ρ.ρ.i64(ξ.value)))
+        ⟧,
+        lte(x) ↦ ⟦
+          value ↦ Φ̇.dataized(ξ.x).as-bytes,
+          φ ↦ ξ.ρ.lt(ξ.value).or(ξ.ρ.eq(ξ.value))
+        ⟧,
+        gt(x) ↦ ⟦
+          λ ⤍ Lorg_eolang_i64_gt
+        ⟧,
+        gte(x) ↦ ⟦
+          value ↦ Φ̇.dataized(ξ.x).as-bytes,
+          φ ↦ ξ.ρ.gt(ξ.value).or(ξ.ρ.eq(ξ.value))
+        ⟧,
+        times(x) ↦ ⟦
+          λ ⤍ Lorg_eolang_i64_times
+        ⟧,
+        plus(x) ↦ ⟦
+          λ ⤍ Lorg_eolang_i64_plus
+        ⟧,
+        minus(x) ↦ ⟦
+          value ↦ Φ̇.dataized(ξ.x).as-bytes,
+          φ ↦ ξ.ρ.plus(ξ.ρ.ρ.i64(ξ.value).neg)
+        ⟧,
+        div(x) ↦ ⟦
+          λ ⤍ Lorg_eolang_i64_div
+        ⟧
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

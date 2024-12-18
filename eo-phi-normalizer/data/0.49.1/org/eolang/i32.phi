@@ -1,0 +1,79 @@
+{⟦
+  org ↦ ⟦
+    eolang ↦ ⟦
+      i32(as-bytes) ↦ ⟦
+        φ ↦ ξ.as-bytes,
+        as-i32 ↦ ξ,
+        neg ↦ ξ.times(-1.as-i64.as-i32),
+        as-number ↦ ξ.as-i64.as-number,
+        as-i64 ↦ ⟦
+          λ ⤍ Lorg_eolang_i32_as_i64
+        ⟧,
+        as-i16 ↦ ⟦
+          left ↦ ξ.ρ.as-bytes.slice(0, 2).as-bytes,
+          φ ↦ ξ.left.eq(Φ̇.bytes(⟦ Δ ⤍ 00-00 ⟧)).or(
+            ξ.left.eq(Φ̇.bytes(⟦ Δ ⤍ FF-FF ⟧))
+          ).if(
+            Φ̇.i16(ξ.ρ.as-bytes.slice(2, 2)),
+            Φ̇.error(
+              Φ̇.txt.sprintf(
+                "Can't convert i32 number %d to i16 because it's out of i16 bounds",
+                Φ̇.tuple(Φ̇.tuple.empty, ξ.ρ.as-i64.as-number)
+              )
+            )
+          )
+        ⟧,
+        lt(x) ↦ ⟦
+          φ ↦ ξ.ρ.as-i64.lt(ξ.x.as-i32.as-i64)
+        ⟧,
+        lte(x) ↦ ⟦
+          φ ↦ ξ.ρ.as-i64.lte(ξ.x.as-i32.as-i64)
+        ⟧,
+        gt(x) ↦ ⟦
+          φ ↦ ξ.ρ.as-i64.gt(ξ.x.as-i32.as-i64)
+        ⟧,
+        gte(x) ↦ ⟦
+          φ ↦ ξ.ρ.as-i64.gte(ξ.x.as-i32.as-i64)
+        ⟧,
+        times(x) ↦ ⟦
+          bts ↦ ξ.ρ.as-i64.times(ξ.x.as-i32.as-i64).as-bytes,
+          left ↦ ξ.bts.slice(0, 4),
+          right ↦ ξ.bts.slice(4, 4),
+          φ ↦ ξ.left.eq(Φ̇.bytes(⟦ Δ ⤍ 00-00-00-00 ⟧)).or(
+            ξ.left.eq(Φ̇.bytes(⟦ Δ ⤍ FF-FF-FF-FF ⟧))
+          ).if(ξ.ρ.ρ.i32(ξ.right), ξ.ρ.ρ.i32(ξ.left).plus(ξ.ρ.ρ.i32(ξ.right)))
+        ⟧,
+        plus(x) ↦ ⟦
+          bts ↦ ξ.ρ.as-i64.plus(ξ.x.as-i32.as-i64).as-bytes,
+          left ↦ ξ.bts.slice(0, 4),
+          right ↦ ξ.bts.slice(4, 4),
+          φ ↦ ξ.left.eq(Φ̇.bytes(⟦ Δ ⤍ 00-00-00-00 ⟧)).or(
+            ξ.left.eq(Φ̇.bytes(⟦ Δ ⤍ FF-FF-FF-FF ⟧))
+          ).if(ξ.ρ.ρ.i32(ξ.right), ξ.ρ.ρ.i32(ξ.left).plus(ξ.ρ.ρ.i32(ξ.right)))
+        ⟧,
+        minus(x) ↦ ⟦
+          φ ↦ ξ.ρ.plus(ξ.x.as-i32.neg)
+        ⟧,
+        div(x) ↦ ⟦
+          x-as-i32 ↦ ξ.x.as-i32,
+          bts ↦ ξ.ρ.as-i64.div(ξ.x-as-i32.as-i64).as-bytes,
+          left ↦ ξ.bts.slice(0, 4),
+          right ↦ ξ.bts.slice(4, 4),
+          zero ↦ Φ̇.bytes(⟦ Δ ⤍ 00-00-00-00 ⟧),
+          φ ↦ ξ.x-as-i32.eq(ξ.zero).if(
+            Φ̇.error(
+              Φ̇.txt.sprintf(
+                "Can't divide %d by i32 zero", Φ̇.tuple(Φ̇.tuple.empty, ξ.ρ.as-i64.as-number)
+              )
+            ),
+            ξ.left.eq(ξ.zero).or(ξ.left.eq(Φ̇.bytes(⟦ Δ ⤍ FF-FF-FF-FF ⟧))).if(
+              ξ.ρ.ρ.i32(ξ.right), ξ.ρ.ρ.i32(ξ.left).plus(ξ.ρ.ρ.i32(ξ.right))
+            )
+          )
+        ⟧
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

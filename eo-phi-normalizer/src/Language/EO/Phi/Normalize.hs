@@ -37,8 +37,7 @@ import Data.Maybe (fromMaybe)
 
 import Data.Generics.Labels ()
 import GHC.Generics (Generic)
-import Language.EO.Phi.Rules.Common (lookupBinding, objectBindings)
-import Language.EO.Phi.Syntax (desugar)
+import Language.EO.Phi.Rules.Common (errorExpectedDesugared, errorExpectedWithoutMetavars, lookupBinding, objectBindings)
 import Language.EO.Phi.Syntax.Abs
 
 data Context = Context
@@ -74,13 +73,16 @@ peelObject = \case
   ThisObject -> PeeledObject HeadThis []
   Termination -> PeeledObject HeadTermination []
   MetaObject _ -> PeeledObject HeadTermination []
-  MetaTailContext{} -> error "impossible"
-  MetaFunction _ _ -> error "To be honest, I'm not sure what should be here"
-  MetaSubstThis{} -> error "impossible"
-  MetaContextualize{} -> error "impossible"
-  obj@ConstString{} -> peelObject (desugar obj)
-  obj@ConstInt{} -> peelObject (desugar obj)
-  obj@ConstFloat{} -> peelObject (desugar obj)
+  -- Sugar
+  obj@GlobalObjectPhiOrg -> errorExpectedDesugared obj
+  obj@ConstString{} -> errorExpectedDesugared obj
+  obj@ConstInt{} -> errorExpectedDesugared obj
+  obj@ConstFloat{} -> errorExpectedDesugared obj
+  -- Metavariables
+  obj@MetaTailContext{} -> errorExpectedWithoutMetavars obj
+  obj@MetaFunction{} -> errorExpectedWithoutMetavars obj
+  obj@MetaSubstThis{} -> errorExpectedWithoutMetavars obj
+  obj@MetaContextualize{} -> errorExpectedWithoutMetavars obj
  where
   followedBy (PeeledObject object actions) action = PeeledObject object (actions ++ [action])
 
