@@ -24,8 +24,8 @@ title: Dataization tests
 tests:
   - name: "Celsius example"
     dependencies:
-      - ./data/0.41.2/org/eolang/number.phi
-      - ./data/0.41.2/org/eolang/bytes.phi
+      - ./data/0.49.1/org/eolang/number.phi
+      - ./data/0.49.1/org/eolang/bytes.phi
     input: |
       {⟦
         c ↦ Φ.org.eolang.number(
@@ -39,9 +39,9 @@ tests:
 
   - name: "Equality of booleans (via equality of bytes)"
     dependencies:
-      - ./data/0.41.2/org/eolang/bytes.phi
-      - ./data/0.41.2/org/eolang/true.phi
-      - ./data/0.41.2/org/eolang/false.phi
+      - ./data/0.49.1/org/eolang/bytes.phi
+      - ./data/0.49.1/org/eolang/true.phi
+      - ./data/0.49.1/org/eolang/false.phi
     input: |
       {⟦ φ ↦ Φ.org.eolang.true.eq(α0 ↦ Φ̇.true) ⟧}
     output:
@@ -232,7 +232,7 @@ tests:
 
   - name: "Dataize in siblings of Package"
     dependencies:
-      - ./data/0.41.2/org/eolang/bytes.phi
+      - ./data/0.49.1/org/eolang/bytes.phi
     input: |
       {⟦
         org ↦ ⟦
@@ -275,8 +275,8 @@ tests:
 
   - name: "int times and plus"
     dependencies:
-      - ./data/0.41.2/org/eolang/i64.phi
-      - ./data/0.41.2/org/eolang/bytes.phi
+      - ./data/0.49.1/org/eolang/i64.phi
+      - ./data/0.49.1/org/eolang/bytes.phi
     input: |
       {⟦
         φ ↦ ⟦
@@ -294,10 +294,10 @@ tests:
 
   - name: "int greater than"
     dependencies:
-      - ./data/0.41.2/org/eolang/i64.phi
-      - ./data/0.41.2/org/eolang/bytes.phi
-      - ./data/0.41.2/org/eolang/false.phi
-      - ./data/0.41.2/org/eolang/true.phi
+      - ./data/0.49.1/org/eolang/i64.phi
+      - ./data/0.49.1/org/eolang/bytes.phi
+      - ./data/0.49.1/org/eolang/false.phi
+      - ./data/0.49.1/org/eolang/true.phi
     input: |
       {⟦
         φ ↦ ⟦
@@ -313,7 +313,7 @@ tests:
 
   - name: "bitwise and"
     dependencies:
-      - ./data/0.41.2/org/eolang/bytes.phi
+      - ./data/0.49.1/org/eolang/bytes.phi
     input: |
       {⟦
         φ ↦ ⟦
@@ -327,7 +327,7 @@ tests:
 
   - name: "bitwise not"
     dependencies:
-      - ./data/0.41.2/org/eolang/bytes.phi
+      - ./data/0.49.1/org/eolang/bytes.phi
     input: |
       {⟦
         φ ↦ ⟦
@@ -340,8 +340,8 @@ tests:
 
   - name: "bytes size"
     dependencies:
-      - ./data/0.41.2/org/eolang/i64.phi
-      - ./data/0.41.2/org/eolang/bytes.phi
+      - ./data/0.49.1/org/eolang/i64.phi
+      - ./data/0.49.1/org/eolang/bytes.phi
     input: |
       {⟦
         φ ↦ ⟦
@@ -354,10 +354,10 @@ tests:
 
   - name: "bytes shift and equal"
     dependencies:
-      - ./data/0.41.2/org/eolang/bytes.phi
-      - ./data/0.41.2/org/eolang/true.phi
-      - ./data/0.41.2/org/eolang/i64.phi
-      - ./data/0.41.2/org/eolang/false.phi
+      - ./data/0.49.1/org/eolang/bytes.phi
+      - ./data/0.49.1/org/eolang/true.phi
+      - ./data/0.49.1/org/eolang/i64.phi
+      - ./data/0.49.1/org/eolang/false.phi
     input: |
       {⟦
         φ ↦ ⟦
@@ -377,8 +377,8 @@ tests:
 
   - name: "float times and plus (raw bytes)"
     dependencies:
-      - ./data/0.41.2/org/eolang/number.phi
-      - ./data/0.41.2/org/eolang/bytes.phi
+      - ./data/0.49.1/org/eolang/number.phi
+      - ./data/0.49.1/org/eolang/bytes.phi
     input: |
       {⟦
         φ ↦ ⟦
@@ -396,8 +396,8 @@ tests:
 
   - name: "float times and plus"
     dependencies:
-      - ./data/0.41.2/org/eolang/number.phi
-      - ./data/0.41.2/org/eolang/bytes.phi
+      - ./data/0.49.1/org/eolang/number.phi
+      - ./data/0.49.1/org/eolang/bytes.phi
     input: |
       {⟦
         φ ↦ ⟦
@@ -417,8 +417,8 @@ tests:
 
   - name: "string slice (raw bytes)"
     dependencies:
-      - ./data/0.41.2/org/eolang/string.phi
-      - ./data/0.41.2/org/eolang/bytes.phi
+      - ./data/0.49.1/org/eolang/string.phi
+      - ./data/0.49.1/org/eolang/bytes.phi
     input: |
       {⟦
         φ ↦ ⟦
@@ -433,9 +433,9 @@ tests:
 
   - name: "string slice"
     dependencies:
-      - ./data/0.41.2/org/eolang/string.phi
-      - ./data/0.41.2/org/eolang/i64.phi
-      - ./data/0.41.2/org/eolang/bytes.phi
+      - ./data/0.49.1/org/eolang/string.phi
+      - ./data/0.49.1/org/eolang/i64.phi
+      - ./data/0.49.1/org/eolang/bytes.phi
     input: |
       {⟦
         φ ↦ ⟦
@@ -450,9 +450,9 @@ tests:
 
   - name: "string length (raw bytes)"
     dependencies:
-      - ./data/0.41.2/org/eolang/string.phi
-      - ./data/0.41.2/org/eolang/i64.phi
-      - ./data/0.41.2/org/eolang/bytes.phi
+      - ./data/0.49.1/org/eolang/string.phi
+      - ./data/0.49.1/org/eolang/i64.phi
+      - ./data/0.49.1/org/eolang/bytes.phi
     input: |
       {⟦
         φ ↦ ⟦
@@ -465,9 +465,9 @@ tests:
 
   - name: "string length"
     dependencies:
-      - ./data/0.41.2/org/eolang/string.phi
-      - ./data/0.41.2/org/eolang/i64.phi
-      - ./data/0.41.2/org/eolang/bytes.phi
+      - ./data/0.49.1/org/eolang/string.phi
+      - ./data/0.49.1/org/eolang/i64.phi
+      - ./data/0.49.1/org/eolang/bytes.phi
     input: |
       {⟦
         φ ↦ ⟦
@@ -479,7 +479,7 @@ tests:
       object: "11" # == 11
 
   # TODO #636:30min Missing malloc tests: (all)
-  
+
   # TODO #636:30min Missing cage tests: (all)
 
   # TODO #636:30min Missing io tests: (all)
