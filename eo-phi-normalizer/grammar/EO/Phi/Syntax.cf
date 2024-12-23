@@ -39,6 +39,8 @@ token BindingsMetaId {"!B"} (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
 token ObjectMetaId {"!b"} (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
 token BytesMetaId {"!y"} (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
 token MetaFunctionName {"@"} (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
+token IntegerSigned ('-'? digit+) ;
+token DoubleSigned ('-'? digit+ '.' digit+ ('e' '-'? digit+)?) ;
 
 Program. Program ::= "{" "⟦" [Binding] "⟧" "}" ;
 
@@ -56,15 +58,19 @@ GlobalObjectPhiOrg. Object ::= "Φ̇";
 ThisObject.         Object ::= "ξ";
 Termination.        Object ::= "⊥" ;
 ConstString.        Object ::= String ;
-ConstInt.           Object ::= Integer ;
-ConstFloat.         Object ::= Double ;
+ConstIntRaw.        Object ::= IntegerSigned ;
+ConstFloatRaw.      Object ::= DoubleSigned ;
 MetaSubstThis.      Object ::= Object "[" "ξ" "↦" Object "]" ;
 MetaContextualize.  Object ::= "⌈" Object "," Object "⌉" ;
 MetaObject.         Object ::= ObjectMetaId ;
 MetaTailContext.    Object ::= Object "*" TailMetaId ;
 MetaFunction.       Object ::= MetaFunctionName "(" Object ")" ;
 
+internal ConstFloat. Object ::= Double;
+internal ConstInt.   Object ::= Integer;
+
 AlphaBinding.       Binding ::= Attribute "↦" Object ;
+AlphaBindingSugar.  Binding ::= Object ;
 EmptyBinding.       Binding ::= Attribute "↦" "∅" ;
 DeltaBinding.       Binding ::= "Δ" "⤍" Bytes ;
 DeltaEmptyBinding.  Binding ::= "Δ" "⤍" "∅" ;
@@ -78,6 +84,8 @@ Rho.    Attribute ::= "ρ" ;   -- parent object
 Label.  Attribute ::= LabelId ;
 Alpha.  Attribute ::= AlphaIndex ;
 MetaAttr. Attribute ::= LabelMetaId ;
+AttrSugar. Attribute ::= "~" LabelId "(" [LabelId] ")";
+separator LabelId ",";
 
 -- Additional symbols used as attributes in the rules
 ObjectAttr. RuleAttribute ::= Attribute ;
