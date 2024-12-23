@@ -48,7 +48,7 @@ import GHC.Generics (Generic)
 import Language.EO.Phi.Dataize.Context (defaultContext)
 import Language.EO.Phi.Rules.Common (ApplicationLimits (..), NamedRule, applyOneRule, defaultApplicationLimits, equalObject, objectSize)
 import Language.EO.Phi.Rules.Yaml (convertRuleNamed, parseRuleSetFromFile, rules)
-import Language.EO.Phi.Syntax (intToBytes, printTree, expectedDesugaredBinding)
+import Language.EO.Phi.Syntax (expectedDesugaredBinding, intToBytes, printTree)
 import Language.EO.Phi.Syntax.Abs as Phi
 import Test.Hspec
 import Test.QuickCheck
