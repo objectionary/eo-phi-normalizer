@@ -77,9 +77,9 @@ instance Arbitrary Bytes where
 instance Arbitrary Phi.Function where
   arbitrary = Phi.Function <$> arbitraryNonEmptyString
 instance Arbitrary DoubleSigned where
-  arbitrary = DoubleSigned <$> show . ((*) 1000) <$> genDouble
+  arbitrary = DoubleSigned <$> show . (1000 *) <$> genDouble
 instance Arbitrary IntegerSigned where
-  arbitrary = IntegerSigned <$> show <$> chooseInteger (-1000000, 1000000)
+  arbitrary = IntegerSigned . show <$> chooseInteger (-1_000_000, 1_000_000)
 
 instance Arbitrary Phi.ObjectMetaId where
   arbitrary = Phi.ObjectMetaId . ("!b" ++) <$> arbitraryNonEmptyString
