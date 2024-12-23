@@ -128,7 +128,9 @@ withSubObject f ctx root =
     MetaContextualize _ _ -> []
     ConstString{} -> []
     ConstInt{} -> []
+    ConstIntRaw{} -> []
     ConstFloat{} -> []
+    ConstFloatRaw{} -> []
 
 -- | Given a unary function that operates only on plain objects,
 -- converts it to a function that operates on named objects
@@ -154,6 +156,7 @@ withSubObjectBindings f ctx (b : bs) =
 withSubObjectBinding :: (Context -> Object -> [(String, Object)]) -> Context -> Binding -> [(String, Binding)]
 withSubObjectBinding f ctx = \case
   AlphaBinding a obj -> propagateName1 (AlphaBinding a) <$> withSubObject f (ctx{currentAttr = a}) obj
+  b@AlphaBindingSugar{} -> expectedDesugaredBinding b
   EmptyBinding{} -> []
   DeltaBinding{} -> []
   DeltaEmptyBinding{} -> []
@@ -204,7 +207,9 @@ objectSize = \case
   obj@MetaTailContext{} -> error ("impossible: expected a desugared object, but got: " <> printTree obj)
   obj@ConstString{} -> objectSize (desugar obj)
   obj@ConstInt{} -> objectSize (desugar obj)
+  obj@ConstIntRaw{} -> objectSize (desugar obj)
   obj@ConstFloat{} -> objectSize (desugar obj)
+  obj@ConstFloatRaw{} -> objectSize (desugar obj)
 
 bindingSize :: Binding -> Int
 bindingSize = \case
@@ -215,6 +220,7 @@ bindingSize = \case
   LambdaBinding _lam -> 1
   obj@MetaDeltaBinding{} -> error ("impossible: expected a desugared object, but got: " <> printTree obj)
   obj@MetaBindings{} -> error ("impossible: expected a desugared object, but got: " <> printTree obj)
+  b@AlphaBindingSugar{} -> expectedDesugaredBinding b
 
 -- | A variant of `applyRules` with a maximum application depth.
 applyRulesWith :: ApplicationLimits -> Context -> Object -> [Object]
@@ -257,6 +263,7 @@ equalBindings bindings1 bindings2 = and (zipWith equalBinding (sortOn attr bindi
   attr (MetaDeltaBinding _) = Label (LabelId "Δ")
   attr (LambdaBinding _) = Label (LabelId "λ")
   attr (MetaBindings (BindingsMetaId metaId)) = MetaAttr (LabelMetaId metaId)
+  attr b@AlphaBindingSugar{} = expectedDesugaredBinding b
 
 equalBinding :: Binding -> Binding -> Bool
 equalBinding (AlphaBinding attr1 obj1) (AlphaBinding attr2 obj2) = attr1 == attr2 && equalObject obj1 obj2

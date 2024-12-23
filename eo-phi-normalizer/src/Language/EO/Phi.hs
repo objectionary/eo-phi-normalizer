@@ -44,7 +44,7 @@ parseProgram = parseWith Phi.pProgram
 
 -- | Parse an 'Object' or return a parsing error.
 parseObject :: String -> Either String Phi.Object
-parseObject = Phi.pObject . Phi.myLexer
+parseObject = parseWith Phi.pObject
 
 -- | Parse a 'Program' from a 'String'.
 -- May throw an 'error` if input has a syntactical or lexical errors.

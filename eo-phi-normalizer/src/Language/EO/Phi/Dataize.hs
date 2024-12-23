@@ -47,7 +47,9 @@ desugarAsBytes :: Either Object Bytes -> Either Object Bytes
 desugarAsBytes (Left obj) = case obj of
   ConstString s -> Right (stringToBytes s)
   ConstInt n -> Right (intToBytes (fromInteger n))
+  f@ConstIntRaw{} -> expectedDesugaredObject f
   ConstFloat x -> Right (floatToBytes x)
+  f@ConstFloatRaw{} -> expectedDesugaredObject f
   _ -> Left obj
 desugarAsBytes (Right bytes) = Right bytes
 

@@ -241,7 +241,9 @@ objectLabelIds = \case
   MetaContextualize obj obj' -> objectLabelIds obj <> objectLabelIds obj'
   obj@ConstString{} -> objectLabelIds (desugar obj)
   obj@ConstInt{} -> objectLabelIds (desugar obj)
+  obj@ConstIntRaw{} -> objectLabelIds (desugar obj)
   obj@ConstFloat{} -> objectLabelIds (desugar obj)
+  obj@ConstFloatRaw{} -> objectLabelIds (desugar obj)
 
 bindingLabelIds :: Binding -> Set LabelId
 bindingLabelIds = \case
@@ -252,6 +254,7 @@ bindingLabelIds = \case
   LambdaBinding _ -> mempty
   MetaBindings _ -> mempty
   MetaDeltaBinding _ -> mempty
+  b@AlphaBindingSugar{} -> expectedDesugaredBinding b
 
 attrLabelIds :: Attribute -> Set LabelId
 attrLabelIds (Label l) = Set.singleton l
@@ -289,7 +292,9 @@ objectMetaIds (MetaSubstThis obj obj') = foldMap objectMetaIds [obj, obj']
 objectMetaIds (MetaContextualize obj obj') = foldMap objectMetaIds [obj, obj']
 objectMetaIds obj@ConstString{} = objectMetaIds (desugar obj)
 objectMetaIds obj@ConstInt{} = objectMetaIds (desugar obj)
+objectMetaIds obj@ConstIntRaw{} = objectMetaIds (desugar obj)
 objectMetaIds obj@ConstFloat{} = objectMetaIds (desugar obj)
+objectMetaIds obj@ConstFloatRaw{} = objectMetaIds (desugar obj)
 
 bindingMetaIds :: Binding -> Set MetaId
 bindingMetaIds (AlphaBinding attr obj) = attrMetaIds attr <> objectMetaIds obj
@@ -299,6 +304,7 @@ bindingMetaIds DeltaEmptyBinding = mempty
 bindingMetaIds (LambdaBinding _) = mempty
 bindingMetaIds (MetaBindings x) = Set.singleton (MetaIdBindings x)
 bindingMetaIds (MetaDeltaBinding x) = Set.singleton (MetaIdBytes x)
+bindingMetaIds b@AlphaBindingSugar{} = expectedDesugaredBinding b
 
 attrMetaIds :: Attribute -> Set MetaId
 attrMetaIds Phi = mempty
@@ -306,6 +312,7 @@ attrMetaIds Rho = mempty
 attrMetaIds (Label _) = mempty
 attrMetaIds (Alpha _) = mempty
 attrMetaIds (MetaAttr x) = Set.singleton (MetaIdLabel x)
+attrMetaIds a@(AttrSugar{}) = error ("impossible: expected desugared attribute, but got: " <> printTree a)
 
 objectHasMetavars :: Object -> Bool
 objectHasMetavars (Formation bindings) = any bindingHasMetavars bindings
@@ -322,7 +329,9 @@ objectHasMetavars (MetaSubstThis _ _) = True -- technically not a metavar, but a
 objectHasMetavars (MetaContextualize _ _) = True
 objectHasMetavars obj@ConstString{} = objectHasMetavars (desugar obj)
 objectHasMetavars obj@ConstInt{} = objectHasMetavars (desugar obj)
+objectHasMetavars obj@ConstIntRaw{} = objectHasMetavars (desugar obj)
 objectHasMetavars obj@ConstFloat{} = objectHasMetavars (desugar obj)
+objectHasMetavars obj@ConstFloatRaw{} = objectHasMetavars (desugar obj)
 
 bindingHasMetavars :: Binding -> Bool
 bindingHasMetavars (AlphaBinding attr obj) = attrHasMetavars attr || objectHasMetavars obj
@@ -332,6 +341,7 @@ bindingHasMetavars DeltaEmptyBinding = False
 bindingHasMetavars (LambdaBinding _) = False
 bindingHasMetavars (MetaBindings _) = True
 bindingHasMetavars (MetaDeltaBinding _) = True
+bindingHasMetavars b@AlphaBindingSugar{} = expectedDesugaredBinding b
 
 attrHasMetavars :: Attribute -> Bool
 attrHasMetavars Phi = False
@@ -339,6 +349,7 @@ attrHasMetavars Rho = False
 attrHasMetavars (Label _) = False
 attrHasMetavars (Alpha _) = False
 attrHasMetavars (MetaAttr _) = True
+attrHasMetavars b@AttrSugar{} = error ("impossible: expected desugared attribute, but got: " <> printTree b)
 
 -- | Given a condition, and a substition from object matching
 --   tells whether the condition matches the object
@@ -454,7 +465,9 @@ applySubst subst@Subst{..} = \case
          in applySubst holeSubst contextObject
   obj@ConstString{} -> applySubst subst (desugar obj)
   obj@ConstInt{} -> applySubst subst (desugar obj)
+  obj@ConstIntRaw{} -> applySubst subst (desugar obj)
   obj@ConstFloat{} -> applySubst subst (desugar obj)
+  obj@ConstFloatRaw{} -> applySubst subst (desugar obj)
 
 applySubstAttr :: Subst -> Attribute -> Attribute
 applySubstAttr Subst{..} = \case
@@ -475,6 +488,7 @@ applySubstBinding subst@Subst{..} = \case
   LambdaBinding bytes -> [LambdaBinding (coerce bytes)]
   b@(MetaBindings m) -> fromMaybe [b] (lookup m bindingsMetas)
   b@(MetaDeltaBinding m) -> maybe [b] (pure . DeltaBinding) (lookup m bytesMetas)
+  b@AlphaBindingSugar{} -> expectedDesugaredBinding b
 
 mergeSubst :: Subst -> Subst -> Subst
 mergeSubst (Subst xs ys zs ws us) (Subst xs' ys' zs' ws' us') =
@@ -525,7 +539,9 @@ matchOneHoleContext ctxId pat obj = matchWhole <> matchPart
     Termination -> []
     ConstString{} -> []
     ConstInt{} -> []
+    ConstIntRaw{} -> []
     ConstFloat{} -> []
+    ConstFloatRaw{} -> []
     -- TODO #617:30m Should cases below be errors?
     GlobalObjectPhiOrg -> []
     MetaSubstThis{} -> []
@@ -643,11 +659,16 @@ substThis thisObj = go
     obj@MetaFunction{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
     obj@ConstString{} -> obj
     obj@ConstInt{} -> obj
+    obj@ConstIntRaw{} -> obj
     obj@ConstFloat{} -> obj
+    obj@ConstFloatRaw{} -> obj
 
 -- {⟦ x ↦ ⟦ b ↦ ⟦ Δ ⤍ 01- ⟧, φ ↦ ⟦ b ↦ ⟦ Δ ⤍ 02- ⟧, c ↦ ⟦ a ↦ ξ.ρ.ρ.b ⟧.a ⟧.c ⟧.φ, λ ⤍ Package ⟧}
 
 -- {⟦ λ ⤍ Package, x ↦ ⟦ b ↦ ⟦⟧ ⟧ ⟧}
+
+-- >>> "{⟦ λ ⤍ Package, x(t) ↦ ⟦ b ↦ ⟦⟧ ⟧ ⟧}" :: Program
+-- Program [LambdaBinding (Function "Package"),AlphaBinding (AttrSugar (LabelId "x") [LabelId "t"]) (Formation [AlphaBinding (Label (LabelId "b")) (Formation [])])]
 
 substThisBinding :: Object -> Binding -> Binding
 substThisBinding obj = \case
@@ -658,6 +679,7 @@ substThisBinding obj = \case
   LambdaBinding bytes -> LambdaBinding bytes
   b@MetaBindings{} -> error ("impossible: trying to substitute ξ in " <> printTree b)
   b@MetaDeltaBinding{} -> error ("impossible: trying to substitute ξ in " <> printTree b)
+  b@AlphaBindingSugar{} -> expectedDesugaredBinding b
 
 contextualize :: Object -> Object -> Object
 contextualize thisObj = go
@@ -677,7 +699,9 @@ contextualize thisObj = go
     obj@MetaFunction{} -> error ("impossible: trying to contextualize " <> printTree obj)
     obj@ConstString{} -> go (desugar obj)
     obj@ConstInt{} -> go (desugar obj)
+    obj@ConstIntRaw{} -> go (desugar obj)
     obj@ConstFloat{} -> go (desugar obj)
+    obj@ConstFloatRaw{} -> go (desugar obj)
 
 contextualizeBinding :: Object -> Binding -> Binding
 contextualizeBinding obj = \case
@@ -688,3 +712,4 @@ contextualizeBinding obj = \case
   LambdaBinding bytes -> LambdaBinding bytes
   b@MetaBindings{} -> error ("impossible: trying to contextualize " <> printTree b)
   b@MetaDeltaBinding{} -> error ("impossible: trying to contextualize " <> printTree b)
+  b@AlphaBindingSugar{} -> expectedDesugaredBinding b

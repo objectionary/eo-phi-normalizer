@@ -48,10 +48,11 @@ import GHC.Generics (Generic)
 import Language.EO.Phi.Dataize.Context (defaultContext)
 import Language.EO.Phi.Rules.Common (ApplicationLimits (..), NamedRule, applyOneRule, defaultApplicationLimits, equalObject, objectSize)
 import Language.EO.Phi.Rules.Yaml (convertRuleNamed, parseRuleSetFromFile, rules)
-import Language.EO.Phi.Syntax (intToBytes, printTree)
+import Language.EO.Phi.Syntax (intToBytes, printTree, expectedDesugaredBinding)
 import Language.EO.Phi.Syntax.Abs as Phi
 import Test.Hspec
 import Test.QuickCheck
+import Test.QuickCheck.Gen (genDouble)
 
 arbitraryNonEmptyString :: Gen String
 arbitraryNonEmptyString = do
@@ -75,6 +76,10 @@ instance Arbitrary Bytes where
   arbitrary = intToBytes <$> arbitrarySizedNatural
 instance Arbitrary Phi.Function where
   arbitrary = Phi.Function <$> arbitraryNonEmptyString
+instance Arbitrary DoubleSigned where
+  arbitrary = DoubleSigned <$> show . ((*) 1000) <$> genDouble
+instance Arbitrary IntegerSigned where
+  arbitrary = IntegerSigned <$> show <$> chooseInteger (-1000000, 1000000)
 
 instance Arbitrary Phi.ObjectMetaId where
   arbitrary = Phi.ObjectMetaId . ("!b" ++) <$> arbitraryNonEmptyString
@@ -142,6 +147,7 @@ bindingAttr = \case
   LambdaBinding{} -> Label "λ"
   MetaDeltaBinding{} -> Label "Δ"
   MetaBindings{} -> error "attempting to retrieve attribute of meta bindings"
+  b@AlphaBindingSugar{} -> expectedDesugaredBinding b
 
 arbitraryBindings :: Gen [Binding]
 arbitraryBindings =

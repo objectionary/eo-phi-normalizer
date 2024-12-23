@@ -25,16 +25,18 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
 
 module Language.EO.Phi.ToLaTeX where
 
 import Data.Foldable (fold)
-import Data.List (intersperse)
+import Data.List (intercalate, intersperse)
 import Data.String (IsString)
 import Data.Text qualified as T
 import Language.EO.Phi
 import Language.EO.Phi.Rules.Yaml
+import PyF (fmt)
 import Text.Regex (mkRegex, subRegex)
 
 newtype LaTeX = LaTeX {unLaTeX :: String}
@@ -58,6 +60,9 @@ instance ToLatex Attribute where
   toLatex (Alpha (AlphaIndex a)) = LaTeX ("\\alpha_" ++ tail a)
   toLatex (Label (LabelId l)) = LaTeX l
   toLatex (MetaAttr (LabelMetaId l)) = LaTeX l
+  toLatex (AttrSugar (LabelId l) ls) = LaTeX [fmt|{l}({ls'})|]
+   where
+    ls' = intercalate ", " ((\(LabelId l') -> l') <$> ls)
 
 instance ToLatex Binding where
   toLatex (AlphaBinding attr obj) = toLatex attr <> " -> " <> toLatex obj
@@ -67,6 +72,7 @@ instance ToLatex Binding where
   toLatex (LambdaBinding (Function fn)) = "L> " <> LaTeX fn
   toLatex (MetaBindings (BindingsMetaId x)) = LaTeX x
   toLatex (MetaDeltaBinding (BytesMetaId x)) = "D> " <> LaTeX x
+  toLatex b@AlphaBindingSugar{} = expectedDesugaredBinding b
 
 instance ToLatex Object where
   toLatex (Formation bindings) =
@@ -86,7 +92,9 @@ instance ToLatex Object where
   toLatex (MetaContextualize obj1 obj2) = LaTeX "\\lceil" <> toLatex obj1 <> ", " <> toLatex obj2 <> "\\rceil"
   toLatex (ConstString string) = "|" <> LaTeX (show string) <> "|"
   toLatex (ConstInt n) = LaTeX (show n)
+  toLatex (ConstIntRaw{}) = error "rendering ConstIntRaw in LaTex format"
   toLatex (ConstFloat x) = LaTeX (show x)
+  toLatex (ConstFloatRaw{}) = error "rendering ConstFloatRaw in LaTex format"
 
 removeOrgEolang :: String -> String
 removeOrgEolang = T.unpack . T.replace "Q.org.eolang" "QQ" . T.pack

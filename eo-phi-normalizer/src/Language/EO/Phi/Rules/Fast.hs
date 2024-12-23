@@ -215,4 +215,6 @@ fastYegorInsideOut ctx = \case
   MetaFunction{} -> error "impossible MetaFunction!"
   obj@ConstString{} -> obj -- fastYegorInsideOut ctx (desugar obj)
   obj@ConstInt{} -> obj -- fastYegorInsideOut ctx (desugar obj)
+  obj@ConstIntRaw{} -> obj -- fastYegorInsideOut ctx (desugar obj)
   obj@ConstFloat{} -> obj -- fastYegorInsideOut ctx (desugar obj)
+  obj@ConstFloatRaw{} -> obj -- fastYegorInsideOut ctx (desugar obj)

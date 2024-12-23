@@ -89,7 +89,7 @@ main =
                   , "bnfc --haskell -d -p Language.EO.Phi --generic -o src/ grammar/EO/Phi/Syntax.cf"
                   , "cd src/Language/EO/Phi/Syntax"
                   , "alex Lex.x"
-                  , "happy Par.y"
+                  , "happy --info Par.y"
                   , "true"
                   ]
 

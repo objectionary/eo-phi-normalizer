@@ -93,6 +93,9 @@ dependencies:
   - containers
   - code-page
   - with-utf8
+  - replace-megaparsec
+  - megaparsec
+  - parser-combinators
 
 default-extensions:
   - ImportQualifiedPost

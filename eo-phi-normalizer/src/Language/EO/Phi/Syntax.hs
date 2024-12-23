@@ -21,10 +21,14 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 {- FOURMOLU_ENABLE -}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns #-}
+{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Language.EO.Phi.Syntax (
@@ -74,6 +78,8 @@ module Language.EO.Phi.Syntax (
   paddedLeftChunksOf,
   normalizeBytes,
   parseWith,
+  expectedDesugaredObject,
+  expectedDesugaredBinding,
 ) where
 
 import Data.ByteString (ByteString)
@@ -86,6 +92,7 @@ import Data.String (IsString (fromString))
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as Text
 import GHC.Float (isDoubleFinite)
+import Language.EO.Phi.Preprocess (preprocess)
 import Language.EO.Phi.Syntax.Abs
 import Language.EO.Phi.Syntax.Lex (Token)
 import Language.EO.Phi.Syntax.Par
@@ -99,16 +106,82 @@ import Text.Read (readMaybe)
 -- >>> :set -XOverloadedStrings
 -- >>> :set -XOverloadedLists
 
+expectedDesugaredObject :: Object -> a
+expectedDesugaredObject x = error ("impossible: expected desugared Object, but got: " <> printTree x)
+
+expectedDesugaredBinding :: Binding -> a
+expectedDesugaredBinding x = error ("impossible: expected desugared Binding, but got: " <> printTree x)
+
+class DesugarableSimple a where
+  desugarSimple :: a -> a
+
+instance DesugarableSimple Object where
+  desugarSimple :: Object -> Object
+  desugarSimple = \case
+    obj@(ConstString{}) -> obj
+    obj@(ConstInt{}) -> obj
+    ConstIntRaw (IntegerSigned x) -> ConstInt (read x)
+    obj@(ConstFloat{}) -> obj
+    ConstFloatRaw (DoubleSigned x) -> ConstFloat (read x)
+    Formation bindings -> Formation (zipWith desugarBindingSimple [0 ..] bindings)
+    Application obj bindings -> Application (desugarSimple obj) (zipWith desugarBindingSimple [0 ..] bindings)
+    ObjectDispatch obj a -> ObjectDispatch (desugarSimple obj) a
+    GlobalObject -> GlobalObject
+    GlobalObjectPhiOrg -> "Φ.org.eolang"
+    ThisObject -> ThisObject
+    Termination -> Termination
+    MetaSubstThis obj this -> MetaSubstThis (desugarSimple obj) (desugarSimple this)
+    obj@MetaObject{} -> obj
+    MetaContextualize obj1 obj2 -> MetaContextualize (desugarSimple obj1) (desugarSimple obj2)
+    MetaTailContext obj metaId -> MetaTailContext (desugarSimple obj) metaId
+    MetaFunction name obj -> MetaFunction name (desugarSimple obj)
+
+desugarBindingSimple :: Int -> Binding -> Binding
+desugarBindingSimple idx = \case
+  AlphaBinding (AttrSugar l ls) (Formation bindings) ->
+    let bindingsDesugared = desugarBindingSimple (error "no ID should be here") <$> bindings
+     in AlphaBinding (Label l) (Formation ((EmptyBinding . Label <$> ls) <> bindingsDesugared))
+  AlphaBinding a obj -> AlphaBinding a (desugarSimple obj)
+  AlphaBindingSugar obj -> AlphaBinding [fmt|α{idx}|] (desugarSimple obj)
+  binding -> binding
+
+instance DesugarableSimple Program where
+  desugarSimple :: Program -> Program
+  desugarSimple (Program bindings) = Program bindings'
+   where
+    ~(Formation bindings') = desugarSimple (Formation bindings)
+
+instance DesugarableSimple Binding where
+  desugarSimple = \case
+    obj@AlphaBindingSugar{} -> expectedDesugaredBinding obj
+    AlphaBinding a obj -> AlphaBinding a (desugarSimple obj)
+    obj -> obj
+
+-- FIXME I hope these instances aren't used
+
+instance DesugarableSimple Attribute where
+  desugarSimple = id
+instance DesugarableSimple RuleAttribute where
+  desugarSimple = id
+instance DesugarableSimple PeeledObject where
+  desugarSimple = id
+instance DesugarableSimple ObjectHead where
+  desugarSimple = id
+instance DesugarableSimple MetaId where
+  desugarSimple = id
+
 desugar :: Object -> Object
 desugar = \case
   ConstString string -> wrapBytesInString (stringToBytes string)
   ConstInt n -> wrapBytesInInt (intToBytes (fromInteger n))
+  obj@ConstIntRaw{} -> expectedDesugaredObject obj
   ConstFloat x -> wrapBytesInFloat (floatToBytes x)
-  Formation bindings -> Formation (map desugarBinding bindings)
-  Application obj bindings -> Application (desugar obj) (map desugarBinding bindings)
+  obj@ConstFloatRaw{} -> expectedDesugaredObject obj
+  Formation bindings -> Formation (desugarBinding <$> bindings)
+  Application obj bindings -> Application (desugar obj) (desugarBinding <$> bindings)
   ObjectDispatch obj a -> ObjectDispatch (desugar obj) a
   GlobalObject -> GlobalObject
-  GlobalObjectPhiOrg -> ObjectDispatch (ObjectDispatch GlobalObject (Label (LabelId "org"))) (Label (LabelId "eolang"))
+  obj@GlobalObjectPhiOrg -> expectedDesugaredObject obj
   ThisObject -> ThisObject
   Termination -> Termination
   MetaSubstThis obj this -> MetaSubstThis (desugar obj) (desugar this)
@@ -119,7 +192,11 @@ desugar = \case
 
 desugarBinding :: Binding -> Binding
 desugarBinding = \case
+  AlphaBinding (AttrSugar l ls) (Formation bindings) ->
+    let bindingsDesugared = desugarBinding <$> bindings
+     in AlphaBinding (Label l) (Formation ((EmptyBinding . Label <$> ls) <> bindingsDesugared))
   AlphaBinding a obj -> AlphaBinding a (desugar obj)
+  obj@(AlphaBindingSugar{}) -> expectedDesugaredBinding obj
   binding -> binding
 
 -- MetaSubstThis
@@ -597,6 +674,14 @@ bytesToFloat (Bytes bytes) =
   dashToSpace '-' = ' '
   dashToSpace c = c
 
+-- >>> "{⟦ org ↦ ⟦ eolang ↦ ⟦ number(as-bytes) ↦ ⟦ φ ↦ ξ.as-bytes, neg ↦ ξ.times(-1), ⟧, λ ⤍ Package ⟧, λ ⤍ Package ⟧ ⟧}" :: Program
+-- syntax error at line 1, column 76 due to lexer error
+-- on the input:
+-- {⟦ org ↦ ⟦ eolang ↦ ⟦ ~number(as-bytes) ↦ ⟦ φ ↦ ξ.as-bytes, neg ↦ ξ.times(-1), ⟧, λ ⤍ Package ⟧, λ ⤍ Package ⟧ ⟧}
+
+-- >>> "-1.0" :: Object
+-- ConstFloatRaw (DoubleSigned "-1.0")
+
 instance IsString Program where fromString = unsafeParseWith pProgram
 instance IsString Object where fromString = unsafeParseWith pObject
 instance IsString Binding where fromString = unsafeParseWith pBinding
@@ -604,18 +689,18 @@ instance IsString Attribute where fromString = unsafeParseWith pAttribute
 instance IsString RuleAttribute where fromString = unsafeParseWith pRuleAttribute
 instance IsString PeeledObject where fromString = unsafeParseWith pPeeledObject
 instance IsString ObjectHead where fromString = unsafeParseWith pObjectHead
-
 instance IsString MetaId where fromString = unsafeParseWith pMetaId
 
-parseWith :: ([Token] -> Either String a) -> String -> Either String a
-parseWith parser input = either (\x -> Left [fmt|{x}\non the input:\n{input}|]) Right parsed
+parseWith :: (DesugarableSimple a) => ([Token] -> Either String a) -> String -> Either String a
+parseWith parser input = either (\x -> Left [fmt|{x}\non the input:\n{input'}|]) (Right . desugarSimple) parsed
  where
-  tokens = myLexer input
+  input' = preprocess input
+  tokens = myLexer input'
   parsed = parser tokens
 
 -- | Parse a 'Object' from a 'String'.
 -- May throw an 'error` if input has a syntactical or lexical errors.
-unsafeParseWith :: ([Token] -> Either String a) -> String -> a
+unsafeParseWith :: (DesugarableSimple a) => ([Token] -> Either String a) -> String -> a
 unsafeParseWith parser input =
   case parseWith parser input of
     Left parseError -> error parseError

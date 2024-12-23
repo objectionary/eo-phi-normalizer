@@ -81,7 +81,9 @@ peelObject = \case
   MetaContextualize{} -> error "impossible"
   obj@ConstString{} -> peelObject (desugar obj)
   obj@ConstInt{} -> peelObject (desugar obj)
+  obj@ConstIntRaw{} -> peelObject (desugar obj)
   obj@ConstFloat{} -> peelObject (desugar obj)
+  obj@ConstFloatRaw{} -> peelObject (desugar obj)
  where
   followedBy (PeeledObject object actions) action = PeeledObject object (actions ++ [action])
 
