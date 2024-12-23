@@ -157,8 +157,6 @@ instance DesugarableSimple Binding where
     AlphaBinding a obj -> AlphaBinding a (desugarSimple obj)
     obj -> obj
 
--- FIXME I hope these instances aren't used
-
 instance DesugarableSimple Attribute where
   desugarSimple = id
 instance DesugarableSimple RuleAttribute where
