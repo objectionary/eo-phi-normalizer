@@ -146,7 +146,7 @@ instance DesugarableInitially [Binding] where
         let bindingsDesugared = desugarInitially bindings
          in AlphaBinding (Label l) (Formation ((EmptyBinding . Label <$> ls) <> bindingsDesugared))
       AlphaBinding a obj -> AlphaBinding a (desugarInitially obj)
-      AlphaBindingSugar obj -> AlphaBinding [fmt|α{idx}|] (desugarInitially obj)
+      AlphaBindingSugar obj -> AlphaBinding (Alpha (AlphaIndex [fmt|α{idx}|])) (desugarInitially obj)
       binding -> binding
 
 instance DesugarableInitially Program where
