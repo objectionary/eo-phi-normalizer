@@ -123,8 +123,8 @@ instance DesugarableInitially Object where
     ConstIntRaw (IntegerSigned x) -> ConstInt (read x)
     obj@(ConstFloat{}) -> obj
     ConstFloatRaw (DoubleSigned x) -> ConstFloat (read x)
-    Formation bindings -> Formation (zipWith desugarBindingSimple [0 ..] bindings)
-    Application obj bindings -> Application (desugarInitially obj) (zipWith desugarBindingSimple [0 ..] bindings)
+    Formation bindings -> Formation (zipWith desugarBindingInitially [0 ..] bindings)
+    Application obj bindings -> Application (desugarInitially obj) (zipWith desugarBindingInitially [0 ..] bindings)
     ObjectDispatch obj a -> ObjectDispatch (desugarInitially obj) a
     GlobalObject -> GlobalObject
     GlobalObjectPhiOrg -> "Φ.org.eolang"
@@ -136,10 +136,10 @@ instance DesugarableInitially Object where
     MetaTailContext obj metaId -> MetaTailContext (desugarInitially obj) metaId
     MetaFunction name obj -> MetaFunction name (desugarInitially obj)
 
-desugarBindingSimple :: Int -> Binding -> Binding
-desugarBindingSimple idx = \case
+desugarBindingInitially :: Int -> Binding -> Binding
+desugarBindingInitially idx = \case
   AlphaBinding (AttrSugar l ls) (Formation bindings) ->
-    let bindingsDesugared = desugarBindingSimple (error "no ID should be here") <$> bindings
+    let bindingsDesugared = desugarBindingInitially (error "no ID should be here") <$> bindings
      in AlphaBinding (Label l) (Formation ((EmptyBinding . Label <$> ls) <> bindingsDesugared))
   AlphaBinding a obj -> AlphaBinding a (desugarInitially obj)
   AlphaBindingSugar obj -> AlphaBinding [fmt|α{idx}|] (desugarInitially obj)
