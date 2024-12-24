@@ -112,61 +112,61 @@ errorExpectedDesugaredObject x = error ("impossible: expected desugared Object, 
 errorExpectedDesugaredBinding :: Binding -> a
 errorExpectedDesugaredBinding x = error ("impossible: expected desugared Binding, but got: " <> printTree x)
 
-class DesugarableSimple a where
-  desugarSimple :: a -> a
+class DesugarableInitially a where
+  desugarInitially :: a -> a
 
-instance DesugarableSimple Object where
-  desugarSimple :: Object -> Object
-  desugarSimple = \case
+instance DesugarableInitially Object where
+  desugarInitially :: Object -> Object
+  desugarInitially = \case
     obj@(ConstString{}) -> obj
     obj@(ConstInt{}) -> obj
     ConstIntRaw (IntegerSigned x) -> ConstInt (read x)
     obj@(ConstFloat{}) -> obj
     ConstFloatRaw (DoubleSigned x) -> ConstFloat (read x)
     Formation bindings -> Formation (zipWith desugarBindingSimple [0 ..] bindings)
-    Application obj bindings -> Application (desugarSimple obj) (zipWith desugarBindingSimple [0 ..] bindings)
-    ObjectDispatch obj a -> ObjectDispatch (desugarSimple obj) a
+    Application obj bindings -> Application (desugarInitially obj) (zipWith desugarBindingSimple [0 ..] bindings)
+    ObjectDispatch obj a -> ObjectDispatch (desugarInitially obj) a
     GlobalObject -> GlobalObject
     GlobalObjectPhiOrg -> "Φ.org.eolang"
     ThisObject -> ThisObject
     Termination -> Termination
-    MetaSubstThis obj this -> MetaSubstThis (desugarSimple obj) (desugarSimple this)
+    MetaSubstThis obj this -> MetaSubstThis (desugarInitially obj) (desugarInitially this)
     obj@MetaObject{} -> obj
-    MetaContextualize obj1 obj2 -> MetaContextualize (desugarSimple obj1) (desugarSimple obj2)
-    MetaTailContext obj metaId -> MetaTailContext (desugarSimple obj) metaId
-    MetaFunction name obj -> MetaFunction name (desugarSimple obj)
+    MetaContextualize obj1 obj2 -> MetaContextualize (desugarInitially obj1) (desugarInitially obj2)
+    MetaTailContext obj metaId -> MetaTailContext (desugarInitially obj) metaId
+    MetaFunction name obj -> MetaFunction name (desugarInitially obj)
 
 desugarBindingSimple :: Int -> Binding -> Binding
 desugarBindingSimple idx = \case
   AlphaBinding (AttrSugar l ls) (Formation bindings) ->
     let bindingsDesugared = desugarBindingSimple (error "no ID should be here") <$> bindings
      in AlphaBinding (Label l) (Formation ((EmptyBinding . Label <$> ls) <> bindingsDesugared))
-  AlphaBinding a obj -> AlphaBinding a (desugarSimple obj)
-  AlphaBindingSugar obj -> AlphaBinding [fmt|α{idx}|] (desugarSimple obj)
+  AlphaBinding a obj -> AlphaBinding a (desugarInitially obj)
+  AlphaBindingSugar obj -> AlphaBinding [fmt|α{idx}|] (desugarInitially obj)
   binding -> binding
 
-instance DesugarableSimple Program where
-  desugarSimple :: Program -> Program
-  desugarSimple (Program bindings) = Program bindings'
+instance DesugarableInitially Program where
+  desugarInitially :: Program -> Program
+  desugarInitially (Program bindings) = Program bindings'
    where
-    ~(Formation bindings') = desugarSimple (Formation bindings)
+    ~(Formation bindings') = desugarInitially (Formation bindings)
 
-instance DesugarableSimple Binding where
-  desugarSimple = \case
+instance DesugarableInitially Binding where
+  desugarInitially = \case
     obj@AlphaBindingSugar{} -> errorExpectedDesugaredBinding obj
-    AlphaBinding a obj -> AlphaBinding a (desugarSimple obj)
+    AlphaBinding a obj -> AlphaBinding a (desugarInitially obj)
     obj -> obj
 
-instance DesugarableSimple Attribute where
-  desugarSimple = id
-instance DesugarableSimple RuleAttribute where
-  desugarSimple = id
-instance DesugarableSimple PeeledObject where
-  desugarSimple = id
-instance DesugarableSimple ObjectHead where
-  desugarSimple = id
-instance DesugarableSimple MetaId where
-  desugarSimple = id
+instance DesugarableInitially Attribute where
+  desugarInitially = id
+instance DesugarableInitially RuleAttribute where
+  desugarInitially = id
+instance DesugarableInitially PeeledObject where
+  desugarInitially = id
+instance DesugarableInitially ObjectHead where
+  desugarInitially = id
+instance DesugarableInitially MetaId where
+  desugarInitially = id
 
 desugar :: Object -> Object
 desugar = \case
@@ -689,8 +689,8 @@ instance IsString PeeledObject where fromString = unsafeParseWith pPeeledObject
 instance IsString ObjectHead where fromString = unsafeParseWith pObjectHead
 instance IsString MetaId where fromString = unsafeParseWith pMetaId
 
-parseWith :: (DesugarableSimple a) => ([Token] -> Either String a) -> String -> Either String a
-parseWith parser input = either (\x -> Left [fmt|{x}\non the input:\n{input'}|]) (Right . desugarSimple) parsed
+parseWith :: (DesugarableInitially a) => ([Token] -> Either String a) -> String -> Either String a
+parseWith parser input = either (\x -> Left [fmt|{x}\non the input:\n{input'}|]) (Right . desugarInitially) parsed
  where
   input' = preprocess input
   tokens = myLexer input'
@@ -698,7 +698,7 @@ parseWith parser input = either (\x -> Left [fmt|{x}\non the input:\n{input'}|])
 
 -- | Parse a 'Object' from a 'String'.
 -- May throw an 'error` if input has a syntactical or lexical errors.
-unsafeParseWith :: (DesugarableSimple a) => ([Token] -> Either String a) -> String -> a
+unsafeParseWith :: (DesugarableInitially a) => ([Token] -> Either String a) -> String -> a
 unsafeParseWith parser input =
   case parseWith parser input of
     Left parseError -> error parseError
