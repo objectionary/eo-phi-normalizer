@@ -123,8 +123,8 @@ instance DesugarableInitially Object where
     ConstIntRaw (IntegerSigned x) -> ConstInt (read x)
     obj@(ConstFloat{}) -> obj
     ConstFloatRaw (DoubleSigned x) -> ConstFloat (read x)
-    Formation bindings -> Formation (zipWith desugarBindingInitially [0 ..] bindings)
-    Application obj bindings -> Application (desugarInitially obj) (zipWith desugarBindingInitially [0 ..] bindings)
+    Formation bindings -> Formation (desugarInitially bindings)
+    Application obj bindings -> Application (desugarInitially obj) (desugarInitially bindings)
     ObjectDispatch obj a -> ObjectDispatch (desugarInitially obj) a
     GlobalObject -> GlobalObject
     GlobalObjectPhiOrg -> "Φ.org.eolang"
@@ -136,20 +136,22 @@ instance DesugarableInitially Object where
     MetaTailContext obj metaId -> MetaTailContext (desugarInitially obj) metaId
     MetaFunction name obj -> MetaFunction name (desugarInitially obj)
 
-desugarBindingInitially :: Int -> Binding -> Binding
-desugarBindingInitially idx = \case
-  AlphaBinding (AttrSugar l ls) (Formation bindings) ->
-    let bindingsDesugared = desugarBindingInitially (error "no ID should be here") <$> bindings
-     in AlphaBinding (Label l) (Formation ((EmptyBinding . Label <$> ls) <> bindingsDesugared))
-  AlphaBinding a obj -> AlphaBinding a (desugarInitially obj)
-  AlphaBindingSugar obj -> AlphaBinding [fmt|α{idx}|] (desugarInitially obj)
-  binding -> binding
+instance DesugarableInitially [Binding] where
+  desugarInitially :: [Binding] -> [Binding]
+  desugarInitially = zipWith go [0 ..]
+   where
+    go :: Int -> Binding -> Binding
+    go idx = \case
+      AlphaBinding (AttrSugar l ls) (Formation bindings) ->
+        let bindingsDesugared = desugarInitially bindings
+         in AlphaBinding (Label l) (Formation ((EmptyBinding . Label <$> ls) <> bindingsDesugared))
+      AlphaBinding a obj -> AlphaBinding a (desugarInitially obj)
+      AlphaBindingSugar obj -> AlphaBinding [fmt|α{idx}|] (desugarInitially obj)
+      binding -> binding
 
 instance DesugarableInitially Program where
   desugarInitially :: Program -> Program
-  desugarInitially (Program bindings) = Program bindings'
-   where
-    ~(Formation bindings') = desugarInitially (Formation bindings)
+  desugarInitially (Program bindings) = Program (desugarInitially bindings)
 
 instance DesugarableInitially Binding where
   desugarInitially = \case
@@ -157,15 +159,7 @@ instance DesugarableInitially Binding where
     AlphaBinding a obj -> AlphaBinding a (desugarInitially obj)
     obj -> obj
 
-instance DesugarableInitially Attribute where
-  desugarInitially = id
-instance DesugarableInitially RuleAttribute where
-  desugarInitially = id
-instance DesugarableInitially PeeledObject where
-  desugarInitially = id
-instance DesugarableInitially ObjectHead where
-  desugarInitially = id
-instance DesugarableInitially MetaId where
+instance {-# OVERLAPPABLE #-} DesugarableInitially a where
   desugarInitially = id
 
 desugar :: Object -> Object
