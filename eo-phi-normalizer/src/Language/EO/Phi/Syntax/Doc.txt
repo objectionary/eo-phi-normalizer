@@ -76,11 +76,11 @@ MetaFunctionName literals are recognized by the regular expression
 `````'@' (char - ["
  !'(),-.:;?[]{|}⟦⟧"])*`````
 
-DoubleSigned literals are recognized by the regular expression
-`````'-'? digit+ '.' digit+ ('e' '-'? digit+)?`````
-
 IntegerSigned literals are recognized by the regular expression
 `````'-'? digit+`````
+
+DoubleSigned literals are recognized by the regular expression
+`````'-'? digit+ '.' digit+ ('e' '-'? digit+)?`````
 
 
 ===Reserved words and symbols===

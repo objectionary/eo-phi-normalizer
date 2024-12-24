@@ -85,13 +85,13 @@ $s [$u # [\t \n \r \  \! \' \( \) \, \. \: \; \? \[ \] \{ \| \} \⟦ \⟧]] *
 \@ [$u # [\t \n \r \  \! \' \( \) \, \- \. \: \; \? \[ \] \{ \| \} \⟦ \⟧]] *
     { tok (eitherResIdent T_MetaFunctionName) }
 
--- token DoubleSigned
-\- ? $d + \. $d + (e \- ? $d +)?
-    { tok (eitherResIdent T_DoubleSigned) }
-
 -- token IntegerSigned
 \- ? $d +
     { tok (eitherResIdent T_IntegerSigned) }
+
+-- token DoubleSigned
+\- ? $d + \. $d + (e \- ? $d +)?
+    { tok (eitherResIdent T_DoubleSigned) }
 
 -- Keywords and Ident
 $l $i*
@@ -132,8 +132,8 @@ data Tok
   | T_ObjectMetaId !String
   | T_BytesMetaId !String
   | T_MetaFunctionName !String
-  | T_DoubleSigned !String
   | T_IntegerSigned !String
+  | T_DoubleSigned !String
   deriving (Eq, Show, Ord)
 
 -- | Smart constructor for 'Tok' for the sake of backwards compatibility.
@@ -206,8 +206,8 @@ tokenText t = case t of
   PT _ (T_ObjectMetaId s) -> s
   PT _ (T_BytesMetaId s) -> s
   PT _ (T_MetaFunctionName s) -> s
-  PT _ (T_DoubleSigned s) -> s
   PT _ (T_IntegerSigned s) -> s
+  PT _ (T_DoubleSigned s) -> s
 
 -- | Convert a token to a string.
 prToken :: Token -> String

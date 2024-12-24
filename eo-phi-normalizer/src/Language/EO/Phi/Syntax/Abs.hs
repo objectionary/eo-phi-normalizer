@@ -143,9 +143,9 @@ newtype BytesMetaId = BytesMetaId String
 newtype MetaFunctionName = MetaFunctionName String
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic, Data.String.IsString)
 
-newtype DoubleSigned = DoubleSigned String
+newtype IntegerSigned = IntegerSigned String
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic, Data.String.IsString)
 
-newtype IntegerSigned = IntegerSigned String
+newtype DoubleSigned = DoubleSigned String
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic, Data.String.IsString)
 

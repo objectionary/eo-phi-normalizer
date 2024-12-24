@@ -83,8 +83,8 @@ import Language.EO.Phi.Syntax.Lex
   L_ObjectMetaId     { PT _ (T_ObjectMetaId $$)     }
   L_BytesMetaId      { PT _ (T_BytesMetaId $$)      }
   L_MetaFunctionName { PT _ (T_MetaFunctionName $$) }
-  L_DoubleSigned     { PT _ (T_DoubleSigned $$)     }
   L_IntegerSigned    { PT _ (T_IntegerSigned $$)    }
+  L_DoubleSigned     { PT _ (T_DoubleSigned $$)     }
 
 %%
 
@@ -127,11 +127,11 @@ BytesMetaId  : L_BytesMetaId { Language.EO.Phi.Syntax.Abs.BytesMetaId $1 }
 MetaFunctionName :: { Language.EO.Phi.Syntax.Abs.MetaFunctionName }
 MetaFunctionName  : L_MetaFunctionName { Language.EO.Phi.Syntax.Abs.MetaFunctionName $1 }
 
-DoubleSigned :: { Language.EO.Phi.Syntax.Abs.DoubleSigned }
-DoubleSigned  : L_DoubleSigned { Language.EO.Phi.Syntax.Abs.DoubleSigned $1 }
-
 IntegerSigned :: { Language.EO.Phi.Syntax.Abs.IntegerSigned }
 IntegerSigned  : L_IntegerSigned { Language.EO.Phi.Syntax.Abs.IntegerSigned $1 }
+
+DoubleSigned :: { Language.EO.Phi.Syntax.Abs.DoubleSigned }
+DoubleSigned  : L_DoubleSigned { Language.EO.Phi.Syntax.Abs.DoubleSigned $1 }
 
 Program :: { Language.EO.Phi.Syntax.Abs.Program }
 Program
