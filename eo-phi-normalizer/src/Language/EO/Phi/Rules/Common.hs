@@ -118,7 +118,7 @@ withSubObject f ctx root =
         ]
     ObjectDispatch obj a -> propagateName2 ObjectDispatch <$> withSubObject f subctx obj <*> pure a
     GlobalObject{} -> []
-    obj@GlobalObjectPhiOrg{} -> expectedDesugaredObject obj
+    obj@GlobalObjectPhiOrg{} -> errorExpectedDesugaredObject obj
     ThisObject{} -> []
     Termination -> []
     MetaObject _ -> []
@@ -128,9 +128,9 @@ withSubObject f ctx root =
     MetaContextualize _ _ -> []
     ConstString{} -> []
     ConstInt{} -> []
-    obj@ConstIntRaw{} -> expectedDesugaredObject obj
+    obj@ConstIntRaw{} -> errorExpectedDesugaredObject obj
     ConstFloat{} -> []
-    obj@ConstFloatRaw{} -> expectedDesugaredObject obj
+    obj@ConstFloatRaw{} -> errorExpectedDesugaredObject obj
 
 -- | Given a unary function that operates only on plain objects,
 -- converts it to a function that operates on named objects
@@ -156,7 +156,7 @@ withSubObjectBindings f ctx (b : bs) =
 withSubObjectBinding :: (Context -> Object -> [(String, Object)]) -> Context -> Binding -> [(String, Binding)]
 withSubObjectBinding f ctx = \case
   AlphaBinding a obj -> propagateName1 (AlphaBinding a) <$> withSubObject f (ctx{currentAttr = a}) obj
-  b@AlphaBindingSugar{} -> expectedDesugaredBinding b
+  b@AlphaBindingSugar{} -> errorExpectedDesugaredBinding b
   EmptyBinding{} -> []
   DeltaBinding{} -> []
   DeltaEmptyBinding{} -> []
@@ -197,7 +197,7 @@ objectSize = \case
   -- Is it because we sometimes bounce between sugared and desugared versions?
   --
   -- Should we introduce a smart constructor with a desugared object inside?
-  obj@GlobalObjectPhiOrg -> expectedDesugaredObject obj
+  obj@GlobalObjectPhiOrg -> errorExpectedDesugaredObject obj
   ThisObject -> 1
   Termination -> 1
   obj@MetaObject{} -> error ("impossible: expected a desugared object, but got: " <> printTree obj)
@@ -207,9 +207,9 @@ objectSize = \case
   obj@MetaTailContext{} -> error ("impossible: expected a desugared object, but got: " <> printTree obj)
   obj@ConstString{} -> objectSize (desugar obj)
   obj@ConstInt{} -> objectSize (desugar obj)
-  obj@ConstIntRaw{} -> expectedDesugaredObject obj
+  obj@ConstIntRaw{} -> errorExpectedDesugaredObject obj
   obj@ConstFloat{} -> objectSize (desugar obj)
-  obj@ConstFloatRaw{} -> expectedDesugaredObject obj
+  obj@ConstFloatRaw{} -> errorExpectedDesugaredObject obj
 
 bindingSize :: Binding -> Int
 bindingSize = \case
@@ -220,7 +220,7 @@ bindingSize = \case
   LambdaBinding _lam -> 1
   obj@MetaDeltaBinding{} -> error ("impossible: expected a desugared object, but got: " <> printTree obj)
   obj@MetaBindings{} -> error ("impossible: expected a desugared object, but got: " <> printTree obj)
-  b@AlphaBindingSugar{} -> expectedDesugaredBinding b
+  b@AlphaBindingSugar{} -> errorExpectedDesugaredBinding b
 
 -- | A variant of `applyRules` with a maximum application depth.
 applyRulesWith :: ApplicationLimits -> Context -> Object -> [Object]
@@ -263,7 +263,7 @@ equalBindings bindings1 bindings2 = and (zipWith equalBinding (sortOn attr bindi
   attr (MetaDeltaBinding _) = Label (LabelId "Δ")
   attr (LambdaBinding _) = Label (LabelId "λ")
   attr (MetaBindings (BindingsMetaId metaId)) = MetaAttr (LabelMetaId metaId)
-  attr b@AlphaBindingSugar{} = expectedDesugaredBinding b
+  attr b@AlphaBindingSugar{} = errorExpectedDesugaredBinding b
 
 equalBinding :: Binding -> Binding -> Bool
 equalBinding (AlphaBinding attr1 obj1) (AlphaBinding attr2 obj2) = attr1 == attr2 && equalObject obj1 obj2

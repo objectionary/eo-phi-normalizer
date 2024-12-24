@@ -78,8 +78,8 @@ module Language.EO.Phi.Syntax (
   paddedLeftChunksOf,
   normalizeBytes,
   parseWith,
-  expectedDesugaredObject,
-  expectedDesugaredBinding,
+  errorExpectedDesugaredObject,
+  errorExpectedDesugaredBinding,
 ) where
 
 import Data.ByteString (ByteString)
@@ -106,11 +106,11 @@ import Text.Read (readMaybe)
 -- >>> :set -XOverloadedStrings
 -- >>> :set -XOverloadedLists
 
-expectedDesugaredObject :: Object -> a
-expectedDesugaredObject x = error ("impossible: expected desugared Object, but got: " <> printTree x)
+errorExpectedDesugaredObject :: Object -> a
+errorExpectedDesugaredObject x = error ("impossible: expected desugared Object, but got: " <> printTree x)
 
-expectedDesugaredBinding :: Binding -> a
-expectedDesugaredBinding x = error ("impossible: expected desugared Binding, but got: " <> printTree x)
+errorExpectedDesugaredBinding :: Binding -> a
+errorExpectedDesugaredBinding x = error ("impossible: expected desugared Binding, but got: " <> printTree x)
 
 class DesugarableSimple a where
   desugarSimple :: a -> a
@@ -153,7 +153,7 @@ instance DesugarableSimple Program where
 
 instance DesugarableSimple Binding where
   desugarSimple = \case
-    obj@AlphaBindingSugar{} -> expectedDesugaredBinding obj
+    obj@AlphaBindingSugar{} -> errorExpectedDesugaredBinding obj
     AlphaBinding a obj -> AlphaBinding a (desugarSimple obj)
     obj -> obj
 
@@ -172,14 +172,14 @@ desugar :: Object -> Object
 desugar = \case
   ConstString string -> wrapBytesInString (stringToBytes string)
   ConstInt n -> wrapBytesInInt (intToBytes (fromInteger n))
-  obj@ConstIntRaw{} -> expectedDesugaredObject obj
+  obj@ConstIntRaw{} -> errorExpectedDesugaredObject obj
   ConstFloat x -> wrapBytesInFloat (floatToBytes x)
-  obj@ConstFloatRaw{} -> expectedDesugaredObject obj
+  obj@ConstFloatRaw{} -> errorExpectedDesugaredObject obj
   Formation bindings -> Formation (desugarBinding <$> bindings)
   Application obj bindings -> Application (desugar obj) (desugarBinding <$> bindings)
   ObjectDispatch obj a -> ObjectDispatch (desugar obj) a
   GlobalObject -> GlobalObject
-  obj@GlobalObjectPhiOrg -> expectedDesugaredObject obj
+  obj@GlobalObjectPhiOrg -> errorExpectedDesugaredObject obj
   ThisObject -> ThisObject
   Termination -> Termination
   MetaSubstThis obj this -> MetaSubstThis (desugar obj) (desugar this)
@@ -194,7 +194,7 @@ desugarBinding = \case
     let bindingsDesugared = desugarBinding <$> bindings
      in AlphaBinding (Label l) (Formation ((EmptyBinding . Label <$> ls) <> bindingsDesugared))
   AlphaBinding a obj -> AlphaBinding a (desugar obj)
-  obj@(AlphaBindingSugar{}) -> expectedDesugaredBinding obj
+  obj@(AlphaBindingSugar{}) -> errorExpectedDesugaredBinding obj
   binding -> binding
 
 -- MetaSubstThis

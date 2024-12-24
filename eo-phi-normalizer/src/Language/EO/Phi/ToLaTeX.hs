@@ -72,7 +72,7 @@ instance ToLatex Binding where
   toLatex (LambdaBinding (Function fn)) = "L> " <> LaTeX fn
   toLatex (MetaBindings (BindingsMetaId x)) = LaTeX x
   toLatex (MetaDeltaBinding (BytesMetaId x)) = "D> " <> LaTeX x
-  toLatex b@AlphaBindingSugar{} = expectedDesugaredBinding b
+  toLatex b@AlphaBindingSugar{} = errorExpectedDesugaredBinding b
 
 instance ToLatex Object where
   toLatex (Formation bindings) =
@@ -92,9 +92,9 @@ instance ToLatex Object where
   toLatex (MetaContextualize obj1 obj2) = LaTeX "\\lceil" <> toLatex obj1 <> ", " <> toLatex obj2 <> "\\rceil"
   toLatex (ConstString string) = "|" <> LaTeX (show string) <> "|"
   toLatex (ConstInt n) = LaTeX (show n)
-  toLatex obj@(ConstIntRaw{}) = expectedDesugaredObject obj
+  toLatex obj@(ConstIntRaw{}) = errorExpectedDesugaredObject obj
   toLatex (ConstFloat x) = LaTeX (show x)
-  toLatex obj@(ConstFloatRaw{}) = expectedDesugaredObject obj
+  toLatex obj@(ConstFloatRaw{}) = errorExpectedDesugaredObject obj
 
 removeOrgEolang :: String -> String
 removeOrgEolang = T.unpack . T.replace "Q.org.eolang" "QQ" . T.pack

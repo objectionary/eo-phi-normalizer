@@ -48,7 +48,7 @@ import GHC.Generics (Generic)
 import Language.EO.Phi.Dataize.Context (defaultContext)
 import Language.EO.Phi.Rules.Common (ApplicationLimits (..), NamedRule, applyOneRule, defaultApplicationLimits, equalObject, objectSize)
 import Language.EO.Phi.Rules.Yaml (convertRuleNamed, parseRuleSetFromFile, rules)
-import Language.EO.Phi.Syntax (expectedDesugaredBinding, intToBytes, printTree)
+import Language.EO.Phi.Syntax (errorExpectedDesugaredBinding, intToBytes, printTree)
 import Language.EO.Phi.Syntax.Abs as Phi
 import Test.Hspec
 import Test.QuickCheck
@@ -147,7 +147,7 @@ bindingAttr = \case
   LambdaBinding{} -> Label "λ"
   MetaDeltaBinding{} -> Label "Δ"
   MetaBindings{} -> error "attempting to retrieve attribute of meta bindings"
-  b@AlphaBindingSugar{} -> expectedDesugaredBinding b
+  b@AlphaBindingSugar{} -> errorExpectedDesugaredBinding b
 
 arbitraryBindings :: Gen [Binding]
 arbitraryBindings =
