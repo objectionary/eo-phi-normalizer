@@ -92,9 +92,9 @@ instance ToLatex Object where
   toLatex (MetaContextualize obj1 obj2) = LaTeX "\\lceil" <> toLatex obj1 <> ", " <> toLatex obj2 <> "\\rceil"
   toLatex (ConstString string) = "|" <> LaTeX (show string) <> "|"
   toLatex (ConstInt n) = LaTeX (show n)
-  toLatex (ConstIntRaw{}) = error "rendering ConstIntRaw in LaTex format"
+  toLatex obj@(ConstIntRaw{}) = expectedDesugaredObject obj
   toLatex (ConstFloat x) = LaTeX (show x)
-  toLatex (ConstFloatRaw{}) = error "rendering ConstFloatRaw in LaTex format"
+  toLatex obj@(ConstFloatRaw{}) = expectedDesugaredObject obj
 
 removeOrgEolang :: String -> String
 removeOrgEolang = T.unpack . T.replace "Q.org.eolang" "QQ" . T.pack

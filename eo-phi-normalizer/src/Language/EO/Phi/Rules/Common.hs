@@ -118,7 +118,7 @@ withSubObject f ctx root =
         ]
     ObjectDispatch obj a -> propagateName2 ObjectDispatch <$> withSubObject f subctx obj <*> pure a
     GlobalObject{} -> []
-    GlobalObjectPhiOrg{} -> []
+    obj@GlobalObjectPhiOrg{} -> expectedDesugaredObject obj
     ThisObject{} -> []
     Termination -> []
     MetaObject _ -> []
@@ -128,9 +128,9 @@ withSubObject f ctx root =
     MetaContextualize _ _ -> []
     ConstString{} -> []
     ConstInt{} -> []
-    ConstIntRaw{} -> []
+    obj@ConstIntRaw{} -> expectedDesugaredObject obj
     ConstFloat{} -> []
-    ConstFloatRaw{} -> []
+    obj@ConstFloatRaw{} -> expectedDesugaredObject obj
 
 -- | Given a unary function that operates only on plain objects,
 -- converts it to a function that operates on named objects
@@ -197,7 +197,7 @@ objectSize = \case
   -- Is it because we sometimes bounce between sugared and desugared versions?
   --
   -- Should we introduce a smart constructor with a desugared object inside?
-  obj@GlobalObjectPhiOrg -> objectSize (desugar obj)
+  obj@GlobalObjectPhiOrg -> expectedDesugaredObject obj
   ThisObject -> 1
   Termination -> 1
   obj@MetaObject{} -> error ("impossible: expected a desugared object, but got: " <> printTree obj)
@@ -207,9 +207,9 @@ objectSize = \case
   obj@MetaTailContext{} -> error ("impossible: expected a desugared object, but got: " <> printTree obj)
   obj@ConstString{} -> objectSize (desugar obj)
   obj@ConstInt{} -> objectSize (desugar obj)
-  obj@ConstIntRaw{} -> objectSize (desugar obj)
+  obj@ConstIntRaw{} -> expectedDesugaredObject obj
   obj@ConstFloat{} -> objectSize (desugar obj)
-  obj@ConstFloatRaw{} -> objectSize (desugar obj)
+  obj@ConstFloatRaw{} -> expectedDesugaredObject obj
 
 bindingSize :: Binding -> Int
 bindingSize = \case

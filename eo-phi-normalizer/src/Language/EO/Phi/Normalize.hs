@@ -38,7 +38,7 @@ import Data.Maybe (fromMaybe)
 import Data.Generics.Labels ()
 import GHC.Generics (Generic)
 import Language.EO.Phi.Rules.Common (lookupBinding, objectBindings)
-import Language.EO.Phi.Syntax (desugar)
+import Language.EO.Phi.Syntax (desugar, expectedDesugaredObject)
 import Language.EO.Phi.Syntax.Abs
 
 data Context = Context
@@ -81,9 +81,9 @@ peelObject = \case
   MetaContextualize{} -> error "impossible"
   obj@ConstString{} -> peelObject (desugar obj)
   obj@ConstInt{} -> peelObject (desugar obj)
-  obj@ConstIntRaw{} -> peelObject (desugar obj)
+  obj@ConstIntRaw{} -> expectedDesugaredObject obj
   obj@ConstFloat{} -> peelObject (desugar obj)
-  obj@ConstFloatRaw{} -> peelObject (desugar obj)
+  obj@ConstFloatRaw{} -> expectedDesugaredObject obj
  where
   followedBy (PeeledObject object actions) action = PeeledObject object (actions ++ [action])
 
