@@ -335,6 +335,7 @@ library
     , megaparsec
     , mtl
     , parser-combinators
+    , prettyprinter
     , regex-compat
     , replace-megaparsec
     , scientific
@@ -385,6 +386,7 @@ executable eo-phi-normalizer
     , mtl
     , optparse-applicative
     , parser-combinators
+    , prettyprinter
     , regex-compat
     , replace-megaparsec
     , scientific
@@ -414,6 +416,7 @@ test-suite doctests
       Language.EO.Phi.Pipeline.EOTests.Data
       Language.EO.Phi.Pipeline.EOTests.PrepareTests
       Language.EO.Phi.Preprocess
+      Language.EO.Phi.Pretty
       Language.EO.Phi.Report.Data
       Language.EO.Phi.Report.Html
       Language.EO.Phi.Rules.Common
@@ -466,6 +469,7 @@ test-suite doctests
     , megaparsec
     , mtl
     , parser-combinators
+    , prettyprinter
     , regex-compat
     , replace-megaparsec
     , scientific
@@ -524,6 +528,7 @@ test-suite spec
     , megaparsec
     , mtl
     , parser-combinators
+    , prettyprinter
     , regex-compat
     , replace-megaparsec
     , scientific

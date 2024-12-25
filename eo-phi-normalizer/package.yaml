@@ -96,6 +96,7 @@ dependencies:
   - replace-megaparsec
   - megaparsec
   - parser-combinators
+  - prettyprinter
 
 default-extensions:
   - ImportQualifiedPost
