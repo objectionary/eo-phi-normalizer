@@ -284,6 +284,7 @@ library
       Language.EO.Phi.Pipeline.EOTests.Data
       Language.EO.Phi.Pipeline.EOTests.PrepareTests
       Language.EO.Phi.Preprocess
+      Language.EO.Phi.Pretty
       Language.EO.Phi.Report.Data
       Language.EO.Phi.Report.Html
       Language.EO.Phi.Rules.Common
