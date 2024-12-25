@@ -160,7 +160,58 @@ instance DesugarableInitially Binding where
     obj -> obj
 
 instance {-# OVERLAPPABLE #-} DesugarableInitially a where
+  desugarInitially :: a -> a
   desugarInitially = id
+
+class SugarableFinally a where
+  sugarFinally :: a -> a
+
+instance SugarableFinally Object where
+  sugarFinally :: Object -> Object
+  sugarFinally = \case
+    "Φ.org.eolang" -> GlobalObjectPhiOrg
+    obj@ConstString{} -> obj
+    obj@ConstInt{} -> obj
+    obj@ConstIntRaw{} -> errorExpectedDesugaredObject obj
+    obj@ConstFloat{} -> obj
+    obj@ConstFloatRaw{} -> errorExpectedDesugaredObject obj
+    Formation bindings -> Formation (sugarFinally <$> bindings)
+    Application obj bindings -> Application (sugarFinally obj) (sugarFinally bindings)
+    ObjectDispatch obj a -> ObjectDispatch (sugarFinally obj) a
+    GlobalObject -> GlobalObject
+    obj@GlobalObjectPhiOrg -> errorExpectedDesugaredObject obj
+    ThisObject -> ThisObject
+    Termination -> Termination
+    MetaSubstThis obj this -> MetaSubstThis (sugarFinally obj) (sugarFinally this)
+    obj@MetaObject{} -> obj
+    MetaContextualize obj1 obj2 -> MetaContextualize (sugarFinally obj1) (sugarFinally obj2)
+    MetaTailContext obj metaId -> MetaTailContext (sugarFinally obj) metaId
+    MetaFunction name obj -> MetaFunction name (sugarFinally obj)
+
+instance SugarableFinally [Binding] where
+  sugarFinally :: [Binding] -> [Binding]
+  sugarFinally bs =
+    if and (zipWith go [0 ..] bs)
+      then (\(~(AlphaBinding _ obj)) -> AlphaBindingSugar (sugarFinally obj)) <$> bs
+      else sugarFinally <$> bs
+   where
+    go :: Int -> Binding -> Bool
+    go idx = \case
+      obj@AlphaBindingSugar{} -> errorExpectedDesugaredBinding obj
+      obj@(AlphaBinding (AttrSugar _ _) _) -> errorExpectedDesugaredBinding obj
+      AlphaBinding (Alpha (AlphaIndex ('α' : idx'))) _ -> idx == read idx'
+      _ -> False
+
+instance SugarableFinally Binding where
+  sugarFinally :: Binding -> Binding
+  sugarFinally = \case
+    obj@AlphaBindingSugar{} -> errorExpectedDesugaredBinding obj
+    AlphaBinding a obj -> AlphaBinding a (sugarFinally obj)
+    x -> x
+
+instance {-# OVERLAPPABLE #-} SugarableFinally a where
+  sugarFinally :: a -> a
+  sugarFinally = id
 
 desugar :: Object -> Object
 desugar = \case
@@ -253,8 +304,8 @@ wrapBytesAsBool bytes
 -- * Overriding generated pretty-printer
 
 -- | Like 'Phi.printTree', but without spaces around dots and no indentation for curly braces.
-printTree :: (Phi.Print a) => a -> String
-printTree = shrinkDots . render . Phi.prt 0
+printTree :: (Phi.Print a, SugarableFinally a) => a -> String
+printTree = shrinkDots . render . Phi.prt 0 . sugarFinally
 
 -- | Remove spaces around dots.
 --
