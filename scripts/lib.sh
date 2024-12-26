@@ -169,8 +169,8 @@ function get_eo_version {
 export -f get_eo_version
 
 function commit_and_push_if_changed {
-    local files="$1"
-    local updated_message="$2"
+    local updated_message="$1"
+    local files="$2"
     if [ -n "$(git status --porcelain "${files[@]}")" ]; then
         git add "${files[@]}"
         git commit -m "Update $updated_message"
