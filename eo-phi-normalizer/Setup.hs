@@ -90,7 +90,7 @@ main =
                   , "cd src/Language/EO/Phi/Syntax"
                   , "alex Lex.x"
                   , "happy --info Par.y"
-                  , "rm ErrM.hs Skel.hs Test.hs Abs.hs.bak Print.hs.bak"
+                  , "rm -f Print.hs ErrM.hs Skel.hs Test.hs Abs.hs.bak Print.hs.bak"
                   , "true"
                   ]
 
@@ -100,7 +100,6 @@ main =
 
             _ <- callCommand fullCommand
             _ <- addLicense "Abs.hs"
-            _ <- addLicense "Print.hs"
 
             postConf simpleUserHooks args flags packageDesc localBuildInfo
         }
