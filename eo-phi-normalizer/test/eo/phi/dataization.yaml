@@ -27,13 +27,24 @@ tests:
       - ./data/0.49.1/org/eolang/number.phi
       - ./data/0.49.1/org/eolang/bytes.phi
     input: |
-      {⟦
-        c ↦ Φ.org.eolang.number(
-          as-bytes ↦ Φ̇.bytes(Δ ⤍ 40-39-00-00-00-00-00-00)
-        ), // 25.0
-        φ ↦ ξ.c.times(x ↦ ⟦ Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD ⟧)  // 1.8
-              .plus(x ↦ ⟦ Δ ⤍ 40-40-00-00-00-00-00-00 ⟧), // 32.0
-      ⟧}
+      {
+        ⟦
+          c ↦ Φ̇.number(
+            as-bytes ↦ Φ̇.bytes(
+              Δ ⤍ 40-39-00-00-00-00-00-00
+            )
+          ),
+          φ ↦ ξ.c.times(
+            x ↦ ⟦
+              Δ ⤍ 3F-FC-CC-CC-CC-CC-CC-CD
+            ⟧
+          ).plus(
+            x ↦ ⟦
+              Δ ⤍ 40-40-00-00-00-00-00-00
+            ⟧
+          )
+        ⟧
+      }
     output:
       object: "77.0"
 
@@ -50,7 +61,27 @@ tests:
   - name: "Program with ξ.ρ.ρ"
     dependencies: []
     input: |
-      {⟦ x ↦ ⟦ b ↦ ⟦ Δ ⤍ 01- ⟧, φ ↦ ⟦ b ↦ ⟦ Δ ⤍ 02- ⟧, c ↦ ⟦ a ↦ ξ.ρ.ρ.b, ρ ↦ ∅ ⟧.a, ρ ↦ ∅ ⟧.c, ρ ↦ ∅ ⟧.φ, λ ⤍ Package ⟧}
+      {
+        ⟦
+          x ↦ ⟦
+            b ↦ ⟦
+              Δ ⤍ 01-
+            ⟧,
+            φ ↦ ⟦
+              b ↦ ⟦
+                Δ ⤍ 02-
+              ⟧,
+              c ↦ ⟦
+                a ↦ ξ.ρ.ρ.b,
+                ρ ↦ ∅
+              ⟧.a,
+              ρ ↦ ∅
+            ⟧.c,
+            ρ ↦ ∅
+          ⟧.φ,
+          λ ⤍ Package
+        ⟧
+      }
     output:
       object: |
         ⟦ x ↦ ⟦ Δ ⤍ 01- ⟧, λ ⤍ Package ⟧
@@ -58,7 +89,16 @@ tests:
   - name: "Preprocessing and dispatch"
     dependencies: []
     input: |
-      {⟦ a ↦ ⟦ b ↦ ⟦ Δ ⤍ 01- ⟧ ⟧.b , λ ⤍ Package ⟧}
+      {
+        ⟦
+          a ↦ ⟦
+            b ↦ ⟦
+              Δ ⤍ 01-
+            ⟧
+          ⟧.b,
+          λ ⤍ Package
+        ⟧
+      }
     output:
       object: |
         ⟦ a ↦ ⟦ Δ ⤍ 01- ⟧, λ ⤍ Package ⟧
@@ -66,7 +106,20 @@ tests:
   - name: "New values in copy through ξ"
     dependencies: []
     input: |
-      {⟦ a ↦ ⟦ b ↦ ∅, c ↦ ξ.b ⟧, d ↦ ξ.a(b ↦ ⟦ Δ ⤍ 01- ⟧).c , λ ⤍ Package ⟧}
+      {
+        ⟦
+          a ↦ ⟦
+            b ↦ ∅,
+            c ↦ ξ.b
+          ⟧,
+          d ↦ ξ.a(
+            b ↦ ⟦
+              Δ ⤍ 01-
+            ⟧
+          ).c,
+          λ ⤍ Package
+        ⟧
+      }
     output:
       object: |
         ⟦ a ↦ ⟦ b ↦ ∅, c ↦ ξ.b ⟧, d ↦ ⟦ Δ ⤍ 01- ⟧, λ ⤍ Package ⟧
@@ -74,7 +127,20 @@ tests:
   - name: "ρ-applications and stacked dispatches"
     dependencies: []
     input: |
-      {⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ⟦ Δ ⤍ 01- ⟧ ⟧ ⟧ ⟧.a.b.c , λ ⤍ Package ⟧}
+      {
+        ⟦
+          x ↦ ⟦
+            a ↦ ⟦
+              b ↦ ⟦
+                c ↦ ⟦
+                  Δ ⤍ 01-
+                ⟧
+              ⟧
+            ⟧
+          ⟧.a.b.c,
+          λ ⤍ Package
+        ⟧
+      }
     output:
       object: |
         ⟦ x ↦ ⟦ Δ ⤍ 01- ⟧, λ ⤍ Package ⟧
@@ -82,7 +148,20 @@ tests:
   - name: "ρ-applications and immediate dispatches"
     dependencies: []
     input: |
-      {⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ⟦ Δ ⤍ 01- ⟧ ⟧.c ⟧.b ⟧.a , λ ⤍ Package ⟧}
+      {
+        ⟦
+          x ↦ ⟦
+            a ↦ ⟦
+              b ↦ ⟦
+                c ↦ ⟦
+                  Δ ⤍ 01-
+                ⟧
+              ⟧.c
+            ⟧.b
+          ⟧.a,
+          λ ⤍ Package
+        ⟧
+      }
     output:
       object: |
         ⟦ x ↦ ⟦ Δ ⤍ 01- ⟧, λ ⤍ Package ⟧
@@ -90,7 +169,22 @@ tests:
   - name: "new values in copy through ρ"
     dependencies: []
     input: |
-      {⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ξ.ρ.c ⟧.b, c ↦ ∅ ⟧, d ↦ ξ.x(c ↦ ⟦ Δ ⤍ 01- ⟧).a , λ ⤍ Package ⟧}
+      {
+        ⟦
+          x ↦ ⟦
+            a ↦ ⟦
+              b ↦ ξ.ρ.c
+            ⟧.b,
+            c ↦ ∅
+          ⟧,
+          d ↦ ξ.x(
+            c ↦ ⟦
+              Δ ⤍ 01-
+            ⟧
+          ).a,
+          λ ⤍ Package
+        ⟧
+      }
     output:
       object: |
         ⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ξ.ρ.c ⟧.b, c ↦ ∅ ⟧, d ↦ ⟦ Δ ⤍ 01- ⟧, λ ⤍ Package ⟧
@@ -98,7 +192,18 @@ tests:
   - name: "ρ and nested dispatches"
     dependencies: []
     input: |
-      {⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ξ.ρ ⟧.c ⟧.b ⟧.a , λ ⤍ Package ⟧}
+      {
+        ⟦
+          x ↦ ⟦
+            a ↦ ⟦
+              b ↦ ⟦
+                c ↦ ξ.ρ
+              ⟧.c
+            ⟧.b
+          ⟧.a,
+          λ ⤍ Package
+        ⟧
+      }
     output:
       object: |
         ⟦ x ↦ ⟦ b ↦ ⟦ c ↦ ξ.ρ ⟧.ρ, ρ ↦ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ξ.ρ ⟧.ρ ⟧ ⟧ ⟧, λ ⤍ Package ⟧
@@ -106,7 +211,14 @@ tests:
   - name: "usage of Φ with a loop"
     dependencies: []
     input: |
-      {⟦ a ↦ ⟦ b ↦ Φ.a ⟧ , λ ⤍ Package ⟧}
+      {
+        ⟦
+          a ↦ ⟦
+            b ↦ Φ.a
+          ⟧,
+          λ ⤍ Package
+        ⟧
+      }
     output:
       object: |
         ⟦ a ↦ ⟦ b ↦ Φ.a ⟧, λ ⤍ Package ⟧
@@ -114,7 +226,20 @@ tests:
   - name: "ρ passed to both term of object application?"
     dependencies: []
     input: |
-      {⟦ x ↦ ⟦ c ↦ ⟦ a ↦ ∅ ⟧ (a ↦ ⟦ d ↦ ξ.ρ ⟧) ⟧.c , λ ⤍ Package ⟧}
+      {
+        ⟦
+          x ↦ ⟦
+            c ↦ ⟦
+              a ↦ ∅
+            ⟧(
+              a ↦ ⟦
+                d ↦ ξ.ρ
+              ⟧
+            )
+          ⟧.c,
+          λ ⤍ Package
+        ⟧
+      }
     output:
       object: |
         ⟦ x ↦ ⟦
@@ -130,11 +255,24 @@ tests:
   - name: "Object with ξ.ρ is an argument in application"
     dependencies: []
     input: |
-      {⟦
-        a ↦ ⟦ b ↦ ∅, x ↦ ⟦ Δ ⤍ 01- ⟧ ⟧ (b ↦ ⟦ c ↦ ξ.ρ.x ⟧ ).b.c,
-        x ↦ ⟦ Δ ⤍ 02- ⟧,
-        λ ⤍ Package
-      ⟧}
+      {
+        ⟦
+          a ↦ ⟦
+            b ↦ ∅,
+            x ↦ ⟦
+              Δ ⤍ 01-
+            ⟧
+          ⟧(
+            b ↦ ⟦
+              c ↦ ξ.ρ.x
+            ⟧
+          ).b.c,
+          x ↦ ⟦
+            Δ ⤍ 02-
+          ⟧,
+          λ ⤍ Package
+        ⟧
+      }
     output:
       object: |
         ⟦ a ↦ ⟦ Δ ⤍ 02- ⟧, x ↦ ⟦ Δ ⤍ 02- ⟧, λ ⤍ Package ⟧
@@ -163,7 +301,17 @@ tests:
   - name: "ξ chain"
     dependencies: []
     input: |
-      {⟦ a ↦ ξ.b, b ↦ ξ.c, c ↦ ξ.d, d ↦ ⟦ Δ ⤍ 01- ⟧ , λ ⤍ Package ⟧}
+      {
+        ⟦
+          a ↦ ξ.b,
+          b ↦ ξ.c,
+          c ↦ ξ.d,
+          d ↦ ⟦
+            Δ ⤍ 01-
+          ⟧,
+          λ ⤍ Package
+        ⟧
+      }
     output:
       object: |
         ⟦ a ↦ ⟦ Δ ⤍ 01- ⟧, b ↦ ⟦ Δ ⤍ 01- ⟧, c ↦ ⟦ Δ ⤍ 01- ⟧, d ↦ ⟦ Δ ⤍ 01- ⟧, λ ⤍ Package ⟧
@@ -235,30 +383,39 @@ tests:
     dependencies:
       - ./data/0.49.1/org/eolang/bytes.phi
     input: |
-      {⟦
-        org ↦ ⟦
-          eolang ↦ ⟦
-            bool ↦ ⟦ α0 ↦ ∅, φ ↦ ξ.α0 ⟧,
-            x ↦ ⟦
-              φ ↦ Φ.org.eolang.bool(
-                α0 ↦ Φ.org.eolang.bytes(Δ ⤍ 01-)
-              )
-            ⟧,
-            z ↦ ⟦
-              y ↦ ⟦
-                x ↦ ∅,
-                φ ↦ ξ.x
+      {
+        ⟦
+          org ↦ ⟦
+            eolang ↦ ⟦
+              bool ↦ ⟦
+                α0 ↦ ∅,
+                φ ↦ ξ.α0
               ⟧,
-              φ ↦ Φ.org.eolang.bool(
-                α0 ↦ Φ.org.eolang.bytes(Δ ⤍ 01-)
-              )
+              x ↦ ⟦
+                φ ↦ Φ̇.bool(
+                  Φ̇.bytes(
+                    Δ ⤍ 01-
+                  )
+                )
+              ⟧,
+              z ↦ ⟦
+                y ↦ ⟦
+                  x ↦ ∅,
+                  φ ↦ ξ.x
+                ⟧,
+                φ ↦ Φ̇.bool(
+                  Φ̇.bytes(
+                    Δ ⤍ 01-
+                  )
+                )
+              ⟧,
+              λ ⤍ Package
             ⟧,
             λ ⤍ Package
           ⟧,
           λ ⤍ Package
-        ⟧,
-        λ ⤍ Package
-      ⟧}
+        ⟧
+      }
     output:
       object: |
         ⟦
@@ -279,17 +436,25 @@ tests:
       - ./data/0.49.1/org/eolang/i64.phi
       - ./data/0.49.1/org/eolang/bytes.phi
     input: |
-      {⟦
-        φ ↦ ⟦
-          x ↦ ⟦
-            x ↦ ⟦ Δ ⤍ 09- ⟧,
-            ρ ↦ ⟦ Δ ⤍ 04- ⟧,
-            λ ⤍ Lorg_eolang_int_times
-          ⟧,
-          ρ ↦ ⟦ Δ ⤍ 06- ⟧,
-          λ ⤍ Lorg_eolang_int_plus
+      {
+        ⟦
+          φ ↦ ⟦
+            x ↦ ⟦
+              x ↦ ⟦
+                Δ ⤍ 09-
+              ⟧,
+              ρ ↦ ⟦
+                Δ ⤍ 04-
+              ⟧,
+              λ ⤍ Lorg_eolang_int_times
+            ⟧,
+            ρ ↦ ⟦
+              Δ ⤍ 06-
+            ⟧,
+            λ ⤍ Lorg_eolang_int_plus
+          ⟧
         ⟧
-      ⟧}
+      }
     output:
       object: "42"
 
@@ -300,13 +465,19 @@ tests:
       - ./data/0.49.1/org/eolang/false.phi
       - ./data/0.49.1/org/eolang/true.phi
     input: |
-      {⟦
-        φ ↦ ⟦
-          ρ ↦ ⟦ Δ ⤍ 06- ⟧,
-          x ↦ ⟦ Δ ⤍ 09- ⟧,
-          λ ⤍ Lorg_eolang_int_gt
+      {
+        ⟦
+          φ ↦ ⟦
+            ρ ↦ ⟦
+              Δ ⤍ 06-
+            ⟧,
+            x ↦ ⟦
+              Δ ⤍ 09-
+            ⟧,
+            λ ⤍ Lorg_eolang_int_gt
+          ⟧
         ⟧
-      ⟧}
+      }
     output:
       bytes: "00-"
 
@@ -316,13 +487,19 @@ tests:
     dependencies:
       - ./data/0.49.1/org/eolang/bytes.phi
     input: |
-      {⟦
-        φ ↦ ⟦
-          b ↦ ⟦ Δ ⤍ 15- ⟧,
-          ρ ↦ ⟦ Δ ⤍ 0D- ⟧,
-          λ ⤍ Lorg_eolang_bytes_and
+      {
+        ⟦
+          φ ↦ ⟦
+            b ↦ ⟦
+              Δ ⤍ 15-
+            ⟧,
+            ρ ↦ ⟦
+              Δ ⤍ 0D-
+            ⟧,
+            λ ⤍ Lorg_eolang_bytes_and
+          ⟧
         ⟧
-      ⟧}
+      }
     output:
       bytes: "00-00-00-00-00-00-00-05"
 
@@ -330,12 +507,16 @@ tests:
     dependencies:
       - ./data/0.49.1/org/eolang/bytes.phi
     input: |
-      {⟦
-        φ ↦ ⟦
-          ρ ↦ ⟦ Δ ⤍ 50-3D-10-C0-6F-12-42-69 ⟧,
-          λ ⤍ Lorg_eolang_bytes_not
+      {
+        ⟦
+          φ ↦ ⟦
+            ρ ↦ ⟦
+              Δ ⤍ 50-3D-10-C0-6F-12-42-69
+            ⟧,
+            λ ⤍ Lorg_eolang_bytes_not
+          ⟧
         ⟧
-      ⟧}
+      }
     output:
       bytes: "AF-C2-EF-3F-90-ED-BD-96"
 
@@ -344,12 +525,16 @@ tests:
       - ./data/0.49.1/org/eolang/i64.phi
       - ./data/0.49.1/org/eolang/bytes.phi
     input: |
-      {⟦
-        φ ↦ ⟦
-          ρ ↦ ⟦ Δ ⤍ 00-11-22-33-44 ⟧,
-          λ ⤍ Lorg_eolang_bytes_size
+      {
+        ⟦
+          φ ↦ ⟦
+            ρ ↦ ⟦
+              Δ ⤍ 00-11-22-33-44
+            ⟧,
+            λ ⤍ Lorg_eolang_bytes_size
+          ⟧
         ⟧
-      ⟧}
+      }
     output:
       bytes: "00-00-00-00-00-00-00-05"
 
@@ -360,17 +545,23 @@ tests:
       - ./data/0.49.1/org/eolang/i64.phi
       - ./data/0.49.1/org/eolang/false.phi
     input: |
-      {⟦
-        φ ↦ ⟦
-          ρ ↦ ⟦ Δ ⤍ 02-24-46-68-8A-AC-CE-F1 ⟧,
-          b ↦ ⟦
-            ρ ↦ ⟦ Δ ⤍ 11-22-33-44-55-66-77-88 ⟧,
-            x ↦ 3,
-            λ ⤍ Lorg_eolang_bytes_right
-          ⟧,
-          λ ⤍ Lorg_eolang_bytes_eq
+      {
+        ⟦
+          φ ↦ ⟦
+            ρ ↦ ⟦
+              Δ ⤍ 02-24-46-68-8A-AC-CE-F1
+            ⟧,
+            b ↦ ⟦
+              ρ ↦ ⟦
+                Δ ⤍ 11-22-33-44-55-66-77-88
+              ⟧,
+              x ↦ 3,
+              λ ⤍ Lorg_eolang_bytes_right
+            ⟧,
+            λ ⤍ Lorg_eolang_bytes_eq
+          ⟧
         ⟧
-      ⟧}
+      }
     output:
       bytes: "01-"
 
@@ -381,17 +572,25 @@ tests:
       - ./data/0.49.1/org/eolang/number.phi
       - ./data/0.49.1/org/eolang/bytes.phi
     input: |
-      {⟦
-        φ ↦ ⟦
-          x ↦ ⟦
-            x ↦ ⟦ Δ ⤍ 40-14-00-00-00-00-00-00 ⟧, // == 5.0
-            ρ ↦ ⟦ Δ ⤍ 40-2A-66-66-66-66-66-66 ⟧, // == 13.2
-            λ ⤍ Lorg_eolang_number_times
-          ⟧,
-          ρ ↦ ⟦ Δ ⤍ 40-0B-5C-28-F5-C2-8F-5C ⟧, // == 3.42
-          λ ⤍ Lorg_eolang_number_plus
+      {
+        ⟦
+          φ ↦ ⟦
+            x ↦ ⟦
+              x ↦ ⟦
+                Δ ⤍ 40-14-00-00-00-00-00-00
+              ⟧,
+              ρ ↦ ⟦
+                Δ ⤍ 40-2A-66-66-66-66-66-66
+              ⟧,
+              λ ⤍ Lorg_eolang_number_times
+            ⟧,
+            ρ ↦ ⟦
+              Δ ⤍ 40-0B-5C-28-F5-C2-8F-5C
+            ⟧,
+            λ ⤍ Lorg_eolang_number_plus
+          ⟧
         ⟧
-      ⟧}
+      }
     output:
       object: "69.42"
 
@@ -400,17 +599,19 @@ tests:
       - ./data/0.49.1/org/eolang/number.phi
       - ./data/0.49.1/org/eolang/bytes.phi
     input: |
-      {⟦
-        φ ↦ ⟦
-          x ↦ ⟦
-            x ↦ 5.0,
-            ρ ↦ 13.2,
-            λ ⤍ Lorg_eolang_number_times
-          ⟧,
-          ρ ↦ 3.42,
-          λ ⤍ Lorg_eolang_number_plus
+      {
+        ⟦
+          φ ↦ ⟦
+            x ↦ ⟦
+              x ↦ 5.0,
+              ρ ↦ 13.2,
+              λ ⤍ Lorg_eolang_number_times
+            ⟧,
+            ρ ↦ 3.42,
+            λ ⤍ Lorg_eolang_number_plus
+          ⟧
         ⟧
-      ⟧}
+      }
     output:
       object: "69.42"
 
@@ -421,14 +622,22 @@ tests:
       - ./data/0.49.1/org/eolang/string.phi
       - ./data/0.49.1/org/eolang/bytes.phi
     input: |
-      {⟦
-        φ ↦ ⟦
-          start ↦ ⟦ Δ ⤍ 40-00-00-00-00-00-00-00 ⟧,      // 2.0
-          len ↦ ⟦ Δ ⤍ 40-14-00-00-00-00-00-00 ⟧,        // 5.0
-          ρ ↦ ⟦ Δ ⤍ 48-65-6C-6C-6F-20-77-6F-72-6C-64 ⟧, // == "Hello world"
-          λ ⤍ Lorg_eolang_string_slice
+      {
+        ⟦
+          φ ↦ ⟦
+            start ↦ ⟦
+              Δ ⤍ 40-00-00-00-00-00-00-00
+            ⟧,
+            len ↦ ⟦
+              Δ ⤍ 40-14-00-00-00-00-00-00
+            ⟧,
+            ρ ↦ ⟦
+              Δ ⤍ 48-65-6C-6C-6F-20-77-6F-72-6C-64
+            ⟧,
+            λ ⤍ Lorg_eolang_string_slice
+          ⟧
         ⟧
-      ⟧}
+      }
     output:
       object: "\"llo w\""
 
@@ -438,14 +647,16 @@ tests:
       - ./data/0.49.1/org/eolang/i64.phi
       - ./data/0.49.1/org/eolang/bytes.phi
     input: |
-      {⟦
-        φ ↦ ⟦
-          start ↦ 2.0,
-          len ↦ 5.0,
-          ρ ↦ "Hello world",
-          λ ⤍ Lorg_eolang_string_slice
+      {
+        ⟦
+          φ ↦ ⟦
+            start ↦ 2.0,
+            len ↦ 5.0,
+            ρ ↦ "Hello world",
+            λ ⤍ Lorg_eolang_string_slice
+          ⟧
         ⟧
-      ⟧}
+      }
     output:
       object: "\"llo w\""
 
@@ -455,12 +666,16 @@ tests:
       - ./data/0.49.1/org/eolang/i64.phi
       - ./data/0.49.1/org/eolang/bytes.phi
     input: |
-      {⟦
-        φ ↦ ⟦
-          ρ ↦ ⟦ Δ ⤍ 48-65-6C-6C-6F-20-77-6F-72-6C-64 ⟧, // == "Hello world"
-          λ ⤍ Lorg_eolang_string_length
+      {
+        ⟦
+          φ ↦ ⟦
+            ρ ↦ ⟦
+              Δ ⤍ 48-65-6C-6C-6F-20-77-6F-72-6C-64
+            ⟧,
+            λ ⤍ Lorg_eolang_string_length
+          ⟧
         ⟧
-      ⟧}
+      }
     output:
       object: "11" # == 11
 
@@ -470,12 +685,14 @@ tests:
       - ./data/0.49.1/org/eolang/i64.phi
       - ./data/0.49.1/org/eolang/bytes.phi
     input: |
-      {⟦
-        φ ↦ ⟦
-          ρ ↦ "Hello world",
-          λ ⤍ Lorg_eolang_string_length
+      {
+        ⟦
+          φ ↦ ⟦
+            ρ ↦ "Hello world",
+            λ ⤍ Lorg_eolang_string_length
+          ⟧
         ⟧
-      ⟧}
+      }
     output:
       object: "11" # == 11
 
