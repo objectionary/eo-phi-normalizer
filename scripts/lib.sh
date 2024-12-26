@@ -173,7 +173,7 @@ function commit_and_push_if_changed {
     local files="$2"
     if [ -n "$(git status --porcelain "${files[@]}")" ]; then
         git add "${files[@]}"
-        git commit -m "Update $updated_message"
+        git commit -m "chore(ci): Update $updated_message"
         git push
     else
         echo "Nothing to commit.";
