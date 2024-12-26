@@ -159,9 +159,11 @@ instance DesugarableInitially Binding where
     AlphaBinding a obj -> AlphaBinding a (desugarInitially obj)
     obj -> obj
 
-instance {-# OVERLAPPABLE #-} DesugarableInitially a where
-  desugarInitially :: a -> a
-  desugarInitially = id
+instance DesugarableInitially Attribute where desugarInitially = id
+instance DesugarableInitially RuleAttribute where desugarInitially = id
+instance DesugarableInitially PeeledObject where desugarInitially = id
+instance DesugarableInitially ObjectHead where desugarInitially = id
+instance DesugarableInitially MetaId where desugarInitially = id
 
 class SugarableFinally a where
   sugarFinally :: a -> a
