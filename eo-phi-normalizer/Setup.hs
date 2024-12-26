@@ -90,6 +90,7 @@ main =
                   , "cd src/Language/EO/Phi/Syntax"
                   , "alex Lex.x"
                   , "happy --info Par.y"
+                  , "rm ErrM.hs Skel.hs Test.hs Abs.hs.bak Print.hs.bak"
                   , "true"
                   ]
 
