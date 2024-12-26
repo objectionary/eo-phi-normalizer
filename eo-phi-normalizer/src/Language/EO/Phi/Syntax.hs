@@ -168,6 +168,10 @@ instance DesugarableInitially MetaId where desugarInitially = id
 class SugarableFinally a where
   sugarFinally :: a -> a
 
+instance SugarableFinally Program where
+  sugarFinally :: Program -> Program
+  sugarFinally (Program bindings) = Program (sugarFinally bindings)
+
 instance SugarableFinally Object where
   sugarFinally :: Object -> Object
   sugarFinally = \case
@@ -210,10 +214,6 @@ instance SugarableFinally Binding where
     obj@AlphaBindingSugar{} -> errorExpectedDesugaredBinding obj
     AlphaBinding a obj -> AlphaBinding a (sugarFinally obj)
     x -> x
-
-instance {-# OVERLAPPABLE #-} SugarableFinally a where
-  sugarFinally :: a -> a
-  sugarFinally = id
 
 desugar :: Object -> Object
 desugar = \case
