@@ -73,14 +73,7 @@ instance Pretty Abs.Program where
     Abs.Program bindings ->
       vsep
         [ lbrace
-        , indent
-            2
-            ( vsep
-                [ pretty "⟦"
-                , indent 2 (pretty bindings)
-                , pretty "⟧"
-                ]
-            )
+        , indent 2 (pretty (Formation bindings))
         , rbrace
         ]
 
@@ -94,8 +87,14 @@ instance Pretty Abs.MetaId where
 
 instance Pretty Abs.Object where
   pretty = \case
-    Abs.Formation bindings -> vsep [pretty "⟦", indent 2 (pretty bindings), pretty "⟧"]
-    Abs.Application object bindings -> vsep [pretty object <> lparen, indent 2 (pretty bindings), rparen]
+    Abs.Formation bindings ->
+      case bindings of
+        [] -> pretty "⟦" <> pretty "⟧"
+        _ -> vsep [pretty "⟦", indent 2 (pretty bindings), pretty "⟧"]
+    Abs.Application object bindings ->
+      case bindings of
+        [] -> pretty object <> lparen <> rparen
+        _ -> vsep [pretty object <> lparen, indent 2 (pretty bindings), rparen]
     Abs.ObjectDispatch object attribute -> pretty object <> pretty "." <> pretty attribute
     Abs.GlobalObject -> pretty "Φ"
     Abs.GlobalObjectPhiOrg -> pretty "Φ̇"
