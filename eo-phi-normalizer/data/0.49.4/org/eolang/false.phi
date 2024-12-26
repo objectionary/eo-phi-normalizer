@@ -1,0 +1,21 @@
+{⟦
+  org() ↦ ⟦
+    eolang() ↦ ⟦
+      false() ↦ ⟦
+        φ ↦ Φ̇.bytes(⟦ Δ ⤍ 00- ⟧),
+        not ↦ Φ̇.true,
+        if(left, right) ↦ ⟦
+          φ ↦ ξ.right
+        ⟧,
+        and(x) ↦ ⟦
+          φ ↦ ξ.ρ
+        ⟧,
+        or(x) ↦ ⟦
+          φ ↦ Φ̇.bytes(⟦ Δ ⤍ 01- ⟧).eq(ξ.x)
+        ⟧
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

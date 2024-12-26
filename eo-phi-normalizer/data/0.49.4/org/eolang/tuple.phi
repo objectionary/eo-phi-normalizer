@@ -1,0 +1,39 @@
+{⟦
+  org() ↦ ⟦
+    eolang() ↦ ⟦
+      tuple(head, tail) ↦ ⟦
+        empty() ↦ ⟦
+          length ↦ 0,
+          at(i) ↦ ⟦
+            φ ↦ Φ̇.error("Can't get an object from the empty tuple")
+          ⟧,
+          with(x) ↦ ⟦
+            φ ↦ ξ.ρ.ρ.ρ.tuple(ξ.ρ, ξ.x)
+          ⟧
+        ⟧,
+        length() ↦ ⟦
+          len ↦ Φ̇.dataized(ξ.ρ.head.length.plus(1)).as-bytes,
+          φ ↦ Φ̇.number(ξ.len)
+        ⟧,
+        at(i) ↦ ⟦
+          len ↦ ξ.ρ.length,
+          idx ↦ Φ̇.dataized(ξ.i).as-bytes,
+          index ↦ Φ̇.dataized(0.gt(ξ.idx).if(ξ.len.plus(ξ.idx), ξ.idx)).as-bytes,
+          φ ↦ 0.gt(ξ.index).or(ξ.len.lte(ξ.index)).if(
+            Φ̇.error("Given index is out of tuple bounds"), ξ.at-fast(ξ.ρ, ξ.len)
+          ),
+          at-fast(tup, len) ↦ ⟦
+            φ ↦ ξ.len.plus(-1).gt(ξ.ρ.index).if(
+              ξ.ρ.at-fast(ξ.tup.head, ξ.len.plus(-1)), ξ.tup.tail
+            )
+          ⟧
+        ⟧,
+        with(x) ↦ ⟦
+          φ ↦ ξ.ρ.ρ.tuple(ξ.ρ, ξ.x)
+        ⟧
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

@@ -1,0 +1,11 @@
+{⟦
+  org() ↦ ⟦
+    eolang() ↦ ⟦
+      try(main, catch, finally) ↦ ⟦
+        λ ⤍ Lorg_eolang_try
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

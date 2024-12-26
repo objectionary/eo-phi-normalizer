@@ -1,0 +1,71 @@
+{⟦
+  org() ↦ ⟦
+    eolang() ↦ ⟦
+      fs() ↦ ⟦
+        dir(file) ↦ ⟦
+          φ ↦ ξ.file,
+          is-directory ↦ Φ̇.true,
+          made() ↦ ⟦
+            φ ↦ ξ.ρ.exists.if(
+              ξ.ρ, Φ̇.seq(Φ̇.tuple(Φ̇.tuple(Φ̇.tuple.empty, ξ.mkdir), ξ.ρ))
+            ),
+            mkdir() ↦ ⟦
+              λ ⤍ Lorg_eolang_fs_dir_made_mkdir
+            ⟧
+          ⟧,
+          walk(glob) ↦ ⟦
+            λ ⤍ Lorg_eolang_fs_dir_walk
+          ⟧,
+          deleted() ↦ ⟦
+            walked ↦ ξ.ρ.walk("**").at.ρ,
+            len ↦ Φ̇.dataized(ξ.walked.length).as-bytes,
+            φ ↦ ξ.ρ.exists.if(
+              Φ̇.seq(
+                Φ̇.tuple(
+                  Φ̇.tuple(Φ̇.tuple.empty, ξ.rec-delete(ξ.walked, 0)), ξ.ρ
+                )
+              ),
+              ξ.ρ
+            ),
+            rec-delete(tup, index) ↦ ⟦
+              φ ↦ ξ.ρ.len.eq(ξ.index).if(
+                Φ̇.true,
+                Φ̇.seq(
+                  Φ̇.tuple(
+                    Φ̇.tuple(Φ̇.tuple.empty, ξ.tup.tail.deleted.exists),
+                    ξ.ρ.rec-delete(ξ.tup.head, ξ.index.plus(1))
+                  )
+                )
+              )
+            ⟧
+          ⟧,
+          tmpfile() ↦ ⟦
+            φ ↦ ξ.ρ.exists.if(
+              Φ̇.fs.file(Φ̇.string(ξ.touch.as-bytes)),
+              Φ̇.error(
+                Φ̇.txt.sprintf(
+                  "Directory %s does not exist, can't create temporary file",
+                  Φ̇.tuple(Φ̇.tuple.empty, ξ.ρ.path)
+                )
+              )
+            ),
+            touch() ↦ ⟦
+              λ ⤍ Lorg_eolang_fs_dir_tmpfile_touch
+            ⟧
+          ⟧,
+          open(mode, scope) ↦ ⟦
+            φ ↦ Φ̇.error(
+              Φ̇.txt.sprintf(
+                "The file %s is a directory, can't open for I/O operations",
+                Φ̇.tuple(Φ̇.tuple.empty, ξ.ρ.path)
+              )
+            )
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

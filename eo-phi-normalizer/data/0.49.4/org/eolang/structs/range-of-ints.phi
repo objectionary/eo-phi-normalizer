@@ -1,0 +1,26 @@
+{⟦
+  org() ↦ ⟦
+    eolang() ↦ ⟦
+      structs() ↦ ⟦
+        range-of-ints(start, end) ↦ ⟦
+          φ ↦ 0.eq(ξ.start).or(1.eq(ξ.start.div(ξ.start))).and(
+            0.eq(ξ.end).or(1.eq(ξ.end.div(ξ.end)))
+          ).if(
+            Φ̇.structs.range(ξ.auto-named-attr-at-42-8, ξ.end),
+            Φ̇.error("Some of the arguments are not integers")
+          ),
+          auto-named-attr-at-42-8() ↦ ⟦
+            build(num) ↦ ⟦
+              φ ↦ ξ.num,
+              next ↦ ξ.ρ.build(1.plus(ξ.φ))
+            ⟧,
+            φ ↦ ξ.build(ξ.ρ.start)
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}
