@@ -35,7 +35,6 @@ module Language.EO.Phi.Syntax (
   module Language.EO.Phi.Syntax.Abs,
   desugar,
   printTree,
-  shrinkDots,
 
   -- * Conversion to 'Bytes'
   intToBytes,
@@ -84,23 +83,25 @@ module Language.EO.Phi.Syntax (
 
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as ByteString.Strict
-import Data.Char (isSpace, toUpper)
+import Data.Char (toUpper)
 import Data.Int
 import Data.List (intercalate)
 import Data.Serialize qualified as Serialize
 import Data.String (IsString (fromString))
+import Data.Text qualified as T
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as Text
 import GHC.Float (isDoubleFinite)
 import Language.EO.Phi.Preprocess (preprocess)
+import Language.EO.Phi.Pretty ()
 import Language.EO.Phi.Syntax.Abs
 import Language.EO.Phi.Syntax.Lex (Token)
 import Language.EO.Phi.Syntax.Par
-import Language.EO.Phi.Syntax.Print qualified as Phi
 import Numeric (readHex, showHex)
+import Prettyprinter (LayoutOptions (..), PageWidth (..), Pretty (pretty), defaultLayoutOptions, layoutPretty)
+import Prettyprinter.Render.Text (renderStrict)
 import PyF (fmt)
 import Text.Printf (printf)
-import Text.Read (readMaybe)
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -302,107 +303,6 @@ wrapBytesAsBool :: Bytes -> Object
 wrapBytesAsBool bytes
   | bytesToInt bytes == 0 = [fmt|Φ.org.eolang.false|]
   | otherwise = [fmt|Φ.org.eolang.true|]
-
--- * Overriding generated pretty-printer
-
--- | Like 'Phi.printTree', but without spaces around dots and no indentation for curly braces.
-printTree :: (Phi.Print a, SugarableFinally a) => a -> String
-printTree = shrinkDots . render . Phi.prt 0 . sugarFinally
-
--- | Remove spaces around dots.
---
--- >>> shrinkDots "a ↦ ξ . a" == "a ↦ ξ.a"
--- True
-shrinkDots :: String -> String
-shrinkDots [] = []
-shrinkDots (' ' : '.' : ' ' : cs) = '.' : shrinkDots cs
-shrinkDots (c : cs) = c : shrinkDots cs
-
-readFloat :: String -> Maybe Double
-readFloat s | '.' `elem` s = readMaybe s
-readFloat _ = Nothing
-
-fixFloat :: String -> String
-fixFloat s =
-  case readFloat s of
-    Just x -> printf "%f" x
-    Nothing -> s
-
--- | Copy of 'Phi.render', except no indentation is made for curly braces.
-render :: Phi.Doc -> String
-render d = rend 0 False (map (fixFloat . ($ "")) $ d []) ""
- where
-  rend ::
-    Int ->
-    -- \^ Indentation level.
-    Bool ->
-    -- \^ Pending indentation to be output before next character?
-    [String] ->
-    ShowS
-  rend i p = \case
-    "[" : "]" : ts -> showString "[]" . rend i False ts
-    "(" : ")" : (t : ts) -> handleTrailingComma "()" t ts
-    "⟦" : "⟧" : (t : ts) -> handleTrailingComma "⟦⟧" t ts
-    "[" : ts -> char '[' . rend i False ts
-    "(" : ts -> char '(' . new (i + 1) ts
-    "{" : "⟦" : ts -> showChar '{' . onNewLine (i + 1) p . showChar '⟦' . new (i + 2) ts
-    "⟦" : ts -> showChar '⟦' . new (i + 1) ts
-    ")" : "," : ts -> onNewLine (i - 1) p . showString ")," . new (i - 1) ts
-    "⟧" : "," : ts -> onNewLine (i - 1) p . showString "⟧," . new (i - 1) ts
-    ["⟧", "}"] -> onNewLine (i - 1) p . showChar '⟧' . new (i - 2) ["}"]
-    "⟧" : ts -> onNewLine (i - 1) p . showChar '⟧' . new (i - 1) ts
-    ")" : ts -> onNewLine (i - 1) p . showChar ')' . new (i - 1) ts
-    [";"] -> char ';'
-    ";" : ts -> char ';' . new i ts
-    "." : ts -> rend i p (" ." : ts)
-    t : (s : ss) | closingOrPunctuation s -> handleTrailingComma t s ss
-    t : ts -> pending . space t . rend i False ts
-    [] -> id
-   where
-    -- Output character after pending indentation.
-    char :: Char -> ShowS
-    char c = pending . showChar c
-
-    handleTrailingComma str t ts =
-      (pending . showString str)
-        . ( case t of
-              "," -> showChar ',' . new i ts
-              _ -> rend i False (t : ts)
-          )
-
-    -- Output pending indentation.
-    pending :: ShowS
-    pending = if p then indent i else id
-
-  -- Indentation (spaces) for given indentation level.
-  indent :: Int -> ShowS
-  indent i = Phi.replicateS (2 * i) (showChar ' ')
-
-  -- Continue rendering in new line with new indentation.
-  new :: Int -> [String] -> ShowS
-  new j ts = showChar '\n' . rend j True ts
-
-  -- Separate given string from following text by a space (if needed).
-  space :: String -> ShowS
-  space t s =
-    case (all isSpace t, null spc, null rest) of
-      (True, _, True) -> [] -- remove trailing space
-      (False, _, True) -> t -- remove trailing space
-      (False, True, False) -> t ++ ' ' : s -- add space if none
-      _ -> t ++ s
-   where
-    (spc, rest) = span isSpace s
-
-  closingOrPunctuation :: String -> Bool
-  closingOrPunctuation [c] = c `elem` closerOrPunct
-  closingOrPunctuation _ = False
-
-  closerOrPunct :: String
-  closerOrPunct = ")],;"
-
-  -- Make sure we are on a fresh line.
-  onNewLine :: Int -> Bool -> ShowS
-  onNewLine i p = (if p then id else showChar '\n') . indent i
 
 padLeft :: Int -> [Char] -> [Char]
 padLeft n s = replicate (n - length s) '0' ++ s
@@ -750,3 +650,12 @@ unsafeParseWith parser input =
   case parseWith parser input of
     Left parseError -> error parseError
     Right object -> object
+
+-- | The top-level printing method.
+printTree :: (Pretty a, SugarableFinally a) => a -> String
+printTree =
+  T.unpack
+    . renderStrict
+    . layoutPretty defaultLayoutOptions{layoutPageWidth = Unbounded}
+    . pretty
+    . sugarFinally
