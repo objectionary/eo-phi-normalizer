@@ -115,6 +115,7 @@ errorExpectedDesugaredBinding x = error ("impossible: expected desugared Binding
 
 class DesugarableInitially a where
   desugarInitially :: a -> a
+  desugarInitially = id
 
 instance DesugarableInitially Object where
   desugarInitially :: Object -> Object
@@ -160,14 +161,15 @@ instance DesugarableInitially Binding where
     AlphaBinding a obj -> AlphaBinding a (desugarInitially obj)
     obj -> obj
 
-instance DesugarableInitially Attribute where desugarInitially = id
-instance DesugarableInitially RuleAttribute where desugarInitially = id
-instance DesugarableInitially PeeledObject where desugarInitially = id
-instance DesugarableInitially ObjectHead where desugarInitially = id
-instance DesugarableInitially MetaId where desugarInitially = id
+instance DesugarableInitially Attribute
+instance DesugarableInitially RuleAttribute
+instance DesugarableInitially PeeledObject
+instance DesugarableInitially ObjectHead
+instance DesugarableInitially MetaId
 
 class SugarableFinally a where
   sugarFinally :: a -> a
+  sugarFinally = id
 
 instance SugarableFinally Program where
   sugarFinally :: Program -> Program
@@ -215,6 +217,15 @@ instance SugarableFinally Binding where
     obj@AlphaBindingSugar{} -> errorExpectedDesugaredBinding obj
     AlphaBinding a obj -> AlphaBinding a (sugarFinally obj)
     x -> x
+
+instance SugarableFinally ObjectMetaId
+instance SugarableFinally BindingsMetaId
+instance SugarableFinally LabelMetaId
+instance SugarableFinally BytesMetaId
+instance SugarableFinally Attribute
+instance SugarableFinally TailMetaId
+instance SugarableFinally Bytes
+instance SugarableFinally MetaId
 
 desugar :: Object -> Object
 desugar = \case
