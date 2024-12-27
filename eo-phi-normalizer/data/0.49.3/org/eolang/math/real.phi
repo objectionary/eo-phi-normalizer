@@ -1,0 +1,49 @@
+{⟦
+  org ↦ ⟦
+    eolang ↦ ⟦
+      math ↦ ⟦
+        real(num) ↦ ⟦
+          φ ↦ ξ.num,
+          exp ↦ Φ̇.math.real(Φ̇.math.e).pow(ξ.num),
+          mod(x) ↦ ⟦
+            dividend ↦ Φ̇.number(ξ.ρ.num.as-bytes),
+            divisor ↦ Φ̇.number(ξ.x.as-bytes),
+            φ ↦ ξ.divisor.eq(0).if(
+              Φ̇.error("Can't calculate mod by zero"),
+              ξ.dividend.gt(0).if(ξ.abs-mod, ξ.abs-mod.neg)
+            ),
+            abs-mod ↦ ⟦
+              dividend-abs ↦ Φ̇.math.real(ξ.ρ.dividend).abs,
+              divisor-abs ↦ Φ̇.math.real(ξ.ρ.divisor).abs,
+              φ ↦ ξ.dividend-abs.minus(
+                ξ.divisor-abs.times(ξ.dividend-abs.div(ξ.divisor-abs).floor)
+              )
+            ⟧
+          ⟧,
+          abs ↦ ⟦
+            value ↦ Φ̇.number(ξ.ρ.num.as-bytes),
+            φ ↦ ξ.value.gte(0).if(ξ.value, ξ.value.neg)
+          ⟧,
+          pow(x) ↦ ⟦
+            λ ⤍ Lorg_eolang_math_real_pow
+          ⟧,
+          sqrt ↦ ⟦
+            λ ⤍ Lorg_eolang_math_real_sqrt
+          ⟧,
+          ln ↦ ⟦
+            λ ⤍ Lorg_eolang_math_real_ln
+          ⟧,
+          acos ↦ ⟦
+            λ ⤍ Lorg_eolang_math_real_acos
+          ⟧,
+          asin ↦ ⟦
+            λ ⤍ Lorg_eolang_math_real_asin
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

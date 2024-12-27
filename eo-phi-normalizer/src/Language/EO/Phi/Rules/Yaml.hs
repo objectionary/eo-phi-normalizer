@@ -228,6 +228,7 @@ usedLabelIds Context{..} = objectLabelIds globalObject
 objectLabelIds :: Object -> Set LabelId
 objectLabelIds = \case
   GlobalObject -> mempty
+  obj@GlobalObjectPhiOrg -> errorExpectedDesugaredObject obj
   ThisObject -> mempty
   Formation bindings -> foldMap bindingLabelIds bindings
   ObjectDispatch obj a -> objectLabelIds obj <> attrLabelIds a
@@ -239,8 +240,11 @@ objectLabelIds = \case
   MetaSubstThis obj obj' -> objectLabelIds obj <> objectLabelIds obj'
   MetaContextualize obj obj' -> objectLabelIds obj <> objectLabelIds obj'
   obj@ConstString{} -> objectLabelIds (desugar obj)
+  obj@ConstStringRaw{} -> errorExpectedDesugaredObject obj
   obj@ConstInt{} -> objectLabelIds (desugar obj)
+  obj@ConstIntRaw{} -> errorExpectedDesugaredObject obj
   obj@ConstFloat{} -> objectLabelIds (desugar obj)
+  obj@ConstFloatRaw{} -> errorExpectedDesugaredObject obj
 
 bindingLabelIds :: Binding -> Set LabelId
 bindingLabelIds = \case
@@ -251,6 +255,7 @@ bindingLabelIds = \case
   LambdaBinding _ -> mempty
   MetaBindings _ -> mempty
   MetaDeltaBinding _ -> mempty
+  b@AlphaBindingSugar{} -> errorExpectedDesugaredBinding b
 
 attrLabelIds :: Attribute -> Set LabelId
 attrLabelIds (Label l) = Set.singleton l
@@ -278,6 +283,7 @@ objectMetaIds (Formation bindings) = foldMap bindingMetaIds bindings
 objectMetaIds (Application object bindings) = objectMetaIds object <> foldMap bindingMetaIds bindings
 objectMetaIds (ObjectDispatch object attr) = objectMetaIds object <> attrMetaIds attr
 objectMetaIds GlobalObject = mempty
+objectMetaIds obj@GlobalObjectPhiOrg = errorExpectedDesugaredObject obj
 objectMetaIds ThisObject = mempty
 objectMetaIds Termination = mempty
 objectMetaIds (MetaObject x) = Set.singleton (MetaIdObject x)
@@ -286,8 +292,11 @@ objectMetaIds (MetaTailContext obj x) = objectMetaIds obj <> Set.singleton (Meta
 objectMetaIds (MetaSubstThis obj obj') = foldMap objectMetaIds [obj, obj']
 objectMetaIds (MetaContextualize obj obj') = foldMap objectMetaIds [obj, obj']
 objectMetaIds obj@ConstString{} = objectMetaIds (desugar obj)
+objectMetaIds obj@ConstStringRaw{} = errorExpectedDesugaredObject obj
 objectMetaIds obj@ConstInt{} = objectMetaIds (desugar obj)
+objectMetaIds obj@ConstIntRaw{} = errorExpectedDesugaredObject obj
 objectMetaIds obj@ConstFloat{} = objectMetaIds (desugar obj)
+objectMetaIds obj@ConstFloatRaw{} = errorExpectedDesugaredObject obj
 
 bindingMetaIds :: Binding -> Set MetaId
 bindingMetaIds (AlphaBinding attr obj) = attrMetaIds attr <> objectMetaIds obj
@@ -297,6 +306,7 @@ bindingMetaIds DeltaEmptyBinding = mempty
 bindingMetaIds (LambdaBinding _) = mempty
 bindingMetaIds (MetaBindings x) = Set.singleton (MetaIdBindings x)
 bindingMetaIds (MetaDeltaBinding x) = Set.singleton (MetaIdBytes x)
+bindingMetaIds b@AlphaBindingSugar{} = errorExpectedDesugaredBinding b
 
 attrMetaIds :: Attribute -> Set MetaId
 attrMetaIds Phi = mempty
@@ -304,12 +314,15 @@ attrMetaIds Rho = mempty
 attrMetaIds (Label _) = mempty
 attrMetaIds (Alpha _) = mempty
 attrMetaIds (MetaAttr x) = Set.singleton (MetaIdLabel x)
+attrMetaIds a@(AttrSugar{}) = errorExpectedDesugaredAttribute a
+attrMetaIds a@(PhiSugar{}) = errorExpectedDesugaredAttribute a
 
 objectHasMetavars :: Object -> Bool
 objectHasMetavars (Formation bindings) = any bindingHasMetavars bindings
 objectHasMetavars (Application object bindings) = objectHasMetavars object || any bindingHasMetavars bindings
 objectHasMetavars (ObjectDispatch object attr) = objectHasMetavars object || attrHasMetavars attr
 objectHasMetavars GlobalObject = False
+objectHasMetavars obj@GlobalObjectPhiOrg = errorExpectedDesugaredObject obj
 objectHasMetavars ThisObject = False
 objectHasMetavars Termination = False
 objectHasMetavars (MetaObject _) = True
@@ -318,8 +331,11 @@ objectHasMetavars MetaTailContext{} = True
 objectHasMetavars (MetaSubstThis _ _) = True -- technically not a metavar, but a substitution
 objectHasMetavars (MetaContextualize _ _) = True
 objectHasMetavars obj@ConstString{} = objectHasMetavars (desugar obj)
+objectHasMetavars obj@ConstStringRaw{} = errorExpectedDesugaredObject obj
 objectHasMetavars obj@ConstInt{} = objectHasMetavars (desugar obj)
+objectHasMetavars obj@ConstIntRaw{} = errorExpectedDesugaredObject obj
 objectHasMetavars obj@ConstFloat{} = objectHasMetavars (desugar obj)
+objectHasMetavars obj@ConstFloatRaw{} = errorExpectedDesugaredObject obj
 
 bindingHasMetavars :: Binding -> Bool
 bindingHasMetavars (AlphaBinding attr obj) = attrHasMetavars attr || objectHasMetavars obj
@@ -329,6 +345,7 @@ bindingHasMetavars DeltaEmptyBinding = False
 bindingHasMetavars (LambdaBinding _) = False
 bindingHasMetavars (MetaBindings _) = True
 bindingHasMetavars (MetaDeltaBinding _) = True
+bindingHasMetavars b@AlphaBindingSugar{} = errorExpectedDesugaredBinding b
 
 attrHasMetavars :: Attribute -> Bool
 attrHasMetavars Phi = False
@@ -336,6 +353,8 @@ attrHasMetavars Rho = False
 attrHasMetavars (Label _) = False
 attrHasMetavars (Alpha _) = False
 attrHasMetavars (MetaAttr _) = True
+attrHasMetavars a@AttrSugar{} = errorExpectedDesugaredAttribute a
+attrHasMetavars a@PhiSugar{} = errorExpectedDesugaredAttribute a
 
 -- | Given a condition, and a substition from object matching
 --   tells whether the condition matches the object
@@ -436,6 +455,7 @@ applySubst subst@Subst{..} = \case
   ObjectDispatch obj a ->
     ObjectDispatch (applySubst subst obj) (applySubstAttr subst a)
   GlobalObject -> GlobalObject
+  obj@GlobalObjectPhiOrg -> errorExpectedDesugaredObject obj
   ThisObject -> ThisObject
   obj@(MetaObject x) -> fromMaybe obj $ lookup x objectMetas
   Termination -> Termination
@@ -449,8 +469,11 @@ applySubst subst@Subst{..} = \case
         let holeSubst = mempty{objectMetas = [(holeMetaId, applySubst subst obj)]}
          in applySubst holeSubst contextObject
   obj@ConstString{} -> applySubst subst (desugar obj)
+  obj@ConstStringRaw{} -> errorExpectedDesugaredObject obj
   obj@ConstInt{} -> applySubst subst (desugar obj)
+  obj@ConstIntRaw{} -> errorExpectedDesugaredObject obj
   obj@ConstFloat{} -> applySubst subst (desugar obj)
+  obj@ConstFloatRaw{} -> errorExpectedDesugaredObject obj
 
 applySubstAttr :: Subst -> Attribute -> Attribute
 applySubstAttr Subst{..} = \case
@@ -471,6 +494,7 @@ applySubstBinding subst@Subst{..} = \case
   LambdaBinding bytes -> [LambdaBinding (coerce bytes)]
   b@(MetaBindings m) -> fromMaybe [b] (lookup m bindingsMetas)
   b@(MetaDeltaBinding m) -> maybe [b] (pure . DeltaBinding) (lookup m bytesMetas)
+  b@AlphaBindingSugar{} -> errorExpectedDesugaredBinding b
 
 mergeSubst :: Subst -> Subst -> Subst
 mergeSubst (Subst xs ys zs ws us) (Subst xs' ys' zs' ws' us') =
@@ -520,9 +544,13 @@ matchOneHoleContext ctxId pat obj = matchWhole <> matchPart
     ThisObject -> []
     Termination -> []
     ConstString{} -> []
+    ConstStringRaw{} -> errorExpectedDesugaredObject obj
     ConstInt{} -> []
+    ConstIntRaw{} -> errorExpectedDesugaredObject obj
     ConstFloat{} -> []
-    -- should cases below be errors?
+    ConstFloatRaw{} -> errorExpectedDesugaredObject obj
+    -- TODO #617:30m Should cases below be errors?
+    GlobalObjectPhiOrg -> errorExpectedDesugaredObject obj
     MetaSubstThis{} -> []
     MetaContextualize{} -> []
     MetaObject{} -> []
@@ -629,6 +657,7 @@ substThis thisObj = go
     Application obj bindings -> Application (go obj) (map (substThisBinding thisObj) bindings)
     ObjectDispatch obj a -> ObjectDispatch (go obj) a
     GlobalObject -> GlobalObject
+    obj@GlobalObjectPhiOrg -> errorExpectedDesugaredObject obj
     Termination -> Termination
     obj@MetaTailContext{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
     obj@MetaContextualize{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
@@ -636,12 +665,11 @@ substThis thisObj = go
     obj@MetaObject{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
     obj@MetaFunction{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
     obj@ConstString{} -> obj
+    obj@ConstStringRaw{} -> errorExpectedDesugaredObject obj
     obj@ConstInt{} -> obj
+    obj@ConstIntRaw{} -> errorExpectedDesugaredObject obj
     obj@ConstFloat{} -> obj
-
--- {⟦ x ↦ ⟦ b ↦ ⟦ Δ ⤍ 01- ⟧, φ ↦ ⟦ b ↦ ⟦ Δ ⤍ 02- ⟧, c ↦ ⟦ a ↦ ξ.ρ.ρ.b ⟧.a ⟧.c ⟧.φ, λ ⤍ Package ⟧}
-
--- {⟦ λ ⤍ Package, x ↦ ⟦ b ↦ ⟦⟧ ⟧ ⟧}
+    obj@ConstFloatRaw{} -> errorExpectedDesugaredObject obj
 
 substThisBinding :: Object -> Binding -> Binding
 substThisBinding obj = \case
@@ -652,6 +680,7 @@ substThisBinding obj = \case
   LambdaBinding bytes -> LambdaBinding bytes
   b@MetaBindings{} -> error ("impossible: trying to substitute ξ in " <> printTree b)
   b@MetaDeltaBinding{} -> error ("impossible: trying to substitute ξ in " <> printTree b)
+  b@AlphaBindingSugar{} -> errorExpectedDesugaredBinding b
 
 contextualize :: Object -> Object -> Object
 contextualize thisObj = go
@@ -662,6 +691,7 @@ contextualize thisObj = go
     ObjectDispatch obj a -> ObjectDispatch (go obj) a
     Application obj bindings -> Application (go obj) (map (contextualizeBinding thisObj) bindings)
     GlobalObject -> GlobalObject -- TODO: Change to what GlobalObject is attached to
+    obj@GlobalObjectPhiOrg -> errorExpectedDesugaredObject obj
     Termination -> Termination
     obj@MetaTailContext{} -> error ("impossible: trying to contextualize " <> printTree obj)
     obj@MetaContextualize{} -> error ("impossible: trying to contextualize " <> printTree obj)
@@ -669,8 +699,11 @@ contextualize thisObj = go
     obj@MetaObject{} -> error ("impossible: trying to contextualize " <> printTree obj)
     obj@MetaFunction{} -> error ("impossible: trying to contextualize " <> printTree obj)
     obj@ConstString{} -> go (desugar obj)
+    obj@ConstStringRaw{} -> errorExpectedDesugaredObject obj
     obj@ConstInt{} -> go (desugar obj)
+    obj@ConstIntRaw{} -> errorExpectedDesugaredObject obj
     obj@ConstFloat{} -> go (desugar obj)
+    obj@ConstFloatRaw{} -> errorExpectedDesugaredObject obj
 
 contextualizeBinding :: Object -> Binding -> Binding
 contextualizeBinding obj = \case
@@ -681,3 +714,4 @@ contextualizeBinding obj = \case
   LambdaBinding bytes -> LambdaBinding bytes
   b@MetaBindings{} -> error ("impossible: trying to contextualize " <> printTree b)
   b@MetaDeltaBinding{} -> error ("impossible: trying to contextualize " <> printTree b)
+  b@AlphaBindingSugar{} -> errorExpectedDesugaredBinding b

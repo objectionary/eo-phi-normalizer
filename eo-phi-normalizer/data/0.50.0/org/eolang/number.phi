@@ -1,0 +1,74 @@
+{⟦
+  org() ↦ ⟦
+    eolang() ↦ ⟦
+      number(as-bytes) ↦ ⟦
+        φ ↦ ξ.as-bytes,
+        as-number ↦ ξ,
+        neg ↦ ξ.times(-1),
+        as-i32 ↦ ξ.as-i64.as-i32,
+        as-i16 ↦ ξ.as-i32.as-i16,
+        is-nan ↦ ξ.as-bytes.eq(Φ̇.nan.as-bytes),
+        as-i64() ↦ ⟦
+          λ ⤍ Lorg_eolang_number_as_i64
+        ⟧,
+        eq(x) ↦ ⟦
+          x-as-bytes ↦ Φ̇.dataized(ξ.x).as-bytes,
+          self-as-bytes ↦ ξ.ρ.as-bytes,
+          pos-zero-as-bytes ↦ 0.as-bytes,
+          neg-zero-as-bytes ↦ -0.as-bytes,
+          φ ↦ ξ.ρ.is-nan.or(Φ̇.number(ξ.x-as-bytes).is-nan).if(
+            Φ̇.false,
+            ξ.x-as-bytes.eq(ξ.pos-zero-as-bytes).or(
+              ξ.x-as-bytes.eq(ξ.neg-zero-as-bytes)
+            ).and(
+              ξ.self-as-bytes.eq(ξ.pos-zero-as-bytes).or(
+                ξ.self-as-bytes.eq(ξ.neg-zero-as-bytes)
+              )
+            ).or(ξ.self-as-bytes.eq(ξ.x-as-bytes))
+          )
+        ⟧,
+        lt(x) ↦ ⟦
+          value ↦ Φ̇.dataized(ξ.x).as-bytes,
+          φ ↦ 0.gt(ξ.ρ.minus(Φ̇.number(ξ.value)))
+        ⟧,
+        lte(x) ↦ ⟦
+          value ↦ Φ̇.dataized(ξ.x).as-bytes,
+          φ ↦ ξ.ρ.lt(ξ.value).or(ξ.ρ.eq(ξ.value))
+        ⟧,
+        gt(x) ↦ ⟦
+          λ ⤍ Lorg_eolang_number_gt
+        ⟧,
+        gte(x) ↦ ⟦
+          value ↦ Φ̇.dataized(ξ.x).as-bytes,
+          φ ↦ ξ.ρ.gt(ξ.value).or(ξ.ρ.eq(ξ.value))
+        ⟧,
+        times(x) ↦ ⟦
+          λ ⤍ Lorg_eolang_number_times
+        ⟧,
+        plus(x) ↦ ⟦
+          λ ⤍ Lorg_eolang_number_plus
+        ⟧,
+        minus(x) ↦ ⟦
+          value ↦ Φ̇.dataized(ξ.x).as-bytes,
+          φ ↦ ξ.ρ.plus(Φ̇.number(ξ.value).neg)
+        ⟧,
+        div(x) ↦ ⟦
+          λ ⤍ Lorg_eolang_number_div
+        ⟧,
+        floor() ↦ ⟦
+          λ ⤍ Lorg_eolang_number_floor
+        ⟧,
+        is-integer() ↦ ⟦
+          φ ↦ ξ.ρ.is-finite.and(ξ.ρ.eq(ξ.ρ.floor))
+        ⟧,
+        is-finite() ↦ ⟦
+          φ ↦ ξ.ρ.is-nan.not.and(
+            ξ.ρ.eq(Φ̇.positive-infinity).or(ξ.ρ.eq(Φ̇.negative-infinity)).not
+          )
+        ⟧
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

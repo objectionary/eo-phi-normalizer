@@ -28,7 +28,7 @@ $u = [. \n]          -- universal: any character
 
 -- Symbols and non-identifier-like reserved words
 
-@rsyms = \Φ | \ξ | \Δ | \λ | \φ | \ρ | \{ | \⟦ | \⟧ | \} | \( | \) | \. | \⊥ | \[ | \↦ | \] | \⌈ | \, | \⌉ | \* | \∅ | \⤍
+@rsyms = \Φ | \ξ | \Δ | \λ | \φ | \ρ | \{ | \⟦ | \⟧ | \} | \( | \) | \. | \Φ \̇ | \⊥ | \[ | \↦ | \] | \⌈ | \, | \⌉ | \* | \∅ | \⤍ | \~
 
 :-
 
@@ -85,6 +85,18 @@ $s [$u # [\t \n \r \  \! \' \( \) \, \. \: \; \? \[ \] \{ \| \} \⟦ \⟧]] *
 \@ [$u # [\t \n \r \  \! \' \( \) \, \- \. \: \; \? \[ \] \{ \| \} \⟦ \⟧]] *
     { tok (eitherResIdent T_MetaFunctionName) }
 
+-- token IntegerSigned
+\- ? $d +
+    { tok (eitherResIdent T_IntegerSigned) }
+
+-- token DoubleSigned
+\- ? $d + \. $d + (e \- ? $d +)?
+    { tok (eitherResIdent T_DoubleSigned) }
+
+-- token StringRaw
+\" ([$u # [\" \\]] | \\ [\" \\ f n r t u]) * \"
+    { tok (eitherResIdent T_StringRaw) }
+
 -- Keywords and Ident
 $l $i*
     { tok (eitherResIdent TV) }
@@ -124,6 +136,9 @@ data Tok
   | T_ObjectMetaId !String
   | T_BytesMetaId !String
   | T_MetaFunctionName !String
+  | T_IntegerSigned !String
+  | T_DoubleSigned !String
+  | T_StringRaw !String
   deriving (Eq, Show, Ord)
 
 -- | Smart constructor for 'Tok' for the sake of backwards compatibility.
@@ -196,6 +211,9 @@ tokenText t = case t of
   PT _ (T_ObjectMetaId s) -> s
   PT _ (T_BytesMetaId s) -> s
   PT _ (T_MetaFunctionName s) -> s
+  PT _ (T_IntegerSigned s) -> s
+  PT _ (T_DoubleSigned s) -> s
+  PT _ (T_StringRaw s) -> s
 
 -- | Convert a token to a string.
 prToken :: Token -> String
@@ -222,18 +240,19 @@ eitherResIdent tv s = treeFind resWords
 -- | The keywords and symbols of the language organized as binary search tree.
 resWords :: BTree
 resWords =
-  b "\955" 12
-    (b "[" 6
-       (b "*" 3 (b ")" 2 (b "(" 1 N N) N) (b "." 5 (b "," 4 N N) N))
-       (b "}" 9
-          (b "{" 8 (b "]" 7 N N) N) (b "\934" 11 (b "\916" 10 N N) N)))
-    (b "\8869" 18
-       (b "\966" 15
-          (b "\961" 14 (b "\958" 13 N N) N)
-          (b "\8709" 17 (b "\8614" 16 N N) N))
-       (b "\10214" 21
-          (b "\8969" 20 (b "\8968" 19 N N) N)
-          (b "\10509" 23 (b "\10215" 22 N N) N)))
+  b "\934\775" 13
+    (b "]" 7
+       (b "," 4
+          (b ")" 2 (b "(" 1 N N) (b "*" 3 N N)) (b "[" 6 (b "." 5 N N) N))
+       (b "~" 10
+          (b "}" 9 (b "{" 8 N N) N) (b "\934" 12 (b "\916" 11 N N) N)))
+    (b "\8869" 20
+       (b "\966" 17
+          (b "\958" 15 (b "\955" 14 N N) (b "\961" 16 N N))
+          (b "\8709" 19 (b "\8614" 18 N N) N))
+       (b "\10214" 23
+          (b "\8969" 22 (b "\8968" 21 N N) N)
+          (b "\10509" 25 (b "\10215" 24 N N) N)))
   where
   b s n = B bs (TS bs n)
     where

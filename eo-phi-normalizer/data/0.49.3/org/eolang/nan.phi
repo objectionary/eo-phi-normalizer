@@ -1,0 +1,44 @@
+{⟦
+  org ↦ ⟦
+    eolang ↦ ⟦
+      nan ↦ ⟦
+        φ ↦ Φ̇.number(Φ̇.bytes(⟦ Δ ⤍ 7F-F8-00-00-00-00-00-00 ⟧)),
+        floor ↦ ξ,
+        neg ↦ ξ,
+        is-nan ↦ Φ̇.true,
+        is-finite ↦ Φ̇.false,
+        is-integer ↦ Φ̇.false,
+        as-i64 ↦ Φ̇.error("Can't convert NaN to i64"),
+        eq(x) ↦ ⟦
+          φ ↦ Φ̇.false
+        ⟧,
+        lt(x) ↦ ⟦
+          φ ↦ Φ̇.false
+        ⟧,
+        lte(x) ↦ ⟦
+          φ ↦ Φ̇.false
+        ⟧,
+        gt(x) ↦ ⟦
+          φ ↦ Φ̇.false
+        ⟧,
+        gte(x) ↦ ⟦
+          φ ↦ Φ̇.false
+        ⟧,
+        times(x) ↦ ⟦
+          φ ↦ ξ.ρ
+        ⟧,
+        plus(x) ↦ ⟦
+          φ ↦ ξ.ρ
+        ⟧,
+        minus(x) ↦ ⟦
+          φ ↦ ξ.ρ
+        ⟧,
+        div(x) ↦ ⟦
+          φ ↦ ξ.ρ
+        ⟧
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

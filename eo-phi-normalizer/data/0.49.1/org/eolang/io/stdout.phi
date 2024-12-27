@@ -1,0 +1,18 @@
+{⟦
+  org ↦ ⟦
+    eolang ↦ ⟦
+      io ↦ ⟦
+        stdout(text) ↦ ⟦
+          φ ↦ Φ̇.seq(
+            Φ̇.tuple(
+              Φ̇.tuple(Φ̇.tuple.empty, Φ̇.io.console.write(ξ.text)), Φ̇.true
+            )
+          )
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

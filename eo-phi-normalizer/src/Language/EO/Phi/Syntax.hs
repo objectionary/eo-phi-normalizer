@@ -21,17 +21,21 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 {- FOURMOLU_ENABLE -}
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns #-}
+{-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 
 module Language.EO.Phi.Syntax (
   module Language.EO.Phi.Syntax.Abs,
   desugar,
   printTree,
-  shrinkDots,
+  printTreeDontSugar,
 
   -- * Conversion to 'Bytes'
   intToBytes,
@@ -74,40 +78,182 @@ module Language.EO.Phi.Syntax (
   paddedLeftChunksOf,
   normalizeBytes,
   parseWith,
+  errorExpectedDesugaredObject,
+  errorExpectedDesugaredBinding,
+  errorExpectedDesugaredAttribute,
 ) where
 
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as ByteString.Strict
-import Data.Char (isSpace, toUpper)
+import Data.Char (toUpper)
 import Data.Int
 import Data.List (intercalate)
 import Data.Serialize qualified as Serialize
 import Data.String (IsString (fromString))
+import Data.Text qualified as T
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as Text
 import GHC.Float (isDoubleFinite)
+import Language.EO.Phi.Preprocess (preprocess)
+import Language.EO.Phi.Pretty ()
 import Language.EO.Phi.Syntax.Abs
 import Language.EO.Phi.Syntax.Lex (Token)
 import Language.EO.Phi.Syntax.Par
-import Language.EO.Phi.Syntax.Print qualified as Phi
 import Numeric (readHex, showHex)
+import Prettyprinter (LayoutOptions (..), PageWidth (..), Pretty (pretty), defaultLayoutOptions, layoutPretty)
+import Prettyprinter.Render.Text (renderStrict)
 import PyF (fmt)
 import Text.Printf (printf)
-import Text.Read (readMaybe)
 
 -- $setup
 -- >>> :set -XOverloadedStrings
 -- >>> :set -XOverloadedLists
 
+errorExpectedButGot :: (Pretty a, SugarableFinally a) => String -> a -> b
+errorExpectedButGot type' x = error ([fmt|impossible: expected desugared {type'}, but got:\n|] <> printTree x)
+
+errorExpectedDesugaredObject :: Object -> a
+errorExpectedDesugaredObject = errorExpectedButGot "Object"
+
+errorExpectedDesugaredBinding :: Binding -> a
+errorExpectedDesugaredBinding = errorExpectedButGot "Binding"
+
+errorExpectedDesugaredAttribute :: Attribute -> a
+errorExpectedDesugaredAttribute = errorExpectedButGot "Attribute"
+
+class DesugarableInitially a where
+  desugarInitially :: a -> a
+  desugarInitially = id
+
+instance DesugarableInitially Object where
+  desugarInitially :: Object -> Object
+  desugarInitially = \case
+    obj@(ConstString{}) -> obj
+    ConstStringRaw (StringRaw s) -> ConstString (init (tail s))
+    obj@(ConstInt{}) -> obj
+    ConstIntRaw (IntegerSigned x) -> ConstInt (read x)
+    obj@(ConstFloat{}) -> obj
+    ConstFloatRaw (DoubleSigned x) -> ConstFloat (read x)
+    Formation bindings -> Formation (desugarInitially bindings)
+    Application obj bindings -> Application (desugarInitially obj) (desugarInitially bindings)
+    ObjectDispatch obj a -> ObjectDispatch (desugarInitially obj) a
+    GlobalObject -> GlobalObject
+    GlobalObjectPhiOrg -> "Φ.org.eolang"
+    ThisObject -> ThisObject
+    Termination -> Termination
+    MetaSubstThis obj this -> MetaSubstThis (desugarInitially obj) (desugarInitially this)
+    obj@MetaObject{} -> obj
+    MetaContextualize obj1 obj2 -> MetaContextualize (desugarInitially obj1) (desugarInitially obj2)
+    MetaTailContext obj metaId -> MetaTailContext (desugarInitially obj) metaId
+    MetaFunction name obj -> MetaFunction name (desugarInitially obj)
+
+instance DesugarableInitially [Binding] where
+  desugarInitially :: [Binding] -> [Binding]
+  desugarInitially = zipWith go [0 ..]
+   where
+    go :: Int -> Binding -> Binding
+    go idx = \case
+      AlphaBinding (AttrSugar l ls) (Formation bindings) ->
+        let bindingsDesugared = desugarInitially bindings
+         in AlphaBinding (Label l) (Formation ((EmptyBinding . Label <$> ls) <> bindingsDesugared))
+      AlphaBinding (PhiSugar ls) (Formation bindings) ->
+        let bindingsDesugared = desugarInitially bindings
+         in AlphaBinding Phi (Formation ((EmptyBinding . Label <$> ls) <> bindingsDesugared))
+      AlphaBinding a obj -> AlphaBinding a (desugarInitially obj)
+      AlphaBindingSugar obj -> AlphaBinding (Alpha (AlphaIndex [fmt|α{idx}|])) (desugarInitially obj)
+      binding -> binding
+
+instance DesugarableInitially Program where
+  desugarInitially :: Program -> Program
+  desugarInitially (Program bindings) = Program (desugarInitially bindings)
+
+instance DesugarableInitially Binding where
+  desugarInitially = \case
+    obj@AlphaBindingSugar{} -> errorExpectedDesugaredBinding obj
+    AlphaBinding a obj -> AlphaBinding a (desugarInitially obj)
+    obj -> obj
+
+instance DesugarableInitially Attribute
+instance DesugarableInitially RuleAttribute
+instance DesugarableInitially PeeledObject
+instance DesugarableInitially ObjectHead
+instance DesugarableInitially MetaId
+
+class SugarableFinally a where
+  sugarFinally :: a -> a
+  sugarFinally = id
+
+instance SugarableFinally Program where
+  sugarFinally :: Program -> Program
+  sugarFinally (Program bindings) = Program (sugarFinally bindings)
+
+instance SugarableFinally Object where
+  sugarFinally :: Object -> Object
+  sugarFinally = \case
+    "Φ.org.eolang" -> GlobalObjectPhiOrg
+    obj@ConstString{} -> obj
+    obj@ConstStringRaw{} -> errorExpectedDesugaredObject obj
+    obj@ConstInt{} -> obj
+    obj@ConstIntRaw{} -> errorExpectedDesugaredObject obj
+    obj@ConstFloat{} -> obj
+    obj@ConstFloatRaw{} -> errorExpectedDesugaredObject obj
+    Formation bindings -> Formation (sugarFinally <$> bindings)
+    Application obj bindings -> Application (sugarFinally obj) (sugarFinally bindings)
+    ObjectDispatch obj a -> ObjectDispatch (sugarFinally obj) a
+    GlobalObject -> GlobalObject
+    obj@GlobalObjectPhiOrg -> errorExpectedDesugaredObject obj
+    ThisObject -> ThisObject
+    Termination -> Termination
+    MetaSubstThis obj this -> MetaSubstThis (sugarFinally obj) (sugarFinally this)
+    obj@MetaObject{} -> obj
+    MetaContextualize obj1 obj2 -> MetaContextualize (sugarFinally obj1) (sugarFinally obj2)
+    MetaTailContext obj metaId -> MetaTailContext (sugarFinally obj) metaId
+    MetaFunction name obj -> MetaFunction name (sugarFinally obj)
+
+instance SugarableFinally [Binding] where
+  sugarFinally :: [Binding] -> [Binding]
+  sugarFinally bs =
+    if and (zipWith go [0 ..] bs)
+      then (\(~(AlphaBinding _ obj)) -> AlphaBindingSugar (sugarFinally obj)) <$> bs
+      else sugarFinally <$> bs
+   where
+    go :: Int -> Binding -> Bool
+    go idx = \case
+      obj@AlphaBindingSugar{} -> errorExpectedDesugaredBinding obj
+      obj@(AlphaBinding (AttrSugar _ _) _) -> errorExpectedDesugaredBinding obj
+      obj@(AlphaBinding (PhiSugar _) _) -> errorExpectedDesugaredBinding obj
+      AlphaBinding (Alpha (AlphaIndex ('α' : idx'))) _ -> idx == read idx'
+      _ -> False
+
+instance SugarableFinally Binding where
+  sugarFinally :: Binding -> Binding
+  sugarFinally = \case
+    obj@AlphaBindingSugar{} -> errorExpectedDesugaredBinding obj
+    AlphaBinding a obj -> AlphaBinding a (sugarFinally obj)
+    x -> x
+
+instance SugarableFinally ObjectMetaId
+instance SugarableFinally BindingsMetaId
+instance SugarableFinally LabelMetaId
+instance SugarableFinally BytesMetaId
+instance SugarableFinally Attribute
+instance SugarableFinally TailMetaId
+instance SugarableFinally Bytes
+instance SugarableFinally MetaId
+
 desugar :: Object -> Object
 desugar = \case
   ConstString string -> wrapBytesInString (stringToBytes string)
+  obj@ConstStringRaw{} -> errorExpectedDesugaredObject obj
   ConstInt n -> wrapBytesInInt (intToBytes (fromInteger n))
+  obj@ConstIntRaw{} -> errorExpectedDesugaredObject obj
   ConstFloat x -> wrapBytesInFloat (floatToBytes x)
-  Formation bindings -> Formation (map desugarBinding bindings)
-  Application obj bindings -> Application (desugar obj) (map desugarBinding bindings)
+  obj@ConstFloatRaw{} -> errorExpectedDesugaredObject obj
+  Formation bindings -> Formation (desugarBinding <$> bindings)
+  Application obj bindings -> Application (desugar obj) (desugarBinding <$> bindings)
   ObjectDispatch obj a -> ObjectDispatch (desugar obj) a
   GlobalObject -> GlobalObject
+  obj@GlobalObjectPhiOrg -> errorExpectedDesugaredObject obj
   ThisObject -> ThisObject
   Termination -> Termination
   MetaSubstThis obj this -> MetaSubstThis (desugar obj) (desugar this)
@@ -118,21 +264,28 @@ desugar = \case
 
 desugarBinding :: Binding -> Binding
 desugarBinding = \case
+  AlphaBinding (AttrSugar l ls) (Formation bindings) ->
+    let bindingsDesugared = desugarBinding <$> bindings
+     in AlphaBinding (Label l) (Formation ((EmptyBinding . Label <$> ls) <> bindingsDesugared))
+  AlphaBinding (PhiSugar ls) (Formation bindings) ->
+    let bindingsDesugared = desugarBinding <$> bindings
+     in AlphaBinding Phi (Formation ((EmptyBinding . Label <$> ls) <> bindingsDesugared))
   AlphaBinding a obj -> AlphaBinding a (desugar obj)
+  obj@(AlphaBindingSugar{}) -> errorExpectedDesugaredBinding obj
   binding -> binding
 
 -- MetaSubstThis
 
 wrapBytesInInt :: Bytes -> Object
-wrapBytesInInt (Bytes bytes) = [fmt|Φ.org.eolang.i64(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes}))|]
+wrapBytesInInt (Bytes bytes) = [fmt|Φ.org.eolang.i64(as-bytes ↦ Φ.org.eolang.bytes(⟦ Δ ⤍ {bytes} ⟧))|]
 wrapBytesInFloat :: Bytes -> Object
-wrapBytesInFloat (Bytes bytes) = [fmt|Φ.org.eolang.number(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes}))|]
+wrapBytesInFloat (Bytes bytes) = [fmt|Φ.org.eolang.number(as-bytes ↦ Φ.org.eolang.bytes(⟦ Δ ⤍ {bytes} ⟧))|]
 wrapBytesInString :: Bytes -> Object
-wrapBytesInString (Bytes bytes) = [fmt|Φ.org.eolang.string(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes}))|]
+wrapBytesInString (Bytes bytes) = [fmt|Φ.org.eolang.string(as-bytes ↦ Φ.org.eolang.bytes(⟦ Δ ⤍ {bytes} ⟧))|]
 wrapBytesInBytes :: Bytes -> Object
-wrapBytesInBytes (Bytes bytes) = [fmt|Φ.org.eolang.bytes(Δ ⤍ {bytes})|]
+wrapBytesInBytes (Bytes bytes) = [fmt|Φ.org.eolang.bytes(⟦ Δ ⤍ {bytes} ⟧)|]
 wrapTermination :: Object
-wrapTermination = [fmt|Φ.org.eolang.error(α0 ↦ Φ.org.eolang.string(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes})))|]
+wrapTermination = [fmt|Φ.org.eolang.error(α0 ↦ Φ.org.eolang.string(as-bytes ↦ Φ.org.eolang.bytes(⟦ Δ ⤍ {bytes} ⟧)))|]
  where
   Bytes bytes = stringToBytes "unknown error"
 
@@ -141,21 +294,21 @@ wrapBytesInConstInt = wrapBytesInConstInt64
 
 wrapBytesInConstInt64 :: Bytes -> Object
 wrapBytesInConstInt64 bytes@(Bytes bs)
-  | n < 0 = [fmt|Φ.org.eolang.i64(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bs}))|]
+  | n < 0 = [fmt|Φ.org.eolang.i64(as-bytes ↦ Φ.org.eolang.bytes(⟦ Δ ⤍ {bs} ⟧))|]
   | otherwise = [fmt|Φ.org.eolang.i64(as-bytes ↦ {n})|]
  where
   n = bytesToInt bytes
 
 wrapBytesInConstInt32 :: Bytes -> Object
 wrapBytesInConstInt32 bytes@(Bytes bs)
-  | n < 0 = [fmt|Φ.org.eolang.i32(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bs}))|]
+  | n < 0 = [fmt|Φ.org.eolang.i32(as-bytes ↦ Φ.org.eolang.bytes(⟦ Δ ⤍ {bs} ⟧))|]
   | otherwise = [fmt|Φ.org.eolang.i32(as-bytes ↦ {n})|]
  where
   n = bytesToInt bytes
 
 wrapBytesInConstInt16 :: Bytes -> Object
 wrapBytesInConstInt16 bytes@(Bytes bs)
-  | n < 0 = [fmt|Φ.org.eolang.i16(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bs}))|]
+  | n < 0 = [fmt|Φ.org.eolang.i16(as-bytes ↦ Φ.org.eolang.bytes(⟦ Δ ⤍ {bs} ⟧))|]
   | otherwise = [fmt|Φ.org.eolang.i16(as-bytes ↦ {n})|]
  where
   n = bytesToInt bytes
@@ -164,13 +317,13 @@ wrapBytesInConstFloat :: Bytes -> Object
 wrapBytesInConstFloat bytes@(Bytes bs)
   | x == 0 = [fmt|Φ.org.eolang.number(as-bytes ↦ 0.0)|]
   | x > 0 && isDoubleFinite x == 1 = [fmt|Φ.org.eolang.number(as-bytes ↦ {printf "%f" x :: String})|]
-  | otherwise = [fmt|Φ.org.eolang.number(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bs}))|]
+  | otherwise = [fmt|Φ.org.eolang.number(as-bytes ↦ Φ.org.eolang.bytes(⟦ Δ ⤍ {bs} ⟧))|]
  where
   x = bytesToFloat bytes
 
 wrapBytesInConstString :: Bytes -> Object
 wrapBytesInConstString bytes@(Bytes bs)
-  | '\\' `elem` s = [fmt|Φ.org.eolang.string(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bs}))|]
+  | '\\' `elem` s = [fmt|Φ.org.eolang.string(as-bytes ↦ Φ.org.eolang.bytes(⟦ Δ ⤍ {bs} ⟧))|]
   | otherwise = [fmt|Φ.org.eolang.string(as-bytes ↦ {s})|]
  where
   s = show (bytesToString bytes)
@@ -179,107 +332,6 @@ wrapBytesAsBool :: Bytes -> Object
 wrapBytesAsBool bytes
   | bytesToInt bytes == 0 = [fmt|Φ.org.eolang.false|]
   | otherwise = [fmt|Φ.org.eolang.true|]
-
--- * Overriding generated pretty-printer
-
--- | Like 'Phi.printTree', but without spaces around dots and no indentation for curly braces.
-printTree :: (Phi.Print a) => a -> String
-printTree = shrinkDots . render . Phi.prt 0
-
--- | Remove spaces around dots.
---
--- >>> shrinkDots "a ↦ ξ . a" == "a ↦ ξ.a"
--- True
-shrinkDots :: String -> String
-shrinkDots [] = []
-shrinkDots (' ' : '.' : ' ' : cs) = '.' : shrinkDots cs
-shrinkDots (c : cs) = c : shrinkDots cs
-
-readFloat :: String -> Maybe Double
-readFloat s | '.' `elem` s = readMaybe s
-readFloat _ = Nothing
-
-fixFloat :: String -> String
-fixFloat s =
-  case readFloat s of
-    Just x -> printf "%f" x
-    Nothing -> s
-
--- | Copy of 'Phi.render', except no indentation is made for curly braces.
-render :: Phi.Doc -> String
-render d = rend 0 False (map (fixFloat . ($ "")) $ d []) ""
- where
-  rend ::
-    Int ->
-    -- \^ Indentation level.
-    Bool ->
-    -- \^ Pending indentation to be output before next character?
-    [String] ->
-    ShowS
-  rend i p = \case
-    "[" : "]" : ts -> showString "[]" . rend i False ts
-    "(" : ")" : (t : ts) -> handleTrailingComma "()" t ts
-    "⟦" : "⟧" : (t : ts) -> handleTrailingComma "⟦⟧" t ts
-    "[" : ts -> char '[' . rend i False ts
-    "(" : ts -> char '(' . new (i + 1) ts
-    "{" : "⟦" : ts -> showChar '{' . onNewLine (i + 1) p . showChar '⟦' . new (i + 2) ts
-    "⟦" : ts -> showChar '⟦' . new (i + 1) ts
-    ")" : "," : ts -> onNewLine (i - 1) p . showString ")," . new (i - 1) ts
-    "⟧" : "," : ts -> onNewLine (i - 1) p . showString "⟧," . new (i - 1) ts
-    ["⟧", "}"] -> onNewLine (i - 1) p . showChar '⟧' . new (i - 2) ["}"]
-    "⟧" : ts -> onNewLine (i - 1) p . showChar '⟧' . new (i - 1) ts
-    ")" : ts -> onNewLine (i - 1) p . showChar ')' . new (i - 1) ts
-    [";"] -> char ';'
-    ";" : ts -> char ';' . new i ts
-    "." : ts -> rend i p (" ." : ts)
-    t : (s : ss) | closingOrPunctuation s -> handleTrailingComma t s ss
-    t : ts -> pending . space t . rend i False ts
-    [] -> id
-   where
-    -- Output character after pending indentation.
-    char :: Char -> ShowS
-    char c = pending . showChar c
-
-    handleTrailingComma str t ts =
-      (pending . showString str)
-        . ( case t of
-              "," -> showChar ',' . new i ts
-              _ -> rend i False (t : ts)
-          )
-
-    -- Output pending indentation.
-    pending :: ShowS
-    pending = if p then indent i else id
-
-  -- Indentation (spaces) for given indentation level.
-  indent :: Int -> ShowS
-  indent i = Phi.replicateS (2 * i) (showChar ' ')
-
-  -- Continue rendering in new line with new indentation.
-  new :: Int -> [String] -> ShowS
-  new j ts = showChar '\n' . rend j True ts
-
-  -- Separate given string from following text by a space (if needed).
-  space :: String -> ShowS
-  space t s =
-    case (all isSpace t, null spc, null rest) of
-      (True, _, True) -> [] -- remove trailing space
-      (False, _, True) -> t -- remove trailing space
-      (False, True, False) -> t ++ ' ' : s -- add space if none
-      _ -> t ++ s
-   where
-    (spc, rest) = span isSpace s
-
-  closingOrPunctuation :: String -> Bool
-  closingOrPunctuation [c] = c `elem` closerOrPunct
-  closingOrPunctuation _ = False
-
-  closerOrPunct :: String
-  closerOrPunct = ")],;"
-
-  -- Make sure we are on a fresh line.
-  onNewLine :: Int -> Bool -> ShowS
-  onNewLine i p = (if p then id else showChar '\n') . indent i
 
 padLeft :: Int -> [Char] -> [Char]
 padLeft n s = replicate (n - length s) '0' ++ s
@@ -603,19 +655,32 @@ instance IsString Attribute where fromString = unsafeParseWith pAttribute
 instance IsString RuleAttribute where fromString = unsafeParseWith pRuleAttribute
 instance IsString PeeledObject where fromString = unsafeParseWith pPeeledObject
 instance IsString ObjectHead where fromString = unsafeParseWith pObjectHead
-
 instance IsString MetaId where fromString = unsafeParseWith pMetaId
 
-parseWith :: ([Token] -> Either String a) -> String -> Either String a
-parseWith parser input = either (\x -> Left [fmt|{x}\non the input:\n{input}|]) Right parsed
+parseWith :: (DesugarableInitially a) => ([Token] -> Either String a) -> String -> Either String a
+parseWith parser input = either (\x -> Left [fmt|{x}\non the input:\n{input'}|]) (Right . desugarInitially) parsed
  where
-  tokens = myLexer input
+  input' = preprocess input
+  tokens = myLexer input'
   parsed = parser tokens
 
 -- | Parse a 'Object' from a 'String'.
 -- May throw an 'error` if input has a syntactical or lexical errors.
-unsafeParseWith :: ([Token] -> Either String a) -> String -> a
+unsafeParseWith :: (DesugarableInitially a) => ([Token] -> Either String a) -> String -> a
 unsafeParseWith parser input =
   case parseWith parser input of
     Left parseError -> error parseError
     Right object -> object
+
+printTreeDontSugar :: (Pretty a) => a -> String
+printTreeDontSugar =
+  T.unpack
+    . renderStrict
+    . layoutPretty defaultLayoutOptions{layoutPageWidth = Unbounded}
+    . pretty
+
+-- | The top-level printing method.
+printTree :: (Pretty a, SugarableFinally a) => a -> String
+printTree =
+  printTreeDontSugar
+    . sugarFinally

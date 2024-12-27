@@ -1,0 +1,19 @@
+{⟦
+  org ↦ ⟦
+    eolang ↦ ⟦
+      sys ↦ ⟦
+        getenv(name) ↦ ⟦
+          φ ↦ Φ̇.sys.os.is-windows.if(
+            Φ̇.sys.win32(
+              "GetEnvironmentVariable", Φ̇.tuple(Φ̇.tuple(Φ̇.tuple.empty, ξ.name), 512)
+            ),
+            Φ̇.sys.posix("getenv", Φ̇.tuple(Φ̇.tuple.empty, ξ.name))
+          ).output
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

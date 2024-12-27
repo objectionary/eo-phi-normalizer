@@ -1,0 +1,22 @@
+{⟦
+  org() ↦ ⟦
+    eolang() ↦ ⟦
+      while(condition, body) ↦ ⟦
+        φ ↦ ξ.condition(0).as-bool.if(ξ.loop(0), Φ̇.false),
+        loop(index) ↦ ⟦
+          current ↦ ξ.ρ.body(ξ.index),
+          φ ↦ ξ.ρ.condition(ξ.index.plus(1)).as-bool.if(
+            Φ̇.seq(
+              Φ̇.tuple(
+                Φ̇.tuple(Φ̇.tuple.empty, ξ.current), ξ.ρ.loop(ξ.index.plus(1))
+              )
+            ),
+            ξ.current
+          )
+        ⟧
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

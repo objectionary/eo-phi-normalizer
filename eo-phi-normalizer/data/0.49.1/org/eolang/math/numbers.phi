@@ -1,0 +1,42 @@
+{⟦
+  org ↦ ⟦
+    eolang ↦ ⟦
+      math ↦ ⟦
+        numbers(sequence) ↦ ⟦
+          φ ↦ ξ.sequence,
+          max ↦ ⟦
+            lst ↦ Φ̇.structs.list(ξ.ρ.sequence),
+            φ ↦ ξ.lst.is-empty.if(
+              Φ̇.error("Can't get max number from empty sequence"),
+              ξ.lst.reduced(
+                Φ̇.negative-infinity,
+                ⟦
+                  max ↦ ∅,
+                  item ↦ ∅,
+                  φ ↦ ξ.item.as-number.gt(ξ.max).if(ξ.item, ξ.max)
+                ⟧
+              )
+            )
+          ⟧,
+          min ↦ ⟦
+            lst ↦ Φ̇.structs.list(ξ.ρ.sequence),
+            φ ↦ ξ.lst.is-empty.if(
+              Φ̇.error("Can't get min number from empty sequence"),
+              ξ.lst.reduced(
+                Φ̇.positive-infinity,
+                ⟦
+                  min ↦ ∅,
+                  item ↦ ∅,
+                  φ ↦ ξ.min.gt(ξ.item.as-number).if(ξ.item, ξ.min)
+                ⟧
+              )
+            )
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

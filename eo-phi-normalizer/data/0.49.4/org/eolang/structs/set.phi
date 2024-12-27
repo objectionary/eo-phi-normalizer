@@ -1,0 +1,37 @@
+{⟦
+  org() ↦ ⟦
+    eolang() ↦ ⟦
+      structs() ↦ ⟦
+        set(lst) ↦ ⟦
+          φ ↦ ξ.initialized(
+            Φ̇.structs.map(
+              Φ̇.structs.list(ξ.lst).mapped(
+                ⟦
+                  φ ↦ Φ̇.structs.map.entry(ξ.item, Φ̇.true),
+                  item ↦ ∅
+                ⟧
+              ).origin
+            )
+          ).initialized,
+          initialized(map) ↦ ⟦
+            initialized ↦ ξ,
+            φ ↦ ξ.map.keys,
+            size ↦ ξ.map.size,
+            with(item) ↦ ⟦
+              φ ↦ ξ.ρ.ρ.ρ.set.initialized(ξ.ρ.map.with(ξ.item, Φ̇.true))
+            ⟧,
+            without(item) ↦ ⟦
+              φ ↦ ξ.ρ.ρ.ρ.set.initialized(ξ.ρ.map.without(ξ.item))
+            ⟧,
+            has(item) ↦ ⟦
+              φ ↦ ξ.ρ.map.has(ξ.item)
+            ⟧
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

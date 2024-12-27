@@ -39,6 +39,9 @@ token BindingsMetaId {"!B"} (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
 token ObjectMetaId {"!b"} (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
 token BytesMetaId {"!y"} (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
 token MetaFunctionName {"@"} (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
+token IntegerSigned ('-'? digit+) ;
+token DoubleSigned ('-'? digit+ '.' digit+ ('e' '-'? digit+)?) ;
+token StringRaw '"' ((char - ["\"\\"]) | ('\\' ["\"\\tnrfu"]))* '"';
 
 Program. Program ::= "{" "⟦" [Binding] "⟧" "}" ;
 
@@ -48,22 +51,28 @@ MetaIdBindings. MetaId ::= BindingsMetaId ;
 MetaIdObject.   MetaId ::= ObjectMetaId ;
 MetaIdBytes.    MetaId ::= BytesMetaId ;
 
-Formation.         Object ::= "⟦" [Binding] "⟧" ;
-Application.       Object ::= Object "(" [Binding] ")" ;
-ObjectDispatch.    Object ::= Object "." Attribute ;
-GlobalObject.      Object ::= "Φ";
-ThisObject.        Object ::= "ξ";
-Termination.       Object ::= "⊥" ;
-ConstString.       Object ::= String ;
-ConstInt.          Object ::= Integer ;
-ConstFloat.        Object ::= Double ;
-MetaSubstThis.     Object ::= Object "[" "ξ" "↦" Object "]" ;
-MetaContextualize. Object ::= "⌈" Object "," Object "⌉" ;
-MetaObject.        Object ::= ObjectMetaId ;
-MetaTailContext.   Object ::= Object "*" TailMetaId ;
-MetaFunction.      Object ::= MetaFunctionName "(" Object ")" ;
+Formation.          Object ::= "⟦" [Binding] "⟧" ;
+Application.        Object ::= Object "(" [Binding] ")" ;
+ObjectDispatch.     Object ::= Object "." Attribute ;
+GlobalObject.       Object ::= "Φ";
+GlobalObjectPhiOrg. Object ::= "Φ̇";
+ThisObject.         Object ::= "ξ";
+Termination.        Object ::= "⊥" ;
+ConstStringRaw.     Object ::= StringRaw ;
+ConstIntRaw.        Object ::= IntegerSigned ;
+ConstFloatRaw.      Object ::= DoubleSigned ;
+MetaSubstThis.      Object ::= Object "[" "ξ" "↦" Object "]" ;
+MetaContextualize.  Object ::= "⌈" Object "," Object "⌉" ;
+MetaObject.         Object ::= ObjectMetaId ;
+MetaTailContext.    Object ::= Object "*" TailMetaId ;
+MetaFunction.       Object ::= MetaFunctionName "(" Object ")" ;
+
+internal ConstFloat.    Object ::= Double;
+internal ConstInt.      Object ::= Integer;
+internal ConstString.   Object ::= String;
 
 AlphaBinding.       Binding ::= Attribute "↦" Object ;
+AlphaBindingSugar.  Binding ::= Object ;
 EmptyBinding.       Binding ::= Attribute "↦" "∅" ;
 DeltaBinding.       Binding ::= "Δ" "⤍" Bytes ;
 DeltaEmptyBinding.  Binding ::= "Δ" "⤍" "∅" ;
@@ -73,10 +82,13 @@ MetaDeltaBinding.   Binding ::= "Δ" "⤍" BytesMetaId ;
 separator Binding "," ;
 
 Phi.    Attribute ::= "φ" ;   -- decoratee object
+PhiSugar. Attribute ::= "~" "φ" "(" [LabelId] ")";
 Rho.    Attribute ::= "ρ" ;   -- parent object
 Label.  Attribute ::= LabelId ;
 Alpha.  Attribute ::= AlphaIndex ;
 MetaAttr. Attribute ::= LabelMetaId ;
+AttrSugar. Attribute ::= "~" LabelId "(" [LabelId] ")";
+separator LabelId ",";
 
 -- Additional symbols used as attributes in the rules
 ObjectAttr. RuleAttribute ::= Attribute ;

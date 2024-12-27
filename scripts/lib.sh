@@ -37,7 +37,7 @@ PIPELINE_EO_PHI_NORMALIZER_DATA_DIR="$PIPELINE_EO_PHI_NORMALIZER_DIR/data"
 PIPELINE_REPORT_DIR="$PWD/report"
 PIPELINE_EO_YAML_DIR="$PIPELINE_DIR/eo-yaml"
 
-PIPELINE_EO_PHI_NORMALIZER_RULES="" # "--rules '$PIPELINE_EO_PHI_NORMALIZER_DIR/test/eo/phi/rules/yegor.yaml'"
+PIPELINE_EO_PHI_NORMALIZER_RULES="" # "--rules '$PIPELINE_EO_PHI_NORMALIZER_DIR/test/eo/phi/rules/new.yaml'"
 
 SCRIPTS_DIR="$PWD_DIR/scripts"
 PIPELINE_SCRIPT="$SCRIPTS_DIR/pipeline.sh"
@@ -169,11 +169,11 @@ function get_eo_version {
 export -f get_eo_version
 
 function commit_and_push_if_changed {
-    local files="$1"
-    local updated_message="$2"
+    local updated_message="$1"
+    local files="$2"
     if [ -n "$(git status --porcelain "${files[@]}")" ]; then
         git add "${files[@]}"
-        git commit -m "Update $updated_message"
+        git commit -m "chore(ci): Update $updated_message"
         git push
     else
         echo "Nothing to commit.";
@@ -183,7 +183,7 @@ function commit_and_push_if_changed {
 export -f commit_and_push_if_changed
 
 function eo {
-    npx eoc --parser="$EO" --home-tag="0.41.1" --batch --no-color "$@"
+    npx eoc --parser="$EO" --home-tag="$EO" --batch --no-color --easy "$@"
 }
 
 export -f eo

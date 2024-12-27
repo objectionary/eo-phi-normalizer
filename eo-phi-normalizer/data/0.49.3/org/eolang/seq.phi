@@ -1,0 +1,17 @@
+{⟦
+  org ↦ ⟦
+    eolang ↦ ⟦
+      seq(steps) ↦ ⟦
+        φ ↦ ξ.steps.length.eq(0).if(Φ̇.true, ξ.loop(0)),
+        max-len ↦ Φ̇.dataized(ξ.steps.length.minus(1)).as-bytes,
+        loop(index) ↦ ⟦
+          φ ↦ ξ.index.lt(ξ.ρ.max-len).and(
+            Φ̇.dataized(ξ.ρ.steps.at(ξ.index)).as-bool.or(Φ̇.true)
+          ).if(ξ.ρ.loop(ξ.index.plus(1)), ξ.ρ.steps.at(ξ.index))
+        ⟧
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}
