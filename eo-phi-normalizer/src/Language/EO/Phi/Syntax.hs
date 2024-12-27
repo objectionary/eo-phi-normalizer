@@ -259,15 +259,15 @@ desugarBinding = \case
 -- MetaSubstThis
 
 wrapBytesInInt :: Bytes -> Object
-wrapBytesInInt (Bytes bytes) = [fmt|Φ.org.eolang.i64(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes}))|]
+wrapBytesInInt (Bytes bytes) = [fmt|Φ.org.eolang.i64(as-bytes ↦ Φ.org.eolang.bytes(⟦ Δ ⤍ {bytes} ⟧))|]
 wrapBytesInFloat :: Bytes -> Object
-wrapBytesInFloat (Bytes bytes) = [fmt|Φ.org.eolang.number(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes}))|]
+wrapBytesInFloat (Bytes bytes) = [fmt|Φ.org.eolang.number(as-bytes ↦ Φ.org.eolang.bytes(⟦ Δ ⤍ {bytes} ⟧))|]
 wrapBytesInString :: Bytes -> Object
-wrapBytesInString (Bytes bytes) = [fmt|Φ.org.eolang.string(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes}))|]
+wrapBytesInString (Bytes bytes) = [fmt|Φ.org.eolang.string(as-bytes ↦ Φ.org.eolang.bytes(⟦ Δ ⤍ {bytes} ⟧))|]
 wrapBytesInBytes :: Bytes -> Object
-wrapBytesInBytes (Bytes bytes) = [fmt|Φ.org.eolang.bytes(Δ ⤍ {bytes})|]
+wrapBytesInBytes (Bytes bytes) = [fmt|Φ.org.eolang.bytes(⟦ Δ ⤍ {bytes} ⟧)|]
 wrapTermination :: Object
-wrapTermination = [fmt|Φ.org.eolang.error(α0 ↦ Φ.org.eolang.string(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bytes})))|]
+wrapTermination = [fmt|Φ.org.eolang.error(α0 ↦ Φ.org.eolang.string(as-bytes ↦ Φ.org.eolang.bytes(⟦ Δ ⤍ {bytes} ⟧)))|]
  where
   Bytes bytes = stringToBytes "unknown error"
 
@@ -276,21 +276,21 @@ wrapBytesInConstInt = wrapBytesInConstInt64
 
 wrapBytesInConstInt64 :: Bytes -> Object
 wrapBytesInConstInt64 bytes@(Bytes bs)
-  | n < 0 = [fmt|Φ.org.eolang.i64(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bs}))|]
+  | n < 0 = [fmt|Φ.org.eolang.i64(as-bytes ↦ Φ.org.eolang.bytes(⟦ Δ ⤍ {bs} ⟧))|]
   | otherwise = [fmt|Φ.org.eolang.i64(as-bytes ↦ {n})|]
  where
   n = bytesToInt bytes
 
 wrapBytesInConstInt32 :: Bytes -> Object
 wrapBytesInConstInt32 bytes@(Bytes bs)
-  | n < 0 = [fmt|Φ.org.eolang.i32(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bs}))|]
+  | n < 0 = [fmt|Φ.org.eolang.i32(as-bytes ↦ Φ.org.eolang.bytes(⟦ Δ ⤍ {bs} ⟧))|]
   | otherwise = [fmt|Φ.org.eolang.i32(as-bytes ↦ {n})|]
  where
   n = bytesToInt bytes
 
 wrapBytesInConstInt16 :: Bytes -> Object
 wrapBytesInConstInt16 bytes@(Bytes bs)
-  | n < 0 = [fmt|Φ.org.eolang.i16(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bs}))|]
+  | n < 0 = [fmt|Φ.org.eolang.i16(as-bytes ↦ Φ.org.eolang.bytes(⟦ Δ ⤍ {bs} ⟧))|]
   | otherwise = [fmt|Φ.org.eolang.i16(as-bytes ↦ {n})|]
  where
   n = bytesToInt bytes
@@ -299,13 +299,13 @@ wrapBytesInConstFloat :: Bytes -> Object
 wrapBytesInConstFloat bytes@(Bytes bs)
   | x == 0 = [fmt|Φ.org.eolang.number(as-bytes ↦ 0.0)|]
   | x > 0 && isDoubleFinite x == 1 = [fmt|Φ.org.eolang.number(as-bytes ↦ {printf "%f" x :: String})|]
-  | otherwise = [fmt|Φ.org.eolang.number(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bs}))|]
+  | otherwise = [fmt|Φ.org.eolang.number(as-bytes ↦ Φ.org.eolang.bytes(⟦ Δ ⤍ {bs} ⟧))|]
  where
   x = bytesToFloat bytes
 
 wrapBytesInConstString :: Bytes -> Object
 wrapBytesInConstString bytes@(Bytes bs)
-  | '\\' `elem` s = [fmt|Φ.org.eolang.string(as-bytes ↦ Φ.org.eolang.bytes(Δ ⤍ {bs}))|]
+  | '\\' `elem` s = [fmt|Φ.org.eolang.string(as-bytes ↦ Φ.org.eolang.bytes(⟦ Δ ⤍ {bs} ⟧))|]
   | otherwise = [fmt|Φ.org.eolang.string(as-bytes ↦ {s})|]
  where
   s = show (bytesToString bytes)

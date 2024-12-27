@@ -31,7 +31,7 @@ tests:
         ⟦
           c ↦ Φ̇.number(
             as-bytes ↦ Φ̇.bytes(
-              Δ ⤍ 40-39-00-00-00-00-00-00
+              ⟦ Δ ⤍ 40-39-00-00-00-00-00-00 ⟧
             )
           ),
           φ ↦ ξ.c.times(
@@ -54,7 +54,11 @@ tests:
       - ./data/0.49.4/org/eolang/true.phi
       - ./data/0.49.4/org/eolang/false.phi
     input: |
-      {⟦ φ ↦ Φ.org.eolang.true.eq(α0 ↦ Φ̇.true) ⟧}
+      {
+        ⟦
+          φ ↦ Φ̇.true.eq(α0 ↦ Φ̇.true)
+        ⟧
+      }
     output:
       bytes: "01-"
 
@@ -394,7 +398,7 @@ tests:
               x ↦ ⟦
                 φ ↦ Φ̇.bool(
                   Φ̇.bytes(
-                    Δ ⤍ 01-
+                    ⟦ Δ ⤍ 01- ⟧
                   )
                 )
               ⟧,
@@ -405,7 +409,7 @@ tests:
                 ⟧,
                 φ ↦ Φ̇.bool(
                   Φ̇.bytes(
-                    Δ ⤍ 01-
+                    ⟦ Δ ⤍ 01- ⟧
                   )
                 )
               ⟧,
