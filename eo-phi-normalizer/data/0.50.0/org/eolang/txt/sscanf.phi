@@ -1,0 +1,14 @@
+{⟦
+  org() ↦ ⟦
+    eolang() ↦ ⟦
+      txt() ↦ ⟦
+        sscanf(format, read) ↦ ⟦
+          λ ⤍ Lorg_eolang_txt_sscanf
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

@@ -1,0 +1,34 @@
+{⟦
+  org() ↦ ⟦
+    eolang() ↦ ⟦
+      go() ↦ ⟦
+        id ↦ Φ̇.dataized(
+          Φ̇.malloc.of(
+            8,
+            ⟦
+              m ↦ ∅,
+              φ ↦ ξ.m.put(ξ.m.id)
+            ⟧
+          )
+        ).as-bytes,
+        to(body) ↦ ⟦
+          φ ↦ Φ̇.try(ξ.body(ξ.token), ξ.auto-named-attr-at-63-9, Φ̇.true),
+          token() ↦ ⟦
+            backward ↦ Φ̇.error(ξ.jump(ξ.ρ.ρ.to(ξ.ρ.body))),
+            jump(value) ↦ ⟦
+              id ↦ ξ.ρ.ρ.ρ.id
+            ⟧,
+            forward(res) ↦ ⟦
+              φ ↦ Φ̇.error(ξ.ρ.jump(ξ.res))
+            ⟧
+          ⟧,
+          auto-named-attr-at-63-9(e) ↦ ⟦
+            φ ↦ ξ.ρ.ρ.id.eq(ξ.e.id).if(ξ.e.value, Φ̇.error(ξ.e))
+          ⟧
+        ⟧
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

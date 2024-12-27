@@ -1,0 +1,96 @@
+{⟦
+  org() ↦ ⟦
+    eolang() ↦ ⟦
+      bytes(data) ↦ ⟦
+        φ ↦ ξ.data,
+        as-bytes ↦ ξ,
+        as-bool ↦ ξ.eq(Φ̇.bytes(⟦ Δ ⤍ 01- ⟧)),
+        as-number() ↦ ⟦
+          φ ↦ ξ.ρ.eq(Φ̇.nan.as-bytes).if(
+            Φ̇.nan,
+            ξ.ρ.eq(Φ̇.positive-infinity.as-bytes).if(
+              Φ̇.positive-infinity,
+              ξ.ρ.eq(Φ̇.negative-infinity.as-bytes).if(
+                Φ̇.negative-infinity,
+                ξ.ρ.size.eq(8).if(
+                  Φ̇.number(ξ.ρ),
+                  Φ̇.error(
+                    Φ̇.txt.sprintf(
+                      "Can't convert non 8 length bytes to a number, bytes are %x",
+                      Φ̇.tuple(Φ̇.tuple.empty, ξ.ρ)
+                    )
+                  )
+                )
+              )
+            )
+          )
+        ⟧,
+        eq(b) ↦ ⟦
+          λ ⤍ Lorg_eolang_bytes_eq
+        ⟧,
+        size() ↦ ⟦
+          λ ⤍ Lorg_eolang_bytes_size
+        ⟧,
+        slice(start, len) ↦ ⟦
+          λ ⤍ Lorg_eolang_bytes_slice
+        ⟧,
+        as-i64() ↦ ⟦
+          φ ↦ ξ.ρ.size.eq(8).if(
+            Φ̇.i64(ξ.ρ),
+            Φ̇.error(
+              Φ̇.txt.sprintf(
+                "Can't convert non 8 length bytes to i64, bytes are %x",
+                Φ̇.tuple(Φ̇.tuple.empty, ξ.ρ)
+              )
+            )
+          )
+        ⟧,
+        as-i32() ↦ ⟦
+          φ ↦ ξ.ρ.size.eq(4).if(
+            Φ̇.i32(ξ.ρ),
+            Φ̇.error(
+              Φ̇.txt.sprintf(
+                "Can't convert non 4 length bytes to i32, bytes are %x",
+                Φ̇.tuple(Φ̇.tuple.empty, ξ.ρ)
+              )
+            )
+          )
+        ⟧,
+        as-i16() ↦ ⟦
+          φ ↦ ξ.ρ.size.eq(2).if(
+            Φ̇.i16(ξ.ρ),
+            Φ̇.error(
+              Φ̇.txt.sprintf(
+                "Can't convert non 2 length bytes to i16, bytes are %x",
+                Φ̇.tuple(Φ̇.tuple.empty, ξ.ρ)
+              )
+            )
+          )
+        ⟧,
+        and(b) ↦ ⟦
+          λ ⤍ Lorg_eolang_bytes_and
+        ⟧,
+        or(b) ↦ ⟦
+          λ ⤍ Lorg_eolang_bytes_or
+        ⟧,
+        xor(b) ↦ ⟦
+          λ ⤍ Lorg_eolang_bytes_xor
+        ⟧,
+        not() ↦ ⟦
+          λ ⤍ Lorg_eolang_bytes_not
+        ⟧,
+        left(x) ↦ ⟦
+          φ ↦ ξ.ρ.right(ξ.x.neg)
+        ⟧,
+        right(x) ↦ ⟦
+          λ ⤍ Lorg_eolang_bytes_right
+        ⟧,
+        concat(b) ↦ ⟦
+          λ ⤍ Lorg_eolang_bytes_concat
+        ⟧
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

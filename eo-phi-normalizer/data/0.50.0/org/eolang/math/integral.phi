@@ -1,0 +1,66 @@
+{⟦
+  org() ↦ ⟦
+    eolang() ↦ ⟦
+      math() ↦ ⟦
+        integral(fun, a, b, n) ↦ ⟦
+          subsection(a, b) ↦ ⟦
+            φ ↦ ξ.b.minus(ξ.a).div(6).times(
+              ξ.ρ.fun(ξ.a).plus(
+                4.times(ξ.ρ.fun(0.5.times(ξ.a.plus(ξ.b)))).plus(ξ.ρ.fun(ξ.b))
+              )
+            )
+          ⟧,
+          φ ↦ Φ̇.malloc.of(8, ξ.auto-named-attr-at-50-11).as-number,
+          auto-named-attr-at-50-11(sum) ↦ ⟦
+            φ ↦ Φ̇.malloc.for(ξ.ρ.a, ξ.auto-named-attr-at-53-16),
+            auto-named-attr-at-53-16(left) ↦ ⟦
+              right ↦ ξ.ρ.ρ.b,
+              step ↦ ξ.right.minus(ξ.left).div(ξ.ρ.ρ.n).as-number,
+              φ ↦ Φ̇.seq(
+                Φ̇.tuple(
+                  Φ̇.tuple(
+                    Φ̇.tuple.empty,
+                    Φ̇.while(
+                      ξ.auto-named-attr-at-58-19,
+                      ⟦
+                        i ↦ ∅,
+                        φ ↦ Φ̇.true
+                      ⟧
+                    )
+                  ),
+                  ξ.ρ.sum
+                )
+              ),
+              auto-named-attr-at-58-19(i) ↦ ⟦
+                φ ↦ ξ.ρ.left.as-number.plus(ξ.ρ.step).lt(ξ.ρ.right).if(
+                  Φ̇.seq(
+                    Φ̇.tuple(
+                      Φ̇.tuple(
+                        Φ̇.tuple(
+                          Φ̇.tuple.empty,
+                          ξ.ρ.ρ.sum.put(
+                            ξ.ρ.ρ.sum.as-number.plus(
+                              ξ.ρ.ρ.ρ.subsection(
+                                ξ.ρ.left.as-number, ξ.ρ.left.as-number.plus(ξ.ρ.step)
+                              )
+                            )
+                          )
+                        ),
+                        ξ.ρ.left.put(ξ.ρ.left.as-number.plus(ξ.ρ.step))
+                      ),
+                      Φ̇.true
+                    )
+                  ),
+                  Φ̇.false
+                )
+              ⟧
+            ⟧
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

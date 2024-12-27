@@ -1,0 +1,11 @@
+{⟦
+  org() ↦ ⟦
+    eolang() ↦ ⟦
+      error(message) ↦ ⟦
+        λ ⤍ Lorg_eolang_error
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}
