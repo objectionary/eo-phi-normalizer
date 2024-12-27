@@ -1,0 +1,11 @@
+{⟦
+  org ↦ ⟦
+    eolang ↦ ⟦
+      as-phi(x) ↦ ⟦
+        λ ⤍ Lorg_eolang_as_phi
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

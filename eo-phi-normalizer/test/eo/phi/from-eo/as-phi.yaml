@@ -33,26 +33,25 @@ tests:
           org ↦ ⟦
             eolang ↦ ⟦
               prints-itself ↦ ⟦
-                φ ↦ Φ.org.eolang.as-phi (
-                  α0 ↦ ξ
-                )
-                .length.gt (
-                  α0 ↦ Φ.org.eolang.int (
-                    α0 ↦ Φ.org.eolang.bytes (
+                φ ↦ Φ̇.as-phi(
+                  ξ
+                ).length.gt(
+                  Φ̇.int(
+                    Φ̇.bytes(
                       Δ ⤍ 00-00-00-00-00-00-00-00
                     )
                   )
                 )
               ⟧,
               prints-itself-to-console ↦ ⟦
-                x ↦ Φ.org.eolang.int (
-                  α0 ↦ Φ.org.eolang.bytes (
+                x ↦ Φ̇.int(
+                  Φ̇.bytes(
                     Δ ⤍ 00-00-00-00-00-00-00-2A
                   )
                 ),
-                φ ↦ Φ.org.eolang.io.stdout (
-                  α0 ↦ Φ.org.eolang.as-phi (
-                    α0 ↦ ξ
+                φ ↦ Φ̇.io.stdout(
+                  Φ̇.as-phi(
+                    ξ
                   )
                 )
               ⟧,
@@ -72,7 +71,6 @@ tests:
         ⟦
           m ↦ ⟦
             x ↦ ⟦⟧
-          ⟧
-          ()
+          ⟧()
         ⟧
       }

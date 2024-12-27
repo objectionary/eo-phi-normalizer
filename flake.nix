@@ -267,7 +267,7 @@
             commands = {
               tools = [
                 stack-wrapped
-                pkgs.hpack
+                pkgs.haskellPackages.hpack_0_37_0
                 pkgs.gh
                 pkgs.mdsh
                 pkgs.mdbook

@@ -1,0 +1,55 @@
+{⟦
+  org() ↦ ⟦
+    eolang() ↦ ⟦
+      malloc() ↦ ⟦
+        empty(scope) ↦ ⟦
+          φ ↦ ξ.ρ.ρ.malloc.of(0, ξ.scope)
+        ⟧,
+        for(object, scope) ↦ ⟦
+          bts ↦ Φ̇.dataized(ξ.object).as-bytes,
+          φ ↦ ξ.ρ.ρ.malloc.of(ξ.bts.size, ξ.auto-named-attr-at-96-9),
+          auto-named-attr-at-96-9(m) ↦ ⟦
+            φ ↦ Φ̇.seq(
+              Φ̇.tuple(
+                Φ̇.tuple(Φ̇.tuple.empty, ξ.m.write(0, ξ.ρ.bts)), ξ.ρ.scope(ξ.m)
+              )
+            )
+          ⟧
+        ⟧,
+        of(size, scope) ↦ ⟦
+          φ() ↦ ⟦
+            λ ⤍ Lorg_eolang_malloc_of_φ
+          ⟧,
+          allocated(id) ↦ ⟦
+            φ ↦ ξ.get,
+            get ↦ ξ.read(0, ξ.size),
+            size() ↦ ⟦
+              λ ⤍ Lorg_eolang_malloc_of_allocated_size
+            ⟧,
+            resized(new-size) ↦ ⟦
+              λ ⤍ Lorg_eolang_malloc_of_allocated_resized
+            ⟧,
+            copy(source, target, length) ↦ ⟦
+              φ ↦ ξ.ρ.write(ξ.target, ξ.ρ.read(ξ.source, ξ.length))
+            ⟧,
+            read(offset, length) ↦ ⟦
+              λ ⤍ Lorg_eolang_malloc_of_allocated_read
+            ⟧,
+            write(offset, data) ↦ ⟦
+              λ ⤍ Lorg_eolang_malloc_of_allocated_write
+            ⟧,
+            put(object) ↦ ⟦
+              φ ↦ Φ̇.seq(
+                Φ̇.tuple(
+                  Φ̇.tuple(Φ̇.tuple.empty, ξ.ρ.write(0, ξ.object)), ξ.ρ.get
+                )
+              )
+            ⟧
+          ⟧
+        ⟧
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

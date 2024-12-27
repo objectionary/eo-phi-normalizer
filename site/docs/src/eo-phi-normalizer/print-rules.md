@@ -23,7 +23,7 @@ Available options:
 
 ### Default version
 
-The command below prints to the console rules from `yegor.yaml`, listing each condition of the rules on a separate line.
+The command below prints to the console rules from [new.yaml](https://github.com/objectionary/eo-phi-normalizer/blob/master/eo-phi-normalizer/test/eo/phi/rules/new.yaml), listing each condition of the rules on a separate line.
 
 ![rules-latex](../media/print-rules-tex.png)
 

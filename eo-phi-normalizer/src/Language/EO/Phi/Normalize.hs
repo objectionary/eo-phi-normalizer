@@ -38,7 +38,7 @@ import Data.Maybe (fromMaybe)
 import Data.Generics.Labels ()
 import GHC.Generics (Generic)
 import Language.EO.Phi.Rules.Common (lookupBinding, objectBindings)
-import Language.EO.Phi.Syntax (desugar)
+import Language.EO.Phi.Syntax (desugar, errorExpectedDesugaredObject)
 import Language.EO.Phi.Syntax.Abs
 
 data Context = Context
@@ -71,6 +71,7 @@ peelObject = \case
   Application object bindings -> peelObject object `followedBy` ActionApplication bindings
   ObjectDispatch object attr -> peelObject object `followedBy` ActionDispatch attr
   GlobalObject -> PeeledObject HeadGlobal []
+  obj@GlobalObjectPhiOrg -> peelObject (desugar obj)
   ThisObject -> PeeledObject HeadThis []
   Termination -> PeeledObject HeadTermination []
   MetaObject _ -> PeeledObject HeadTermination []
@@ -79,8 +80,11 @@ peelObject = \case
   MetaSubstThis{} -> error "impossible"
   MetaContextualize{} -> error "impossible"
   obj@ConstString{} -> peelObject (desugar obj)
+  obj@ConstStringRaw{} -> errorExpectedDesugaredObject obj
   obj@ConstInt{} -> peelObject (desugar obj)
+  obj@ConstIntRaw{} -> errorExpectedDesugaredObject obj
   obj@ConstFloat{} -> peelObject (desugar obj)
+  obj@ConstFloatRaw{} -> errorExpectedDesugaredObject obj
  where
   followedBy (PeeledObject object actions) action = PeeledObject object (actions ++ [action])
 

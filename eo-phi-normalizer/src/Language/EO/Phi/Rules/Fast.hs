@@ -205,6 +205,7 @@ fastYegorInsideOut ctx = \case
                       AlphaBinding a (fastYegorInsideOut ctx' objA)
                     _ -> binding
           ]
+  obj@GlobalObjectPhiOrg -> errorExpectedDesugaredObject obj
   Termination -> Termination
   MetaSubstThis{} -> error "impossible MetaSubstThis!"
   MetaContextualize{} -> error "impossible MetaContextualize!"
@@ -212,5 +213,8 @@ fastYegorInsideOut ctx = \case
   MetaTailContext{} -> error "impossible MetaTailContext!"
   MetaFunction{} -> error "impossible MetaFunction!"
   obj@ConstString{} -> obj -- fastYegorInsideOut ctx (desugar obj)
+  obj@ConstStringRaw{} -> errorExpectedDesugaredObject obj -- fastYegorInsideOut ctx (desugar obj)
   obj@ConstInt{} -> obj -- fastYegorInsideOut ctx (desugar obj)
+  obj@ConstIntRaw{} -> errorExpectedDesugaredObject obj -- fastYegorInsideOut ctx (desugar obj)
   obj@ConstFloat{} -> obj -- fastYegorInsideOut ctx (desugar obj)
+  obj@ConstFloatRaw{} -> errorExpectedDesugaredObject obj -- fastYegorInsideOut ctx (desugar obj)

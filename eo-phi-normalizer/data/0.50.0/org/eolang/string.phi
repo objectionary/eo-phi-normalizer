@@ -1,0 +1,155 @@
+{⟦
+  org() ↦ ⟦
+    eolang() ↦ ⟦
+      string(as-bytes) ↦ ⟦
+        φ ↦ ξ.as-bytes,
+        length() ↦ ⟦
+          size ↦ ξ.ρ.as-bytes.size,
+          pattern-one ↦ Φ̇.bytes(⟦ Δ ⤍ 80- ⟧),
+          pattern-two ↦ Φ̇.bytes(⟦ Δ ⤍ E0- ⟧),
+          pattern-three ↦ Φ̇.bytes(⟦ Δ ⤍ F0- ⟧),
+          pattern-four ↦ Φ̇.bytes(⟦ Δ ⤍ F8- ⟧),
+          result-one ↦ Φ̇.bytes(⟦ Δ ⤍ 00- ⟧),
+          result-two ↦ Φ̇.bytes(⟦ Δ ⤍ C0- ⟧),
+          result-three ↦ ξ.pattern-two,
+          result-four ↦ ξ.pattern-three,
+          φ ↦ ξ.size.eq(0).if(0, ξ.rec-length(0, 0)),
+          increase-length(index, char-size, len) ↦ ⟦
+            φ ↦ ξ.index.plus(ξ.char-size).gt(ξ.ρ.size).if(
+              Φ̇.error(
+                Φ̇.txt.sprintf(
+                  "Expected %d byte character at %d index, but there are not enough bytes for it: %x",
+                  Φ̇.tuple(
+                    Φ̇.tuple(Φ̇.tuple(Φ̇.tuple.empty, ξ.char-size), ξ.index), ξ.ρ.ρ.as-bytes
+                  )
+                )
+              ),
+              ξ.ρ.rec-length(ξ.index.plus(ξ.char-size), ξ.len.plus(1))
+            )
+          ⟧,
+          rec-length(index, accum) ↦ ⟦
+            byte ↦ ξ.ρ.ρ.as-bytes.slice(ξ.index, 1),
+            φ ↦ ξ.index.eq(ξ.ρ.size).if(
+              ξ.accum,
+              ξ.byte.and(ξ.ρ.pattern-one).eq(ξ.ρ.result-one).if(
+                ξ.ρ.increase-length(ξ.index, 1, ξ.accum),
+                ξ.byte.and(ξ.ρ.pattern-two).eq(ξ.ρ.result-two).if(
+                  ξ.ρ.increase-length(ξ.index, 2, ξ.accum),
+                  ξ.byte.and(ξ.ρ.pattern-three).eq(ξ.ρ.result-three).if(
+                    ξ.ρ.increase-length(ξ.index, 3, ξ.accum),
+                    ξ.byte.and(ξ.ρ.pattern-four).eq(ξ.ρ.result-four).if(
+                      ξ.ρ.increase-length(ξ.index, 4, ξ.accum),
+                      Φ̇.error(
+                        Φ̇.txt.sprintf(
+                          "Unknown byte format (%x), can't recognize character",
+                          Φ̇.tuple(Φ̇.tuple.empty, ξ.byte)
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          ⟧
+        ⟧,
+        slice(start, len) ↦ ⟦
+          start-bytes ↦ Φ̇.dataized(ξ.start).as-bytes,
+          len-bytes ↦ Φ̇.dataized(ξ.len).as-bytes,
+          num-start ↦ Φ̇.number(ξ.start-bytes),
+          num-len ↦ Φ̇.number(ξ.len-bytes),
+          size ↦ ξ.ρ.as-bytes.size,
+          end ↦ ξ.num-start.plus(ξ.num-len),
+          pattern-one ↦ Φ̇.bytes(⟦ Δ ⤍ 80- ⟧),
+          pattern-two ↦ Φ̇.bytes(⟦ Δ ⤍ E0- ⟧),
+          pattern-three ↦ Φ̇.bytes(⟦ Δ ⤍ F0- ⟧),
+          pattern-four ↦ Φ̇.bytes(⟦ Δ ⤍ F8- ⟧),
+          result-one ↦ Φ̇.bytes(⟦ Δ ⤍ 00- ⟧),
+          result-two ↦ Φ̇.bytes(⟦ Δ ⤍ C0- ⟧),
+          result-three ↦ ξ.pattern-two,
+          result-four ↦ ξ.pattern-three,
+          bts-start ↦ Φ̇.dataized(
+            ξ.rec-index(
+              0,
+              0,
+              ξ.num-start,
+              Φ̇.txt.sprintf(
+                "Start index (%d) is out of string bounds",
+                Φ̇.tuple(Φ̇.tuple.empty, ξ.num-start)
+              )
+            )
+          ).as-bytes,
+          bts-length ↦ ξ.rec-index(
+            Φ̇.number(ξ.bts-start),
+            0,
+            ξ.num-len,
+            Φ̇.txt.sprintf(
+              "Start index + length to slice (%d) is out of string bounds",
+              Φ̇.tuple(Φ̇.tuple.empty, ξ.num-start.plus(ξ.num-len))
+            )
+          ).minus(ξ.bts-start),
+          φ ↦ ξ.num-start.lt(0).if(
+            Φ̇.error(
+              Φ̇.txt.sprintf(
+                "Start index must be >= 0, but was %d", Φ̇.tuple(Φ̇.tuple.empty, ξ.num-start)
+              )
+            ),
+            ξ.num-len.lt(0).if(
+              Φ̇.error(
+                Φ̇.txt.sprintf(
+                  "Length to slice must be >= 0, but was %d", Φ̇.tuple(Φ̇.tuple.empty, ξ.num-len)
+                )
+              ),
+              ξ.num-len.eq(0).if(
+                "", Φ̇.string(ξ.ρ.as-bytes.slice(ξ.bts-start, ξ.bts-length))
+              )
+            )
+          ),
+          increase(index, char-size, accum, result, cause) ↦ ⟦
+            φ ↦ ξ.index.plus(ξ.char-size).gt(ξ.ρ.size).if(
+              Φ̇.error(
+                Φ̇.txt.sprintf(
+                  "Expected %d byte character at %d index, but there are not enough bytes for it: %x",
+                  Φ̇.tuple(
+                    Φ̇.tuple(Φ̇.tuple(Φ̇.tuple.empty, ξ.char-size), ξ.index), ξ.ρ.ρ.as-bytes
+                  )
+                )
+              ),
+              ξ.ρ.rec-index(
+                ξ.index.plus(ξ.char-size), ξ.accum.plus(1), ξ.result, ξ.cause
+              )
+            )
+          ⟧,
+          rec-index(index, accum, result, cause) ↦ ⟦
+            byte ↦ ξ.ρ.ρ.as-bytes.slice(ξ.index, 1),
+            φ ↦ ξ.accum.eq(ξ.result).if(
+              ξ.index,
+              ξ.index.eq(ξ.ρ.size).if(
+                Φ̇.error(ξ.cause),
+                ξ.byte.and(ξ.ρ.pattern-one).eq(ξ.ρ.result-one).if(
+                  ξ.ρ.increase(ξ.index, 1, ξ.accum, ξ.result, ξ.cause),
+                  ξ.byte.and(ξ.ρ.pattern-two).eq(ξ.ρ.result-two).if(
+                    ξ.ρ.increase(ξ.index, 2, ξ.accum, ξ.result, ξ.cause),
+                    ξ.byte.and(ξ.ρ.pattern-three).eq(ξ.ρ.result-three).if(
+                      ξ.ρ.increase(ξ.index, 3, ξ.accum, ξ.result, ξ.cause),
+                      ξ.byte.and(ξ.ρ.pattern-four).eq(ξ.ρ.result-four).if(
+                        ξ.ρ.increase(ξ.index, 4, ξ.accum, ξ.result, ξ.cause),
+                        Φ̇.error(
+                          Φ̇.txt.sprintf(
+                            "Unknown byte format (%x), can't recognize character",
+                            Φ̇.tuple(Φ̇.tuple.empty, ξ.byte)
+                          )
+                        )
+                      )
+                    )
+                  )
+                )
+              )
+            )
+          ⟧
+        ⟧
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

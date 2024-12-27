@@ -37,6 +37,7 @@ bindingAttr DeltaEmptyBinding = Just (Alpha (AlphaIndex "Δ"))
 bindingAttr LambdaBinding{} = Just (Alpha (AlphaIndex "λ"))
 bindingAttr MetaBindings{} = Nothing
 bindingAttr MetaDeltaBinding{} = Nothing
+bindingAttr b@(AlphaBindingSugar{}) = errorExpectedDesugaredBinding b
 
 zipBindings :: [Binding] -> [Binding] -> ([Binding], [(Binding, Binding)])
 zipBindings xs ys = (xs' <> ys', collisions)

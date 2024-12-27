@@ -1,0 +1,23 @@
+{⟦
+  org() ↦ ⟦
+    eolang() ↦ ⟦
+      structs() ↦ ⟦
+        range(start, end) ↦ ⟦
+          φ ↦ Φ̇.structs.list(
+            ξ.start.lt(ξ.end).if(
+              ξ.appended(Φ̇.tuple(Φ̇.tuple.empty, ξ.start), ξ.start.next), Φ̇.tuple.empty
+            )
+          ),
+          appended(acc, current) ↦ ⟦
+            φ ↦ ξ.current.lt(ξ.ρ.end).if(
+              ξ.ρ.appended(ξ.acc.with(ξ.current), ξ.current.next), ξ.acc
+            )
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

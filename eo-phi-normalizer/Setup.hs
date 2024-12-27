@@ -89,7 +89,8 @@ main =
                   , "bnfc --haskell -d -p Language.EO.Phi --generic -o src/ grammar/EO/Phi/Syntax.cf"
                   , "cd src/Language/EO/Phi/Syntax"
                   , "alex Lex.x"
-                  , "happy Par.y"
+                  , "happy --info Par.y"
+                  , "rm -f Print.hs ErrM.hs Skel.hs Test.hs Abs.hs.bak Print.hs.bak"
                   , "true"
                   ]
 
@@ -99,7 +100,6 @@ main =
 
             _ <- callCommand fullCommand
             _ <- addLicense "Abs.hs"
-            _ <- addLicense "Print.hs"
 
             postConf simpleUserHooks args flags packageDesc localBuildInfo
         }
