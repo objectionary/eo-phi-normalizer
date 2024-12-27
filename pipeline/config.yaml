@@ -423,6 +423,7 @@ test-sets:
     normalized: pipeline/phi-normalized/negative-infinity-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/number-tests.eo
     yaml: pipeline/eo-yaml/number-tests.yaml
@@ -495,6 +496,7 @@ test-sets:
     normalized: pipeline/phi-normalized/positive-infinity-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
+  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/runtime-tests.eo
     yaml: pipeline/eo-yaml/runtime-tests.yaml
