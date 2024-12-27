@@ -85,6 +85,7 @@ import Language.EO.Phi.Syntax.Lex
   L_MetaFunctionName { PT _ (T_MetaFunctionName $$) }
   L_IntegerSigned    { PT _ (T_IntegerSigned $$)    }
   L_DoubleSigned     { PT _ (T_DoubleSigned $$)     }
+  L_StringRaw        { PT _ (T_StringRaw $$)        }
 
 %%
 
@@ -133,6 +134,9 @@ IntegerSigned  : L_IntegerSigned { Language.EO.Phi.Syntax.Abs.IntegerSigned $1 }
 DoubleSigned :: { Language.EO.Phi.Syntax.Abs.DoubleSigned }
 DoubleSigned  : L_DoubleSigned { Language.EO.Phi.Syntax.Abs.DoubleSigned $1 }
 
+StringRaw :: { Language.EO.Phi.Syntax.Abs.StringRaw }
+StringRaw  : L_StringRaw { Language.EO.Phi.Syntax.Abs.StringRaw $1 }
+
 Program :: { Language.EO.Phi.Syntax.Abs.Program }
 Program
   : '{' '⟦' ListBinding '⟧' '}' { Language.EO.Phi.Syntax.Abs.Program $3 }
@@ -154,7 +158,7 @@ Object
   | 'Φ̇' { Language.EO.Phi.Syntax.Abs.GlobalObjectPhiOrg }
   | 'ξ' { Language.EO.Phi.Syntax.Abs.ThisObject }
   | '⊥' { Language.EO.Phi.Syntax.Abs.Termination }
-  | String { Language.EO.Phi.Syntax.Abs.ConstString $1 }
+  | StringRaw { Language.EO.Phi.Syntax.Abs.ConstStringRaw $1 }
   | IntegerSigned { Language.EO.Phi.Syntax.Abs.ConstIntRaw $1 }
   | DoubleSigned { Language.EO.Phi.Syntax.Abs.ConstFloatRaw $1 }
   | Object '[' 'ξ' '↦' Object ']' { Language.EO.Phi.Syntax.Abs.MetaSubstThis $1 $5 }

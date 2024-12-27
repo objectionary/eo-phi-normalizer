@@ -80,6 +80,7 @@ peelObject = \case
   MetaSubstThis{} -> error "impossible"
   MetaContextualize{} -> error "impossible"
   obj@ConstString{} -> peelObject (desugar obj)
+  obj@ConstStringRaw{} -> errorExpectedDesugaredObject obj
   obj@ConstInt{} -> peelObject (desugar obj)
   obj@ConstIntRaw{} -> errorExpectedDesugaredObject obj
   obj@ConstFloat{} -> peelObject (desugar obj)

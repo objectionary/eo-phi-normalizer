@@ -240,6 +240,7 @@ objectLabelIds = \case
   MetaSubstThis obj obj' -> objectLabelIds obj <> objectLabelIds obj'
   MetaContextualize obj obj' -> objectLabelIds obj <> objectLabelIds obj'
   obj@ConstString{} -> objectLabelIds (desugar obj)
+  obj@ConstStringRaw{} -> errorExpectedDesugaredObject obj
   obj@ConstInt{} -> objectLabelIds (desugar obj)
   obj@ConstIntRaw{} -> errorExpectedDesugaredObject obj
   obj@ConstFloat{} -> objectLabelIds (desugar obj)
@@ -291,6 +292,7 @@ objectMetaIds (MetaTailContext obj x) = objectMetaIds obj <> Set.singleton (Meta
 objectMetaIds (MetaSubstThis obj obj') = foldMap objectMetaIds [obj, obj']
 objectMetaIds (MetaContextualize obj obj') = foldMap objectMetaIds [obj, obj']
 objectMetaIds obj@ConstString{} = objectMetaIds (desugar obj)
+objectMetaIds obj@ConstStringRaw{} = errorExpectedDesugaredObject obj
 objectMetaIds obj@ConstInt{} = objectMetaIds (desugar obj)
 objectMetaIds obj@ConstIntRaw{} = errorExpectedDesugaredObject obj
 objectMetaIds obj@ConstFloat{} = objectMetaIds (desugar obj)
@@ -328,6 +330,7 @@ objectHasMetavars MetaTailContext{} = True
 objectHasMetavars (MetaSubstThis _ _) = True -- technically not a metavar, but a substitution
 objectHasMetavars (MetaContextualize _ _) = True
 objectHasMetavars obj@ConstString{} = objectHasMetavars (desugar obj)
+objectHasMetavars obj@ConstStringRaw{} = errorExpectedDesugaredObject obj
 objectHasMetavars obj@ConstInt{} = objectHasMetavars (desugar obj)
 objectHasMetavars obj@ConstIntRaw{} = errorExpectedDesugaredObject obj
 objectHasMetavars obj@ConstFloat{} = objectHasMetavars (desugar obj)
@@ -464,6 +467,7 @@ applySubst subst@Subst{..} = \case
         let holeSubst = mempty{objectMetas = [(holeMetaId, applySubst subst obj)]}
          in applySubst holeSubst contextObject
   obj@ConstString{} -> applySubst subst (desugar obj)
+  obj@ConstStringRaw{} -> errorExpectedDesugaredObject obj
   obj@ConstInt{} -> applySubst subst (desugar obj)
   obj@ConstIntRaw{} -> errorExpectedDesugaredObject obj
   obj@ConstFloat{} -> applySubst subst (desugar obj)
@@ -538,6 +542,7 @@ matchOneHoleContext ctxId pat obj = matchWhole <> matchPart
     ThisObject -> []
     Termination -> []
     ConstString{} -> []
+    ConstStringRaw{} -> errorExpectedDesugaredObject obj
     ConstInt{} -> []
     ConstIntRaw{} -> errorExpectedDesugaredObject obj
     ConstFloat{} -> []
@@ -658,6 +663,7 @@ substThis thisObj = go
     obj@MetaObject{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
     obj@MetaFunction{} -> error ("impossible: trying to substitute ξ in " <> printTree obj)
     obj@ConstString{} -> obj
+    obj@ConstStringRaw{} -> errorExpectedDesugaredObject obj
     obj@ConstInt{} -> obj
     obj@ConstIntRaw{} -> errorExpectedDesugaredObject obj
     obj@ConstFloat{} -> obj
@@ -698,6 +704,7 @@ contextualize thisObj = go
     obj@MetaObject{} -> error ("impossible: trying to contextualize " <> printTree obj)
     obj@MetaFunction{} -> error ("impossible: trying to contextualize " <> printTree obj)
     obj@ConstString{} -> go (desugar obj)
+    obj@ConstStringRaw{} -> errorExpectedDesugaredObject obj
     obj@ConstInt{} -> go (desugar obj)
     obj@ConstIntRaw{} -> errorExpectedDesugaredObject obj
     obj@ConstFloat{} -> go (desugar obj)

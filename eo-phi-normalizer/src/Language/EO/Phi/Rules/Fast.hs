@@ -213,6 +213,7 @@ fastYegorInsideOut ctx = \case
   MetaTailContext{} -> error "impossible MetaTailContext!"
   MetaFunction{} -> error "impossible MetaFunction!"
   obj@ConstString{} -> obj -- fastYegorInsideOut ctx (desugar obj)
+  obj@ConstStringRaw{} -> errorExpectedDesugaredObject obj -- fastYegorInsideOut ctx (desugar obj)
   obj@ConstInt{} -> obj -- fastYegorInsideOut ctx (desugar obj)
   obj@ConstIntRaw{} -> errorExpectedDesugaredObject obj -- fastYegorInsideOut ctx (desugar obj)
   obj@ConstFloat{} -> obj -- fastYegorInsideOut ctx (desugar obj)

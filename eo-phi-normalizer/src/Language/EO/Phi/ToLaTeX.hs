@@ -91,6 +91,7 @@ instance ToLatex Object where
   toLatex (MetaSubstThis obj1 obj2) = LaTeX "\\mathbb{S}(" <> toLatex obj1 <> ", " <> toLatex obj2 <> ")"
   toLatex (MetaContextualize obj1 obj2) = LaTeX "\\lceil" <> toLatex obj1 <> ", " <> toLatex obj2 <> "\\rceil"
   toLatex (ConstString string) = "|" <> LaTeX (show string) <> "|"
+  toLatex obj@(ConstStringRaw{}) = errorExpectedDesugaredObject obj
   toLatex (ConstInt n) = LaTeX (show n)
   toLatex obj@(ConstIntRaw{}) = errorExpectedDesugaredObject obj
   toLatex (ConstFloat x) = LaTeX (show x)

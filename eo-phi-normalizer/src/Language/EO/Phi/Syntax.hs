@@ -122,6 +122,7 @@ instance DesugarableInitially Object where
   desugarInitially :: Object -> Object
   desugarInitially = \case
     obj@(ConstString{}) -> obj
+    ConstStringRaw (StringRaw s) -> ConstString (init (tail s))
     obj@(ConstInt{}) -> obj
     ConstIntRaw (IntegerSigned x) -> ConstInt (read x)
     obj@(ConstFloat{}) -> obj
@@ -181,6 +182,7 @@ instance SugarableFinally Object where
   sugarFinally = \case
     "Φ.org.eolang" -> GlobalObjectPhiOrg
     obj@ConstString{} -> obj
+    obj@ConstStringRaw{} -> errorExpectedDesugaredObject obj
     obj@ConstInt{} -> obj
     obj@ConstIntRaw{} -> errorExpectedDesugaredObject obj
     obj@ConstFloat{} -> obj
@@ -231,6 +233,7 @@ instance SugarableFinally MetaId
 desugar :: Object -> Object
 desugar = \case
   ConstString string -> wrapBytesInString (stringToBytes string)
+  obj@ConstStringRaw{} -> errorExpectedDesugaredObject obj
   ConstInt n -> wrapBytesInInt (intToBytes (fromInteger n))
   obj@ConstIntRaw{} -> errorExpectedDesugaredObject obj
   ConstFloat x -> wrapBytesInFloat (floatToBytes x)

@@ -67,7 +67,7 @@ data Object
     | GlobalObjectPhiOrg
     | ThisObject
     | Termination
-    | ConstString String
+    | ConstStringRaw StringRaw
     | ConstIntRaw IntegerSigned
     | ConstFloatRaw DoubleSigned
     | MetaSubstThis Object Object
@@ -77,6 +77,7 @@ data Object
     | MetaFunction MetaFunctionName Object
     | ConstFloat Double
     | ConstInt Integer
+    | ConstString String
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data Binding
@@ -147,5 +148,8 @@ newtype IntegerSigned = IntegerSigned String
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic, Data.String.IsString)
 
 newtype DoubleSigned = DoubleSigned String
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic, Data.String.IsString)
+
+newtype StringRaw = StringRaw String
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic, Data.String.IsString)
 

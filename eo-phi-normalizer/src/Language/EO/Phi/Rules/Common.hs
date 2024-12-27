@@ -127,6 +127,7 @@ withSubObject f ctx root =
     MetaSubstThis _ _ -> []
     MetaContextualize _ _ -> []
     ConstString{} -> []
+    obj@ConstStringRaw{} -> errorExpectedDesugaredObject obj
     ConstInt{} -> []
     obj@ConstIntRaw{} -> errorExpectedDesugaredObject obj
     ConstFloat{} -> []
@@ -206,6 +207,7 @@ objectSize = \case
   obj@MetaContextualize{} -> error ("impossible: expected a desugared object, but got: " <> printTree obj)
   obj@MetaTailContext{} -> error ("impossible: expected a desugared object, but got: " <> printTree obj)
   obj@ConstString{} -> objectSize (desugar obj)
+  obj@ConstStringRaw{} -> errorExpectedDesugaredObject obj
   obj@ConstInt{} -> objectSize (desugar obj)
   obj@ConstIntRaw{} -> errorExpectedDesugaredObject obj
   obj@ConstFloat{} -> objectSize (desugar obj)

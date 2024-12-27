@@ -112,6 +112,9 @@ instance Arbitrary Binding where
   shrink (AlphaBinding attr obj) = AlphaBinding attr <$> shrink obj
   shrink _ = [] -- do not shrink deltas and lambdas
 
+instance Arbitrary Phi.StringRaw where
+  arbitrary = Phi.StringRaw <$> arbitraryNonEmptyString
+
 -- | Split an integer into a list of positive integers,
 -- whose sum is less than or equal the initial one.
 --

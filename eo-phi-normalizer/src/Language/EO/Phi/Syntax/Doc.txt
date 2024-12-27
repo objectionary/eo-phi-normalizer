@@ -38,6 +38,7 @@ except ``"`` unless preceded by ``\``.
 
 
 
+
 Bytes literals are recognized by the regular expression
 `````{"--"} | ["0123456789ABCDEF"] ["0123456789ABCDEF"] '-' | ["0123456789ABCDEF"] ["0123456789ABCDEF"] ('-' ["0123456789ABCDEF"] ["0123456789ABCDEF"])+`````
 
@@ -82,6 +83,9 @@ IntegerSigned literals are recognized by the regular expression
 DoubleSigned literals are recognized by the regular expression
 `````'-'? digit+ '.' digit+ ('e' '-'? digit+)?`````
 
+StringRaw literals are recognized by the regular expression
+`````'"' (char - [""\"] | '\' [""\fnrtu"])* '"'`````
+
 
 ===Reserved words and symbols===
 The set of reserved words is the set of terminals appearing in the grammar. Those reserved words that consist of non-letter characters are called symbols, and they are treated in a different way from those that are similar to identifiers. The lexer follows rules familiar from languages like Haskell, C, and Java, including longest match and spacing conventions.
@@ -119,7 +123,7 @@ All other symbols are terminals.
   |  |  **|**  | ``Φ̇``
   |  |  **|**  | ``ξ``
   |  |  **|**  | ``⊥``
-  |  |  **|**  | //String//
+  |  |  **|**  | //StringRaw//
   |  |  **|**  | //IntegerSigned//
   |  |  **|**  | //DoubleSigned//
   |  |  **|**  | //Object// ``[`` ``ξ`` ``↦`` //Object// ``]``

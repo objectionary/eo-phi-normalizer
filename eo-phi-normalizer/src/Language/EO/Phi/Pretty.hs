@@ -68,6 +68,9 @@ instance Pretty Abs.IntegerSigned where
 instance Pretty Abs.DoubleSigned where
   pretty (Abs.DoubleSigned i) = pretty i
 
+instance Pretty Abs.StringRaw where
+  pretty (Abs.StringRaw i) = pretty i
+
 instance Pretty Abs.Program where
   pretty = \case
     Abs.Program bindings ->
@@ -100,7 +103,8 @@ instance Pretty Abs.Object where
     Abs.GlobalObjectPhiOrg -> pretty "Φ̇"
     Abs.ThisObject -> pretty "ξ"
     Abs.Termination -> pretty "⊥"
-    Abs.ConstString str -> pretty (show str)
+    Abs.ConstStringRaw str -> pretty str
+    Abs.ConstString str -> pretty str
     Abs.ConstIntRaw integersigned -> pretty integersigned
     Abs.ConstFloatRaw doublesigned -> pretty doublesigned
     Abs.MetaSubstThis object1 object2 -> pretty object1 <+> lbracket <+> pretty "ξ ↦" <+> pretty object2 <+> rbracket
@@ -133,6 +137,11 @@ instance Pretty Abs.Attribute where
     Abs.Alpha alphaindex -> pretty alphaindex
     Abs.MetaAttr labelmetaid -> pretty labelmetaid
     Abs.AttrSugar labelid labelids -> pretty labelid <> lparen <> pretty labelids <> rparen
+
+-- instance {-# OVERLAPPING #-} Pretty AttributeSugar where
+--   pretty = \case
+--     (Abs.AttrSugar labelid labelids) -> pretty labelid <> lparen <> pretty labelids <> rparen
+--     (Abs.AttrNormal labelid) -> pretty labelid
 
 instance {-# OVERLAPPING #-} Pretty [Abs.LabelId] where
   pretty = hsep . punctuate comma . fmap pretty

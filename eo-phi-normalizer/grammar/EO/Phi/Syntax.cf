@@ -41,6 +41,7 @@ token BytesMetaId {"!y"} (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
 token MetaFunctionName {"@"} (char - [" \r\n\t,.|':;!-?][}{)(⟧⟦"])* ;
 token IntegerSigned ('-'? digit+) ;
 token DoubleSigned ('-'? digit+ '.' digit+ ('e' '-'? digit+)?) ;
+token StringRaw '"' ((char - ["\"\\"]) | ('\\' ["\"\\tnrfu"]))* '"';
 
 Program. Program ::= "{" "⟦" [Binding] "⟧" "}" ;
 
@@ -57,7 +58,7 @@ GlobalObject.       Object ::= "Φ";
 GlobalObjectPhiOrg. Object ::= "Φ̇";
 ThisObject.         Object ::= "ξ";
 Termination.        Object ::= "⊥" ;
-ConstString.        Object ::= String ;
+ConstStringRaw.     Object ::= StringRaw ;
 ConstIntRaw.        Object ::= IntegerSigned ;
 ConstFloatRaw.      Object ::= DoubleSigned ;
 MetaSubstThis.      Object ::= Object "[" "ξ" "↦" Object "]" ;
@@ -66,8 +67,9 @@ MetaObject.         Object ::= ObjectMetaId ;
 MetaTailContext.    Object ::= Object "*" TailMetaId ;
 MetaFunction.       Object ::= MetaFunctionName "(" Object ")" ;
 
-internal ConstFloat. Object ::= Double;
-internal ConstInt.   Object ::= Integer;
+internal ConstFloat.    Object ::= Double;
+internal ConstInt.      Object ::= Integer;
+internal ConstString.   Object ::= String;
 
 AlphaBinding.       Binding ::= Attribute "↦" Object ;
 AlphaBindingSugar.  Binding ::= Object ;

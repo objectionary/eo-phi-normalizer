@@ -93,6 +93,10 @@ $s [$u # [\t \n \r \  \! \' \( \) \, \. \: \; \? \[ \] \{ \| \} \⟦ \⟧]] *
 \- ? $d + \. $d + (e \- ? $d +)?
     { tok (eitherResIdent T_DoubleSigned) }
 
+-- token StringRaw
+\" ([$u # [\" \\]] | \\ [\" \\ f n r t u]) * \"
+    { tok (eitherResIdent T_StringRaw) }
+
 -- Keywords and Ident
 $l $i*
     { tok (eitherResIdent TV) }
@@ -134,6 +138,7 @@ data Tok
   | T_MetaFunctionName !String
   | T_IntegerSigned !String
   | T_DoubleSigned !String
+  | T_StringRaw !String
   deriving (Eq, Show, Ord)
 
 -- | Smart constructor for 'Tok' for the sake of backwards compatibility.
@@ -208,6 +213,7 @@ tokenText t = case t of
   PT _ (T_MetaFunctionName s) -> s
   PT _ (T_IntegerSigned s) -> s
   PT _ (T_DoubleSigned s) -> s
+  PT _ (T_StringRaw s) -> s
 
 -- | Convert a token to a string.
 prToken :: Token -> String

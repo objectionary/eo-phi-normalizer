@@ -569,6 +569,7 @@ wrapRawBytesIn = \case
   obj@MetaTailContext{} -> obj
   obj@MetaFunction{} -> obj
   obj@ConstString{} -> wrapRawBytesIn (desugar obj)
+  obj@ConstStringRaw{} -> errorExpectedDesugaredObject obj
   obj@ConstInt{} -> wrapRawBytesIn (desugar obj)
   obj@ConstIntRaw{} -> errorExpectedDesugaredObject obj
   obj@ConstFloat{} -> wrapRawBytesIn (desugar obj)
