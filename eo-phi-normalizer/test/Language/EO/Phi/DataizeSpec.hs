@@ -30,7 +30,7 @@ module Language.EO.Phi.DataizeSpec where
 import Control.Monad (forM_)
 import Test.Hspec
 
-import Language.EO.Phi (printTree)
+import Language.EO.Phi (printTree, printTreeDontSugar)
 import Language.EO.Phi qualified as Phi
 import Language.EO.Phi.Dataize (dataizeRecursively)
 import Language.EO.Phi.Dataize.Context (defaultContext)
@@ -62,23 +62,29 @@ getProgram inputFile = do
 spec :: Spec
 spec = do
   DataizeTestGroup{..} <- runIO (dataizationTests "test/eo/phi/dataization.yaml")
-  ruleset <- runIO $ parseRuleSetFromFile "test/eo/phi/rules/new.yaml"
-  let rules = map convertRuleNamed ruleset.rules
-  describe title $
-    forM_ tests $
-      \test -> do
-        deps <- runIO $ mapM getProgram test.dependencies
-        let mergedProgs = case deepMergePrograms (test.input : deps) of
-              Left err -> error ("Error merging programs: " ++ err)
-              Right prog -> prog
-        let ctx = defaultContext rules (progToObj mergedProgs)
-        let inputObj = progToObj test.input
-        let expectedResult = case test.output of
-              Object obj -> Left obj
-              Bytes bytes -> Right bytes
-        it test.name $ do
-          let dataizedResult = dataizeRecursively ctx inputObj
-          ObjectOrBytes dataizedResult `shouldBe` ObjectOrBytes expectedResult
+  forM_
+    [ ("Old Yegor's rules", "test/eo/phi/rules/yegor.yaml")
+    -- TODO #617:10m Enable
+    -- , ("New Yegor's rules", "test/eo/phi/rules/new.yaml")
+    ]
+    $ \(title, rulesFile) -> do
+      ruleset <- runIO $ parseRuleSetFromFile rulesFile
+      let rules = map convertRuleNamed ruleset.rules
+      describe title $
+        forM_ tests $
+          \test -> do
+            deps <- runIO $ mapM getProgram test.dependencies
+            let mergedProgs = case deepMergePrograms (test.input : deps) of
+                  Left err -> error ("Error merging programs: " ++ err)
+                  Right prog -> prog
+            let ctx = defaultContext rules (progToObj mergedProgs)
+            let inputObj = progToObj test.input
+            let expectedResult = case test.output of
+                  Object obj -> Left obj
+                  Bytes bytes -> Right bytes
+            it test.name $ do
+              let dataizedResult = dataizeRecursively ctx inputObj
+              ObjectOrBytes dataizedResult `shouldBe` ObjectOrBytes expectedResult
 
 progToObj :: Phi.Program -> Phi.Object
 progToObj (Phi.Program bindings) = Phi.Formation bindings

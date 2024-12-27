@@ -37,7 +37,7 @@ yegorRuleSet :: Yaml.RuleSet
 {-# NOINLINE yegorRuleSet #-}
 yegorRuleSet =
   unsafePerformIO $
-    Yaml.parseRuleSetFromFile "eo-phi-normalizer/test/eo/phi/rules/new.yaml"
+    Yaml.parseRuleSetFromFile "eo-phi-normalizer/test/eo/phi/rules/yegor.yaml"
 
 yegorRules :: [NamedRule]
 yegorRules = map Yaml.convertRuleNamed (Yaml.rules yegorRuleSet)

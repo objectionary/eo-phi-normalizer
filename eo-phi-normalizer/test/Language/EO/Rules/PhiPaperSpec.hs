@@ -337,12 +337,13 @@ spec :: Spec
 spec =
   forM_
     [ ("New Yegor's rules", "test/eo/phi/rules/new.yaml")
+    , ("Old Yegor's rules", "test/eo/phi/rules/yegor.yaml")
     ]
-    $ \(name, rulesFile) -> do
+    $ \(title, rulesFile) -> do
       ruleset <- runIO $ parseRuleSetFromFile rulesFile
       let rulesFromYaml = map convertRuleNamed (rules ruleset)
       inputs <- runIO $ parseTests "test/eo/phi/confluence.yaml"
-      describe name $ do
+      describe title $ do
         it "Are confluent (via QuickCheck)" (confluent rulesFromYaml)
         describe
           "Are confluent (regression tests)"

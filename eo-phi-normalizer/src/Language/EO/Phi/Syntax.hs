@@ -35,6 +35,7 @@ module Language.EO.Phi.Syntax (
   module Language.EO.Phi.Syntax.Abs,
   desugar,
   printTree,
+  printTreeDontSugar,
 
   -- * Conversion to 'Bytes'
   intToBytes,
@@ -662,11 +663,15 @@ unsafeParseWith parser input =
     Left parseError -> error parseError
     Right object -> object
 
--- | The top-level printing method.
-printTree :: (Pretty a, SugarableFinally a) => a -> String
-printTree =
+printTreeDontSugar :: (Pretty a) => a -> String
+printTreeDontSugar =
   T.unpack
     . renderStrict
     . layoutPretty defaultLayoutOptions{layoutPageWidth = Unbounded}
     . pretty
+
+-- | The top-level printing method.
+printTree :: (Pretty a, SugarableFinally a) => a -> String
+printTree =
+  printTreeDontSugar
     . sugarFinally
