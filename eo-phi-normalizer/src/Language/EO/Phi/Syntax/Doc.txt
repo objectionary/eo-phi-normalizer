@@ -143,6 +143,7 @@ All other symbols are terminals.
   |  |  **|**  | //Binding//
   |  |  **|**  | //Binding// ``,`` //[Binding]//
   | //Attribute// | -> | ``φ``
+  |  |  **|**  | ``~`` ``φ`` ``(`` //[LabelId]// ``)``
   |  |  **|**  | ``ρ``
   |  |  **|**  | //LabelId//
   |  |  **|**  | //AlphaIndex//

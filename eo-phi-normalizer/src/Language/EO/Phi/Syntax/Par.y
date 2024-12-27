@@ -187,6 +187,7 @@ ListBinding
 Attribute :: { Language.EO.Phi.Syntax.Abs.Attribute }
 Attribute
   : 'φ' { Language.EO.Phi.Syntax.Abs.Phi }
+  | '~' 'φ' '(' ListLabelId ')' { Language.EO.Phi.Syntax.Abs.PhiSugar $4 }
   | 'ρ' { Language.EO.Phi.Syntax.Abs.Rho }
   | LabelId { Language.EO.Phi.Syntax.Abs.Label $1 }
   | AlphaIndex { Language.EO.Phi.Syntax.Abs.Alpha $1 }

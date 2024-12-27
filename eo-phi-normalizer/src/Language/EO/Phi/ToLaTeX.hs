@@ -24,6 +24,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -55,14 +56,16 @@ instance ToLatex Program where
     "\\Big\\{ " <> toLatex (Formation bindings) <> " \\Big\\}"
 
 instance ToLatex Attribute where
-  toLatex Phi = "@"
-  toLatex Rho = "^"
-  toLatex (Alpha (AlphaIndex a)) = LaTeX ("\\alpha_" ++ tail a)
-  toLatex (Label (LabelId l)) = LaTeX l
-  toLatex (MetaAttr (LabelMetaId l)) = LaTeX l
-  toLatex (AttrSugar (LabelId l) ls) = LaTeX [fmt|{l}({ls'})|]
+  toLatex = \case
+    Phi -> "@"
+    Rho -> "^"
+    (Alpha (AlphaIndex a)) -> LaTeX ("\\alpha_" ++ tail a)
+    (Label (LabelId l)) -> LaTeX l
+    (MetaAttr (LabelMetaId l)) -> LaTeX l
+    (AttrSugar (LabelId l) ls) -> LaTeX [fmt|{l}({mkLabels ls})|]
+    (PhiSugar ls) -> LaTeX [fmt|@({mkLabels ls})|]
    where
-    ls' = intercalate ", " ((\(LabelId l') -> l') <$> ls)
+    mkLabels ls = intercalate ", " ((\(LabelId l') -> l') <$> ls)
 
 instance ToLatex Binding where
   toLatex (AlphaBinding attr obj) = toLatex attr <> " -> " <> toLatex obj

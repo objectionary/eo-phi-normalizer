@@ -80,6 +80,7 @@ module Language.EO.Phi.Syntax (
   parseWith,
   errorExpectedDesugaredObject,
   errorExpectedDesugaredBinding,
+  errorExpectedDesugaredAttribute,
 ) where
 
 import Data.ByteString (ByteString)
@@ -108,11 +109,17 @@ import Text.Printf (printf)
 -- >>> :set -XOverloadedStrings
 -- >>> :set -XOverloadedLists
 
+errorExpectedButGot :: (Pretty a, SugarableFinally a) => String -> a -> b
+errorExpectedButGot type' x = error ([fmt|impossible: expected desugared {type'}, but got:\n|] <> printTree x)
+
 errorExpectedDesugaredObject :: Object -> a
-errorExpectedDesugaredObject x = error ("impossible: expected desugared Object, but got: " <> printTree x)
+errorExpectedDesugaredObject = errorExpectedButGot "Object"
 
 errorExpectedDesugaredBinding :: Binding -> a
-errorExpectedDesugaredBinding x = error ("impossible: expected desugared Binding, but got: " <> printTree x)
+errorExpectedDesugaredBinding = errorExpectedButGot "Binding"
+
+errorExpectedDesugaredAttribute :: Attribute -> a
+errorExpectedDesugaredAttribute = errorExpectedButGot "Attribute"
 
 class DesugarableInitially a where
   desugarInitially :: a -> a
@@ -149,6 +156,9 @@ instance DesugarableInitially [Binding] where
       AlphaBinding (AttrSugar l ls) (Formation bindings) ->
         let bindingsDesugared = desugarInitially bindings
          in AlphaBinding (Label l) (Formation ((EmptyBinding . Label <$> ls) <> bindingsDesugared))
+      AlphaBinding (PhiSugar ls) (Formation bindings) ->
+        let bindingsDesugared = desugarInitially bindings
+         in AlphaBinding Phi (Formation ((EmptyBinding . Label <$> ls) <> bindingsDesugared))
       AlphaBinding a obj -> AlphaBinding a (desugarInitially obj)
       AlphaBindingSugar obj -> AlphaBinding (Alpha (AlphaIndex [fmt|α{idx}|])) (desugarInitially obj)
       binding -> binding
@@ -211,6 +221,7 @@ instance SugarableFinally [Binding] where
     go idx = \case
       obj@AlphaBindingSugar{} -> errorExpectedDesugaredBinding obj
       obj@(AlphaBinding (AttrSugar _ _) _) -> errorExpectedDesugaredBinding obj
+      obj@(AlphaBinding (PhiSugar _) _) -> errorExpectedDesugaredBinding obj
       AlphaBinding (Alpha (AlphaIndex ('α' : idx'))) _ -> idx == read idx'
       _ -> False
 
@@ -256,6 +267,9 @@ desugarBinding = \case
   AlphaBinding (AttrSugar l ls) (Formation bindings) ->
     let bindingsDesugared = desugarBinding <$> bindings
      in AlphaBinding (Label l) (Formation ((EmptyBinding . Label <$> ls) <> bindingsDesugared))
+  AlphaBinding (PhiSugar ls) (Formation bindings) ->
+    let bindingsDesugared = desugarBinding <$> bindings
+     in AlphaBinding Phi (Formation ((EmptyBinding . Label <$> ls) <> bindingsDesugared))
   AlphaBinding a obj -> AlphaBinding a (desugar obj)
   obj@(AlphaBindingSugar{}) -> errorExpectedDesugaredBinding obj
   binding -> binding
@@ -633,14 +647,6 @@ bytesToFloat (Bytes bytes) =
  where
   dashToSpace '-' = ' '
   dashToSpace c = c
-
--- >>> "{⟦ org ↦ ⟦ eolang ↦ ⟦ number(as-bytes) ↦ ⟦ φ ↦ ξ.as-bytes, neg ↦ ξ.times(-1), ⟧, λ ⤍ Package ⟧, λ ⤍ Package ⟧ ⟧}" :: Program
--- syntax error at line 1, column 76 due to lexer error
--- on the input:
--- {⟦ org ↦ ⟦ eolang ↦ ⟦ ~number(as-bytes) ↦ ⟦ φ ↦ ξ.as-bytes, neg ↦ ξ.times(-1), ⟧, λ ⤍ Package ⟧, λ ⤍ Package ⟧ ⟧}
-
--- >>> "-1.0" :: Object
--- ConstFloatRaw (DoubleSigned "-1.0")
 
 instance IsString Program where fromString = unsafeParseWith pProgram
 instance IsString Object where fromString = unsafeParseWith pObject

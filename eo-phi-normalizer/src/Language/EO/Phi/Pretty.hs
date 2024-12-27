@@ -137,11 +137,7 @@ instance Pretty Abs.Attribute where
     Abs.Alpha alphaindex -> pretty alphaindex
     Abs.MetaAttr labelmetaid -> pretty labelmetaid
     Abs.AttrSugar labelid labelids -> pretty labelid <> lparen <> pretty labelids <> rparen
-
--- instance {-# OVERLAPPING #-} Pretty AttributeSugar where
---   pretty = \case
---     (Abs.AttrSugar labelid labelids) -> pretty labelid <> lparen <> pretty labelids <> rparen
---     (Abs.AttrNormal labelid) -> pretty labelid
+    Abs.PhiSugar labelids -> pretty Abs.Phi <> lparen <> pretty labelids <> rparen
 
 instance {-# OVERLAPPING #-} Pretty [Abs.LabelId] where
   pretty = hsep . punctuate comma . fmap pretty

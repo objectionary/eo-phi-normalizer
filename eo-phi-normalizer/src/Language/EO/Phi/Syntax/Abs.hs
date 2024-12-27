@@ -93,6 +93,7 @@ data Binding
 
 data Attribute
     = Phi
+    | PhiSugar [LabelId]
     | Rho
     | Label LabelId
     | Alpha AlphaIndex

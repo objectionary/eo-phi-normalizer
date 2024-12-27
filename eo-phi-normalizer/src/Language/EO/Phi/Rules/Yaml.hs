@@ -314,7 +314,8 @@ attrMetaIds Rho = mempty
 attrMetaIds (Label _) = mempty
 attrMetaIds (Alpha _) = mempty
 attrMetaIds (MetaAttr x) = Set.singleton (MetaIdLabel x)
-attrMetaIds a@(AttrSugar{}) = error ("impossible: expected desugared attribute, but got: " <> printTree a)
+attrMetaIds a@(AttrSugar{}) = errorExpectedDesugaredAttribute a
+attrMetaIds a@(PhiSugar{}) = errorExpectedDesugaredAttribute a
 
 objectHasMetavars :: Object -> Bool
 objectHasMetavars (Formation bindings) = any bindingHasMetavars bindings
@@ -352,7 +353,8 @@ attrHasMetavars Rho = False
 attrHasMetavars (Label _) = False
 attrHasMetavars (Alpha _) = False
 attrHasMetavars (MetaAttr _) = True
-attrHasMetavars b@AttrSugar{} = error ("impossible: expected desugared attribute, but got: " <> printTree b)
+attrHasMetavars a@AttrSugar{} = errorExpectedDesugaredAttribute a
+attrHasMetavars a@PhiSugar{} = errorExpectedDesugaredAttribute a
 
 -- | Given a condition, and a substition from object matching
 --   tells whether the condition matches the object
@@ -668,13 +670,6 @@ substThis thisObj = go
     obj@ConstIntRaw{} -> errorExpectedDesugaredObject obj
     obj@ConstFloat{} -> obj
     obj@ConstFloatRaw{} -> errorExpectedDesugaredObject obj
-
--- {⟦ x ↦ ⟦ b ↦ ⟦ Δ ⤍ 01- ⟧, φ ↦ ⟦ b ↦ ⟦ Δ ⤍ 02- ⟧, c ↦ ⟦ a ↦ ξ.ρ.ρ.b ⟧.a ⟧.c ⟧.φ, λ ⤍ Package ⟧}
-
--- {⟦ λ ⤍ Package, x ↦ ⟦ b ↦ ⟦⟧ ⟧ ⟧}
-
--- >>> "{⟦ λ ⤍ Package, x(t) ↦ ⟦ b ↦ ⟦⟧ ⟧ ⟧}" :: Program
--- Program [LambdaBinding (Function "Package"),AlphaBinding (AttrSugar (LabelId "x") [LabelId "t"]) (Formation [AlphaBinding (Label (LabelId "b")) (Formation [])])]
 
 substThisBinding :: Object -> Binding -> Binding
 substThisBinding obj = \case
