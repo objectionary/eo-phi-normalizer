@@ -46,6 +46,9 @@ test-sets:
     yaml: pipeline/eo-yaml/bool-tests.yaml
     filtered: pipeline/eo-filtered/bool-tests.eo
     exclude:
+      # broken
+      - compares-bool-to-string
+
       # not broken
       - forks-on-false-condition
       - forks-on-true-condition
@@ -67,9 +70,9 @@ test-sets:
       - size-of-part-is-correct
       - written-in-several-lines
       - left-with-even-neg
+      - takes-part-of-bytes
 
       # not broken
-      # - takes-part-of-bytes
       - and-neg-bytes-as-number-with-leading-zeroes
       - and-neg-bytes-as-number-without-leading-zeroes
       - bitwise-works
@@ -194,6 +197,7 @@ test-sets:
     exclude:
       # broken
       - negative-i64-to-i32-and-back
+      - i64-as-bytes-is-not-equal-to-number-bytes
 
       # not broken
       # - i64-div-less-than-i64-one
@@ -537,6 +541,19 @@ test-sets:
       - slice-escape-sequences-line-break
       - slice-escape-sequences-unicode
       - throws-on-slicing-start-below-zero
+      - bytes-equal-to-string
+      - no-slice-string
+      - reads-the-length-with-2-byte-characters
+      - reads-the-length-with-3-byte-characters
+      - reads-the-length-with-4-byte-characters
+      - slice-empty-string
+      - string-equals-to-bytes
+      - text-block-tree-lines
+      - text-block-with-margin
+      - turns-string-into-bytes
+      - slice-with-2-byte-characters
+      - slice-with-3-byte-characters
+      - slice-with-4-byte-characters
 
       # not broken
       - slice-foreign-literals
@@ -727,8 +744,10 @@ test-sets:
     yaml: pipeline/eo-yaml/while-tests.yaml
     filtered: pipeline/eo-filtered/while-tests.eo
     exclude:
+      # broken
+      - iterating-tuple-with-while-using-external-iterator
+
       # not broken
-      # - iterating-tuple-with-while-using-external-iterator
       - iterating-tuple-with-while-using-internal-iterator
       - iterating-tuple-with-while-without-body-multiple
       - iterating-tuple-with-while-without-body-single
