@@ -33,48 +33,54 @@ The full command is hidden to not show unnecessary details in the documentation.
 
 ```console
 User-defined rules unit tests
-  Rule set based on Yegor's draft
-    xi
-      Does not replace ξ inside a subformation [✔]
+  Rule set following Nov 2024 revision
     DOT
-      Should match [✔]
-      Shouldn't match [✔]
-      Shouldn't match [✔]
-      Should apply in subformations [✔]
-      Should respect surrounding context [✔]
-    DOTrho
-      Should match [✔]
-    phi
-      Attribute does not exist [✔]
-      Attribute exists [✔]
-      Both attributes do not exist [✔]
+      Contextualization changes ξ [✔]
+      Contextualization applies recursively [✔]
+      Phi Paper - Example E2 [✔]
+      Phi Paper - Example E3 - first R_dot [✔]
+      Phi Paper - Example E3 - second R_dot [✔]
+      Phi Paper - Example E4 - first R_dot [✔]
+      Phi Paper - Example E4 - second R_dot [✔]
+      Phi Paper - Example E5 - first R_dot [✔]
+      Phi Paper - Example E5 - second R_dot [✔]
     COPY
       Should match [✔]
-      Should not match in subformations [✔]
-    COPY1
-      Should match first void attribute [✔]
-    COPY2
-      Should match positional arguments [✔]
-    EMPTY
       Should match [✔]
-      Should not match [✔]
-      Should match in subformation [✔]
-      Should work with empty formation [✔]
+      Phi Paper - Example E1 [✔]
+      Phi Paper - Example E4 - dispatch on y [✔]
+      Phi Paper - Example E4 - remove dispatch on y [✔]
+    RHO
+      Phi Paper - Example E5 - first R_rho [✔]
+    phi
+      Phi Paper - Example E5 - R_phi [✔]
+    STAY
+      Phi Paper - Example E3 - first R_stay [✔]
+      Should match [✔]
     OVER
       Language.EO.Test.YamlSpec[46:13] [✔]
     STOP
       Accessing nonexistent attribute [✔]
+    NULL
+      Phi Paper Example E2 second dispatch [✔]
+    DUP
+      Should match [✔]
+      Should not match [✔]
+      Should match in subformation [✔]
+      Should work with empty formation [✔]
+      Phi Paper - Example E5 - first R_rho [✔]
     MISS
       Language.EO.Test.YamlSpec[46:13] [✔]
       Should not match if attr is present [✔]
-      Should not match if phi is present [✔]
+      Should not match for rho [✔]
       Should apply in subformations [✔]
     DD
       Dispatch on bottom is bottom [✔]
       Dispatch on anything else is not touched [✔]
     DC
       Should apply in subformations [✔]
+      Phi Paper Example E2 last application [✔]
 
 Finished in 0.0062 seconds
-27 examples, 0 failures
+34 examples, 0 failures
 ```

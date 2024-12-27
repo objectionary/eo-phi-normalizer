@@ -63,17 +63,16 @@ eo-phi-normalizer rewrite --rules ./eo-phi-normalizer/test/eo/phi/rules/new.yaml
 ```
 
 ```console
-Rule set based on Yegor's draft
+Rule set following Nov 2024 revision
 Input:
 {
   ⟦
-    c ↦ Φ.org.eolang.float (
+    c ↦ Φ̇.float(
       as-bytes ↦ 25.0
     ),
-    result ↦ ξ.c.times (
+    result ↦ ξ.c.times(
       x ↦ 1.8
-    )
-    .plus (
+    ).plus(
       x ↦ 32.0
     ),
     λ ⤍ Package
@@ -83,13 +82,12 @@ Input:
 Result 1 out of 1:
 {
   ⟦
-    c ↦ Φ.org.eolang.float (
+    c ↦ Φ̇.float(
       as-bytes ↦ 25.0
     ),
-    result ↦ ξ.c.times (
+    result ↦ ξ.c.times(
       x ↦ 1.8
-    )
-    .plus (
+    ).plus(
       x ↦ 32.0
     ),
     λ ⤍ Package
@@ -107,17 +105,16 @@ eo-phi-normalizer rewrite --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/
 ```
 
 ```console
-Rule set based on Yegor's draft
+Rule set following Nov 2024 revision
 Input:
 {
   ⟦
-    c ↦ Φ.org.eolang.float (
+    c ↦ Φ̇.float(
       as-bytes ↦ 25.0
     ),
-    result ↦ ξ.c.times (
+    result ↦ ξ.c.times(
       x ↦ 1.8
-    )
-    .plus (
+    ).plus(
       x ↦ 32.0
     ),
     λ ⤍ Package
@@ -127,13 +124,12 @@ Input:
 Result 1 out of 1:
 [ 1 / 1 ] NF: {
   ⟦
-    c ↦ Φ.org.eolang.float (
+    c ↦ Φ̇.float(
       as-bytes ↦ 25.0
     ),
-    result ↦ ξ.c.times (
+    result ↦ ξ.c.times(
       x ↦ 1.8
-    )
-    .plus (
+    ).plus(
       x ↦ 32.0
     ),
     λ ⤍ Package
@@ -151,37 +147,17 @@ eo-phi-normalizer rewrite --chain --tex bar.phi
 ```
 
 ```tex
-% Rule set following Nov 2024 revision
+% Rule set based on Yegor's draft
 
 \documentclass{article}
 \usepackage{eolang}
 \begin{document}
 
-
-This is the 1st possible chain of normalizing rewritings:
-
 \begin{phiquation*}
 [[ m -> [[ x -> [[ t -> [[ D> 42- ]] ]].t ]].x ]] \trans_{\rulename{DOT}}
-  \trans [[ m -> [[ x -> [[ D> 42- ]]( ^ -> [[ t -> [[ D> 42- ]] ]] ) ]].x ]] \trans_{\rulename{DOT}}
-  \trans [[ m -> [[ D> 42- ]]( ^ -> [[ t -> [[ D> 42- ]] ]] )( ^ -> [[ x -> [[ D> 42- ]]( ^ -> [[ t -> [[ D> 42- ]] ]] ) ]] ) ]] \trans_{\rulename{RHO}}
-  \trans [[ m -> [[ D> 42-, ^ -> [[ t -> [[ D> 42- ]] ]] ]](  )( ^ -> [[ x -> [[ D> 42- ]]( ^ -> [[ t -> [[ D> 42- ]] ]] ) ]] ) ]] \trans_{\rulename{DUP}}
-  \trans [[ m -> [[ D> 42-, ^ -> [[ t -> [[ D> 42- ]] ]] ]]( ^ -> [[ x -> [[ D> 42- ]]( ^ -> [[ t -> [[ D> 42- ]] ]] ) ]] ) ]] \trans_{\rulename{STAY}}
-  \trans [[ m -> [[ ^ -> [[ t -> [[ D> 42- ]] ]], D> 42- ]](  ) ]] \trans_{\rulename{DUP}}
-  \trans [[ m -> [[ ^ -> [[ t -> [[ D> 42- ]] ]], D> 42- ]] ]] \trans_{\rulename{NF}}
-  \trans [[ m -> [[ ^ -> [[ t -> [[ D> 42- ]] ]], D> 42- ]] ]].
-\end{phiquation*}
-
-This is the 2nd possible chain of normalizing rewritings:
-
-\begin{phiquation*}
-[[ m -> [[ x -> [[ t -> [[ D> 42- ]] ]].t ]].x ]] \trans_{\rulename{DOT}}
-  \trans [[ m -> [[ x -> [[ D> 42- ]]( ^ -> [[ t -> [[ D> 42- ]] ]] ) ]].x ]] \trans_{\rulename{RHO}}
-  \trans [[ m -> [[ x -> [[ D> 42-, ^ -> [[ t -> [[ D> 42- ]] ]] ]](  ) ]].x ]] \trans_{\rulename{DUP}}
   \trans [[ m -> [[ x -> [[ D> 42-, ^ -> [[ t -> [[ D> 42- ]] ]] ]] ]].x ]] \trans_{\rulename{DOT}}
-  \trans [[ m -> [[ D> 42-, ^ -> [[ t -> [[ D> 42- ]] ]] ]]( ^ -> [[ x -> [[ D> 42-, ^ -> [[ t -> [[ D> 42- ]] ]] ]] ]] ) ]] \trans_{\rulename{STAY}}
-  \trans [[ m -> [[ ^ -> [[ t -> [[ D> 42- ]] ]], D> 42- ]](  ) ]] \trans_{\rulename{DUP}}
-  \trans [[ m -> [[ ^ -> [[ t -> [[ D> 42- ]] ]], D> 42- ]] ]] \trans_{\rulename{NF}}
-  \trans [[ m -> [[ ^ -> [[ t -> [[ D> 42- ]] ]], D> 42- ]] ]].
+  \trans [[ m -> [[ D> 42-, ^ -> [[ t -> [[ D> 42- ]] ]] ]] ]] \trans_{\rulename{NF}}
+  \trans [[ m -> [[ D> 42-, ^ -> [[ t -> [[ D> 42- ]] ]] ]] ]].
 \end{phiquation*}
 
 \end{document}
@@ -195,12 +171,12 @@ eo-phi-normalizer rewrite --json --chain --rules ./eo-phi-normalizer/test/eo/phi
 
 ```json
 {
-  "input": "{\n  ⟦\n    c ↦ Φ.org.eolang.float (\n      as-bytes ↦ 25.0\n    ),\n    result ↦ ξ.c.times (\n      x ↦ 1.8\n    )\n    .plus (\n      x ↦ 32.0\n    ),\n    λ ⤍ Package\n  ⟧\n}",
+  "input": "{\n  ⟦\n    c ↦ Φ̇.float(\n      as-bytes ↦ 25.0\n    ),\n    result ↦ ξ.c.times(\n      x ↦ 1.8\n    ).plus(\n      x ↦ 32.0\n    ),\n    λ ⤍ Package\n  ⟧\n}",
   "output": [
     [
       [
         "NF",
-        "{\n  ⟦\n    c ↦ Φ.org.eolang.float (\n      as-bytes ↦ 25.0\n    ),\n    result ↦ ξ.c.times (\n      x ↦ 1.8\n    )\n    .plus (\n      x ↦ 32.0\n    ),\n    λ ⤍ Package\n  ⟧\n}"
+        "{\n  ⟦\n    c ↦ Φ̇.float(\n      as-bytes ↦ 25.0\n    ),\n    result ↦ ξ.c.times(\n      x ↦ 1.8\n    ).plus(\n      x ↦ 32.0\n    ),\n    λ ⤍ Package\n  ⟧\n}"
       ]
     ]
   ]
@@ -216,13 +192,12 @@ eo-phi-normalizer rewrite --single --rules ./eo-phi-normalizer/test/eo/phi/rules
 ```console
 {
   ⟦
-    c ↦ Φ.org.eolang.float (
+    c ↦ Φ̇.float(
       as-bytes ↦ 25.0
     ),
-    result ↦ ξ.c.times (
+    result ↦ ξ.c.times(
       x ↦ 1.8
-    )
-    .plus (
+    ).plus(
       x ↦ 32.0
     ),
     λ ⤍ Package
@@ -237,7 +212,7 @@ eo-phi-normalizer rewrite --single --single-line --rules ./eo-phi-normalizer/tes
 ```
 
 ```console
-{ ⟦ c ↦ Φ.org.eolang.float ( as-bytes ↦ 25.0 ), result ↦ ξ.c.times ( x ↦ 1.8 ) .plus ( x ↦ 32.0 ), λ ⤍ Package ⟧ }
+{ ⟦ c ↦ Φ̇.float( as-bytes ↦ 25.0 ), result ↦ ξ.c.times( x ↦ 1.8 ).plus( x ↦ 32.0 ), λ ⤍ Package ⟧ }
 ```
 
 ### `--single` `--json`
@@ -247,7 +222,7 @@ eo-phi-normalizer rewrite --single --json --rules ./eo-phi-normalizer/test/eo/ph
 ```
 
 ```console
-"{\n  ⟦\n    c ↦ Φ.org.eolang.float (\n      as-bytes ↦ 25.0\n    ),\n    result ↦ ξ.c.times (\n      x ↦ 1.8\n    )\n    .plus (\n      x ↦ 32.0\n    ),\n    λ ⤍ Package\n  ⟧\n}"
+"{\n  ⟦\n    c ↦ Φ̇.float(\n      as-bytes ↦ 25.0\n    ),\n    result ↦ ξ.c.times(\n      x ↦ 1.8\n    ).plus(\n      x ↦ 32.0\n    ),\n    λ ⤍ Package\n  ⟧\n}"
 ```
 
 ### `--tex`
@@ -257,14 +232,14 @@ eo-phi-normalizer rewrite --tex bar.phi
 ```
 
 ```tex
-% Rule set following Nov 2024 revision
+% Rule set based on Yegor's draft
 
 \documentclass{article}
 \usepackage{eolang}
 \begin{document}
 
 \begin{phiquation*}
-[[ m -> [[ ^ -> [[ t -> [[ D> 42- ]] ]], D> 42- ]] ]]
+[[ m -> [[ D> 42-, ^ -> [[ t -> [[ D> 42- ]] ]] ]] ]]
 \end{phiquation*}
 
 \end{document}
@@ -286,5 +261,5 @@ cat celsius.phi | eo-phi-normalizer rewrite --single --json --rules ./eo-phi-nor
 ```
 
 ```console
-"{\n  ⟦\n    c ↦ Φ.org.eolang.float (\n      as-bytes ↦ 25.0\n    ),\n    result ↦ ξ.c.times (\n      x ↦ 1.8\n    )\n    .plus (\n      x ↦ 32.0\n    ),\n    λ ⤍ Package\n  ⟧\n}"
+"{\n  ⟦\n    c ↦ Φ̇.float(\n      as-bytes ↦ 25.0\n    ),\n    result ↦ ξ.c.times(\n      x ↦ 1.8\n    ).plus(\n      x ↦ 32.0\n    ),\n    λ ⤍ Package\n  ⟧\n}"
 ```
