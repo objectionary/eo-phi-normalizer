@@ -1,0 +1,18 @@
+{⟦
+  org() ↦ ⟦
+    eolang() ↦ ⟦
+      dataized(target) ↦ ⟦
+        φ ↦ Φ̇.try(
+          ξ.target,
+          ⟦
+            φ ↦ Φ̇.error(ξ.ex),
+            ex ↦ ∅
+          ⟧,
+          Φ̇.bytes(⟦ Δ ⤍ 01- ⟧)
+        )
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

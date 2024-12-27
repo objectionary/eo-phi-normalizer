@@ -48,10 +48,11 @@ import GHC.Generics (Generic)
 import Language.EO.Phi.Dataize.Context (defaultContext)
 import Language.EO.Phi.Rules.Common (ApplicationLimits (..), NamedRule, applyOneRule, defaultApplicationLimits, equalObject, objectSize)
 import Language.EO.Phi.Rules.Yaml (convertRuleNamed, parseRuleSetFromFile, rules)
-import Language.EO.Phi.Syntax (intToBytes, printTree)
+import Language.EO.Phi.Syntax (errorExpectedDesugaredBinding, intToBytes, printTree)
 import Language.EO.Phi.Syntax.Abs as Phi
 import Test.Hspec
 import Test.QuickCheck
+import Test.QuickCheck.Gen (genDouble)
 
 arbitraryNonEmptyString :: Gen String
 arbitraryNonEmptyString = do
@@ -75,6 +76,10 @@ instance Arbitrary Bytes where
   arbitrary = intToBytes <$> arbitrarySizedNatural
 instance Arbitrary Phi.Function where
   arbitrary = Phi.Function <$> arbitraryNonEmptyString
+instance Arbitrary DoubleSigned where
+  arbitrary = DoubleSigned . show . (1000 *) <$> genDouble
+instance Arbitrary IntegerSigned where
+  arbitrary = IntegerSigned . show <$> chooseInteger (-1_000_000, 1_000_000)
 
 instance Arbitrary Phi.ObjectMetaId where
   arbitrary = Phi.ObjectMetaId . ("!b" ++) <$> arbitraryNonEmptyString
@@ -106,6 +111,9 @@ instance Arbitrary Binding where
       ]
   shrink (AlphaBinding attr obj) = AlphaBinding attr <$> shrink obj
   shrink _ = [] -- do not shrink deltas and lambdas
+
+instance Arbitrary Phi.StringRaw where
+  arbitrary = Phi.StringRaw <$> arbitraryNonEmptyString
 
 -- | Split an integer into a list of positive integers,
 -- whose sum is less than or equal the initial one.
@@ -142,6 +150,7 @@ bindingAttr = \case
   LambdaBinding{} -> Label "λ"
   MetaDeltaBinding{} -> Label "Δ"
   MetaBindings{} -> error "attempting to retrieve attribute of meta bindings"
+  b@AlphaBindingSugar{} -> errorExpectedDesugaredBinding b
 
 arbitraryBindings :: Gen [Binding]
 arbitraryBindings =
@@ -330,14 +339,14 @@ parseTests = Yaml.decodeFileThrow
 spec :: Spec
 spec =
   forM_
-    [ ("Old Yegor's rules", "test/eo/phi/rules/yegor.yaml")
-    , ("New Yegor's rules", "test/eo/phi/rules/new.yaml")
+    [ ("New Yegor's rules", "test/eo/phi/rules/new.yaml")
+    , ("Old Yegor's rules", "test/eo/phi/rules/yegor.yaml")
     ]
-    $ \(name, rulesFile) -> do
+    $ \(title, rulesFile) -> do
       ruleset <- runIO $ parseRuleSetFromFile rulesFile
       let rulesFromYaml = map convertRuleNamed (rules ruleset)
       inputs <- runIO $ parseTests "test/eo/phi/confluence.yaml"
-      describe name $ do
+      describe title $ do
         it "Are confluent (via QuickCheck)" (confluent rulesFromYaml)
         describe
           "Are confluent (regression tests)"

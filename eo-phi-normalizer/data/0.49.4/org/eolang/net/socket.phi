@@ -1,0 +1,535 @@
+{⟦
+  org() ↦ ⟦
+    eolang() ↦ ⟦
+      net() ↦ ⟦
+        socket(address, port) ↦ ⟦
+          φ ↦ Φ̇.sys.os.is-windows.if(
+            ξ.win-socket(ξ.address, ξ.port), ξ.posix-socket(ξ.address, ξ.port)
+          ),
+          htons(port) ↦ ⟦
+            bts ↦ ξ.port.as-i16.as-bytes,
+            φ ↦ ξ.bts.and(Φ̇.bytes(⟦ Δ ⤍ FF- ⟧)).left(8).or(
+              ξ.bts.right(8).and(Φ̇.bytes(⟦ Δ ⤍ FF- ⟧))
+            ).as-i16
+          ⟧,
+          as-input(recv) ↦ ⟦
+            read(size) ↦ ⟦
+              φ ↦ ξ.input-block(Φ̇.bytes(⟦ Δ ⤍ -- ⟧)).read(ξ.size).self,
+              input-block(buffer) ↦ ⟦
+                self ↦ ξ,
+                φ ↦ ξ.buffer,
+                read(size) ↦ ⟦
+                  read-bytes ↦ ξ.ρ.ρ.ρ.recv(ξ.size).as-bytes,
+                  φ ↦ Φ̇.seq(
+                    Φ̇.tuple(
+                      Φ̇.tuple(Φ̇.tuple.empty, ξ.read-bytes), ξ.ρ.ρ.input-block(ξ.read-bytes)
+                    )
+                  ).self
+                ⟧
+              ⟧
+            ⟧
+          ⟧,
+          as-output(send) ↦ ⟦
+            write(buffer) ↦ ⟦
+              φ ↦ ξ.output-block.write(ξ.buffer).self,
+              output-block() ↦ ⟦
+                self ↦ ξ,
+                φ ↦ Φ̇.true,
+                write(buffer) ↦ ⟦
+                  φ ↦ Φ̇.seq(
+                    Φ̇.tuple(
+                      Φ̇.tuple(Φ̇.tuple.empty, ξ.ρ.ρ.ρ.send(ξ.buffer)), ξ.ρ.ρ.output-block
+                    )
+                  ).self
+                ⟧
+              ⟧
+            ⟧
+          ⟧,
+          posix-socket(address, port) ↦ ⟦
+            sd ↦ Φ̇.sys.posix(
+              "socket",
+              Φ̇.tuple(
+                Φ̇.tuple(
+                  Φ̇.tuple(Φ̇.tuple.empty, Φ̇.sys.posix.af-inet), Φ̇.sys.posix.sock-stream
+                ),
+                Φ̇.sys.posix.ipproto-tcp
+              )
+            ).code,
+            inet-addr ↦ Φ̇.sys.posix(
+              "inet_addr", Φ̇.tuple(Φ̇.tuple.empty, ξ.address)
+            ).code,
+            inet-addr-as-int ↦ ξ.inet-addr.eq(Φ̇.sys.posix.inaddr-none).if(
+              Φ̇.error(
+                Φ̇.txt.sprintf(
+                  "Couldn't convert an IPv4 address '%s' into a 32-bit integer via 'inet_addr' posix syscall, reason: '%s'",
+                  Φ̇.tuple(Φ̇.tuple(Φ̇.tuple.empty, ξ.address), ξ.strerror.code)
+                )
+              ),
+              ξ.inet-addr.as-i32
+            ),
+            sockaddr ↦ Φ̇.sys.posix.sockaddr-in(
+              Φ̇.sys.posix.af-inet.as-i16, ξ.ρ.htons(ξ.port), ξ.inet-addr-as-int
+            ),
+            scoped-socket(sockfd) ↦ ⟦
+              as-input ↦ ξ.ρ.ρ.ρ.as-input(ξ.recv),
+              as-output ↦ ξ.ρ.ρ.ρ.as-output(ξ.send),
+              send(buffer) ↦ ⟦
+                buff ↦ Φ̇.dataized(ξ.buffer).as-bytes,
+                sent ↦ Φ̇.sys.posix(
+                  "send",
+                  Φ̇.tuple(
+                    Φ̇.tuple(
+                      Φ̇.tuple(Φ̇.tuple(Φ̇.tuple.empty, ξ.ρ.sockfd), ξ.buff), ξ.buff.size
+                    ),
+                    0
+                  )
+                ).code,
+                φ ↦ ξ.sent.eq(-1).if(
+                  Φ̇.error(
+                    Φ̇.txt.sprintf(
+                      "Failed to send message through the socket '%d', reason: %s",
+                      Φ̇.tuple(
+                        Φ̇.tuple(Φ̇.tuple.empty, ξ.ρ.sockfd), ξ.ρ.ρ.strerror.code
+                      )
+                    )
+                  ),
+                  ξ.sent
+                )
+              ⟧,
+              recv(size) ↦ ⟦
+                received ↦ Φ̇.sys.posix(
+                  "recv",
+                  Φ̇.tuple(
+                    Φ̇.tuple(Φ̇.tuple(Φ̇.tuple.empty, ξ.ρ.sockfd), ξ.size), 0
+                  )
+                ).called,
+                φ ↦ ξ.received.code.eq(-1).if(
+                  Φ̇.error(
+                    Φ̇.txt.sprintf(
+                      "Failed to receive data from the socket '%d', reason: %s",
+                      Φ̇.tuple(
+                        Φ̇.tuple(Φ̇.tuple.empty, ξ.ρ.sockfd), ξ.ρ.ρ.strerror.code
+                      )
+                    )
+                  ),
+                  ξ.received.output
+                )
+              ⟧
+            ⟧,
+            strerror() ↦ ⟦
+              φ ↦ Φ̇.sys.posix(
+                "strerror",
+                Φ̇.tuple(
+                  Φ̇.tuple.empty, Φ̇.sys.posix("errno", Φ̇.tuple.empty).code
+                )
+              )
+            ⟧,
+            closed-socket(sockfd) ↦ ⟦
+              closed ↦ Φ̇.sys.posix("close", Φ̇.tuple(Φ̇.tuple.empty, ξ.sockfd)).code,
+              φ ↦ ξ.closed.eq(-1).if(
+                Φ̇.error(
+                  Φ̇.txt.sprintf(
+                    "Couldn't close a posix socket '%d', reason: '%s'",
+                    Φ̇.tuple(
+                      Φ̇.tuple(Φ̇.tuple.empty, ξ.sockfd), ξ.ρ.strerror.code
+                    )
+                  )
+                ),
+                Φ̇.true
+              )
+            ⟧,
+            safe-socket(scope) ↦ ⟦
+              φ ↦ ξ.ρ.sd.eq(-1).if(
+                Φ̇.error(
+                  Φ̇.txt.sprintf(
+                    "Couldn't create a posix socket, reason: '%s'",
+                    Φ̇.tuple(Φ̇.tuple.empty, ξ.ρ.strerror.code)
+                  )
+                ),
+                Φ̇.try(
+                  ξ.scope,
+                  ⟦
+                    φ ↦ Φ̇.error(ξ.ex),
+                    ex ↦ ∅
+                  ⟧,
+                  ξ.ρ.closed-socket(ξ.ρ.sd)
+                )
+              )
+            ⟧,
+            connect(scope) ↦ ⟦
+              φ ↦ ξ.ρ.safe-socket(ξ.auto-named-attr-at-276-10),
+              auto-named-attr-at-276-10() ↦ ⟦
+                sock ↦ ξ.ρ.ρ,
+                connected ↦ Φ̇.sys.posix(
+                  "connect",
+                  Φ̇.tuple(
+                    Φ̇.tuple(
+                      Φ̇.tuple(Φ̇.tuple.empty, ξ.sock.sd), ξ.sock.sockaddr
+                    ),
+                    ξ.sock.sockaddr.size
+                  )
+                ).code,
+                φ ↦ ξ.connected.eq(-1).if(
+                  Φ̇.error(
+                    Φ̇.txt.sprintf(
+                      "Couldn't connect to '%s:%d' on posix socket '%d', reason: '%s'",
+                      Φ̇.tuple(
+                        Φ̇.tuple(
+                          Φ̇.tuple(
+                            Φ̇.tuple(Φ̇.tuple.empty, ξ.sock.address), ξ.sock.port
+                          ),
+                          ξ.sock.sd
+                        ),
+                        ξ.sock.strerror.code
+                      )
+                    )
+                  ),
+                  Φ̇.dataized(ξ.ρ.scope(ξ.sock.scoped-socket(ξ.sock.sd))).as-bytes
+                )
+              ⟧
+            ⟧,
+            listen(scope) ↦ ⟦
+              φ ↦ ξ.ρ.safe-socket(ξ.auto-named-attr-at-300-10),
+              auto-named-attr-at-300-10() ↦ ⟦
+                sock ↦ ξ.ρ.ρ,
+                bound ↦ Φ̇.sys.posix(
+                  "bind",
+                  Φ̇.tuple(
+                    Φ̇.tuple(
+                      Φ̇.tuple(Φ̇.tuple.empty, ξ.sock.sd), ξ.sock.sockaddr
+                    ),
+                    ξ.sock.sockaddr.size
+                  )
+                ).code,
+                listened ↦ Φ̇.sys.posix(
+                  "listen", Φ̇.tuple(Φ̇.tuple(Φ̇.tuple.empty, ξ.sock.sd), 2048)
+                ).code,
+                φ ↦ ξ.bound.eq(-1).if(
+                  Φ̇.error(
+                    Φ̇.txt.sprintf(
+                      "Couldn't bind posix socket '%d' to '%s:%d', reason: '%s'",
+                      Φ̇.tuple(
+                        Φ̇.tuple(
+                          Φ̇.tuple(
+                            Φ̇.tuple(Φ̇.tuple.empty, ξ.sock.sd), ξ.sock.address
+                          ),
+                          ξ.sock.port
+                        ),
+                        ξ.sock.strerror.code
+                      )
+                    )
+                  ),
+                  ξ.listened.eq(-1).if(
+                    Φ̇.error(
+                      Φ̇.txt.sprintf(
+                        "Failed to listen for connections to '%s:%d' on socket '%d', reason: '%s'",
+                        Φ̇.tuple(
+                          Φ̇.tuple(
+                            Φ̇.tuple(
+                              Φ̇.tuple(Φ̇.tuple.empty, ξ.sock.address), ξ.sock.port
+                            ),
+                            ξ.sock.sd
+                          ),
+                          ξ.sock.strerror.code
+                        )
+                      )
+                    ),
+                    Φ̇.dataized(ξ.ρ.scope(ξ.auto-named-attr-at-325-22)).as-bytes
+                  )
+                ),
+                auto-named-attr-at-325-22() ↦ ⟦
+                  φ ↦ ξ.ρ.sock.scoped-socket(ξ.ρ.sock.sd),
+                  accept(scope) ↦ ⟦
+                    sock ↦ ξ.ρ.ρ.sock,
+                    client-sockfd ↦ Φ̇.sys.posix(
+                      "accept",
+                      Φ̇.tuple(
+                        Φ̇.tuple(
+                          Φ̇.tuple(Φ̇.tuple.empty, ξ.sock.sd), ξ.sock.sockaddr
+                        ),
+                        ξ.sock.sockaddr.size
+                      )
+                    ).code,
+                    φ ↦ Φ̇.try(
+                      ξ.client-sockfd.eq(-1).if(
+                        Φ̇.error(
+                          Φ̇.txt.sprintf(
+                            "Failed to accept a connection on posix socket '%d', reason: %s",
+                            Φ̇.tuple(
+                              Φ̇.tuple(Φ̇.tuple.empty, ξ.sock.sd), ξ.sock.strerror.code
+                            )
+                          )
+                        ),
+                        Φ̇.dataized(
+                          ξ.scope(ξ.sock.scoped-socket(ξ.client-sockfd))
+                        ).as-bytes
+                      ),
+                      ⟦
+                        φ ↦ Φ̇.error(ξ.ex),
+                        ex ↦ ∅
+                      ⟧,
+                      ξ.sock.closed-socket(ξ.client-sockfd)
+                    )
+                  ⟧
+                ⟧
+              ⟧
+            ⟧
+          ⟧,
+          win-socket(address, port) ↦ ⟦
+            sd ↦ Φ̇.sys.win32(
+              "socket",
+              Φ̇.tuple(
+                Φ̇.tuple(
+                  Φ̇.tuple(Φ̇.tuple.empty, Φ̇.sys.win32.af-inet), Φ̇.sys.win32.sock-stream
+                ),
+                Φ̇.sys.win32.ipproto-tcp
+              )
+            ).code,
+            inet-addr ↦ Φ̇.sys.win32(
+              "inet_addr", Φ̇.tuple(Φ̇.tuple.empty, ξ.address)
+            ).code,
+            inet-addr-as-int ↦ ξ.inet-addr.eq(Φ̇.sys.win32.inaddr-none).if(
+              Φ̇.error(
+                Φ̇.txt.sprintf(
+                  "Couldn't convert an IPv4 address '%s' into a 32-bit integer via 'inet_addr' win32 function call, WSA error code: %d",
+                  Φ̇.tuple(
+                    Φ̇.tuple(Φ̇.tuple.empty, ξ.address), ξ.last-error.code
+                  )
+                )
+              ),
+              ξ.inet-addr.as-i32
+            ),
+            sockaddr ↦ Φ̇.sys.win32.sockaddr-in(
+              Φ̇.sys.win32.af-inet.as-i16, ξ.ρ.htons(ξ.port), ξ.inet-addr-as-int
+            ),
+            scoped-socket(sockfd) ↦ ⟦
+              as-input ↦ ξ.ρ.ρ.ρ.as-input(ξ.recv),
+              as-output ↦ ξ.ρ.ρ.ρ.as-output(ξ.send),
+              send(buffer) ↦ ⟦
+                buff ↦ Φ̇.dataized(ξ.buffer).as-bytes,
+                sent ↦ Φ̇.sys.win32(
+                  "send",
+                  Φ̇.tuple(
+                    Φ̇.tuple(
+                      Φ̇.tuple(Φ̇.tuple(Φ̇.tuple.empty, ξ.ρ.sockfd), ξ.buff), ξ.buff.size
+                    ),
+                    0
+                  )
+                ).code,
+                φ ↦ ξ.sent.eq(-1).if(
+                  Φ̇.error(
+                    Φ̇.txt.sprintf(
+                      "Failed to send message through the socket '%d', WSA error code: %d",
+                      Φ̇.tuple(
+                        Φ̇.tuple(Φ̇.tuple.empty, ξ.ρ.sockfd), ξ.ρ.ρ.last-error.code
+                      )
+                    )
+                  ),
+                  ξ.sent
+                )
+              ⟧,
+              recv(size) ↦ ⟦
+                received ↦ Φ̇.sys.win32(
+                  "recv",
+                  Φ̇.tuple(
+                    Φ̇.tuple(Φ̇.tuple(Φ̇.tuple.empty, ξ.ρ.sockfd), ξ.size), 0
+                  )
+                ).called,
+                φ ↦ ξ.received.code.eq(-1).if(
+                  Φ̇.error(
+                    Φ̇.txt.sprintf(
+                      "Failed to receive data from the socket '%d', WSA error code: %d",
+                      Φ̇.tuple(
+                        Φ̇.tuple(Φ̇.tuple.empty, ξ.ρ.sockfd), ξ.ρ.ρ.last-error.code
+                      )
+                    )
+                  ),
+                  ξ.received.output
+                )
+              ⟧
+            ⟧,
+            last-error() ↦ ⟦
+              φ ↦ Φ̇.sys.win32("WSAGetLastError", Φ̇.tuple.empty)
+            ⟧,
+            closed-socket(sockfd) ↦ ⟦
+              closed ↦ Φ̇.sys.win32(
+                "closesocket", Φ̇.tuple(Φ̇.tuple.empty, ξ.sockfd)
+              ).code,
+              φ ↦ ξ.closed.eq(Φ̇.sys.win32.socket-error).if(
+                Φ̇.error(
+                  Φ̇.txt.sprintf(
+                    "Couldn't close a win32 socket '%d', WSA error code: %d",
+                    Φ̇.tuple(
+                      Φ̇.tuple(Φ̇.tuple.empty, ξ.sockfd), ξ.ρ.last-error.code
+                    )
+                  )
+                ),
+                Φ̇.true
+              )
+            ⟧,
+            safe-socket(scope) ↦ ⟦
+              started-up ↦ Φ̇.sys.win32(
+                "WSAStartup", Φ̇.tuple(Φ̇.tuple.empty, Φ̇.sys.win32.winsock-version-2-2)
+              ).code,
+              cleaned-up ↦ Φ̇.sys.win32("WSACleanup", Φ̇.tuple.empty).code,
+              φ ↦ ξ.started-up.eq(0).not.if(
+                Φ̇.error(
+                  Φ̇.txt.sprintf(
+                    "Couldn't initialize Winsock via 'WSAStartup' call, WSA error code: %d",
+                    Φ̇.tuple(Φ̇.tuple.empty, ξ.started-up)
+                  )
+                ),
+                Φ̇.try(
+                  ξ.ρ.sd.eq(-1).if(
+                    Φ̇.error(
+                      Φ̇.txt.sprintf(
+                        "Couldn't create a win32 socket, WSA error code: %d",
+                        Φ̇.tuple(Φ̇.tuple.empty, ξ.ρ.last-error.code)
+                      )
+                    ),
+                    Φ̇.try(
+                      ξ.scope,
+                      ⟦
+                        φ ↦ Φ̇.error(ξ.ex),
+                        ex ↦ ∅
+                      ⟧,
+                      ξ.ρ.closed-socket(ξ.ρ.sd)
+                    )
+                  ),
+                  ⟦
+                    φ ↦ Φ̇.error(ξ.ex),
+                    ex ↦ ∅
+                  ⟧,
+                  ξ.cleaned-up.eq(Φ̇.sys.win32.socket-error).if(
+                    Φ̇.error("Couldn't cleanup Winsock resources"), Φ̇.true
+                  )
+                )
+              )
+            ⟧,
+            connect(scope) ↦ ⟦
+              φ ↦ ξ.ρ.safe-socket(ξ.auto-named-attr-at-485-10),
+              auto-named-attr-at-485-10() ↦ ⟦
+                sock ↦ ξ.ρ.ρ,
+                connected ↦ Φ̇.sys.win32(
+                  "connect",
+                  Φ̇.tuple(
+                    Φ̇.tuple(
+                      Φ̇.tuple(Φ̇.tuple.empty, ξ.sock.sd), ξ.sock.sockaddr
+                    ),
+                    ξ.sock.sockaddr.size
+                  )
+                ).code,
+                φ ↦ ξ.connected.eq(-1).if(
+                  Φ̇.error(
+                    Φ̇.txt.sprintf(
+                      "Couldn't connect to '%s:%d' on win32 socket '%d', WSA error code: %d",
+                      Φ̇.tuple(
+                        Φ̇.tuple(
+                          Φ̇.tuple(
+                            Φ̇.tuple(Φ̇.tuple.empty, ξ.sock.address), ξ.sock.port
+                          ),
+                          ξ.sock.sd
+                        ),
+                        ξ.sock.last-error.code
+                      )
+                    )
+                  ),
+                  Φ̇.dataized(ξ.ρ.scope(ξ.sock.scoped-socket(ξ.sock.sd))).as-bytes
+                )
+              ⟧
+            ⟧,
+            listen(scope) ↦ ⟦
+              φ ↦ ξ.ρ.safe-socket(ξ.auto-named-attr-at-509-10),
+              auto-named-attr-at-509-10() ↦ ⟦
+                sock ↦ ξ.ρ.ρ,
+                bound ↦ Φ̇.sys.win32(
+                  "bind",
+                  Φ̇.tuple(
+                    Φ̇.tuple(
+                      Φ̇.tuple(Φ̇.tuple.empty, ξ.sock.sd), ξ.sock.sockaddr
+                    ),
+                    ξ.sock.sockaddr.size
+                  )
+                ).code,
+                listened ↦ Φ̇.sys.win32(
+                  "listen", Φ̇.tuple(Φ̇.tuple(Φ̇.tuple.empty, ξ.sock.sd), 2048)
+                ).code,
+                φ ↦ ξ.bound.eq(-1).if(
+                  Φ̇.error(
+                    Φ̇.txt.sprintf(
+                      "Couldn't bind win32 socket '%d' to '%s:%d', WSA error code: %d",
+                      Φ̇.tuple(
+                        Φ̇.tuple(
+                          Φ̇.tuple(
+                            Φ̇.tuple(Φ̇.tuple.empty, ξ.sock.sd), ξ.sock.address
+                          ),
+                          ξ.sock.port
+                        ),
+                        ξ.sock.last-error.code
+                      )
+                    )
+                  ),
+                  ξ.listened.eq(-1).if(
+                    Φ̇.error(
+                      Φ̇.txt.sprintf(
+                        "Failed to listen for connections to '%s:%d' on socket '%d', WSA error code: %d",
+                        Φ̇.tuple(
+                          Φ̇.tuple(
+                            Φ̇.tuple(
+                              Φ̇.tuple(Φ̇.tuple.empty, ξ.sock.address), ξ.sock.port
+                            ),
+                            ξ.sock.sd
+                          ),
+                          ξ.sock.last-error.code
+                        )
+                      )
+                    ),
+                    Φ̇.dataized(ξ.ρ.scope(ξ.auto-named-attr-at-534-22)).as-bytes
+                  )
+                ),
+                auto-named-attr-at-534-22() ↦ ⟦
+                  φ ↦ ξ.ρ.sock.scoped-socket(ξ.ρ.sock.sd),
+                  accept(scope) ↦ ⟦
+                    sock ↦ ξ.ρ.ρ.sock,
+                    client-sockfd ↦ Φ̇.sys.win32(
+                      "accept",
+                      Φ̇.tuple(
+                        Φ̇.tuple(
+                          Φ̇.tuple(Φ̇.tuple.empty, ξ.sock.sd), ξ.sock.sockaddr
+                        ),
+                        ξ.sock.sockaddr.size
+                      )
+                    ).code,
+                    φ ↦ Φ̇.try(
+                      ξ.client-sockfd.eq(-1).if(
+                        Φ̇.error(
+                          Φ̇.txt.sprintf(
+                            "Failed to accept a connection on win32 socket '%d', WSA error code: %d",
+                            Φ̇.tuple(
+                              Φ̇.tuple(Φ̇.tuple.empty, ξ.sock.sd), ξ.sock.last-error.code
+                            )
+                          )
+                        ),
+                        Φ̇.dataized(
+                          ξ.scope(ξ.sock.scoped-socket(ξ.client-sockfd))
+                        ).as-bytes
+                      ),
+                      ⟦
+                        φ ↦ Φ̇.error(ξ.ex),
+                        ex ↦ ∅
+                      ⟧,
+                      ξ.sock.closed-socket(ξ.client-sockfd)
+                    )
+                  ⟧
+                ⟧
+              ⟧
+            ⟧
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}
