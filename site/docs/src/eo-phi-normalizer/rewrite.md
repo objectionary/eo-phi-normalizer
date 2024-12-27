@@ -21,33 +21,33 @@ eo-phi-normalizer rewrite --help
 ```
 
 ```console
-Usage: eo-phi-normalizer rewrite [-r|--rules FILE] [-c|--chain] [-j|--json]
-                                 [--tex] [-o|--output-file FILE] [-s|--single]
-                                 [-l|--single-line] [--max-depth INT]
-                                 [--max-growth-factor INT] [FILE]
-                                 [-d|--dependency-file FILE]
+Usage: eo-phi-normalizer rewrite [-c|--chain] [-d|--dependency-file FILE]
+                                 [-j|--json] [--max-depth INT]
+                                 [--max-growth-factor INT]
+                                 [-o|--output-file FILE] [-r|--rules FILE]
+                                 [-s|--single] [-l|--single-line] [--tex] [FILE]
 
   Rewrite a PHI program.
 
 Available options:
-  -r,--rules FILE          FILE with user-defined rules. If unspecified, builtin
-                           set of rules is used.
   -c,--chain               Output rewriting steps.
-  -j,--json                Output JSON.
-  --tex                    Output LaTeX.
-  -o,--output-file FILE    Output to FILE. When this option is not specified,
-                           output to stdout.
-  -s,--single              Output a single expression.
-  -l,--single-line         Output a single expression on a single line. Has
-                           effect only if the --single is enabled.
-  --max-depth INT          Maximum depth of rules application. Defaults to 10.
-  --max-growth-factor INT  The factor by which to allow the input term to grow
-                           before stopping. Defaults to 10.
-  FILE                     FILE to read input from. When no FILE is specified,
-                           read from stdin.
   -d,--dependency-file FILE
                            FILE to read dependencies from (zero or more
                            dependency files allowed).
+  -j,--json                Output JSON.
+  --max-depth INT          Maximum depth of rules application. Defaults to 10.
+  --max-growth-factor INT  The factor by which to allow the input term to grow
+                           before stopping. Defaults to 10.
+  -o,--output-file FILE    Output to FILE. When this option is not specified,
+                           output to stdout.
+  -r,--rules FILE          FILE with user-defined rules. If unspecified, builtin
+                           set of rules is used.
+  -s,--single              Output a single expression.
+  -l,--single-line         Output a single expression on a single line. Has
+                           effect only if the --single is enabled.
+  --tex                    Output LaTeX.
+  FILE                     FILE to read input from. When no FILE is specified,
+                           read from stdin.
   -h,--help                Show this help text
 ```
 
