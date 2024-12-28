@@ -65,7 +65,7 @@ import Data.Text.Internal.Builder (toLazyText)
 import Data.Text.Lazy as TL (unpack)
 import Data.Text.Lazy.Manipulate (toOrdinal)
 import Data.Version (showVersion)
-import Data.Yaml (decodeFileThrow, decodeThrow)
+import Data.Yaml (decodeThrow, encodeFile)
 import GHC.Generics (Generic)
 import Language.EO.Locale (withCorrectLocale)
 import Language.EO.Phi (Binding (..), Bytes (Bytes), Object (..), Program (Program), parseProgram, printTree)
@@ -766,7 +766,8 @@ main = withCorrectLocale do
                in logStrLn (printAsProgramOrAsObject obj'')
             Right (Bytes bytes) -> logStrLn bytes
     CLI'Pipeline' (CLI'Pipeline'Report' CLI'Pipeline'Report{..}) -> do
-      pipelineConfig <- decodeFileThrow @_ @PipelineConfig configFile
+      pipelineConfig <- readPipelineConfig configFile
+      encodeFile "abra.yaml" pipelineConfig
       let testSets = filter (fromMaybe True . (.enable)) pipelineConfig.testSets
       programReports <- forM (zip [1 ..] testSets) $ \(index :: Int, (.phi) -> testSet) -> do
         let progress = [fmt|({index}/{length testSets})|] :: String
@@ -796,10 +797,10 @@ main = withCorrectLocale do
           createDirectoryIfMissing True (takeDirectory path)
           writeFile path reportString
     CLI'Pipeline' (CLI'Pipeline'PrepareTests' CLI'Pipeline'PrepareTests{..}) -> do
-      config <- decodeFileThrow @_ @PipelineConfig configFile
+      config <- readPipelineConfig configFile
       PrepareTests.prepareTests config
     CLI'Pipeline' (CLI'Pipeline'PrintDataizeConfigs' CLI'Pipeline'PrintDataizeConfigs{..}) -> do
-      config <- decodeFileThrow @_ @PipelineConfig configFile
+      config <- readPipelineConfig configFile
       PrintConfigs.printDataizeConfigs config phiPrefixesToStrip singleLine
     CLI'Test' (CLI'Test{..}) ->
       evalSpec defaultConfig (spec rulePaths)

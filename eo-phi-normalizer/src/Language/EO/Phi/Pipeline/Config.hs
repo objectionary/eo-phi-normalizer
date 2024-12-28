@@ -27,17 +27,27 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE OverloadedRecordDot #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wno-partial-fields #-}
 
 module Language.EO.Phi.Pipeline.Config where
 
+import Control.Monad.IO.Class (MonadIO)
 import Data.Aeson (ToJSON)
 import Data.Aeson.Types (FromJSON)
+import Data.Functor ((<&>))
+import Data.List (intercalate)
+import Data.Yaml (decodeFileThrow)
 import GHC.Generics (Generic)
 import Language.EO.Phi.Metrics.Data
 import Language.EO.Phi.TH (deriveJSON)
+import System.FilePath ((<.>), (</>))
 import Text.Printf (printf)
 
 data TestSetPhi = TestSetPhi
@@ -127,14 +137,63 @@ data AtomsSet = AtomsSet
 
 $(deriveJSON ''AtomsSet)
 
-data TestSet = TestSet
-  { eo :: TestSetEO
-  , phi :: TestSetPhi
-  , atoms :: Maybe AtomsSet
-  , enable :: Maybe Bool
-  -- ^
-  -- Whether to enable this test set.
+data PathPrefixEO = PathPrefixEO
+  { original :: FilePath
+  , yaml :: FilePath
+  , filtered :: FilePath
   }
+  deriving stock (Show, Generic)
+
+$(deriveJSON ''PathPrefixEO)
+
+data PathPrefixPhi = PathPrefixPhi
+  { initial :: FilePath
+  , normalized :: FilePath
+  }
+  deriving stock (Show, Generic)
+
+$(deriveJSON ''PathPrefixPhi)
+
+data PathPrefix = PathPrefix
+  { eo :: PathPrefixEO
+  , phi :: PathPrefixPhi
+  }
+  deriving stock (Show, Generic)
+
+$(deriveJSON ''PathPrefix)
+
+data Common = Common
+  { pathPrefix :: PathPrefix
+  , bindingsPath :: Maybe String
+  }
+  deriving stock (Show, Generic)
+
+$(deriveJSON ''Common)
+
+data Individual = Individual
+  { name :: String
+  , enable :: Maybe Bool
+  , include :: Maybe [String]
+  , exclude :: Maybe [String]
+  , atoms :: Maybe AtomsSet
+  }
+  deriving stock (Show, Generic)
+
+$(deriveJSON ''Individual)
+
+data TestSet
+  = TestSetExtended
+      { eo :: TestSetEO
+      , phi :: TestSetPhi
+      , atoms :: Maybe AtomsSet
+      , enable :: Maybe Bool
+      -- ^
+      -- Whether to enable this test set.
+      }
+  | TestSetCompact
+      { common :: Common
+      , individual :: [Individual]
+      }
   deriving stock (Show, Generic)
 
 $(deriveJSON ''TestSet)
@@ -152,3 +211,45 @@ data ReportFormat
   | -- | GitHub Flavored Markdown
     ReportFormat'Markdown
   deriving stock (Eq)
+
+split :: forall a. (a -> Bool) -> [a] -> [[a]]
+split cond xs = go xs [] []
+ where
+  go [] _ res = res
+  go (y : ys) curSpan res
+    | cond y = go ys [] (res <> [curSpan])
+    | otherwise = go ys (curSpan <> [y]) res
+
+-- >>> split @Int (== 3) [1,2,3,3,4,3]
+
+toExtended :: PipelineConfig -> PipelineConfig
+toExtended c@(PipelineConfig{testSets}) = c{testSets = concatMap go testSets}
+ where
+  go = \case
+    e@TestSetExtended{} -> [e]
+    TestSetCompact{..} -> go1 common <$> individual
+
+  go1 (Common{..}) (Individual{..}) = TestSetExtended{..}
+   where
+    eo =
+      TestSetEO
+        { original = pathPrefix.eo.original </> name <.> "eo"
+        , yaml = pathPrefix.eo.yaml </> name <.> "yaml"
+        , filtered = pathPrefix.eo.filtered </> name <.> "eo"
+        , include
+        , exclude
+        }
+    phi =
+      TestSetPhi
+        { initial = pathPrefix.phi.initial </> name <.> "phi"
+        , normalized = pathPrefix.phi.normalized </> name <.> "phi"
+        , bindingsPathInitial = bindingsPath <&> mkBindingsPathSuffix
+        , bindingsPathNormalized = bindingsPath <&> mkBindingsPathSuffix
+        }
+     where
+      name' = split (== '/') name
+      mkBindingsPathSuffix x =
+        x <> intercalate "." (if name' /= [] then init name' else [])
+
+readPipelineConfig :: (MonadIO m) => FilePath -> m PipelineConfig
+readPipelineConfig path = toExtended <$> decodeFileThrow @_ @PipelineConfig path
