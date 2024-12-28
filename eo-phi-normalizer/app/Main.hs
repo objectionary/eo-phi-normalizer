@@ -283,47 +283,47 @@ commandParser =
   CommandParser{..}
  where
   metrics = do
-    inputFile <- inputFileArg
-    outputFile <- outputFileOption
     bindingsPath <- bindingsPathOption
+    outputFile <- outputFileOption
+    inputFile <- inputFileArg
     pure CLI'MetricsPhi{..}
   printRules = do
+    compact <- compactSwitch
     rulesPath <- optional $ strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. If unspecified, {rulesFile} is rendered.|])
     latex <- latexSwitch
-    compact <- compactSwitch
     pure CLI'PrintRules{..}
   rewrite = do
-    rulesPath <- optional $ strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. If unspecified, builtin set of rules is used.|])
     chain <- switch (long "chain" <> short 'c' <> help "Output rewriting steps.")
+    dependencies <- dependenciesArg
     json <- jsonSwitch
-    latex <- latexSwitch
-    outputFile <- outputFileOption
-    let singleFlag :: String
-        singleFlag = "single"
-    single <- switch (long singleFlag <> short 's' <> help "Output a single expression.")
-    singleLine <- switch (long "single-line" <> short 'l' <> help [fmt|Output a single expression on a single line. Has effect only if the --{singleFlag} is enabled.|])
     maxDepth <-
       let maxValue = 10
        in option auto (long "max-depth" <> metavar.int <> value maxValue <> help [fmt|Maximum depth of rules application. Defaults to {maxValue}.|])
     maxGrowthFactor <-
       let maxValue = 10
        in option auto (long "max-growth-factor" <> metavar.int <> value maxValue <> help [fmt|The factor by which to allow the input term to grow before stopping. Defaults to {maxValue}.|])
+    outputFile <- outputFileOption
+    rulesPath <- optional $ strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. If unspecified, builtin set of rules is used.|])
+    let singleFlag :: String
+        singleFlag = "single"
+    single <- switch (long singleFlag <> short 's' <> help "Output a single expression.")
+    singleLine <- switch (long "single-line" <> short 'l' <> help [fmt|Output a single expression on a single line. Has effect only if the --{singleFlag} is enabled.|])
+    latex <- latexSwitch
     inputFile <- inputFileArg
-    dependencies <- dependenciesArg
     pure CLI'RewritePhi{..}
   dataize = do
-    rulesPath <- optional $ strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. If unspecified, builtin set of rules is used.|])
-    inputFile <- inputFileArg
-    dependencies <- dependenciesArg
-    outputFile <- outputFileOption
-    recursive <- switch (long "recursive" <> help "Apply dataization + normalization recursively.")
-    chain <- switch (long "chain" <> help "Display all the intermediate steps.")
-    wrapRawBytes <- switch (long "wrap-raw-bytes" <> help "Wrap raw bytes ⟦ Δ ⤍ 01- ⟧ as Φ.org.eolang.bytes(Δ ⤍ 01-) in the final output.")
-    latex <- latexSwitch
     asPackage <- asPackageSwitch
-    minimizeStuckTerms <- minimizeStuckTermsSwitch
+    chain <- switch (long "chain" <> help "Display all the intermediate steps.")
+    dependencies <- dependenciesArg
     disabledAtomNames <- many $ strOption (long "disable-atom" <> metavar.atomName <> help "Name of an atom to disable.")
     enabledAtomNames <- many $ strOption (long "enable-atom" <> metavar.atomName <> help "Name of an atom to enable.")
+    minimizeStuckTerms <- minimizeStuckTermsSwitch
+    outputFile <- outputFileOption
+    recursive <- switch (long "recursive" <> help "Apply dataization + normalization recursively.")
+    rulesPath <- optional $ strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. If unspecified, builtin set of rules is used.|])
+    latex <- latexSwitch
+    wrapRawBytes <- switch (long "wrap-raw-bytes" <> help "Wrap raw bytes ⟦ Δ ⤍ 01- ⟧ as Φ.org.eolang.bytes(Δ ⤍ 01-) in the final output.")
+    inputFile <- inputFileArg
     pure CLI'DataizePhi{..}
   pipeline' =
     CommandParser'Pipeline
@@ -335,8 +335,8 @@ commandParser =
           pure CLI'Pipeline'PrepareTests{..}
       , printDataizeConfigs = do
           configFile <- strOption (long "config" <> short 'c' <> metavar.file <> help [fmt|A pipeline tests configuration {metavarName.file}.|])
-          phiPrefixesToStrip <- many $ strOption (long "strip-phi-prefix" <> short 'p' <> metavar.path <> help [fmt|{metavarName.path} prefix to remove in PHI file paths.|])
           singleLine <- switch (long "single-line" <> short 'l' <> help [fmt|Output configs on an single line.|])
+          phiPrefixesToStrip <- many $ strOption (long "strip-phi-prefix" <> short 'p' <> metavar.path <> help [fmt|{metavarName.path} prefix to remove in PHI file paths.|])
           pure CLI'Pipeline'PrintDataizeConfigs{..}
       }
   pipeline =

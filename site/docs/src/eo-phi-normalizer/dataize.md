@@ -13,38 +13,39 @@ eo-phi-normalizer dataize --help
 ```
 
 ```console
-Usage: eo-phi-normalizer dataize [-r|--rules FILE] [FILE]
+Usage: eo-phi-normalizer dataize [--as-package] [--chain]
                                  [-d|--dependency-file FILE]
-                                 [-o|--output-file FILE] [--recursive] [--chain]
-                                 [--wrap-raw-bytes] [--tex] [--as-package]
-                                 [--minimize-stuck-terms]
                                  [--disable-atom ATOM_NAME]
                                  [--enable-atom ATOM_NAME]
+                                 [--minimize-stuck-terms]
+                                 [-o|--output-file FILE] [--recursive]
+                                 [-r|--rules FILE] [--tex] [--wrap-raw-bytes]
+                                 [FILE]
 
   Dataize a PHI program.
 
 Available options:
-  -r,--rules FILE          FILE with user-defined rules. If unspecified, builtin
-                           set of rules is used.
-  FILE                     FILE to read input from. When no FILE is specified,
-                           read from stdin.
+  --as-package             Automatically inject (λ → Package) in the program if
+                           necessary, to dataize all fields.
+  --chain                  Display all the intermediate steps.
   -d,--dependency-file FILE
                            FILE to read dependencies from (zero or more
                            dependency files allowed).
-  -o,--output-file FILE    Output to FILE. When this option is not specified,
-                           output to stdout.
-  --recursive              Apply dataization + normalization recursively.
-  --chain                  Display all the intermediate steps.
-  --wrap-raw-bytes         Wrap raw bytes ⟦ Δ ⤍ 01- ⟧ as Φ.org.eolang.bytes(Δ ⤍
-                           01-) in the final output.
-  --tex                    Output LaTeX.
-  --as-package             Automatically inject (λ → Package) in the program if
-                           necessary, to dataize all fields.
+  --disable-atom ATOM_NAME Name of an atom to disable.
+  --enable-atom ATOM_NAME  Name of an atom to enable.
   --minimize-stuck-terms   If a dataized (sub)term is stuck (cannot be fully
                            dataized), use the minimal (by size) intermediate
                            result.
-  --disable-atom ATOM_NAME Name of an atom to disable.
-  --enable-atom ATOM_NAME  Name of an atom to enable.
+  -o,--output-file FILE    Output to FILE. When this option is not specified,
+                           output to stdout.
+  --recursive              Apply dataization + normalization recursively.
+  -r,--rules FILE          FILE with user-defined rules. If unspecified, builtin
+                           set of rules is used.
+  --tex                    Output LaTeX.
+  --wrap-raw-bytes         Wrap raw bytes ⟦ Δ ⤍ 01- ⟧ as Φ.org.eolang.bytes(Δ ⤍
+                           01-) in the final output.
+  FILE                     FILE to read input from. When no FILE is specified,
+                           read from stdin.
   -h,--help                Show this help text
 ```
 

@@ -9,15 +9,15 @@ eo-phi-normalizer print-rules --help
 ```
 
 ```console
-Usage: eo-phi-normalizer print-rules [-r|--rules FILE] [--tex] [-c|--compact]
+Usage: eo-phi-normalizer print-rules [-c|--compact] [-r|--rules FILE] [--tex]
 
   Print rules in LaTeX format.
 
 Available options:
+  -c,--compact             Print rules, each on a single line.
   -r,--rules FILE          FILE with user-defined rules. If unspecified,
                            yegor.yaml is rendered.
   --tex                    Output LaTeX.
-  -c,--compact             Print rules, each on a single line.
   -h,--help                Show this help text
 ```
 

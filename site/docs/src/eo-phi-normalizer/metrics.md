@@ -17,20 +17,20 @@ eo-phi-normalizer metrics --help
 ```
 
 ```console
-Usage: eo-phi-normalizer metrics [FILE] [-o|--output-file FILE]
-                                 [-b|--bindings-path PATH]
+Usage: eo-phi-normalizer metrics [-b|--bindings-path PATH]
+                                 [-o|--output-file FILE] [FILE]
 
   Collect metrics for a PHI program.
 
 Available options:
-  FILE                     FILE to read input from. When no FILE is specified,
-                           read from stdin.
-  -o,--output-file FILE    Output to FILE. When this option is not specified,
-                           output to stdout.
   -b,--bindings-path PATH  Report metrics for bindings of a formation accessible
                            in a program by the PATH. When this option is not
                            specified, metrics for bindings are not reported.
                            Example of a PATH: 'org.eolang'.
+  -o,--output-file FILE    Output to FILE. When this option is not specified,
+                           output to stdout.
+  FILE                     FILE to read input from. When no FILE is specified,
+                           read from stdin.
   -h,--help                Show this help text
 ```
 
