@@ -30,6 +30,7 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedRecordDot #-}
+{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TemplateHaskell #-}
@@ -47,7 +48,7 @@ import Data.Yaml (decodeFileThrow)
 import GHC.Generics (Generic)
 import Language.EO.Phi.Metrics.Data
 import Language.EO.Phi.TH (deriveJSON)
-import System.FilePath ((<.>), (</>))
+import PyF (fmt)
 import Text.Printf (printf)
 
 data TestSetPhi = TestSetPhi
@@ -231,25 +232,26 @@ toExtended c@(PipelineConfig{testSets}) = c{testSets = concatMap go testSets}
 
   go1 (Common{..}) (Individual{..}) = TestSetExtended{..}
    where
+    mkPath :: FilePath -> String -> String
+    mkPath prefix extension = [fmt|{prefix}/{name}.{extension}|]
     eo =
       TestSetEO
-        { original = pathPrefix.eo.original </> name <.> "eo"
-        , yaml = pathPrefix.eo.yaml </> name <.> "yaml"
-        , filtered = pathPrefix.eo.filtered </> name <.> "eo"
+        { original = mkPath pathPrefix.eo.original "eo"
+        , yaml = mkPath pathPrefix.eo.yaml "yaml"
+        , filtered = mkPath pathPrefix.eo.filtered "eo"
         , include
         , exclude
         }
     phi =
       TestSetPhi
-        { initial = pathPrefix.phi.initial </> name <.> "phi"
-        , normalized = pathPrefix.phi.normalized </> name <.> "phi"
+        { initial = mkPath pathPrefix.phi.initial "phi"
+        , normalized = mkPath pathPrefix.phi.normalized "phi"
         , bindingsPathInitial = bindingsPath <&> mkBindingsPathSuffix
         , bindingsPathNormalized = bindingsPath <&> mkBindingsPathSuffix
         }
      where
       name' = split (== '/') name
-      mkBindingsPathSuffix x =
-        x <> intercalate "." (if name' /= [] then init name' else [])
+      mkBindingsPathSuffix x = x <> intercalate "." (if name' /= [] then init name' else [])
 
 readPipelineConfig :: (MonadIO m) => FilePath -> m PipelineConfig
 readPipelineConfig path = toExtended <$> decodeFileThrow @_ @PipelineConfig path
