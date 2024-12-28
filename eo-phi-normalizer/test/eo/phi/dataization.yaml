@@ -56,7 +56,9 @@ tests:
     input: |
       {
         ⟦
-          φ ↦ Φ̇.true.eq(α0 ↦ Φ̇.true)
+          φ ↦ Φ̇.true.eq(
+            Φ̇.true
+          )
         ⟧
       }
     output:
