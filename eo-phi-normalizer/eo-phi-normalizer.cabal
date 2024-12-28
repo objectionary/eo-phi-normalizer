@@ -371,24 +371,59 @@ extra-source-files:
     data/0.49.4/org/eolang/while.phi
     data/0.50.0/dependencies.md
     data/0.50.0/org/eolang/bytes.phi
+    data/0.50.0/org/eolang/cti.phi
     data/0.50.0/org/eolang/dataized.phi
     data/0.50.0/org/eolang/error.phi
     data/0.50.0/org/eolang/false.phi
+    data/0.50.0/org/eolang/fs/dir.phi
+    data/0.50.0/org/eolang/fs/file.phi
+    data/0.50.0/org/eolang/fs/path.phi
+    data/0.50.0/org/eolang/fs/tmpdir.phi
+    data/0.50.0/org/eolang/go.phi
     data/0.50.0/org/eolang/i16.phi
     data/0.50.0/org/eolang/i32.phi
     data/0.50.0/org/eolang/i64.phi
+    data/0.50.0/org/eolang/io/bytes-as-input.phi
+    data/0.50.0/org/eolang/io/console.phi
     data/0.50.0/org/eolang/io/dead-input.phi
     data/0.50.0/org/eolang/io/dead-output.phi
+    data/0.50.0/org/eolang/io/input-length.phi
+    data/0.50.0/org/eolang/io/malloc-as-output.phi
+    data/0.50.0/org/eolang/io/stdout.phi
+    data/0.50.0/org/eolang/io/tee-input.phi
+    data/0.50.0/org/eolang/malloc.phi
+    data/0.50.0/org/eolang/math/angle.phi
+    data/0.50.0/org/eolang/math/e.phi
+    data/0.50.0/org/eolang/math/integral.phi
+    data/0.50.0/org/eolang/math/numbers.phi
+    data/0.50.0/org/eolang/math/pi.phi
+    data/0.50.0/org/eolang/math/random.phi
+    data/0.50.0/org/eolang/math/real.phi
     data/0.50.0/org/eolang/nan.phi
     data/0.50.0/org/eolang/negative-infinity.phi
     data/0.50.0/org/eolang/number.phi
     data/0.50.0/org/eolang/positive-infinity.phi
     data/0.50.0/org/eolang/seq.phi
     data/0.50.0/org/eolang/string.phi
+    data/0.50.0/org/eolang/structs/bytes-as-array.phi
+    data/0.50.0/org/eolang/structs/hash-code-of.phi
+    data/0.50.0/org/eolang/structs/list.phi
+    data/0.50.0/org/eolang/structs/map.phi
+    data/0.50.0/org/eolang/structs/range-of-ints.phi
+    data/0.50.0/org/eolang/structs/range.phi
+    data/0.50.0/org/eolang/structs/set.phi
+    data/0.50.0/org/eolang/switch.phi
+    data/0.50.0/org/eolang/sys/getenv.phi
+    data/0.50.0/org/eolang/sys/os.phi
+    data/0.50.0/org/eolang/sys/posix.phi
+    data/0.50.0/org/eolang/sys/win32.phi
     data/0.50.0/org/eolang/true.phi
     data/0.50.0/org/eolang/try.phi
     data/0.50.0/org/eolang/tuple.phi
+    data/0.50.0/org/eolang/txt/regex.phi
     data/0.50.0/org/eolang/txt/sprintf.phi
+    data/0.50.0/org/eolang/txt/sscanf.phi
+    data/0.50.0/org/eolang/txt/text.phi
     data/0.50.0/org/eolang/while.phi
     test/eo/phi/rules/new.yaml
     test/eo/phi/rules/streams.yaml

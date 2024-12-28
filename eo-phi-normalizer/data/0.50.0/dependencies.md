@@ -386,6 +386,133 @@
 ⟧}
 ```
 
+## [org/eolang/io/console.phi](./org/eolang/io/console.phi)
+
+```console
+{⟦
+  org() ↦ ⟦
+    eolang() ↦ ⟦
+      io() ↦ ⟦
+        console() ↦ ⟦
+          φ ↦ Φ̇.sys.os.is-windows.if(ξ.windows-console, ξ.posix-console).platform,
+          posix-console() ↦ ⟦
+            platform ↦ ξ,
+            read(size) ↦ ⟦
+              φ ↦ ξ.input-block(Φ̇.bytes(⟦ Δ ⤍ -- ⟧)).read(ξ.size).self,
+              input-block(buffer) ↦ ⟦
+                self ↦ ξ,
+                φ ↦ ξ.buffer,
+                read(size) ↦ ⟦
+                  read-bytes ↦ Φ̇.dataized(
+                    Φ̇.sys.posix(
+                      "read",
+                      Φ̇.tuple(
+                        Φ̇.tuple(Φ̇.tuple.empty, Φ̇.sys.posix.stdin-fileno), ξ.size
+                      )
+                    ).output
+                  ).as-bytes,
+                  φ ↦ Φ̇.seq(
+                    Φ̇.tuple(
+                      Φ̇.tuple(Φ̇.tuple.empty, ξ.read-bytes), ξ.ρ.ρ.input-block(ξ.read-bytes)
+                    )
+                  ).self
+                ⟧
+              ⟧
+            ⟧,
+            write(buffer) ↦ ⟦
+              φ ↦ ξ.output-block.write(ξ.buffer).self,
+              output-block() ↦ ⟦
+                self ↦ ξ,
+                φ ↦ Φ̇.true,
+                write(buffer) ↦ ⟦
+                  φ ↦ Φ̇.seq(
+                    Φ̇.tuple(
+                      Φ̇.tuple(
+                        Φ̇.tuple.empty,
+                        Φ̇.sys.posix(
+                          "write",
+                          Φ̇.tuple(
+                            Φ̇.tuple(
+                              Φ̇.tuple(
+                                Φ̇.tuple.empty, Φ̇.sys.posix.stdout-fileno
+                              ),
+                              ξ.buffer
+                            ),
+                            ξ.buffer.size
+                          )
+                        ).code
+                      ),
+                      ξ.ρ.ρ.output-block
+                    )
+                  ).self
+                ⟧
+              ⟧
+            ⟧
+          ⟧,
+          windows-console() ↦ ⟦
+            platform ↦ ξ,
+            read(size) ↦ ⟦
+              φ ↦ ξ.input-block(Φ̇.bytes(⟦ Δ ⤍ -- ⟧)).read(ξ.size).self,
+              input-block(buffer) ↦ ⟦
+                self ↦ ξ,
+                φ ↦ ξ.buffer,
+                read(size) ↦ ⟦
+                  read-bytes ↦ Φ̇.dataized(
+                    Φ̇.sys.win32(
+                      "ReadFile",
+                      Φ̇.tuple(
+                        Φ̇.tuple(Φ̇.tuple.empty, Φ̇.sys.win32.std-input-handle), ξ.size
+                      )
+                    ).output
+                  ).as-bytes,
+                  φ ↦ Φ̇.seq(
+                    Φ̇.tuple(
+                      Φ̇.tuple(Φ̇.tuple.empty, ξ.read-bytes), ξ.ρ.ρ.input-block(ξ.read-bytes)
+                    )
+                  ).self
+                ⟧
+              ⟧
+            ⟧,
+            write(buffer) ↦ ⟦
+              φ ↦ ξ.output-block.write(ξ.buffer).self,
+              output-block() ↦ ⟦
+                self ↦ ξ,
+                φ ↦ Φ̇.true,
+                write(buffer) ↦ ⟦
+                  φ ↦ Φ̇.seq(
+                    Φ̇.tuple(
+                      Φ̇.tuple(
+                        Φ̇.tuple.empty,
+                        Φ̇.sys.win32(
+                          "WriteFile",
+                          Φ̇.tuple(
+                            Φ̇.tuple(
+                              Φ̇.tuple(
+                                Φ̇.tuple.empty, Φ̇.sys.win32.std-output-handle
+                              ),
+                              ξ.buffer
+                            ),
+                            ξ.buffer.size
+                          )
+                        ).code
+                      ),
+                      ξ.ρ.ρ.output-block
+                    )
+                  ).self
+                ⟧
+              ⟧
+            ⟧
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}
+```
+
 ## [org/eolang/io/dead-input.phi](./org/eolang/io/dead-input.phi)
 
 ```console
@@ -430,6 +557,29 @@
               ⟧
             ⟧
           ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}
+```
+
+## [org/eolang/io/stdout.phi](./org/eolang/io/stdout.phi)
+
+```console
+{⟦
+  org() ↦ ⟦
+    eolang() ↦ ⟦
+      io() ↦ ⟦
+        stdout(text) ↦ ⟦
+          φ ↦ Φ̇.seq(
+            Φ̇.tuple(
+              Φ̇.tuple(Φ̇.tuple.empty, Φ̇.io.console.write(ξ.text)), Φ̇.true
+            )
+          )
         ⟧,
         λ ⤍ Package
       ⟧,
@@ -882,6 +1032,117 @@
 ⟧}
 ```
 
+## [org/eolang/sys/os.phi](./org/eolang/sys/os.phi)
+
+```console
+{⟦
+  org() ↦ ⟦
+    eolang() ↦ ⟦
+      sys() ↦ ⟦
+        os() ↦ ⟦
+          φ ↦ ξ.name,
+          is-windows() ↦ ⟦
+            os-name ↦ Φ̇.dataized(ξ.ρ.name).as-bytes,
+            φ ↦ ξ.os-name.size.gt(6).and(ξ.os-name.slice(0, 7).eq("Windows"))
+          ⟧,
+          is-linux ↦ Φ̇.txt.regex("/linux/i").matches(ξ.name).as-bool,
+          is-macos ↦ Φ̇.txt.regex("/mac/i").matches(ξ.name).as-bool,
+          name() ↦ ⟦
+            λ ⤍ Lorg_eolang_sys_os_name
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}
+```
+
+## [org/eolang/sys/posix.phi](./org/eolang/sys/posix.phi)
+
+```console
+{⟦
+  org() ↦ ⟦
+    eolang() ↦ ⟦
+      sys() ↦ ⟦
+        posix(name, args) ↦ ⟦
+          stdin-fileno ↦ 0,
+          stdout-fileno ↦ 1,
+          af-inet ↦ 2,
+          sock-stream ↦ 1,
+          ipproto-tcp ↦ 6,
+          inaddr-none ↦ -1,
+          φ() ↦ ⟦
+            λ ⤍ Lorg_eolang_sys_posix_φ
+          ⟧,
+          return(code, output) ↦ ⟦
+            called ↦ ξ,
+            φ ↦ ξ.output
+          ⟧,
+          timeval(tv-sec, tv-usec) ↦ ⟦
+            self ↦ ξ
+          ⟧,
+          sockaddr-in(sin-family, sin-port, sin-addr) ↦ ⟦
+            sin-zero ↦ Φ̇.bytes(⟦ Δ ⤍ 00-00-00-00-00-00-00-00 ⟧),
+            size ↦ ξ.sin-family.size.plus(ξ.sin-port.size).plus(ξ.sin-addr.size).plus(
+              ξ.sin-zero.size
+            )
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}
+```
+
+## [org/eolang/sys/win32.phi](./org/eolang/sys/win32.phi)
+
+```console
+{⟦
+  org() ↦ ⟦
+    eolang() ↦ ⟦
+      sys() ↦ ⟦
+        win32(name, args) ↦ ⟦
+          std-input-handle ↦ -10,
+          std-output-handle ↦ -11,
+          af-inet ↦ 2,
+          sock-stream ↦ 1,
+          ipproto-tcp ↦ 6,
+          invalid-socket ↦ -1,
+          socket-error ↦ -1,
+          inaddr-none ↦ -1,
+          winsock-version-2-2 ↦ Φ̇.bytes(⟦ Δ ⤍ 02-02 ⟧),
+          φ() ↦ ⟦
+            λ ⤍ Lorg_eolang_sys_win32_φ
+          ⟧,
+          return(code, output) ↦ ⟦
+            called ↦ ξ,
+            φ ↦ ξ.output
+          ⟧,
+          system-time(year, month, day, day-of-week, hour, minute, second, milliseconds) ↦ ⟦
+            self ↦ ξ
+          ⟧,
+          sockaddr-in(sin-family, sin-port, sin-addr) ↦ ⟦
+            sin-zero ↦ Φ̇.bytes(⟦ Δ ⤍ 00-00-00-00-00-00-00-00 ⟧),
+            size ↦ ξ.sin-family.size.plus(ξ.sin-port.size).plus(ξ.sin-addr.size).plus(
+              ξ.sin-zero.size
+            )
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}
+```
+
 ## [org/eolang/true.phi](./org/eolang/true.phi)
 
 ```console
@@ -960,6 +1221,67 @@
         with(x) ↦ ⟦
           φ ↦ ξ.ρ.ρ.tuple(ξ.ρ, ξ.x)
         ⟧
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}
+```
+
+## [org/eolang/txt/regex.phi](./org/eolang/txt/regex.phi)
+
+```console
+{⟦
+  org() ↦ ⟦
+    eolang() ↦ ⟦
+      txt() ↦ ⟦
+        regex(expression) ↦ ⟦
+          φ ↦ ξ.compiled,
+          compiled() ↦ ⟦
+            λ ⤍ Lorg_eolang_txt_regex_compiled
+          ⟧,
+          pattern(serialized) ↦ ⟦
+            matches(txt) ↦ ⟦
+              φ ↦ ξ.ρ.match(ξ.txt).next.exists
+            ⟧,
+            match(txt) ↦ ⟦
+              next ↦ ξ.matched-from-index(1, 0).matched,
+              matched-from-index(position, start) ↦ ⟦
+                λ ⤍ Lorg_eolang_txt_regex_pattern_match_matched_from_index
+              ⟧,
+              matched(position, start, from, to, groups) ↦ ⟦
+                matched ↦ ξ,
+                groups-count ↦ ξ.groups.length,
+                exists ↦ ξ.start.gte(0),
+                next ↦ ξ.exists.if(
+                  ξ.ρ.matched-from-index(ξ.position.plus(1), ξ.to).matched,
+                  Φ̇.error("Matched block does not exist, can't get next")
+                ),
+                text ↦ ξ.exists.if(
+                  ξ.group(0), Φ̇.error("Matched block does not exist, can't get text")
+                ),
+                group(index) ↦ ⟦
+                  φ ↦ ξ.ρ.groups.at(ξ.index)
+                ⟧
+              ⟧,
+              not-matched(position) ↦ ⟦
+                φ ↦ ξ.ρ.matched(
+                  ξ.position,
+                  -1,
+                  Φ̇.error(
+                    "Matched block does not exist, can't get 'from' position"
+                  ),
+                  Φ̇.error(
+                    "Matched block does not exist, can't get 'to' position"
+                  ),
+                  Φ̇.error("Matched block does not exist, can't get groups")
+                )
+              ⟧
+            ⟧
+          ⟧
+        ⟧,
+        λ ⤍ Package
       ⟧,
       λ ⤍ Package
     ⟧,

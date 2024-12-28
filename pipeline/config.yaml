@@ -32,16 +32,6 @@ report:
   expected-improved-programs-percentage: 0.9
 test-sets:
 - eo:
-    original: eo/eo-runtime/src/test/eo/org/eolang/as-phi-tests.eo
-    yaml: pipeline/eo-yaml/as-phi-tests.yaml
-    filtered: pipeline/eo-filtered/as-phi-tests.eo
-  phi:
-    initial: pipeline/phi-initial/as-phi-tests.phi
-    normalized: pipeline/phi-normalized/as-phi-tests.phi
-    bindings-path-initial: org.eolang
-    bindings-path-normalized: org.eolang
-  enable: false
-- eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/bool-tests.eo
     yaml: pipeline/eo-yaml/bool-tests.yaml
     filtered: pipeline/eo-filtered/bool-tests.eo
@@ -90,16 +80,6 @@ test-sets:
     normalized: pipeline/phi-normalized/bytes-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
-- eo:
-    original: eo/eo-runtime/src/test/eo/org/eolang/cage-tests.eo
-    yaml: pipeline/eo-yaml/cage-tests.yaml
-    filtered: pipeline/eo-filtered/cage-tests.eo
-  phi:
-    initial: pipeline/phi-initial/cage-tests.phi
-    normalized: pipeline/phi-normalized/cage-tests.phi
-    bindings-path-initial: org.eolang
-    bindings-path-normalized: org.eolang
-  enable: false
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/cti-test.eo
     yaml: pipeline/eo-yaml/cti-test.yaml
@@ -236,6 +216,15 @@ test-sets:
     bindings-path-normalized: org.eolang.io
   enable: false
 - eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/io/console-test.eo
+    yaml: pipeline/eo-yaml/io/console-test.yaml
+    filtered: pipeline/eo-filtered/io/console-test.eo
+  phi:
+    initial: pipeline/phi-initial/io/console-test.phi
+    normalized: pipeline/phi-normalized/io/console-test.phi
+    bindings-path-initial: org.eolang.io
+    bindings-path-normalized: org.eolang.io
+- eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/io/dead-input-tests.eo
     yaml: pipeline/eo-yaml/io/dead-input-tests.yaml
     filtered: pipeline/eo-filtered/io/dead-input-tests.eo
@@ -273,6 +262,15 @@ test-sets:
     bindings-path-initial: org.eolang.io
     bindings-path-normalized: org.eolang.io
   enable: false
+- eo:
+    original: eo/eo-runtime/src/test/eo/org/eolang/io/stdout-test.eo
+    yaml: pipeline/eo-yaml/io/stdout-test.yaml
+    filtered: pipeline/eo-filtered/io/stdout-test.eo
+  phi:
+    initial: pipeline/phi-initial/io/stdout-test.phi
+    normalized: pipeline/phi-normalized/io/stdout-test.phi
+    bindings-path-initial: org.eolang.io
+    bindings-path-normalized: org.eolang.io
 - eo:
     original: eo/eo-runtime/src/test/eo/org/eolang/io/tee-input-tests.eo
     yaml: pipeline/eo-yaml/io/tee-input-tests.yaml
@@ -508,16 +506,6 @@ test-sets:
   phi:
     initial: pipeline/phi-initial/runtime-tests.phi
     normalized: pipeline/phi-normalized/runtime-tests.phi
-    bindings-path-initial: org.eolang
-    bindings-path-normalized: org.eolang
-  enable: false
-- eo:
-    original: eo/eo-runtime/src/test/eo/org/eolang/rust-tests.eo
-    yaml: pipeline/eo-yaml/rust-tests.yaml
-    filtered: pipeline/eo-filtered/rust-tests.eo
-  phi:
-    initial: pipeline/phi-initial/rust-tests.phi
-    normalized: pipeline/phi-normalized/rust-tests.phi
     bindings-path-initial: org.eolang
     bindings-path-normalized: org.eolang
   enable: false
