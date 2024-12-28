@@ -6,6 +6,25 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to the
 [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## v3.0.0 - 2024-12-28
+
+### Breaking changes
+
+- Switch to built-in rules until `new.yaml` rules work ([#619](https://github.com/objectionary/eo-phi-normalizer/pull/619))
+- Update EO to 0.50.0, use `yegor.yaml` by default ([#617](https://github.com/objectionary/eo-phi-normalizer/pull/617), [#641](https://github.com/objectionary/eo-phi-normalizer/pull/641))
+
+### Changes and fixes
+
+- Rename `Normal form` to `NF` ([#627](https://github.com/objectionary/eo-phi-normalizer/pull/627))
+- Run CI on PRs to `develop` ([#638](https://github.com/objectionary/eo-phi-normalizer/pull/638))
+- Sort options in command help messages ([#642](https://github.com/objectionary/eo-phi-normalizer/pull/642))
+
+### Documentation and maintenance
+
+- Add quick start to the README ([#632](https://github.com/objectionary/eo-phi-normalizer/pull/632))
+- Remove the description of dataization ([#635](https://github.com/objectionary/eo-phi-normalizer/pull/635))
+- chore(deps): update baptiste0928/cargo-install action to v3.2.0 ([#640](https://github.com/objectionary/eo-phi-normalizer/pull/640))
+
 ## v2.3.0 - 2024-12-05
 
 ### Breaking changes
