@@ -1,0 +1,23 @@
+{⟦
+  org() ↦ ⟦
+    eolang() ↦ ⟦
+      sys() ↦ ⟦
+        os() ↦ ⟦
+          φ ↦ ξ.name,
+          is-windows() ↦ ⟦
+            os-name ↦ Φ̇.dataized(ξ.ρ.name).as-bytes,
+            φ ↦ ξ.os-name.size.gt(6).and(ξ.os-name.slice(0, 7).eq("Windows"))
+          ⟧,
+          is-linux ↦ Φ̇.txt.regex("/linux/i").matches(ξ.name).as-bool,
+          is-macos ↦ Φ̇.txt.regex("/mac/i").matches(ξ.name).as-bool,
+          name() ↦ ⟦
+            λ ⤍ Lorg_eolang_sys_os_name
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

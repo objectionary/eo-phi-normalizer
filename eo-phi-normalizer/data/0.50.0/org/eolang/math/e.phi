@@ -1,0 +1,12 @@
+{⟦
+  org() ↦ ⟦
+    eolang() ↦ ⟦
+      math() ↦ ⟦
+        e ↦ 2.718281828459045,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

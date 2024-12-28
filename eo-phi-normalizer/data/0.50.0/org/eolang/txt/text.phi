@@ -1,0 +1,275 @@
+{⟦
+  org() ↦ ⟦
+    eolang() ↦ ⟦
+      txt() ↦ ⟦
+        text(origin) ↦ ⟦
+          φ ↦ ξ.origin,
+          is-alphanumeric ↦ Φ̇.txt.regex("/^[A-Za-z0-9]+$/").matches(ξ.origin),
+          is-alpha ↦ Φ̇.txt.regex("/^[a-zA-Z]+$/").matches(ξ.origin),
+          is-ascii ↦ Φ̇.txt.regex("/^[\\x00-\\x7F]*$/").matches(ξ.origin),
+          slice(start, len) ↦ ⟦
+            φ ↦ ξ.ρ.ρ.text(ξ.ρ.origin.slice(ξ.start, ξ.len))
+          ⟧,
+          trimmed-left() ↦ ⟦
+            len ↦ Φ̇.dataized(ξ.ρ.origin.length).as-bytes,
+            idx ↦ Φ̇.dataized(ξ.first-non-space-index(0)).as-bytes,
+            φ ↦ 0.eq(ξ.len).if(
+              ξ.ρ, ξ.ρ.slice(ξ.idx, Φ̇.number(ξ.len).minus(Φ̇.number(ξ.idx)))
+            ),
+            first-non-space-index(index) ↦ ⟦
+              char ↦ Φ̇.dataized(ξ.ρ.ρ.origin.slice(ξ.index, 1)).as-bytes,
+              φ ↦ ξ.ρ.len.eq(ξ.index).if(
+                ξ.index,
+                " ".eq(ξ.char).if(
+                  ξ.ρ.first-non-space-index(ξ.index.plus(1)), ξ.index
+                )
+              )
+            ⟧
+          ⟧,
+          trimmed-right() ↦ ⟦
+            len ↦ Φ̇.dataized(ξ.ρ.origin.length).as-bytes,
+            φ ↦ 0.eq(ξ.len).if(
+              ξ.ρ, ξ.ρ.slice(0, ξ.first-non-space-index(Φ̇.number(ξ.len).plus(-1)))
+            ),
+            first-non-space-index(index) ↦ ⟦
+              char ↦ Φ̇.dataized(ξ.ρ.ρ.origin.slice(ξ.index, 1)).as-bytes,
+              φ ↦ -1.eq(ξ.index).if(
+                0,
+                " ".eq(ξ.char).if(
+                  ξ.ρ.first-non-space-index(ξ.index.plus(-1)), ξ.index.plus(1)
+                )
+              )
+            ⟧
+          ⟧,
+          trimmed() ↦ ⟦
+            φ ↦ 0.eq(ξ.ρ.length).if(ξ.ρ, ξ.ρ.trimmed-left.trimmed-right)
+          ⟧,
+          joined(items) ↦ ⟦
+            delimiter ↦ Φ̇.dataized(ξ.ρ.origin).as-bytes,
+            first ↦ ξ.items.at(0),
+            len ↦ Φ̇.dataized(ξ.items.length).as-bytes,
+            not-empty ↦ Φ̇.dataized(
+              1.eq(ξ.len).if(
+                ξ.first, ξ.first.as-bytes.concat(ξ.with-delimiter("".as-bytes, 1))
+              )
+            ).as-bytes,
+            φ ↦ ξ.ρ.ρ.text(0.eq(ξ.len).if("", Φ̇.string(ξ.not-empty))),
+            with-delimiter(acc, index) ↦ ⟦
+              φ ↦ ξ.ρ.len.eq(ξ.index).if(
+                ξ.acc,
+                ξ.ρ.with-delimiter(
+                  ξ.acc.concat(ξ.ρ.delimiter.concat(ξ.ρ.items.at(ξ.index))), ξ.index.plus(1)
+                )
+              )
+            ⟧
+          ⟧,
+          repeated(times) ↦ ⟦
+            bts ↦ Φ̇.dataized(ξ.ρ.origin.as-bytes).as-bytes,
+            amount ↦ Φ̇.dataized(ξ.times).as-bytes,
+            φ ↦ 0.gt(ξ.amount).if(
+              Φ̇.error(
+                Φ̇.txt.sprintf(
+                  "Can't repeat text %d times", Φ̇.tuple(Φ̇.tuple.empty, ξ.amount)
+                )
+              ),
+              ξ.ρ.ρ.text(
+                0.eq(ξ.amount).if("", Φ̇.string(ξ.rec-repeated(ξ.bts, 1)))
+              )
+            ),
+            rec-repeated(accum, index) ↦ ⟦
+              φ ↦ ξ.ρ.amount.eq(ξ.index).if(
+                ξ.accum, ξ.ρ.rec-repeated(ξ.accum.concat(ξ.ρ.bts), ξ.index.plus(1))
+              )
+            ⟧
+          ⟧,
+          contains(substring) ↦ ⟦
+            φ ↦ -1.eq(ξ.ρ.index-of(ξ.substring)).not
+          ⟧,
+          ends-with(substring) ↦ ⟦
+            substr ↦ Φ̇.dataized(ξ.substring).as-bytes,
+            φ ↦ ξ.ρ.index-of(ξ.substr).eq(ξ.ρ.length.minus(ξ.substr.size))
+          ⟧,
+          starts-with(substring) ↦ ⟦
+            φ ↦ 0.eq(ξ.ρ.index-of(ξ.substring))
+          ⟧,
+          index-of(substring) ↦ ⟦
+            self-len ↦ Φ̇.dataized(Φ̇.string(ξ.ρ.origin.as-bytes).length).as-bytes,
+            substr ↦ Φ̇.string(ξ.substr-as-bytes),
+            sub-len ↦ Φ̇.dataized(ξ.substr.length).as-bytes,
+            end ↦ Φ̇.dataized(Φ̇.number(ξ.self-len).minus(Φ̇.number(ξ.sub-len))).as-bytes,
+            φ ↦ Φ̇.number(ξ.sub-len).gt(ξ.self-len).or(
+              ξ.sub-len.eq(ξ.self-len).and(ξ.substr.eq(ξ.ρ.origin).not)
+            ).if(-1, ξ.rec-index-of-substr(0)),
+            rec-index-of-substr(idx) ↦ ⟦
+              φ ↦ ξ.ρ.end.eq(ξ.idx).if(
+                ξ.contains.if(ξ.idx, -1),
+                ξ.contains.if(ξ.idx, ξ.ρ.rec-index-of-substr(ξ.idx.plus(1)))
+              ),
+              contains ↦ ξ.ρ.substr.eq(ξ.ρ.ρ.slice(ξ.idx, ξ.ρ.sub-len))
+            ⟧,
+            substr-as-bytes ↦ Φ̇.dataized(ξ.substring).as-bytes
+          ⟧,
+          last-index-of(substring) ↦ ⟦
+            self-len ↦ Φ̇.dataized(Φ̇.string(ξ.ρ.origin.as-bytes).length).as-bytes,
+            substr ↦ Φ̇.string(ξ.substr-as-bytes),
+            sub-len ↦ Φ̇.dataized(ξ.substr.length).as-bytes,
+            φ ↦ Φ̇.number(ξ.sub-len).gt(ξ.self-len).or(
+              ξ.sub-len.eq(ξ.self-len).and(ξ.substr.eq(ξ.ρ.origin).not)
+            ).if(
+              -1,
+              ξ.rec-index-of-substr(
+                Φ̇.number(ξ.self-len).minus(Φ̇.number(ξ.sub-len))
+              )
+            ),
+            rec-index-of-substr(idx) ↦ ⟦
+              φ ↦ 0.eq(ξ.idx).if(
+                ξ.contains.if(ξ.idx, -1),
+                ξ.contains.if(ξ.idx, ξ.ρ.rec-index-of-substr(ξ.idx.plus(-1)))
+              ),
+              contains ↦ ξ.ρ.substr.eq(ξ.ρ.ρ.slice(ξ.idx, ξ.ρ.sub-len))
+            ⟧,
+            substr-as-bytes ↦ Φ̇.dataized(ξ.substring).as-bytes
+          ⟧,
+          up-cased() ↦ ⟦
+            ascii-z ↦ Φ̇.dataized(ξ.ascii("z")).as-bytes,
+            ascii-a ↦ Φ̇.dataized(ξ.ascii("a")).as-bytes,
+            distance ↦ Φ̇.number(ξ.ascii-a).minus(ξ.ascii("A")),
+            φ ↦ ξ.ρ.ρ.text(
+              Φ̇.string(
+                Φ̇.structs.list(Φ̇.structs.bytes-as-array(ξ.ρ.origin.as-bytes)).reduced(
+                  Φ̇.bytes(⟦ Δ ⤍ -- ⟧), ξ.auto-named-attr-at-258-22
+                )
+              )
+            ),
+            ascii(char) ↦ ⟦
+              φ ↦ Φ̇.bytes(⟦ Δ ⤍ 00-00-00-00-00-00-00 ⟧).concat(ξ.char.as-bytes).as-i64.as-number
+            ⟧,
+            auto-named-attr-at-258-22(accum, byte) ↦ ⟦
+              ascii-bte ↦ ξ.ρ.ascii(ξ.byte),
+              φ ↦ ξ.accum.concat(
+                ξ.ascii-bte.lte(ξ.ρ.ascii-z).and(ξ.ascii-bte.gte(ξ.ρ.ascii-a)).if(
+                  ξ.ascii-bte.minus(ξ.ρ.distance).as-i64.as-bytes.slice(7, 1), ξ.byte
+                )
+              )
+            ⟧
+          ⟧,
+          low-cased() ↦ ⟦
+            ascii-z ↦ ξ.ρ.up-cased.ascii("Z"),
+            ascii-a ↦ ξ.ρ.up-cased.ascii("A"),
+            φ ↦ ξ.ρ.ρ.text(
+              Φ̇.string(
+                Φ̇.structs.list(Φ̇.structs.bytes-as-array(ξ.ρ.origin.as-bytes)).reduced(
+                  Φ̇.bytes(⟦ Δ ⤍ -- ⟧), ξ.auto-named-attr-at-291-22
+                )
+              )
+            ),
+            auto-named-attr-at-291-22(accum, byte) ↦ ⟦
+              ascii-bte ↦ ξ.ρ.ρ.up-cased.ascii(ξ.byte),
+              φ ↦ ξ.accum.concat(
+                ξ.ascii-bte.lte(ξ.ρ.ascii-z).and(ξ.ascii-bte.gte(ξ.ρ.ascii-a)).if(
+                  ξ.ascii-bte.plus(ξ.ρ.ρ.up-cased.distance).as-i64.as-bytes.slice(
+                    7, 1
+                  ),
+                  ξ.byte
+                )
+              )
+            ⟧
+          ⟧,
+          at(i) ↦ ⟦
+            len ↦ Φ̇.dataized(ξ.ρ.length).as-bytes,
+            idx ↦ Φ̇.dataized(ξ.i).as-bytes,
+            index ↦ Φ̇.dataized(
+              0.gt(ξ.idx).if(Φ̇.number(ξ.len).plus(ξ.idx), ξ.idx)
+            ).as-bytes,
+            φ ↦ 0.gt(ξ.index).or(Φ̇.number(ξ.index).gte(ξ.len)).if(
+              Φ̇.error(
+                Φ̇.txt.sprintf(
+                  "Given index %d is out of text bounds", Φ̇.tuple(Φ̇.tuple.empty, ξ.index)
+                )
+              ),
+              ξ.ρ.slice(ξ.index, 1)
+            )
+          ⟧,
+          replaced(target, replacement) ↦ ⟦
+            self-as-bytes ↦ Φ̇.dataized(ξ.ρ.origin).as-bytes,
+            reinit ↦ Φ̇.string(ξ.self-as-bytes),
+            matched ↦ ξ.target.match(ξ.reinit).next,
+            φ ↦ ξ.matched.exists.not.if(
+              Φ̇.txt.text(ξ.reinit),
+              Φ̇.txt.text(ξ.rec-replaced(ξ.matched, "", ξ.matched.start))
+            ),
+            rec-replaced(block, accum, start) ↦ ⟦
+              φ ↦ ξ.block.exists.if(
+                ξ.ρ.rec-replaced(
+                  ξ.block.next,
+                  ξ.accum.concat(
+                    ξ.ρ.reinit.slice(ξ.start, ξ.block.from.minus(ξ.start))
+                  ).concat(ξ.ρ.replacement),
+                  ξ.block.to
+                ),
+                Φ̇.string(
+                  ξ.accum.concat(
+                    ξ.ρ.reinit.slice(ξ.start, ξ.ρ.reinit.length.minus(ξ.start))
+                  )
+                )
+              )
+            ⟧
+          ⟧,
+          as-number() ↦ ⟦
+            scanned ↦ Φ̇.txt.sscanf("%f", ξ.ρ.origin),
+            φ ↦ ξ.scanned.length.eq(0).if(
+              Φ̇.error(
+                Φ̇.txt.sprintf(
+                  "Can't convert text %s to number", Φ̇.tuple(Φ̇.tuple.empty, ξ.ρ.origin)
+                )
+              ),
+              ξ.scanned.tail
+            )
+          ⟧,
+          split(delimiter) ↦ ⟦
+            delim ↦ Φ̇.dataized(ξ.delimiter).as-bytes,
+            self-as-bytes ↦ ξ.ρ.origin.as-bytes,
+            len ↦ Φ̇.dataized(ξ.self-as-bytes.size).as-bytes,
+            φ ↦ ξ.len.eq(0).if(Φ̇.tuple.empty, ξ.rec-split(Φ̇.tuple.empty, 0, 0)),
+            rec-split(accum, start, current) ↦ ⟦
+              φ ↦ ξ.ρ.len.eq(ξ.current).if(
+                ξ.with-substr,
+                ξ.ρ.delim.eq(ξ.ρ.self-as-bytes.slice(ξ.current, 1)).if(
+                  ξ.ρ.rec-split(
+                    ξ.with-substr, ξ.current.plus(1), ξ.current.plus(1)
+                  ),
+                  ξ.ρ.rec-split(ξ.accum, ξ.start, ξ.current.plus(1))
+                )
+              ),
+              with-substr ↦ ξ.accum.with(
+                Φ̇.string(
+                  ξ.ρ.self-as-bytes.slice(ξ.start, ξ.current.minus(ξ.start))
+                )
+              )
+            ⟧
+          ⟧,
+          chained(others) ↦ ⟦
+            φ ↦ 0.eq(ξ.others.length).if(
+              ξ.ρ,
+              ξ.ρ.ρ.text(
+                Φ̇.string(
+                  Φ̇.structs.list(ξ.others).reduced(
+                    ξ.ρ.origin.as-bytes,
+                    ⟦
+                      accum ↦ ∅,
+                      str ↦ ∅,
+                      φ ↦ ξ.accum.concat(ξ.str.as-bytes)
+                    ⟧
+                  )
+                )
+              )
+            )
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}

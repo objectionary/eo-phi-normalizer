@@ -1,0 +1,164 @@
+{⟦
+  org() ↦ ⟦
+    eolang() ↦ ⟦
+      fs() ↦ ⟦
+        file(path) ↦ ⟦
+          φ ↦ ξ.path,
+          is-directory() ↦ ⟦
+            λ ⤍ Lorg_eolang_fs_file_is_directory
+          ⟧,
+          exists() ↦ ⟦
+            λ ⤍ Lorg_eolang_fs_file_exists
+          ⟧,
+          touched() ↦ ⟦
+            φ ↦ ξ.ρ.exists.if(
+              ξ.ρ, Φ̇.seq(Φ̇.tuple(Φ̇.tuple(Φ̇.tuple.empty, ξ.touch), ξ.ρ))
+            ),
+            touch() ↦ ⟦
+              λ ⤍ Lorg_eolang_fs_file_touched_touch
+            ⟧
+          ⟧,
+          deleted() ↦ ⟦
+            φ ↦ ξ.ρ.exists.if(
+              Φ̇.seq(Φ̇.tuple(Φ̇.tuple(Φ̇.tuple.empty, ξ.delete), ξ.ρ)), ξ.ρ
+            ),
+            delete() ↦ ⟦
+              λ ⤍ Lorg_eolang_fs_file_deleted_delete
+            ⟧
+          ⟧,
+          size() ↦ ⟦
+            λ ⤍ Lorg_eolang_fs_file_size
+          ⟧,
+          moved(target) ↦ ⟦
+            φ ↦ Φ̇.fs.file(Φ̇.string(ξ.move.as-bytes)),
+            move() ↦ ⟦
+              λ ⤍ Lorg_eolang_fs_file_moved_move
+            ⟧
+          ⟧,
+          as-path() ↦ ⟦
+            φ ↦ Φ̇.fs.path(ξ.ρ.path).determined
+          ⟧,
+          open(mode, scope) ↦ ⟦
+            access ↦ Φ̇.dataized(ξ.mode).as-bytes,
+            read ↦ ξ.access.eq("r"),
+            write ↦ ξ.access.eq("w"),
+            append ↦ ξ.access.eq("a"),
+            read-write ↦ ξ.access.eq("r+"),
+            write-read ↦ ξ.access.eq("w+"),
+            read-append ↦ ξ.access.eq("a+"),
+            can-read ↦ ξ.read.or(ξ.read-write).or(ξ.write-read.or(ξ.read-append)).as-bool,
+            can-write ↦ ξ.write.or(ξ.read-write).or(ξ.write-read.or(ξ.read-append)).or(
+              ξ.append
+            ).as-bool,
+            must-exists ↦ ξ.read.or(ξ.read-write).as-bool,
+            truncate ↦ ξ.write.or(ξ.write-read).as-bool,
+            φ ↦ ξ.can-read.not.and(ξ.can-write.not).if(
+              Φ̇.error(
+                "Wrong access mod. Only next modes are available: 'r', 'w', 'a', 'r+', 'w+', 'a+'"
+              ),
+              ξ.ρ.exists.not.if(
+                ξ.must-exists.if(
+                  Φ̇.error(
+                    Φ̇.txt.sprintf(
+                      "File must exist for given access mod: '%s'",
+                      Φ̇.tuple(Φ̇.tuple.empty, ξ.access)
+                    )
+                  ),
+                  Φ̇.seq(
+                    Φ̇.tuple(
+                      Φ̇.tuple(
+                        Φ̇.tuple(Φ̇.tuple.empty, ξ.ρ.touched.touch), ξ.process-file
+                      ),
+                      ξ.ρ
+                    )
+                  )
+                ),
+                ξ.truncate.if(
+                  Φ̇.seq(
+                    Φ̇.tuple(
+                      Φ̇.tuple(
+                        Φ̇.tuple(
+                          Φ̇.tuple(Φ̇.tuple.empty, ξ.ρ.deleted.delete), ξ.ρ.touched.touch
+                        ),
+                        ξ.process-file
+                      ),
+                      ξ.ρ
+                    )
+                  ),
+                  Φ̇.seq(Φ̇.tuple(Φ̇.tuple(Φ̇.tuple.empty, ξ.process-file), ξ.ρ))
+                )
+              )
+            ),
+            process-file() ↦ ⟦
+              λ ⤍ Lorg_eolang_fs_file_open_process_file
+            ⟧,
+            file-stream() ↦ ⟦
+              read(size) ↦ ⟦
+                φ ↦ ξ.input-block(Φ̇.bytes(⟦ Δ ⤍ -- ⟧)).read(ξ.size).self,
+                input-block(buffer) ↦ ⟦
+                  self ↦ ξ,
+                  φ ↦ ξ.buffer,
+                  read(size) ↦ ⟦
+                    read-bytes ↦ Φ̇.dataized(ξ.ρ.ρ.read-bytes(ξ.size)).as-bytes,
+                    φ ↦ ξ.ρ.ρ.ρ.ρ.can-read.not.if(
+                      ξ.auto-named-attr-at-211-18,
+                      Φ̇.seq(
+                        Φ̇.tuple(
+                          Φ̇.tuple(Φ̇.tuple.empty, ξ.read-bytes), ξ.ρ.ρ.input-block(ξ.read-bytes)
+                        )
+                      )
+                    ).self,
+                    auto-named-attr-at-211-18() ↦ ⟦
+                      self ↦ ξ,
+                      φ ↦ Φ̇.error(
+                        Φ̇.txt.sprintf(
+                          "Can't read from file with provided access mode '%s'",
+                          Φ̇.tuple(Φ̇.tuple.empty, ξ.ρ.ρ.ρ.ρ.ρ.access)
+                        )
+                      )
+                    ⟧
+                  ⟧
+                ⟧,
+                read-bytes(size) ↦ ⟦
+                  λ ⤍ Lorg_eolang_fs_file_open_file_stream_read_read_bytes
+                ⟧
+              ⟧,
+              write(buffer) ↦ ⟦
+                φ ↦ ξ.output-block.write(ξ.buffer).self,
+                output-block() ↦ ⟦
+                  self ↦ ξ,
+                  φ ↦ Φ̇.true,
+                  write(buffer) ↦ ⟦
+                    φ ↦ ξ.ρ.ρ.ρ.ρ.can-write.not.if(
+                      ξ.auto-named-attr-at-252-18,
+                      Φ̇.seq(
+                        Φ̇.tuple(
+                          Φ̇.tuple(Φ̇.tuple.empty, ξ.ρ.ρ.written-bytes(ξ.buffer)), ξ.ρ.ρ.output-block
+                        )
+                      )
+                    ).self,
+                    auto-named-attr-at-252-18() ↦ ⟦
+                      self ↦ ξ,
+                      φ ↦ Φ̇.error(
+                        Φ̇.txt.sprintf(
+                          "Can't write to file with provided access mode '%s'",
+                          Φ̇.tuple(Φ̇.tuple.empty, ξ.ρ.ρ.ρ.ρ.ρ.access)
+                        )
+                      )
+                    ⟧
+                  ⟧
+                ⟧,
+                written-bytes(buffer) ↦ ⟦
+                  λ ⤍ Lorg_eolang_fs_file_open_file_stream_write_written_bytes
+                ⟧
+              ⟧
+            ⟧
+          ⟧
+        ⟧,
+        λ ⤍ Package
+      ⟧,
+      λ ⤍ Package
+    ⟧,
+    λ ⤍ Package
+  ⟧
+⟧}
