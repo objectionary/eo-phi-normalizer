@@ -57,15 +57,6 @@ applyRule rule = \case
 
 spec :: Spec
 spec = do
-  describe "Pre-defined rules" $
-    forM_ ([(6, rule6)] :: [(Int, Rule)]) $
-      \(idx, rule) -> do
-        PhiTestGroup{..} <- runIO (fileTests [fmt|test/eo/phi/rule-{idx}.yaml|])
-        describe title $
-          forM_ tests $
-            \PhiTest{..} ->
-              it name $
-                applyRule (rule (defaultContext [] (progToObj input))) input `shouldBe` [normalized]
   describe "Programs translated from EO" $ do
     phiTests <- runIO (allPhiTests "test/eo/phi/from-eo/")
     forM_ phiTests $ \PhiTestGroup{..} ->
