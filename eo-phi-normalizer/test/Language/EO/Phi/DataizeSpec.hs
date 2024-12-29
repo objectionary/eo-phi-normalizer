@@ -38,7 +38,7 @@ import Language.EO.Phi.Dataize.Context (defaultContext)
 import Language.EO.Phi.Dependencies (deepMergePrograms)
 import Language.EO.Phi.Rules.Common (equalObject)
 import Language.EO.Phi.Rules.Yaml (convertRuleNamed, parseRuleSetFromFile, rules)
-import Test.EO.Phi (DataizationResult (Bytes, Object), DataizeTest (..), DataizeTestGroup (..), dataizationTests)
+import Test.EO.Phi (DataizationResult (Bytes, Object), DataizeTest (..), DataizeTestGroup (..), dataizationTests, progToObj)
 
 newtype ObjectOrBytes = ObjectOrBytes (Either Phi.Object Phi.Bytes)
 
@@ -87,6 +87,3 @@ spec = do
               it test.name $ do
                 let dataizedResult = dataizeRecursively ctx inputObj
                 ObjectOrBytes dataizedResult `shouldBe` ObjectOrBytes expectedResult
-
-progToObj :: Phi.Program -> Phi.Object
-progToObj (Phi.Program bindings) = Phi.Formation bindings

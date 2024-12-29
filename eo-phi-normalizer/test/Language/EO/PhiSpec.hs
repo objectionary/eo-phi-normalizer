@@ -77,6 +77,3 @@ spec = do
 
 trim :: String -> String
 trim = dropWhileEnd isSpace
-
-progToObj :: Program -> Object
-progToObj (Program bindings) = Formation bindings
