@@ -1,0 +1,98 @@
+title: "Rewriting tests (integration tests)"
+tests:
+# TODO #655:10m Enable
+# - name: e-alph
+#   input: |
+#     {⟦ k ↦ ⟦ x ↦ ∅ ⟧ ( α0 ↦ ⟦ Δ ⤍ 42- ⟧ ).x ⟧}
+#   output: |
+#     {⟦ k ↦ ⟦ Δ ⤍ 42- ⟧ ⟧}
+# - name: e-fnk
+#   input: |
+#     {⟦ m ↦ ⟦ x ↦ ⟦ t ↦ ∅ ⟧ (t ↦ ξ.k), k ↦ ⟦ λ ⤍ Fn ⟧ ⟧.x.t.p ⟧}
+#   output: |
+#     {⟦ m ↦ ⟦ λ ⤍ Fn, ρ ↦ ⟦ x ↦ ⟦ t ↦ ∅ ⟧ (t ↦ ξ.k), k ↦ ⟦ λ ⤍ Fn ⟧ ⟧ ⟧.p ⟧}
+- name: e-ald
+  input: |
+    {⟦ k ↦ ⟦ x ↦ ∅ ⟧ ( α1 ↦ ⟦ Δ ⤍ 42- ⟧ ).x ⟧}
+  output: |
+    {⟦ k ↦ ⊥ ⟧}
+- name: e-app
+  input: |
+    {⟦ k ↦ ⟦ x ↦ ξ.t, t ↦ ∅ ⟧ (t ↦ ⟦ Δ ⤍ 42- ⟧) ⟧}
+  output: |
+    {⟦ k ↦ ⟦ t ↦ ⟦ Δ ⤍ 42- ⟧, x ↦ ξ.t ⟧ ⟧}
+- name: e-cpy
+  input: |
+    {⟦ m ↦ ⟦ x ↦ ∅, y ↦ ξ.x ⟧ (x ↦ ⟦ Δ ⤍ 42- ⟧).y ⟧}
+  output: |
+    { ⟦ m ↦ ⟦ ρ ↦ ⟦ x ↦ ⟦ Δ ⤍ 42- ⟧, y ↦ ξ.x ⟧, Δ ⤍ 42- ⟧ ⟧}
+- name: e-int
+  input: |
+    {⟦ m ↦ ⟦ x ↦ ⟦ t ↦ ⟦ Δ ⤍ 42- ⟧ ⟧.t ⟧.x ⟧}
+  output: |
+    {⟦ m ↦ ⟦ ρ ↦ ⟦ t ↦ ⟦ Δ ⤍ 42- ⟧ ⟧, Δ ⤍ 42- ⟧ ⟧}
+- name: e-lam
+  input: |
+    {⟦ m ↦ ⟦ x ↦ ⟦ λ ⤍ Fn ⟧.ρ.k, k ↦ ⟦ Δ ⤍ 42- ⟧ ⟧.x ⟧}
+  output: |
+    {⟦ m ↦ ⟦ λ ⤍ Fn ⟧.ρ.k(ρ ↦ ⟦ x ↦ ⟦ λ ⤍ Fn ⟧.ρ.k, k ↦ ⟦ Δ ⤍ 42- ⟧ ⟧ ) ⟧}
+- name: e-nf
+  input: |
+    {⟦ x ↦ ⟦ t ↦ Φ.x ⟧ ⟧}
+  output: |
+    {⟦ x ↦ ⟦ t ↦ Φ.x ⟧ ⟧}
+- name: e-nk
+  input: |
+    {⟦ x ↦ ξ.k, k ↦ ⟦ Δ ⤍ 42- ⟧ ⟧}
+  output: |
+    {⟦ x ↦ ξ.k, k ↦ ⟦ Δ ⤍ 42- ⟧ ⟧}
+- name: e-np
+  input: |
+    {⟦ x ↦ ξ.t, λ ⤍ Fn ⟧}
+  output: |
+    {⟦ x ↦ ξ.t, λ ⤍ Fn ⟧}
+- name: e-nr
+  input: |
+    {⟦ x ↦ ξ.k, t ↦ ⟦ Δ ⤍ 42- ⟧ ⟧}
+  output: |
+    {⟦ x ↦ ξ.k, t ↦ ⟦ Δ ⤍ 42- ⟧ ⟧}
+- name: e-nt
+  input: |
+    {⟦ m ↦ ⟦ x ↦ ⟦ Δ ⤍ 42- ⟧, λ ⤍ Fn ⟧.y ⟧}
+  output: |
+    {⟦ m ↦ ⟦ x ↦ ⟦ Δ ⤍ 42- ⟧, λ ⤍ Fn ⟧.y ⟧}
+- name: e-phi
+  input: |
+    {⟦ m ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧.x ⟧}
+  output: |
+    {⟦ m ↦ ⟦ ρ ↦ ⟦ t ↦ ⟦ ⟧, ρ ↦ ⟦ φ ↦ ⟦ t ↦ ⟦ ⟧ ⟧, x ↦ ξ.t ⟧ ⟧ ⟧ ⟧}
+- name: e-rep
+  input: |
+    {⟦ m ↦ ⟦ x ↦ ξ.t (k ↦ ξ.f).k, t ↦ ⟦ k ↦ ∅ ⟧, f ↦ ⟦⟧ ⟧.x ⟧}
+  output: |
+    {⟦ m ↦ ⟦ ρ ↦ ⟦f ↦ ⟦⟧, x ↦ ξ.t (k ↦ ξ.f).k, t ↦ ⟦k ↦ ∅⟧ ⟧ ⟧ ⟧}
+- name: e-rha
+  input: |
+    {⟦ m ↦ ⟦ x ↦ ⟦ ρ ↦ ∅ ⟧.ρ.k, k ↦ ⟦ Δ ⤍ 42- ⟧ ⟧.x ⟧}
+  output: |
+    {⟦ m ↦ ⊥ ⟧}
+- name: e-rhi
+  input: |
+    {⟦ m ↦ ⟦ x ↦ ⟦ t ↦ ⟦ p ↦ ξ.ρ.ρ.k ⟧.p ⟧.t, k ↦ ⟦ Δ ⤍ 42- ⟧ ⟧.x ⟧}
+  output: |
+    {⟦ m ↦ ⊥ ⟧}
+- name: e-rho
+  input: |
+    {⟦ m ↦ ⟦ x ↦ ξ.ρ.ρ.t ⟧.x ⟧}
+  output: |
+    {⟦ m ↦ ⊥ ⟧}
+- name: e-twi
+  input: |
+    {⟦ m ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦⟧, t ↦ ⟦⟧ ⟧.x.t ⟧}
+  output: |
+    { ⟦ m ↦ ⟦ ρ ↦ ⟦ t ↦ ⟦ ⟧, ρ ↦ ⟦ ρ ↦ ⟦ x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦ ⟧, t ↦ ⟦ ⟧ ⟧, t ↦ ξ.ρ.k.ρ.t ⟧, k ↦ ⟦ ⟧, x ↦ ⟦ t ↦ ξ.ρ.k.ρ.t ⟧ ⟧ ⟧ ⟧}
+- name: e-xxi
+  input: |
+    {⟦ m ↦ ⟦ x ↦ ξ.t, t ↦ ∅ ⟧.x ⟧}
+  output: |
+    {⟦ m ↦ ⊥ ⟧}
