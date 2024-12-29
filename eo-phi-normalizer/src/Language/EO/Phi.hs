@@ -26,11 +26,12 @@ module Language.EO.Phi (
   parseProgram,
   unsafeParseObject,
   unsafeParseProgram,
+  unsafeParseProgramFromFile,
   module Language.EO.Phi.Syntax,
 ) where
 
 import Language.EO.Phi.Normalize
-
+import Language.EO.Phi.Syntax
 import Language.EO.Phi.Syntax.Abs qualified as Phi
 import Language.EO.Phi.Syntax.Par qualified as Phi
 
@@ -55,3 +56,9 @@ unsafeParseProgram input =
 unsafeParseObject :: String -> Phi.Object
 unsafeParseObject = either error id . parseObject
 
+unsafeParseProgramFromFile :: FilePath -> IO Phi.Program
+unsafeParseProgramFromFile inputFile = do
+  src <- readFile inputFile
+  case parseProgram src of
+    Left err -> error ("Error parsing program from '" ++ inputFile ++ "':\n" ++ err)
+    Right program -> pure program

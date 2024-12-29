@@ -53,13 +53,6 @@ instance Eq ObjectOrBytes where
     x == y
   _ == _ = False
 
-getProgram :: FilePath -> IO Phi.Program
-getProgram inputFile = do
-  src <- readFile inputFile
-  case Phi.parseProgram src of
-    Left err -> error ("Error parsing program from '" ++ inputFile ++ "': " ++ err)
-    Right program -> pure program
-
 spec :: Spec
 spec = do
   DataizeTestGroup{..} <- runIO (dataizationTests "test/eo/phi/dataization.yaml")
@@ -75,7 +68,7 @@ spec = do
         describe rulesTitle do
           forM_ tests $
             \test -> do
-              deps <- runIO $ mapM getProgram test.dependencies
+              deps <- runIO $ mapM Phi.unsafeParseProgramFromFile test.dependencies
               let mergedProgs = case deepMergePrograms (test.input : deps) of
                     Left err -> error ("Error merging programs: " ++ err)
                     Right prog -> prog
