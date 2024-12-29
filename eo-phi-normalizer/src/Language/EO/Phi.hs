@@ -22,7 +22,6 @@
 -- SOFTWARE.
 {- FOURMOLU_ENABLE -}
 module Language.EO.Phi (
-  defaultMain,
   normalize,
   parseProgram,
   unsafeParseObject,
@@ -30,13 +29,10 @@ module Language.EO.Phi (
   module Language.EO.Phi.Syntax,
 ) where
 
-import System.Exit (exitFailure)
+import Language.EO.Phi.Normalize
 
 import Language.EO.Phi.Syntax.Abs qualified as Phi
 import Language.EO.Phi.Syntax.Par qualified as Phi
-
-import Language.EO.Phi.Normalize
-import Language.EO.Phi.Syntax
 
 -- | Parse a 'Program' or return a parsing error.
 parseProgram :: String -> Either String Phi.Program
@@ -59,16 +55,3 @@ unsafeParseProgram input =
 unsafeParseObject :: String -> Phi.Object
 unsafeParseObject = either error id . parseObject
 
--- | Default entry point.
--- Parses a 𝜑-program from standard input, normalizes,
--- then pretty-prints the result to standard output.
-defaultMain :: IO ()
-defaultMain = do
-  input <- getContents -- read entire standard input
-  let tokens = Phi.myLexer input
-  case Phi.pProgram tokens of
-    Left parseError -> do
-      putStrLn parseError
-      exitFailure
-    Right program -> do
-      putStrLn (printTree (normalize program))
