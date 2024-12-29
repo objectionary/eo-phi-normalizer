@@ -35,7 +35,7 @@ extra-source-files:
   - grammar/EO/Phi/Syntax.cf
   - report/**/*
   - data/**/*
-  - test/eo/phi/rules/**
+  - test/eo/phi/**/*
 
 verbatim:
   cabal-version: 1.24

@@ -71,10 +71,12 @@ data DataizeTest = DataizeTest
   , dependencies :: [FilePath]
   }
   deriving (Generic, FromJSON)
+
 data DataizationResult
   = Bytes {bytes :: Phi.Bytes}
   | Object {object :: Phi.Object}
   deriving (Generic, Show)
+
 instance FromJSON DataizationResult where
   parseJSON = genericParseJSON defaultOptions{sumEncoding = UntaggedValue}
 
@@ -101,3 +103,6 @@ instance FromJSON Phi.Object where
   parseJSON = fmap unsafeParseObject . parseJSON
 
 deriving newtype instance FromJSON Phi.Bytes
+
+progToObj :: Phi.Program -> Phi.Object
+progToObj (Phi.Program bindings) = Phi.Formation bindings

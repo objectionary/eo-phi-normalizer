@@ -38,7 +38,7 @@ import Language.EO.Phi.Dataize.Context (defaultContext)
 import Language.EO.Phi.Dependencies (deepMergePrograms)
 import Language.EO.Phi.Rules.Common (equalObject)
 import Language.EO.Phi.Rules.Yaml (convertRuleNamed, parseRuleSetFromFile, rules)
-import Test.EO.Phi (DataizationResult (Bytes, Object), DataizeTest (..), DataizeTestGroup (..), dataizationTests)
+import Test.EO.Phi (DataizationResult (Bytes, Object), DataizeTest (..), DataizeTestGroup (..), dataizationTests, progToObj)
 
 newtype ObjectOrBytes = ObjectOrBytes (Either Phi.Object Phi.Bytes)
 
@@ -52,13 +52,6 @@ instance Eq ObjectOrBytes where
   ObjectOrBytes (Right x) == ObjectOrBytes (Right y) =
     x == y
   _ == _ = False
-
-getProgram :: FilePath -> IO Phi.Program
-getProgram inputFile = do
-  src <- readFile inputFile
-  case Phi.parseProgram src of
-    Left err -> error ("Error parsing program from '" ++ inputFile ++ "': " ++ err)
-    Right program -> pure program
 
 spec :: Spec
 spec = do
@@ -75,7 +68,7 @@ spec = do
         describe rulesTitle do
           forM_ tests $
             \test -> do
-              deps <- runIO $ mapM getProgram test.dependencies
+              deps <- runIO $ mapM Phi.unsafeParseProgramFromFile test.dependencies
               let mergedProgs = case deepMergePrograms (test.input : deps) of
                     Left err -> error ("Error merging programs: " ++ err)
                     Right prog -> prog
@@ -87,6 +80,3 @@ spec = do
               it test.name $ do
                 let dataizedResult = dataizeRecursively ctx inputObj
                 ObjectOrBytes dataizedResult `shouldBe` ObjectOrBytes expectedResult
-
-progToObj :: Phi.Program -> Phi.Object
-progToObj (Phi.Program bindings) = Phi.Formation bindings

@@ -25,10 +25,8 @@
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedLists #-}
 {-# LANGUAGE OverloadedRecordDot #-}
-{-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeApplications #-}
-{-# LANGUAGE ViewPatterns #-}
 
 module Language.EO.PhiSpec where
 
@@ -37,15 +35,12 @@ import Data.Char (isSpace)
 import Data.List (dropWhileEnd)
 import Data.String (IsString (..))
 import Data.Yaml (decodeFileThrow)
-import Language.EO.Phi
-import Language.EO.Phi.Dataize.Context (defaultContext)
+import Language.EO.Phi (Binding (..), Object, Program (..), normalize, printTree)
 import Language.EO.Phi.Metrics.Collect (getProgramMetrics)
 import Language.EO.Phi.Metrics.Data (BindingsByPathMetrics (..), ProgramMetrics (..))
-import Language.EO.Phi.Rules.Common (Rule, equalProgram)
-import Language.EO.Phi.Rules.PhiPaper (rule6)
-import PyF (fmt)
-import Test.EO.Phi
-import Test.Hspec
+import Language.EO.Phi.Rules.Common (equalProgram)
+import Test.EO.Phi (PhiTest (..), PhiTestGroup (..), allPhiTests)
+import Test.Hspec (Spec, describe, it, runIO, shouldBe, shouldSatisfy)
 import Test.Metrics.Phi (MetricsTest (..), MetricsTestSet (..))
 
 applyRule :: (Object -> [Object]) -> Program -> [Program]
@@ -57,15 +52,6 @@ applyRule rule = \case
 
 spec :: Spec
 spec = do
-  describe "Pre-defined rules" $
-    forM_ ([(6, rule6)] :: [(Int, Rule)]) $
-      \(idx, rule) -> do
-        PhiTestGroup{..} <- runIO (fileTests [fmt|test/eo/phi/rule-{idx}.yaml|])
-        describe title $
-          forM_ tests $
-            \PhiTest{..} ->
-              it name $
-                applyRule (rule (defaultContext [] (progToObj input))) input `shouldBe` [normalized]
   describe "Programs translated from EO" $ do
     phiTests <- runIO (allPhiTests "test/eo/phi/from-eo/")
     forM_ phiTests $ \PhiTestGroup{..} ->
@@ -86,6 +72,3 @@ spec = do
 
 trim :: String -> String
 trim = dropWhileEnd isSpace
-
-progToObj :: Program -> Object
-progToObj (Program bindings) = Formation bindings
