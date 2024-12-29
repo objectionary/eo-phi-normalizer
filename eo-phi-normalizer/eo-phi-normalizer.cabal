@@ -630,6 +630,7 @@ test-suite spec
   main-is: Main.hs
   other-modules:
       Language.EO.Phi.DataizeSpec
+      Language.EO.Phi.RewriteSpec
       Language.EO.PhiSpec
       Language.EO.Rules.PhiPaperSpec
       Language.EO.YamlSpec
