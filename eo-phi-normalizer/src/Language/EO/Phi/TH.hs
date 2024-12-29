@@ -24,7 +24,7 @@
 module Language.EO.Phi.TH where
 
 import Data.Aeson (Options (..), SumEncoding (..), camelTo2)
-import Data.Aeson.TH as TH (deriveJSON)
+import Data.Aeson.TH as TH (deriveFromJSON, deriveJSON)
 import Data.Aeson.Types (defaultOptions)
 import Language.Haskell.TH (Dec, Name, Q)
 
@@ -38,3 +38,6 @@ defaultOptions' =
 
 deriveJSON :: Name -> Q [Dec]
 deriveJSON = TH.deriveJSON defaultOptions'
+
+deriveFromJSON :: Name -> Q [Dec]
+deriveFromJSON = TH.deriveFromJSON defaultOptions'
