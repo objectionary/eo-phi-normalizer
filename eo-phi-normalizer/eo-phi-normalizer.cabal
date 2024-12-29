@@ -435,7 +435,6 @@ library
       Language.EO.Phi.Report.Html
       Language.EO.Phi.Rules.Common
       Language.EO.Phi.Rules.Fast
-      Language.EO.Phi.Rules.PhiPaper
       Language.EO.Phi.Rules.RunYegor
       Language.EO.Phi.Rules.Yaml
       Language.EO.Phi.Syntax
@@ -566,7 +565,6 @@ test-suite doctests
       Language.EO.Phi.Report.Html
       Language.EO.Phi.Rules.Common
       Language.EO.Phi.Rules.Fast
-      Language.EO.Phi.Rules.PhiPaper
       Language.EO.Phi.Rules.RunYegor
       Language.EO.Phi.Rules.Yaml
       Language.EO.Phi.Syntax
