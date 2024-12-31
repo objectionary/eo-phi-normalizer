@@ -276,7 +276,7 @@ data CommandParser = CommandParser
   }
 
 rulesFile :: String
-rulesFile = "yegor.yaml"
+rulesFile = "new.yaml"
 
 commandParser :: CommandParser
 commandParser =
@@ -607,7 +607,7 @@ main = withCorrectLocale do
           -- Temporary hack while rules are not stabilized.
           -- Nothing -> return (True, "Yegor's rules (builtin)", [fastYegorInsideOutAsRule])
           Nothing -> do
-            ruleSet :: RuleSet <- decodeThrow $(embedFileRelative "test/eo/phi/rules/yegor.yaml")
+            ruleSet :: RuleSet <- decodeThrow $(embedFileRelative "test/eo/phi/rules/new.yaml")
             return (False, ruleSet.title, convertRuleNamed <$> ruleSet.rules)
       unless (single || json || latex) $ logStrLn ruleSetTitle
       bindingsWithDeps <- case deepMergePrograms (program' : deps) of
