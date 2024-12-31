@@ -10,7 +10,7 @@ and this project adheres to the
 
 ### Breaking changes
 
-- Switch to built-in rules until `new.yaml` rules work ([#619](https://github.com/objectionary/eo-phi-normalizer/pull/619))
+- Switch to built-in rules in the pipeline until `new.yaml` rules work ([#619](https://github.com/objectionary/eo-phi-normalizer/pull/619))
 - Update EO to 0.50.0, use `yegor.yaml` by default ([#617](https://github.com/objectionary/eo-phi-normalizer/pull/617), [#641](https://github.com/objectionary/eo-phi-normalizer/pull/641))
 
 ### Changes and fixes
