@@ -32,7 +32,7 @@ Use the necessary version in the `stack install` command.
 ```sh
 stack update
 export LC_ALL=C.UTF-8
-stack install --resolver lts-22.16 eo-phi-normalizer-3.0.0
+stack install --resolver lts-22.16 eo-phi-normalizer-3.1.0
 ```
 
 ## Update `eo-phi-normalizer`
