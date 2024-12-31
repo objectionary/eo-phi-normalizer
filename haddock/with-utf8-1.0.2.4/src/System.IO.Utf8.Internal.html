@@ -1,0 +1,175 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">{- SPDX-FileCopyrightText: 2020 Serokell &lt;https://serokell.io/&gt;
+ -
+ - SPDX-License-Identifier: MPL-2.0
+ -}</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-pragma">{-# LANGUAGE LambdaCase #-}</span><span>
+</span><span id="line-7"></span><span>
+</span><span id="line-8"></span><span class="annot"><span class="hs-comment">-- | Internal functions that implement encoding selection logic.</span></span><span>
+</span><span id="line-9"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">System.IO.Utf8.Internal</span><span>
+</span><span id="line-10"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="System.IO.Utf8.Internal.html#EncodingAction"><span class="hs-identifier">EncodingAction</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span>
+</span><span id="line-11"></span><span>
+</span><span id="line-12"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="System.IO.Utf8.Internal.html#chooseBestEncPure"><span class="hs-identifier">chooseBestEncPure</span></a></span><span>
+</span><span id="line-13"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="System.IO.Utf8.Internal.html#chooseBestEnc"><span class="hs-identifier">chooseBestEnc</span></a></span><span>
+</span><span id="line-14"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-15"></span><span>
+</span><span id="line-16"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.List</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">isSuffixOf</span></span><span class="hs-special">)</span><span>
+</span><span id="line-17"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.IO.Encoding</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">TextEncoding</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">textEncodingName</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">utf8</span></span><span class="hs-special">)</span><span>
+</span><span id="line-18"></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">System.IO</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">IO</span></span><span>
+</span><span id="line-20"></span><span>
+</span><span id="line-21"></span><span>
+</span><span id="line-22"></span><span class="hs-comment">-- | What to do with the encoding of the handle.</span><span>
+</span><span id="line-23"></span><span class="hs-comment">--</span><span>
+</span><span id="line-24"></span><span class="hs-comment">-- We return new encoding as string to simplify testing, because,</span><span>
+</span><span id="line-25"></span><span class="hs-comment">-- it turns out, when you make an encoding with some name, the</span><span>
+</span><span id="line-26"></span><span class="hs-comment">-- resulting encoding can have a different name.</span><span>
+</span><span id="line-27"></span><span class="hs-comment">--</span><span>
+</span><span id="line-28"></span><span class="hs-comment">-- The second constructor also contains the old encoding as a proof</span><span>
+</span><span id="line-29"></span><span class="hs-comment">-- that the encoding is set to a new one only if there was a previous</span><span>
+</span><span id="line-30"></span><span class="hs-comment">-- one in the first place. You probably think I am crazy, but I am not,</span><span>
+</span><span id="line-31"></span><span class="hs-comment">-- it is just the simplest way to make the @hSetBestUtf8Enc@ easy to write.</span><span>
+</span><span id="line-32"></span><span class="hs-keyword">data</span><span> </span><span id="EncodingAction"><span class="annot"><a href="System.IO.Utf8.Internal.html#EncodingAction"><span class="hs-identifier hs-var">EncodingAction</span></a></span></span><span>
+</span><span id="line-33"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span id="Keep"><span class="annot"><a href="System.IO.Utf8.Internal.html#Keep"><span class="hs-identifier hs-var">Keep</span></a></span></span><span>
+</span><span id="line-34"></span><span>    </span><span class="annot"><span class="hs-comment">-- ^ Do nothing.</span></span><span>
+</span><span id="line-35"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span id="ChangeFromTo"><span class="annot"><a href="System.IO.Utf8.Internal.html#ChangeFromTo"><span class="hs-identifier hs-var">ChangeFromTo</span></a></span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">TextEncoding</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-36"></span><span>    </span><span class="annot"><span class="hs-comment">-- ^ Change the first encoding to the second.</span></span><span>
+</span><span id="line-37"></span><span>
+</span><span id="line-38"></span><span class="hs-comment">-- | Pure version of 'chooseBestEnc'.</span><span>
+</span><span id="line-39"></span><span class="hs-comment">--</span><span>
+</span><span id="line-40"></span><span class="hs-comment">-- This function is not actually used in the library. It exists only</span><span>
+</span><span id="line-41"></span><span class="hs-comment">-- for documentation purposes to demonstrate the logic.</span><span>
+</span><span id="line-42"></span><span class="hs-comment">-- It is also used in tests to verify that the logic implemented is</span><span>
+</span><span id="line-43"></span><span class="hs-comment">-- indeed this.</span><span>
+</span><span id="line-44"></span><span class="annot"><a href="System.IO.Utf8.Internal.html#chooseBestEncPure"><span class="hs-identifier hs-type">chooseBestEncPure</span></a></span><span>
+</span><span id="line-45"></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span>  </span><span class="annot"><span class="hs-comment">-- ^ Is a terminal device?</span></span><span>
+</span><span id="line-46"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>  </span><span class="annot"><span class="hs-comment">-- ^ Previous encoding name.</span></span><span>
+</span><span id="line-47"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-48"></span><span class="hs-comment">-- Never touch handles in binary mode.</span><span>
+</span><span id="line-49"></span><span id="chooseBestEncPure"><span class="annot"><span class="annottext">chooseBestEncPure :: Bool -&gt; Maybe String -&gt; Maybe String
+</span><a href="System.IO.Utf8.Internal.html#chooseBestEncPure"><span class="hs-identifier hs-var hs-var">chooseBestEncPure</span></a></span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Maybe String
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe String
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-50"></span><span class="hs-comment">-- Already UTF-8, that's cool.</span><span>
+</span><span id="line-51"></span><span class="annot"><a href="System.IO.Utf8.Internal.html#chooseBestEncPure"><span class="hs-identifier hs-var">chooseBestEncPure</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;UTF-8&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe String
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-52"></span><span class="hs-comment">-- Handle in text mode that is not a terminal.</span><span>
+</span><span id="line-53"></span><span class="annot"><a href="System.IO.Utf8.Internal.html#chooseBestEncPure"><span class="hs-identifier hs-var">chooseBestEncPure</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">Maybe String
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Maybe String
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;UTF-8&quot;</span></span><span>
+</span><span id="line-54"></span><span class="annot"><a href="System.IO.Utf8.Internal.html#chooseBestEncPure"><span class="hs-identifier hs-var">chooseBestEncPure</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679050137"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050137"><span class="hs-identifier hs-var">name</span></a></span></span><span class="hs-special">)</span><span>
+</span><span id="line-55"></span><span>  </span><span class="hs-comment">-- Be idempotent.</span><span>
+</span><span id="line-56"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;//TRANSLIT&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Bool
+forall a. Eq a =&gt; [a] -&gt; [a] -&gt; Bool
+</span><span class="hs-operator hs-var">`isSuffixOf`</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050137"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Maybe String
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-57"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Maybe String
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">(String -&gt; Maybe String) -&gt; String -&gt; Maybe String
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050137"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;//TRANSLIT&quot;</span></span><span>
+</span><span id="line-58"></span><span>
+</span><span id="line-59"></span><span class="hs-comment">-- | Choose the best encoding for a file handle.</span><span>
+</span><span id="line-60"></span><span class="hs-comment">--</span><span>
+</span><span id="line-61"></span><span class="hs-comment">-- This function implements the same logic as 'chooseBestEncPure',</span><span>
+</span><span id="line-62"></span><span class="hs-comment">-- but in a way that is more optimal in terms of IO queries. In</span><span>
+</span><span id="line-63"></span><span class="hs-comment">-- particular:</span><span>
+</span><span id="line-64"></span><span class="hs-comment">--</span><span>
+</span><span id="line-65"></span><span class="hs-comment">-- 1. It receives both a handle and its current encoding, because the</span><span>
+</span><span id="line-66"></span><span class="hs-comment">--    calling function will, most likely, need to know the current encoding</span><span>
+</span><span id="line-67"></span><span class="hs-comment">--    (e.g. to be able to restore it), so we avoid repeating the query.</span><span>
+</span><span id="line-68"></span><span class="hs-comment">-- 2. It first checks for the cases where it doesn't care whether the device</span><span>
+</span><span id="line-69"></span><span class="hs-comment">--    is a terminal or not, so the query will be made only if really necessary.</span><span>
+</span><span id="line-70"></span><span class="annot"><a href="System.IO.Utf8.Internal.html#chooseBestEnc"><span class="hs-identifier hs-type">chooseBestEnc</span></a></span><span>
+</span><span id="line-71"></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO.Handle</span></span><span>  </span><span class="annot"><span class="hs-comment">-- ^ Handle to choose encoding for.</span></span><span>
+</span><span id="line-72"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">IO.Handle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">)</span><span>  </span><span class="annot"><span class="hs-comment">-- ^ hIsTerminalDevice.</span></span><span>
+</span><span id="line-73"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">TextEncoding</span></span><span>  </span><span class="annot"><span class="hs-comment">-- ^ Current encoding.</span></span><span>
+</span><span id="line-74"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="System.IO.Utf8.Internal.html#EncodingAction"><span class="hs-identifier hs-type">EncodingAction</span></a></span><span>
+</span><span id="line-75"></span><span id="chooseBestEnc"><span class="annot"><span class="annottext">chooseBestEnc :: Handle
+-&gt; (Handle -&gt; IO Bool) -&gt; Maybe TextEncoding -&gt; IO EncodingAction
+</span><a href="System.IO.Utf8.Internal.html#chooseBestEnc"><span class="hs-identifier hs-var hs-var">chooseBestEnc</span></a></span></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Handle -&gt; IO Bool
+</span><span class="hs-identifier">_</span></span><span> </span><span class="annot"><span class="annottext">Maybe TextEncoding
+</span><span class="hs-identifier hs-var">Nothing</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">EncodingAction -&gt; IO EncodingAction
+forall a. a -&gt; IO a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">EncodingAction
+</span><a href="System.IO.Utf8.Internal.html#Keep"><span class="hs-identifier hs-var">Keep</span></a></span><span>
+</span><span id="line-76"></span><span class="annot"><a href="System.IO.Utf8.Internal.html#chooseBestEnc"><span class="hs-identifier hs-var">chooseBestEnc</span></a></span><span> </span><span id="local-6989586621679050138"><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679050138"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span id="local-6989586621679050139"><span class="annot"><span class="annottext">Handle -&gt; IO Bool
+</span><a href="#local-6989586621679050139"><span class="hs-identifier hs-var">hIsTerm</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Just</span></span><span> </span><span id="local-6989586621679050140"><span class="annot"><span class="annottext">TextEncoding
+</span><a href="#local-6989586621679050140"><span class="hs-identifier hs-var">enc</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">TextEncoding -&gt; String
+</span><span class="hs-identifier hs-var">textEncodingName</span></span><span> </span><span class="annot"><span class="annottext">TextEncoding
+</span><a href="#local-6989586621679050140"><span class="hs-identifier hs-var">enc</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-77"></span><span>  </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;UTF-8&quot;</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">EncodingAction -&gt; IO EncodingAction
+forall a. a -&gt; IO a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">EncodingAction
+</span><a href="System.IO.Utf8.Internal.html#Keep"><span class="hs-identifier hs-var">Keep</span></a></span><span>
+</span><span id="line-78"></span><span>  </span><span id="local-6989586621679050141"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050141"><span class="hs-identifier hs-var">name</span></a></span></span><span>
+</span><span id="line-79"></span><span>    </span><span class="hs-comment">-- XXX: The first branch is actually never used, because the encoding</span><span>
+</span><span id="line-80"></span><span>    </span><span class="hs-comment">--      loses the @//TRANSLIT@ suffix after it is being created.</span><span>
+</span><span id="line-81"></span><span>    </span><span class="hs-comment">-- TODO: Find a way to detect that the encoding is already trasliterating.</span><span>
+</span><span id="line-82"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;//TRANSLIT&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; Bool
+forall a. Eq a =&gt; [a] -&gt; [a] -&gt; Bool
+</span><span class="hs-operator hs-var">`isSuffixOf`</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050141"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">EncodingAction -&gt; IO EncodingAction
+forall a. a -&gt; IO a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">EncodingAction
+</span><a href="System.IO.Utf8.Internal.html#Keep"><span class="hs-identifier hs-var">Keep</span></a></span><span>
+</span><span id="line-83"></span><span>    </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; IO Bool
+</span><a href="#local-6989586621679050139"><span class="hs-identifier hs-var">hIsTerm</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679050138"><span class="hs-identifier hs-var">h</span></a></span><span> </span><span class="annot"><span class="annottext">IO Bool -&gt; (Bool -&gt; IO EncodingAction) -&gt; IO EncodingAction
+forall a b. IO a -&gt; (a -&gt; IO b) -&gt; IO b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-84"></span><span>        </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">EncodingAction -&gt; IO EncodingAction
+forall a. a -&gt; IO a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">(EncodingAction -&gt; IO EncodingAction)
+-&gt; EncodingAction -&gt; IO EncodingAction
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">TextEncoding -&gt; String -&gt; EncodingAction
+</span><a href="System.IO.Utf8.Internal.html#ChangeFromTo"><span class="hs-identifier hs-var">ChangeFromTo</span></a></span><span> </span><span class="annot"><span class="annottext">TextEncoding
+</span><a href="#local-6989586621679050140"><span class="hs-identifier hs-var">enc</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">TextEncoding -&gt; String
+</span><span class="hs-identifier hs-var">textEncodingName</span></span><span> </span><span class="annot"><span class="annottext">TextEncoding
+</span><span class="hs-identifier hs-var">utf8</span></span><span class="hs-special">)</span><span>
+</span><span id="line-85"></span><span>        </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">EncodingAction -&gt; IO EncodingAction
+forall a. a -&gt; IO a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">(EncodingAction -&gt; IO EncodingAction)
+-&gt; EncodingAction -&gt; IO EncodingAction
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">TextEncoding -&gt; String -&gt; EncodingAction
+</span><a href="System.IO.Utf8.Internal.html#ChangeFromTo"><span class="hs-identifier hs-var">ChangeFromTo</span></a></span><span> </span><span class="annot"><span class="annottext">TextEncoding
+</span><a href="#local-6989586621679050140"><span class="hs-identifier hs-var">enc</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050141"><span class="hs-identifier hs-var">name</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;//TRANSLIT&quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-86"></span></pre></body></html>
