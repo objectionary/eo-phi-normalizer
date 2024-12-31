@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to the
 [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
+## v3.1.0 - 2024-12-28
+
+### Breaking changes
+
+- Use `new.yaml` in the CLI by default ([#658](https://github.com/objectionary/eo-phi-normalizer/pull/658))
+
+### Changes and fixes
+
+- Simplify pipeline config format ([#648](https://github.com/objectionary/eo-phi-normalizer/pull/648))
+- Use dependencies for EO 0.50.0 ([#653](https://github.com/objectionary/eo-phi-normalizer/pull/653))
+- Add tests from hone-maven-plugin ([#655](https://github.com/objectionary/eo-phi-normalizer/pull/655))
+
 ## v3.0.0 - 2024-12-28
 
 ### Breaking changes
