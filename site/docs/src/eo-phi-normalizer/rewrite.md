@@ -147,17 +147,37 @@ eo-phi-normalizer rewrite --chain --tex bar.phi
 ```
 
 ```tex
-% Rule set based on Yegor's draft
+% Rule set following Nov 2024 revision
 
 \documentclass{article}
 \usepackage{eolang}
 \begin{document}
 
+
+This is the 1st possible chain of normalizing rewritings:
+
 \begin{phiquation*}
 [[ m -> [[ x -> [[ t -> [[ D> 42- ]] ]].t ]].x ]] \trans_{\rulename{DOT}}
+  \trans [[ m -> [[ x -> [[ D> 42- ]]( ^ -> [[ t -> [[ D> 42- ]] ]] ) ]].x ]] \trans_{\rulename{DOT}}
+  \trans [[ m -> [[ D> 42- ]]( ^ -> [[ t -> [[ D> 42- ]] ]] )( ^ -> [[ x -> [[ D> 42- ]]( ^ -> [[ t -> [[ D> 42- ]] ]] ) ]] ) ]] \trans_{\rulename{RHO}}
+  \trans [[ m -> [[ D> 42-, ^ -> [[ t -> [[ D> 42- ]] ]] ]](  )( ^ -> [[ x -> [[ D> 42- ]]( ^ -> [[ t -> [[ D> 42- ]] ]] ) ]] ) ]] \trans_{\rulename{DUP}}
+  \trans [[ m -> [[ D> 42-, ^ -> [[ t -> [[ D> 42- ]] ]] ]]( ^ -> [[ x -> [[ D> 42- ]]( ^ -> [[ t -> [[ D> 42- ]] ]] ) ]] ) ]] \trans_{\rulename{STAY}}
+  \trans [[ m -> [[ ^ -> [[ t -> [[ D> 42- ]] ]], D> 42- ]](  ) ]] \trans_{\rulename{DUP}}
+  \trans [[ m -> [[ ^ -> [[ t -> [[ D> 42- ]] ]], D> 42- ]] ]] \trans_{\rulename{NF}}
+  \trans [[ m -> [[ ^ -> [[ t -> [[ D> 42- ]] ]], D> 42- ]] ]].
+\end{phiquation*}
+
+This is the 2nd possible chain of normalizing rewritings:
+
+\begin{phiquation*}
+[[ m -> [[ x -> [[ t -> [[ D> 42- ]] ]].t ]].x ]] \trans_{\rulename{DOT}}
+  \trans [[ m -> [[ x -> [[ D> 42- ]]( ^ -> [[ t -> [[ D> 42- ]] ]] ) ]].x ]] \trans_{\rulename{RHO}}
+  \trans [[ m -> [[ x -> [[ D> 42-, ^ -> [[ t -> [[ D> 42- ]] ]] ]](  ) ]].x ]] \trans_{\rulename{DUP}}
   \trans [[ m -> [[ x -> [[ D> 42-, ^ -> [[ t -> [[ D> 42- ]] ]] ]] ]].x ]] \trans_{\rulename{DOT}}
-  \trans [[ m -> [[ D> 42-, ^ -> [[ t -> [[ D> 42- ]] ]] ]] ]] \trans_{\rulename{NF}}
-  \trans [[ m -> [[ D> 42-, ^ -> [[ t -> [[ D> 42- ]] ]] ]] ]].
+  \trans [[ m -> [[ D> 42-, ^ -> [[ t -> [[ D> 42- ]] ]] ]]( ^ -> [[ x -> [[ D> 42-, ^ -> [[ t -> [[ D> 42- ]] ]] ]] ]] ) ]] \trans_{\rulename{STAY}}
+  \trans [[ m -> [[ ^ -> [[ t -> [[ D> 42- ]] ]], D> 42- ]](  ) ]] \trans_{\rulename{DUP}}
+  \trans [[ m -> [[ ^ -> [[ t -> [[ D> 42- ]] ]], D> 42- ]] ]] \trans_{\rulename{NF}}
+  \trans [[ m -> [[ ^ -> [[ t -> [[ D> 42- ]] ]], D> 42- ]] ]].
 \end{phiquation*}
 
 \end{document}
@@ -232,14 +252,14 @@ eo-phi-normalizer rewrite --tex bar.phi
 ```
 
 ```tex
-% Rule set based on Yegor's draft
+% Rule set following Nov 2024 revision
 
 \documentclass{article}
 \usepackage{eolang}
 \begin{document}
 
 \begin{phiquation*}
-[[ m -> [[ D> 42-, ^ -> [[ t -> [[ D> 42- ]] ]] ]] ]]
+[[ m -> [[ ^ -> [[ t -> [[ D> 42- ]] ]], D> 42- ]] ]]
 \end{phiquation*}
 
 \end{document}
