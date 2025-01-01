@@ -59,8 +59,8 @@ spec = do
   describe title do
     forM_
       [ ("Old Yegor's rules", "test/eo/phi/rules/yegor.yaml")
-      -- TODO #617:10m Enable
-      -- , ("New Yegor's rules", "test/eo/phi/rules/new.yaml")
+      , -- TODO #617:10m Enable
+        ("New Yegor's rules", "test/eo/phi/rules/new.yaml")
       ]
       $ \(rulesTitle, rulesFile) -> do
         ruleset <- runIO $ parseRuleSetFromFile rulesFile
