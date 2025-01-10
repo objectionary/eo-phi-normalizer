@@ -682,15 +682,26 @@ substThisBinding obj = \case
   b@MetaDeltaBinding{} -> error ("impossible: trying to substitute ξ in " <> printTree b)
   b@AlphaBindingSugar{} -> errorExpectedDesugaredBinding b
 
-contextualize :: Object -> Object -> Object
+contextualize ::
+  -- | current object
+  Object ->
+  -- | expression
+  Object ->
+  Object
 contextualize thisObj = go
  where
   go = \case
-    ThisObject -> thisObj -- ξ is substituted
+    -- C1
+    -- TODO #651:10m Currently, causes infinite recursion. Create an issue. Maybe need to add functionality to the rules to check that contextualization result can be rewritten to a normal form.
+    GlobalObject -> GlobalObject
+    -- C2
+    ThisObject -> thisObj
+    -- C3
     obj@(Formation _bindings) -> obj
+    -- C4
     ObjectDispatch obj a -> ObjectDispatch (go obj) a
+    -- C5
     Application obj bindings -> Application (go obj) (map (contextualizeBinding thisObj) bindings)
-    GlobalObject -> GlobalObject -- TODO: Change to what GlobalObject is attached to
     obj@GlobalObjectPhiOrg -> errorExpectedDesugaredObject obj
     Termination -> Termination
     obj@MetaTailContext{} -> error ("impossible: trying to contextualize " <> printTree obj)

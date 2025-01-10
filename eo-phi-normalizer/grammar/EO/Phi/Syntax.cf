@@ -52,7 +52,7 @@ MetaIdObject.   MetaId ::= ObjectMetaId ;
 MetaIdBytes.    MetaId ::= BytesMetaId ;
 
 Formation.          Object ::= "⟦" [Binding] "⟧" ;
-Application.        Object ::= Object "(" [Binding] ")" ;
+Application.        Object ::= Object "(" Binding ")" ;
 ObjectDispatch.     Object ::= Object "." Attribute ;
 GlobalObject.       Object ::= "Φ";
 GlobalObjectPhiOrg. Object ::= "Φ̇";
