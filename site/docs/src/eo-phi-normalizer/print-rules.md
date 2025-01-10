@@ -16,7 +16,7 @@ Usage: eo-phi-normalizer print-rules [-c|--compact] [-r|--rules FILE] [--tex]
 Available options:
   -c,--compact             Print rules, each on a single line.
   -r,--rules FILE          FILE with user-defined rules. If unspecified,
-                           yegor.yaml is rendered.
+                           new.yaml is rendered.
   --tex                    Output LaTeX.
   -h,--help                Show this help text
 ```
