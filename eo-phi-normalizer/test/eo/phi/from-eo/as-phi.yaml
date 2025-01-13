@@ -74,3 +74,30 @@ tests:
           ⟧()
         ⟧
       }
+  - name: "Prints abstraction sugar"
+    input: |
+      {⟦
+        foo ↦ Φ.bar(
+          α0 ↦ "hello",
+          α1 ↦ "jeff",
+          α2 ↦ 42
+        )
+      ⟧}
+    normalized: |
+      {⟦
+        foo ↦ Φ.bar(
+          "hello",
+          "jeff",
+          42
+        )
+      ⟧}
+    prettified: |
+      {
+        ⟦
+          foo ↦ Φ.bar(
+            "hello",
+            "jeff",
+            42
+          )
+        ⟧
+      }

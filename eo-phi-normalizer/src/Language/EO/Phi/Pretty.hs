@@ -69,7 +69,7 @@ instance Pretty Abs.DoubleSigned where
   pretty (Abs.DoubleSigned i) = pretty i
 
 instance Pretty Abs.StringRaw where
-  pretty (Abs.StringRaw i) = pretty i
+  pretty (Abs.StringRaw i) = pretty (show i)
 
 instance Pretty Abs.Program where
   pretty = \case
@@ -104,7 +104,7 @@ instance Pretty Abs.Object where
     Abs.ThisObject -> pretty "ξ"
     Abs.Termination -> pretty "⊥"
     Abs.ConstStringRaw str -> pretty str
-    Abs.ConstString str -> pretty str
+    Abs.ConstString str -> pretty (show str)
     Abs.ConstIntRaw integersigned -> pretty integersigned
     Abs.ConstFloatRaw doublesigned -> pretty doublesigned
     Abs.MetaSubstThis object1 object2 -> pretty object1 <+> lbracket <+> pretty "ξ ↦" <+> pretty object2 <+> rbracket
