@@ -25,6 +25,7 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns #-}
@@ -187,9 +188,19 @@ instance SugarableFinally Program where
   sugarFinally :: Program -> Program
   sugarFinally (Program bindings) = Program (sugarFinally bindings)
 
+pattern SugarBinding :: Bytes -> Binding
+pattern SugarBinding bs <- AlphaBinding "as-bytes" (Application "Φ.org.eolang.bytes" [AlphaBinding "α0" (Formation [DeltaBinding bs])])
+
 instance SugarableFinally Object where
   sugarFinally :: Object -> Object
   sugarFinally = \case
+    Application "Φ.org.eolang.int" [SugarBinding bs] -> ConstInt (fromIntegral (bytesToInt bs))
+    Application "Φ.org.eolang.i64" [SugarBinding bs] -> ConstInt (fromIntegral (bytesToInt bs))
+    Application "Φ.org.eolang.i32" [SugarBinding bs] -> ConstInt (fromIntegral (bytesToInt bs))
+    Application "Φ.org.eolang.i16" [SugarBinding bs] -> ConstInt (fromIntegral (bytesToInt bs))
+    Application "Φ.org.eolang.float" [SugarBinding bs] -> ConstFloat (bytesToFloat bs)
+    Application "Φ.org.eolang.number" [SugarBinding bs] -> ConstFloat (bytesToFloat bs)
+    Application "Φ.org.eolang.string" [SugarBinding bs] -> ConstString (bytesToString bs)
     "Φ.org.eolang" -> GlobalObjectPhiOrg
     obj@ConstString{} -> obj
     obj@ConstStringRaw{} -> errorExpectedDesugaredObject obj
@@ -684,3 +695,6 @@ printTree :: (Pretty a, SugarableFinally a) => a -> String
 printTree =
   printTreeDontSugar
     . sugarFinally
+
+-- >>> bytesToInt "00-00-00-00-00-00-00-00"
+-- 0
