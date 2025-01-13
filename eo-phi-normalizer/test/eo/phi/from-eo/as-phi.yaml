@@ -24,9 +24,9 @@ title: Processing terms generated from EO
 tests:
   - name: "A program that prints itself"
     input: |
-      {⟦org ↦ ⟦eolang ↦ ⟦prints-itself ↦ ⟦φ ↦ Φ.org.eolang.as-phi(α0 ↦ ξ).length.gt(α0 ↦ Φ.org.eolang.int(α0 ↦ Φ.org.eolang.bytes(Δ ⤍ 00-00-00-00-00-00-00-00)))⟧, prints-itself-to-console ↦ ⟦x ↦ Φ.org.eolang.int(α0 ↦ Φ.org.eolang.bytes(Δ ⤍ 00-00-00-00-00-00-00-2A)), φ ↦ Φ.org.eolang.io.stdout(α0 ↦ Φ.org.eolang.as-phi(α0 ↦ ξ))⟧, λ ⤍ Package⟧, λ ⤍ Package⟧⟧}
+      {⟦org ↦ ⟦eolang ↦ ⟦prints-itself ↦ ⟦φ ↦ Φ.org.eolang.as-phi(α0 ↦ ξ).length.gt(α0 ↦ Φ.org.eolang.int(as-bytes ↦ Φ.org.eolang.bytes(⟦ Δ ⤍ 00-00-00-00-00-00-00-00 ⟧)))⟧, prints-itself-to-console ↦ ⟦x ↦ Φ.org.eolang.int(as-bytes ↦ Φ.org.eolang.bytes(⟦ Δ ⤍ 00-00-00-00-00-00-00-2A ⟧)), φ ↦ Φ.org.eolang.io.stdout(α0 ↦ Φ.org.eolang.as-phi(α0 ↦ ξ))⟧, λ ⤍ Package⟧, λ ⤍ Package⟧⟧}
     normalized: |
-      { ⟦ org ↦ ⟦ eolang ↦ ⟦ prints-itself ↦ ⟦ φ ↦ Φ.org.eolang.as-phi (α0 ↦ ξ).length.gt (α0 ↦ Φ.org.eolang.int (α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 00-00-00-00-00-00-00-00))) ⟧, prints-itself-to-console ↦ ⟦ x ↦ Φ.org.eolang.int (α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 00-00-00-00-00-00-00-2A)), φ ↦ Φ.org.eolang.io.stdout (α0 ↦ Φ.org.eolang.as-phi (α0 ↦ ξ)) ⟧, λ ⤍ Package ⟧, λ ⤍ Package ⟧ ⟧ }
+      { ⟦ org ↦ ⟦ eolang ↦ ⟦ prints-itself ↦ ⟦ φ ↦ Φ.org.eolang.as-phi (α0 ↦ ξ).length.gt (α0 ↦ Φ.org.eolang.int (as-bytes ↦ Φ.org.eolang.bytes (⟦ Δ ⤍ 00-00-00-00-00-00-00-00 ⟧))) ⟧, prints-itself-to-console ↦ ⟦ x ↦ Φ.org.eolang.int (as-bytes ↦ Φ.org.eolang.bytes (⟦ Δ ⤍ 00-00-00-00-00-00-00-2A ⟧)), φ ↦ Φ.org.eolang.io.stdout (α0 ↦ Φ.org.eolang.as-phi (α0 ↦ ξ)) ⟧, λ ⤍ Package ⟧, λ ⤍ Package ⟧ ⟧ }
     prettified: |
       {
         ⟦
@@ -36,19 +36,11 @@ tests:
                 φ ↦ Φ̇.as-phi(
                   ξ
                 ).length.gt(
-                  Φ̇.int(
-                    Φ̇.bytes(
-                      Δ ⤍ 00-00-00-00-00-00-00-00
-                    )
-                  )
+                  0
                 )
               ⟧,
               prints-itself-to-console ↦ ⟦
-                x ↦ Φ̇.int(
-                  Φ̇.bytes(
-                    Δ ⤍ 00-00-00-00-00-00-00-2A
-                  )
-                ),
+                x ↦ 42,
                 φ ↦ Φ̇.io.stdout(
                   Φ̇.as-phi(
                     ξ
@@ -99,5 +91,16 @@ tests:
             "jeff",
             42
           )
+        ⟧
+      }
+  - name: "Prints floats"
+    input: |
+      {⟦ m ↦ -42.0 ⟧}
+    normalized: |
+      {⟦ m ↦ -42.0 ⟧}
+    prettified: |
+      {
+        ⟦
+          m ↦ -42.0
         ⟧
       }
