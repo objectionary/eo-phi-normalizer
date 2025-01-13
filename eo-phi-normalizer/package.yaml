@@ -22,7 +22,7 @@
 
 name: eo-phi-normalizer
 synopsis: "Command line normalizer of 𝜑-calculus expressions."
-version: 3.1.0
+version: 3.2.0
 github: "objectionary/eo-phi-normalizer"
 license: BSD3
 author: "EO/Polystat Development Team"
