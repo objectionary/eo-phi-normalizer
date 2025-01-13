@@ -1,0 +1,221 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">{- FOURMOLU_DISABLE -}</span><span>
+</span><span id="line-2"></span><span class="hs-comment">-- The MIT License (MIT)</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- Copyright (c) 2016-2024 Objectionary.com</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- Permission is hereby granted, free of charge, to any person obtaining a copy</span><span>
+</span><span id="line-7"></span><span class="hs-comment">-- of this software and associated documentation files (the &quot;Software&quot;), to deal</span><span>
+</span><span id="line-8"></span><span class="hs-comment">-- in the Software without restriction, including without limitation the rights</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- copies of the Software, and to permit persons to whom the Software is</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- furnished to do so, subject to the following conditions:</span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- The above copyright notice and this permission notice shall be included</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- in all copies or substantial portions of the Software.</span><span>
+</span><span id="line-15"></span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span><span>
+</span><span id="line-17"></span><span class="hs-comment">-- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span><span>
+</span><span id="line-18"></span><span class="hs-comment">-- FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE</span><span>
+</span><span id="line-19"></span><span class="hs-comment">-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span><span>
+</span><span id="line-20"></span><span class="hs-comment">-- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span><span>
+</span><span id="line-21"></span><span class="hs-comment">-- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span><span>
+</span><span id="line-22"></span><span class="hs-comment">-- SOFTWARE.</span><span>
+</span><span id="line-23"></span><span class="hs-comment">{- FOURMOLU_ENABLE -}</span><span>
+</span><span id="line-24"></span><span class="hs-pragma">{-# LANGUAGE BlockArguments #-}</span><span>
+</span><span id="line-25"></span><span>
+</span><span id="line-26"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.EO.Phi.Preprocess</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-27"></span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">void</span></span><span class="hs-special">)</span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Void</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Void</span></span><span class="hs-special">)</span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Replace.Megaparsec</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">splitCap</span></span><span class="hs-special">)</span><span>
+</span><span id="line-31"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Text.Megaparsec</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">MonadParsec</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">Parsec</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">Stream</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">between</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">match</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">sepBy</span></span><span class="hs-special">)</span><span>
+</span><span id="line-32"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Text.Megaparsec.Byte.Lexer</span></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">L</span></span><span>
+</span><span id="line-33"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Text.Megaparsec.Char</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">lowerChar</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">space</span></span><span class="hs-special">)</span><span>
+</span><span id="line-34"></span><span>
+</span><span id="line-35"></span><span class="annot"><a href="Language.EO.Phi.Preprocess.html#symbol"><span class="hs-identifier hs-type">symbol</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Preprocess.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-36"></span><span id="symbol"><span class="annot"><span class="annottext">symbol :: String -&gt; Parser String
+</span><a href="Language.EO.Phi.Preprocess.html#symbol"><span class="hs-identifier hs-var hs-var">symbol</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity ()
+-&gt; Tokens String -&gt; ParsecT Void String Identity (Tokens String)
+forall e s (m :: * -&gt; *).
+MonadParsec e s m =&gt;
+m () -&gt; Tokens s -&gt; m (Tokens s)
+</span><span class="hs-identifier hs-var">L.symbol</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity ()
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m ()
+</span><span class="hs-identifier hs-var">space</span></span><span>
+</span><span id="line-37"></span><span>
+</span><span id="line-38"></span><span id="local-6989586621679718288"><span class="annot"><a href="Language.EO.Phi.Preprocess.html#lexeme"><span class="hs-identifier hs-type">lexeme</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Preprocess.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679718288"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Preprocess.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679718288"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-39"></span><span id="lexeme"><span class="annot"><span class="annottext">lexeme :: forall a. Parser a -&gt; Parser a
+</span><a href="Language.EO.Phi.Preprocess.html#lexeme"><span class="hs-identifier hs-var hs-var">lexeme</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity ()
+-&gt; ParsecT Void String Identity a -&gt; ParsecT Void String Identity a
+forall e s (m :: * -&gt; *) a. MonadParsec e s m =&gt; m () -&gt; m a -&gt; m a
+</span><span class="hs-identifier hs-var">L.lexeme</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity ()
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m ()
+</span><span class="hs-identifier hs-var">space</span></span><span>
+</span><span id="line-40"></span><span>
+</span><span id="line-41"></span><span class="hs-keyword">type</span><span> </span><span id="Parser"><span class="annot"><a href="Language.EO.Phi.Preprocess.html#Parser"><span class="hs-identifier hs-var">Parser</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Parsec</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Void</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-42"></span><span>
+</span><span id="line-43"></span><span class="annot"><a href="Language.EO.Phi.Preprocess.html#parseLabelId"><span class="hs-identifier hs-type">parseLabelId</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Preprocess.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-44"></span><span id="parseLabelId"><span class="annot"><span class="annottext">parseLabelId :: ParsecT Void String Identity ()
+</span><a href="Language.EO.Phi.Preprocess.html#parseLabelId"><span class="hs-identifier hs-var hs-var">parseLabelId</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity () -&gt; ParsecT Void String Identity ()
+forall a. Parser a -&gt; Parser a
+</span><a href="Language.EO.Phi.Preprocess.html#lexeme"><span class="hs-identifier hs-var">lexeme</span></a></span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-45"></span><span>  </span><span class="annot"><span class="annottext">ParsecT Void String Identity Char
+-&gt; ParsecT Void String Identity ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><span class="hs-identifier hs-var">void</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity Char
+ParsecT Void String Identity (Token String)
+forall e s (m :: * -&gt; *).
+(MonadParsec e s m, Token s ~ Char) =&gt;
+m (Token s)
+</span><span class="hs-identifier hs-var">lowerChar</span></span><span>
+</span><span id="line-46"></span><span>  </span><span class="annot"><span class="annottext">ParsecT Void String Identity (Tokens String)
+-&gt; ParsecT Void String Identity ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><span class="hs-identifier hs-var">void</span></span><span> </span><span class="annot"><span class="annottext">(ParsecT Void String Identity (Tokens String)
+ -&gt; ParsecT Void String Identity ())
+-&gt; ParsecT Void String Identity (Tokens String)
+-&gt; ParsecT Void String Identity ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Maybe String
+-&gt; (Token String -&gt; Bool)
+-&gt; ParsecT Void String Identity (Tokens String)
+forall e s (m :: * -&gt; *).
+MonadParsec e s m =&gt;
+Maybe String -&gt; (Token s -&gt; Bool) -&gt; m (Tokens s)
+</span><span class="hs-identifier hs-var">takeWhileP</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Maybe String
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;LabelId&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Token String -&gt; [Token String] -&gt; Bool
+forall (t :: * -&gt; *) a. (Foldable t, Eq a) =&gt; a -&gt; t a -&gt; Bool
+</span><span class="hs-operator hs-var">`notElem`</span></span><span> </span><span class="annot"><span class="annottext">String
+[Token String]
+</span><span class="hs-string">&quot; \r\n\t,.|':;!?][}{)(&#10215;&#10214;&quot;</span></span><span class="hs-special">)</span><span>
+</span><span id="line-47"></span><span>
+</span><span id="line-48"></span><span class="annot"><a href="Language.EO.Phi.Preprocess.html#parseBindingArrow"><span class="hs-identifier hs-type">parseBindingArrow</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Preprocess.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-49"></span><span id="parseBindingArrow"><span class="annot"><span class="annottext">parseBindingArrow :: ParsecT Void String Identity ()
+</span><a href="Language.EO.Phi.Preprocess.html#parseBindingArrow"><span class="hs-identifier hs-var hs-var">parseBindingArrow</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser String -&gt; ParsecT Void String Identity ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><span class="hs-identifier hs-var">void</span></span><span> </span><span class="annot"><span class="annottext">(Parser String -&gt; ParsecT Void String Identity ())
+-&gt; Parser String -&gt; ParsecT Void String Identity ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Parser String
+</span><a href="Language.EO.Phi.Preprocess.html#symbol"><span class="hs-identifier hs-var">symbol</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#8614;&quot;</span></span><span>
+</span><span id="line-50"></span><span>
+</span><span id="line-51"></span><span class="annot"><a href="Language.EO.Phi.Preprocess.html#parseAlphaAttr"><span class="hs-identifier hs-type">parseAlphaAttr</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Preprocess.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-52"></span><span id="parseAlphaAttr"><span class="annot"><span class="annottext">parseAlphaAttr :: ParsecT Void String Identity ()
+</span><a href="Language.EO.Phi.Preprocess.html#parseAlphaAttr"><span class="hs-identifier hs-var hs-var">parseAlphaAttr</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-53"></span><span>  </span><span class="annot"><span class="annottext">ParsecT Void String Identity () -&gt; ParsecT Void String Identity ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><span class="hs-identifier hs-var">void</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity ()
+</span><a href="Language.EO.Phi.Preprocess.html#parseLabelId"><span class="hs-identifier hs-var">parseLabelId</span></a></span><span>
+</span><span id="line-54"></span><span>  </span><span class="annot"><span class="annottext">ParsecT Void String Identity [()]
+-&gt; ParsecT Void String Identity ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><span class="hs-identifier hs-var">void</span></span><span> </span><span class="annot"><span class="annottext">(ParsecT Void String Identity [()]
+ -&gt; ParsecT Void String Identity ())
+-&gt; ParsecT Void String Identity [()]
+-&gt; ParsecT Void String Identity ()
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Parser String
+-&gt; Parser String
+-&gt; ParsecT Void String Identity [()]
+-&gt; ParsecT Void String Identity [()]
+forall (m :: * -&gt; *) open close a.
+Applicative m =&gt;
+m open -&gt; m close -&gt; m a -&gt; m a
+</span><span class="hs-identifier hs-var">between</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Parser String
+</span><a href="Language.EO.Phi.Preprocess.html#symbol"><span class="hs-identifier hs-var">symbol</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;(&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Parser String
+</span><a href="Language.EO.Phi.Preprocess.html#symbol"><span class="hs-identifier hs-var">symbol</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;)&quot;</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ParsecT Void String Identity ()
+-&gt; Parser String -&gt; ParsecT Void String Identity [()]
+forall (m :: * -&gt; *) a sep. MonadPlus m =&gt; m a -&gt; m sep -&gt; m [a]
+</span><span class="hs-identifier hs-var">sepBy</span></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity ()
+</span><a href="Language.EO.Phi.Preprocess.html#parseLabelId"><span class="hs-identifier hs-var">parseLabelId</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; Parser String
+</span><a href="Language.EO.Phi.Preprocess.html#symbol"><span class="hs-identifier hs-var">symbol</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;,&quot;</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-55"></span><span>
+</span><span id="line-56"></span><span class="annot"><a href="Language.EO.Phi.Preprocess.html#parseAlphaBindingSugar"><span class="hs-identifier hs-type">parseAlphaBindingSugar</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Preprocess.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-57"></span><span id="parseAlphaBindingSugar"><span class="annot"><span class="annottext">parseAlphaBindingSugar :: ParsecT Void String Identity ()
+</span><a href="Language.EO.Phi.Preprocess.html#parseAlphaBindingSugar"><span class="hs-identifier hs-var hs-var">parseAlphaBindingSugar</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-58"></span><span>  </span><span class="annot"><span class="annottext">ParsecT Void String Identity ()
+</span><a href="Language.EO.Phi.Preprocess.html#parseAlphaAttr"><span class="hs-identifier hs-var">parseAlphaAttr</span></a></span><span>
+</span><span id="line-59"></span><span>  </span><span class="annot"><span class="annottext">ParsecT Void String Identity ()
+</span><a href="Language.EO.Phi.Preprocess.html#parseBindingArrow"><span class="hs-identifier hs-var">parseBindingArrow</span></a></span><span>
+</span><span id="line-60"></span><span>
+</span><span id="line-61"></span><span id="local-6989586621679718314"><span class="annot"><a href="Language.EO.Phi.Preprocess.html#splitInput"><span class="hs-identifier hs-type">splitInput</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Preprocess.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679718314"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Tokens</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span class="hs-special">]</span><span class="hs-special">)</span><span class="hs-special">]</span></span><span>
+</span><span id="line-62"></span><span id="splitInput"><span class="annot"><span class="annottext">splitInput :: forall a. Parser a -&gt; String -&gt; [Either String (Tokens String)]
+</span><a href="Language.EO.Phi.Preprocess.html#splitInput"><span class="hs-identifier hs-var hs-var">splitInput</span></a></span></span><span> </span><span id="local-6989586621679718405"><span class="annot"><span class="annottext">Parser a
+</span><a href="#local-6989586621679718405"><span class="hs-identifier hs-var">sep</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Parser String -&gt; String -&gt; [Either String String]
+forall e s a.
+(Ord e, Stream s, Tokens s ~ s) =&gt;
+Parsec e s a -&gt; s -&gt; [Either s a]
+</span><span class="hs-identifier hs-var">splitCap</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(String, a) -&gt; String
+forall a b. (a, b) -&gt; a
+</span><span class="hs-identifier hs-var">fst</span></span><span> </span><span class="annot"><span class="annottext">((String, a) -&gt; String)
+-&gt; ParsecT Void String Identity (String, a) -&gt; Parser String
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">Parser a -&gt; ParsecT Void String Identity (Tokens String, a)
+forall e s (m :: * -&gt; *) a.
+MonadParsec e s m =&gt;
+m a -&gt; m (Tokens s, a)
+</span><span class="hs-identifier hs-var">match</span></span><span> </span><span class="annot"><span class="annottext">Parser a
+</span><a href="#local-6989586621679718405"><span class="hs-identifier hs-var">sep</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-63"></span><span>
+</span><span id="line-64"></span><span id="local-6989586621679718329"><span class="annot"><a href="Language.EO.Phi.Preprocess.html#addPrefix"><span class="hs-identifier hs-type">addPrefix</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Preprocess.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679718329"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span class="hs-special">]</span></span><span>
+</span><span id="line-65"></span><span id="addPrefix"><span class="annot"><span class="annottext">addPrefix :: forall a. Parser a -&gt; String -&gt; [String]
+</span><a href="Language.EO.Phi.Preprocess.html#addPrefix"><span class="hs-identifier hs-var hs-var">addPrefix</span></a></span></span><span> </span><span id="local-6989586621679718411"><span class="annot"><span class="annottext">Parser a
+</span><a href="#local-6989586621679718411"><span class="hs-identifier hs-var">sep</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Either String String -&gt; String)
+-&gt; [Either String String] -&gt; [String]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+</span><span class="hs-identifier hs-var">map</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(String -&gt; String)
+-&gt; (String -&gt; String) -&gt; Either String String -&gt; String
+forall a c b. (a -&gt; c) -&gt; (b -&gt; c) -&gt; Either a b -&gt; c
+</span><span class="hs-identifier hs-var">either</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;~&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">([Either String String] -&gt; [String])
+-&gt; (String -&gt; [Either String String]) -&gt; String -&gt; [String]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Parser a -&gt; String -&gt; [Either String (Tokens String)]
+forall a. Parser a -&gt; String -&gt; [Either String (Tokens String)]
+</span><a href="Language.EO.Phi.Preprocess.html#splitInput"><span class="hs-identifier hs-var">splitInput</span></a></span><span> </span><span class="annot"><span class="annottext">Parser a
+</span><a href="#local-6989586621679718411"><span class="hs-identifier hs-var">sep</span></a></span><span>
+</span><span id="line-66"></span><span>
+</span><span id="line-67"></span><span id="local-6989586621679718342"><span class="annot"><a href="Language.EO.Phi.Preprocess.html#preprocess%27"><span class="hs-identifier hs-type">preprocess'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Language.EO.Phi.Preprocess.html#Parser"><span class="hs-identifier hs-type">Parser</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679718342"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span></span><span>
+</span><span id="line-68"></span><span id="preprocess%27"><span class="annot"><span class="annottext">preprocess' :: forall a. Parser a -&gt; String -&gt; String
+</span><a href="Language.EO.Phi.Preprocess.html#preprocess%27"><span class="hs-identifier hs-var hs-var">preprocess'</span></a></span></span><span> </span><span id="local-6989586621679718417"><span class="annot"><span class="annottext">Parser a
+</span><a href="#local-6989586621679718417"><span class="hs-identifier hs-var">sep</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[String] -&gt; String
+forall (t :: * -&gt; *) a. Foldable t =&gt; t [a] -&gt; [a]
+</span><span class="hs-identifier hs-var">concat</span></span><span> </span><span class="annot"><span class="annottext">([String] -&gt; String) -&gt; (String -&gt; [String]) -&gt; String -&gt; String
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Parser a -&gt; String -&gt; [String]
+forall a. Parser a -&gt; String -&gt; [String]
+</span><a href="Language.EO.Phi.Preprocess.html#addPrefix"><span class="hs-identifier hs-var">addPrefix</span></a></span><span> </span><span class="annot"><span class="annottext">Parser a
+</span><a href="#local-6989586621679718417"><span class="hs-identifier hs-var">sep</span></a></span><span>
+</span><span id="line-69"></span><span>
+</span><span id="line-70"></span><span class="annot"><a href="Language.EO.Phi.Preprocess.html#preprocess"><span class="hs-identifier hs-type">preprocess</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-71"></span><span id="preprocess"><span class="annot"><span class="annottext">preprocess :: String -&gt; String
+</span><a href="Language.EO.Phi.Preprocess.html#preprocess"><span class="hs-identifier hs-var hs-var">preprocess</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity () -&gt; String -&gt; String
+forall a. Parser a -&gt; String -&gt; String
+</span><a href="Language.EO.Phi.Preprocess.html#preprocess%27"><span class="hs-identifier hs-var">preprocess'</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT Void String Identity ()
+</span><a href="Language.EO.Phi.Preprocess.html#parseAlphaBindingSugar"><span class="hs-identifier hs-var">parseAlphaBindingSugar</span></a></span><span>
+</span><span id="line-72"></span><span>
+</span><span id="line-73"></span><span class="annot"><a href="Language.EO.Phi.Preprocess.html#input1"><span class="hs-identifier hs-type">input1</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span>
+</span><span id="line-74"></span><span id="input1"><span class="annot"><span class="annottext">input1 :: String
+</span><a href="Language.EO.Phi.Preprocess.html#input1"><span class="hs-identifier hs-var hs-var">input1</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;{&#10214; org &#8614; &#10214; eolang &#8614; &#10214; number( as-bytes, abra  ) &#8614; &#10214; &#966; &#8614; &#958;.as-bytes, neg &#8614; &#958;.times(-1), &#10215;, &#955; &#10509; Package &#10215;, &#955; &#10509; Package &#10215; &#10215;}&quot;</span></span><span>
+</span><span id="line-75"></span><span>
+</span><span id="line-76"></span><span class="hs-comment">-- &gt;&gt;&gt; addPrefix parseAlphaBindingSugar input1</span><span>
+</span><span id="line-77"></span><span class="hs-comment">-- [&quot;{\10214 org \8614 \10214 eolang \8614 \10214 &quot;,&quot;~number( as-bytes, abra  ) \8614 &quot;,&quot;\10214 \966 \8614 \958.as-bytes, neg \8614 \958.times(-1), \10215, \955 \10509 Package \10215, \955 \10509 Package \10215 \10215}&quot;]</span><span>
+</span><span id="line-78"></span><span>
+</span><span id="line-79"></span><span class="hs-comment">-- &gt;&gt;&gt; preprocess input1</span><span>
+</span><span id="line-80"></span><span class="hs-comment">-- &quot;{\10214 org \8614 \10214 eolang \8614 \10214 ~number( as-bytes, abra  ) \8614 \10214 \966 \8614 \958.as-bytes, neg \8614 \958.times(-1), \10215, \955 \10509 Package \10215, \955 \10509 Package \10215 \10215}&quot;</span><span>
+</span><span id="line-81"></span></pre></body></html>
