@@ -16,12 +16,6 @@ and this project adheres to the
 
 - chore(deps): update baptiste0928/cargo-install action to v3.3.0 ([#660](https://github.com/objectionary/eo-phi-normalizer/pull/660))
 
-### Changes and fixes
-
-- Simplify pipeline config format ([#648](https://github.com/objectionary/eo-phi-normalizer/pull/648))
-- Use dependencies for EO 0.50.0 ([#653](https://github.com/objectionary/eo-phi-normalizer/pull/653))
-- Add tests from hone-maven-plugin ([#655](https://github.com/objectionary/eo-phi-normalizer/pull/655))
-
 ## v3.1.0 - 2025-01-01
 
 ### Breaking changes
