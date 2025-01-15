@@ -28,7 +28,7 @@ $u = [. \n]          -- universal: any character
 
 -- Symbols and non-identifier-like reserved words
 
-@rsyms = \Φ | \ξ | \Δ | \λ | \φ | \ρ | \{ | \⟦ | \⟧ | \} | \( | \) | \. | \Φ \̇ | \⊥ | \[ | \↦ | \] | \⌈ | \, | \⌉ | \* | \∅ | \⤍ | \~
+@rsyms = \Φ | \ξ | \Δ | \λ | \φ | \ρ | \{ | \⟦ | \⟧ | \} | \( | \) | \. | \Φ \̇ | \⊥ | \[ | \↦ | \] | \⌈ | \, | \⌉ | \* | \∅ | \⤍ | \# | \~
 
 :-
 
@@ -50,11 +50,11 @@ $white+ ;
     { tok (eitherResIdent T_Bytes) }
 
 -- token Function
-$c [$u # [\t \n \r \  \! \' \( \) \, \- \. \: \; \? \[ \] \{ \| \} \⟦ \⟧]] *
+$c [$u # [\t \n \r \  \! \' \( \) \, \- \. \: \; \? \[ \] \{ \| \} \↦ \⟦ \⟧]] *
     { tok (eitherResIdent T_Function) }
 
 -- token LabelId
-$s [$u # [\t \n \r \  \! \' \( \) \, \. \: \; \? \[ \] \{ \| \} \⟦ \⟧]] *
+$s [$u # [\t \n \r \  \! \' \( \) \, \. \: \; \? \[ \] \{ \| \} \↦ \⟦ \⟧]] *
     { tok (eitherResIdent T_LabelId) }
 
 -- token AlphaIndex
@@ -62,27 +62,27 @@ $s [$u # [\t \n \r \  \! \' \( \) \, \. \: \; \? \[ \] \{ \| \} \⟦ \⟧]] *
     { tok (eitherResIdent T_AlphaIndex) }
 
 -- token LabelMetaId
-\! τ [$u # [\t \n \r \  \! \' \( \) \, \- \. \: \; \? \[ \] \{ \| \} \⟦ \⟧]] *
+\! τ [$u # [\t \n \r \  \! \' \( \) \, \- \. \: \; \? \[ \] \{ \| \} \↦ \⟦ \⟧]] *
     { tok (eitherResIdent T_LabelMetaId) }
 
 -- token TailMetaId
-\! t [$u # [\t \n \r \  \! \' \( \) \, \- \. \: \; \? \[ \] \{ \| \} \⟦ \⟧]] *
+\! t [$u # [\t \n \r \  \! \' \( \) \, \- \. \: \; \? \[ \] \{ \| \} \↦ \⟦ \⟧]] *
     { tok (eitherResIdent T_TailMetaId) }
 
 -- token BindingsMetaId
-\! B [$u # [\t \n \r \  \! \' \( \) \, \- \. \: \; \? \[ \] \{ \| \} \⟦ \⟧]] *
+\! B [$u # [\t \n \r \  \! \' \( \) \, \- \. \: \; \? \[ \] \{ \| \} \↦ \⟦ \⟧]] *
     { tok (eitherResIdent T_BindingsMetaId) }
 
 -- token ObjectMetaId
-\! b [$u # [\t \n \r \  \! \' \( \) \, \- \. \: \; \? \[ \] \{ \| \} \⟦ \⟧]] *
+\! b [$u # [\t \n \r \  \! \' \( \) \, \- \. \: \; \? \[ \] \{ \| \} \↦ \⟦ \⟧]] *
     { tok (eitherResIdent T_ObjectMetaId) }
 
 -- token BytesMetaId
-\! y [$u # [\t \n \r \  \! \' \( \) \, \- \. \: \; \? \[ \] \{ \| \} \⟦ \⟧]] *
+\! y [$u # [\t \n \r \  \! \' \( \) \, \- \. \: \; \? \[ \] \{ \| \} \↦ \⟦ \⟧]] *
     { tok (eitherResIdent T_BytesMetaId) }
 
 -- token MetaFunctionName
-\@ [$u # [\t \n \r \  \! \' \( \) \, \- \. \: \; \? \[ \] \{ \| \} \⟦ \⟧]] *
+\@ [$u # [\t \n \r \  \! \' \( \) \, \- \. \: \; \? \[ \] \{ \| \} \↦ \⟦ \⟧]] *
     { tok (eitherResIdent T_MetaFunctionName) }
 
 -- token IntegerSigned
@@ -240,19 +240,20 @@ eitherResIdent tv s = treeFind resWords
 -- | The keywords and symbols of the language organized as binary search tree.
 resWords :: BTree
 resWords =
-  b "\934\775" 13
-    (b "]" 7
-       (b "," 4
-          (b ")" 2 (b "(" 1 N N) (b "*" 3 N N)) (b "[" 6 (b "." 5 N N) N))
-       (b "~" 10
-          (b "}" 9 (b "{" 8 N N) N) (b "\934" 12 (b "\916" 11 N N) N)))
-    (b "\8869" 20
-       (b "\966" 17
-          (b "\958" 15 (b "\955" 14 N N) (b "\961" 16 N N))
-          (b "\8709" 19 (b "\8614" 18 N N) N))
-       (b "\10214" 23
-          (b "\8969" 22 (b "\8968" 21 N N) N)
-          (b "\10509" 25 (b "\10215" 24 N N) N)))
+  b "\934\775" 14
+    (b "[" 7
+       (b "*" 4
+          (b "(" 2 (b "#" 1 N N) (b ")" 3 N N)) (b "." 6 (b "," 5 N N) N))
+       (b "~" 11
+          (b "{" 9 (b "]" 8 N N) (b "}" 10 N N))
+          (b "\934" 13 (b "\916" 12 N N) N)))
+    (b "\8869" 21
+       (b "\966" 18
+          (b "\958" 16 (b "\955" 15 N N) (b "\961" 17 N N))
+          (b "\8709" 20 (b "\8614" 19 N N) N))
+       (b "\10214" 24
+          (b "\8969" 23 (b "\8968" 22 N N) N)
+          (b "\10509" 26 (b "\10215" 25 N N) N)))
   where
   b s n = B bs (TS bs n)
     where

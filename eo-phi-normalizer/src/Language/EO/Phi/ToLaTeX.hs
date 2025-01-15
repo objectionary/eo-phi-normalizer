@@ -62,13 +62,12 @@ instance ToLatex Attribute where
     (Alpha (AlphaIndex a)) -> LaTeX ("\\alpha_" ++ tail a)
     (Label (LabelId l)) -> LaTeX l
     (MetaAttr (LabelMetaId l)) -> LaTeX l
-    (AttrSugar (LabelId l) ls) -> LaTeX [fmt|{l}({mkLabels ls})|]
-    (PhiSugar ls) -> LaTeX [fmt|@({mkLabels ls})|]
-   where
-    mkLabels ls = intercalate ", " ((\(LabelId l') -> l') <$> ls)
 
 instance ToLatex Binding where
-  toLatex (AlphaBinding attr obj) = toLatex attr <> " -> " <> toLatex obj
+  toLatex (AlphaBinding' attr obj) = toLatex attr <> " -> " <> toLatex obj
+  toLatex (AlphaBinding'' (LabelId l) ls obj) = LaTeX [fmt|{l}({mkLabels})|] <> " -> " <> toLatex obj
+   where
+    mkLabels = intercalate ", " (unLaTeX . toLatex <$> ls)
   toLatex (EmptyBinding attr) = toLatex attr <> " -> ?"
   toLatex (DeltaBinding (Bytes bytes)) = "D> " <> LaTeX bytes
   toLatex DeltaEmptyBinding = "D> ?"

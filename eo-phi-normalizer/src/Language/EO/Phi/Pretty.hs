@@ -126,6 +126,11 @@ instance Pretty Abs.Binding where
     Abs.MetaBindings bindingsmetaid -> pretty bindingsmetaid
     Abs.MetaDeltaBinding bytesmetaid -> pretty "Δ ⤍" <+> pretty bytesmetaid
 
+instance Pretty Abs.AttributeSugar where
+  pretty = \case
+    Abs.AttributeSugar labelid labelids -> pretty labelid <> lparen <> pretty labelids <> rparen
+    Abs.AttributeNoSugar attribute -> pretty attribute
+
 instance {-# OVERLAPPING #-} Pretty [Abs.Binding] where
   pretty = vsep . punctuate comma . fmap pretty
 
@@ -136,8 +141,6 @@ instance Pretty Abs.Attribute where
     Abs.Label labelid -> pretty labelid
     Abs.Alpha alphaindex -> pretty alphaindex
     Abs.MetaAttr labelmetaid -> pretty labelmetaid
-    Abs.AttrSugar labelid labelids -> pretty labelid <> lparen <> pretty labelids <> rparen
-    Abs.PhiSugar labelids -> pretty Abs.Phi <> lparen <> pretty labelids <> rparen
 
 instance {-# OVERLAPPING #-} Pretty [Abs.LabelId] where
   pretty = hsep . punctuate comma . fmap pretty

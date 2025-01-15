@@ -108,7 +108,7 @@ dataizeStepChain mode obj@(Formation bs)
               ctx <- getContext
               return (ctx, AsObject obj')
   | DataizeAll <- mode
-  , Just (AlphaBinding Phi decoratee) <- listToMaybe [b | b@(AlphaBinding Phi _) <- bs]
+  , Just (AlphaBinding' Phi decoratee) <- listToMaybe [b | b@(AlphaBinding' Phi _) <- bs]
   , not hasEmpty = do
       let decoratee' = substThis obj decoratee
       logStep "Dataizing inside phi" (AsObject decoratee')

@@ -13,8 +13,9 @@ module Language.EO.Phi.Syntax.Par
   , pObject
   , pBinding
   , pListBinding
+  , pAttributeSugar
+  , pListAttribute
   , pAttribute
-  , pListLabelId
   , pRuleAttribute
   , pPeeledObject
   , pObjectHead
@@ -34,8 +35,9 @@ import Language.EO.Phi.Syntax.Lex
 %name pObject Object
 %name pBinding Binding
 %name pListBinding ListBinding
+%name pAttributeSugar AttributeSugar
+%name pListAttribute ListAttribute
 %name pAttribute Attribute
-%name pListLabelId ListLabelId
 %name pRuleAttribute RuleAttribute
 %name pPeeledObject PeeledObject
 %name pObjectHead ObjectHead
@@ -45,31 +47,32 @@ import Language.EO.Phi.Syntax.Lex
 %monad { Err } { (>>=) } { return }
 %tokentype {Token}
 %token
-  '('                { PT _ (TS _ 1)                }
-  ')'                { PT _ (TS _ 2)                }
-  '*'                { PT _ (TS _ 3)                }
-  ','                { PT _ (TS _ 4)                }
-  '.'                { PT _ (TS _ 5)                }
-  '['                { PT _ (TS _ 6)                }
-  ']'                { PT _ (TS _ 7)                }
-  '{'                { PT _ (TS _ 8)                }
-  '}'                { PT _ (TS _ 9)                }
-  '~'                { PT _ (TS _ 10)               }
-  'Δ'                { PT _ (TS _ 11)               }
-  'Φ'                { PT _ (TS _ 12)               }
-  'Φ̇'               { PT _ (TS _ 13)               }
-  'λ'                { PT _ (TS _ 14)               }
-  'ξ'                { PT _ (TS _ 15)               }
-  'ρ'                { PT _ (TS _ 16)               }
-  'φ'                { PT _ (TS _ 17)               }
-  '↦'                { PT _ (TS _ 18)               }
-  '∅'                { PT _ (TS _ 19)               }
-  '⊥'                { PT _ (TS _ 20)               }
-  '⌈'                { PT _ (TS _ 21)               }
-  '⌉'                { PT _ (TS _ 22)               }
-  '⟦'                { PT _ (TS _ 23)               }
-  '⟧'                { PT _ (TS _ 24)               }
-  '⤍'                { PT _ (TS _ 25)               }
+  '#'                { PT _ (TS _ 1)                }
+  '('                { PT _ (TS _ 2)                }
+  ')'                { PT _ (TS _ 3)                }
+  '*'                { PT _ (TS _ 4)                }
+  ','                { PT _ (TS _ 5)                }
+  '.'                { PT _ (TS _ 6)                }
+  '['                { PT _ (TS _ 7)                }
+  ']'                { PT _ (TS _ 8)                }
+  '{'                { PT _ (TS _ 9)                }
+  '}'                { PT _ (TS _ 10)               }
+  '~'                { PT _ (TS _ 11)               }
+  'Δ'                { PT _ (TS _ 12)               }
+  'Φ'                { PT _ (TS _ 13)               }
+  'Φ̇'               { PT _ (TS _ 14)               }
+  'λ'                { PT _ (TS _ 15)               }
+  'ξ'                { PT _ (TS _ 16)               }
+  'ρ'                { PT _ (TS _ 17)               }
+  'φ'                { PT _ (TS _ 18)               }
+  '↦'                { PT _ (TS _ 19)               }
+  '∅'                { PT _ (TS _ 20)               }
+  '⊥'                { PT _ (TS _ 21)               }
+  '⌈'                { PT _ (TS _ 22)               }
+  '⌉'                { PT _ (TS _ 23)               }
+  '⟦'                { PT _ (TS _ 24)               }
+  '⟧'                { PT _ (TS _ 25)               }
+  '⤍'                { PT _ (TS _ 26)               }
   L_doubl            { PT _ (TD $$)                 }
   L_integ            { PT _ (TI $$)                 }
   L_quoted           { PT _ (TL $$)                 }
@@ -169,7 +172,7 @@ Object
 
 Binding :: { Language.EO.Phi.Syntax.Abs.Binding }
 Binding
-  : Attribute '↦' Object { Language.EO.Phi.Syntax.Abs.AlphaBinding $1 $3 }
+  : AttributeSugar '↦' Object { Language.EO.Phi.Syntax.Abs.AlphaBinding $1 $3 }
   | Object { Language.EO.Phi.Syntax.Abs.AlphaBindingSugar $1 }
   | Attribute '↦' '∅' { Language.EO.Phi.Syntax.Abs.EmptyBinding $1 }
   | 'Δ' '⤍' Bytes { Language.EO.Phi.Syntax.Abs.DeltaBinding $3 }
@@ -184,21 +187,24 @@ ListBinding
   | Binding { (:[]) $1 }
   | Binding ',' ListBinding { (:) $1 $3 }
 
+AttributeSugar :: { Language.EO.Phi.Syntax.Abs.AttributeSugar }
+AttributeSugar
+  : '#' Attribute { Language.EO.Phi.Syntax.Abs.AttributeNoSugar $2 }
+  | '~' LabelId '(' ListAttribute ')' { Language.EO.Phi.Syntax.Abs.AttributeSugar $2 $4 }
+
+ListAttribute :: { [Language.EO.Phi.Syntax.Abs.Attribute] }
+ListAttribute
+  : {- empty -} { [] }
+  | Attribute { (:[]) $1 }
+  | Attribute ',' ListAttribute { (:) $1 $3 }
+
 Attribute :: { Language.EO.Phi.Syntax.Abs.Attribute }
 Attribute
   : 'φ' { Language.EO.Phi.Syntax.Abs.Phi }
-  | '~' 'φ' '(' ListLabelId ')' { Language.EO.Phi.Syntax.Abs.PhiSugar $4 }
   | 'ρ' { Language.EO.Phi.Syntax.Abs.Rho }
   | LabelId { Language.EO.Phi.Syntax.Abs.Label $1 }
   | AlphaIndex { Language.EO.Phi.Syntax.Abs.Alpha $1 }
   | LabelMetaId { Language.EO.Phi.Syntax.Abs.MetaAttr $1 }
-  | '~' LabelId '(' ListLabelId ')' { Language.EO.Phi.Syntax.Abs.AttrSugar $2 $4 }
-
-ListLabelId :: { [Language.EO.Phi.Syntax.Abs.LabelId] }
-ListLabelId
-  : {- empty -} { [] }
-  | LabelId { (:[]) $1 }
-  | LabelId ',' ListLabelId { (:) $1 $3 }
 
 RuleAttribute :: { Language.EO.Phi.Syntax.Abs.RuleAttribute }
 RuleAttribute

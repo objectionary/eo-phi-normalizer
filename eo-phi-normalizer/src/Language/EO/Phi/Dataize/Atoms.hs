@@ -163,11 +163,11 @@ knownAtomsList =
          where
           isPackage (LambdaBinding (Function "Package")) = True
           isPackage _ = False
-          dataizeBindingChain (AlphaBinding attr o) = do
+          dataizeBindingChain (AlphaBinding' attr o) = do
             ctx <- getContext
             let extendedContext = (extendContextWith obj ctx){currentAttr = attr}
             dataizationResult <- incLogLevel $ withContext extendedContext $ dataizeRecursivelyChain False o
-            return (AlphaBinding attr (either id (Formation . singleton . DeltaBinding) dataizationResult))
+            return (AlphaBinding' attr (either id (Formation . singleton . DeltaBinding) dataizationResult))
           dataizeBindingChain b = return b
         f name _otherwise = evaluateBuiltinFunChainUnknown name _otherwise
        in

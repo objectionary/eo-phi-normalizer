@@ -30,7 +30,8 @@ import Language.EO.Phi
 import Control.Monad (foldM)
 
 bindingAttr :: Binding -> Maybe Attribute
-bindingAttr (AlphaBinding a _) = Just a
+bindingAttr (AlphaBinding' a _) = Just a
+bindingAttr b@(AlphaBinding _ _) = errorExpectedDesugaredBinding b
 bindingAttr (EmptyBinding a) = Just a
 bindingAttr (DeltaBinding _) = Just (Alpha (AlphaIndex "Δ"))
 bindingAttr DeltaEmptyBinding = Just (Alpha (AlphaIndex "Δ"))
