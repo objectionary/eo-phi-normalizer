@@ -714,3 +714,5 @@ pattern AlphaBinding' a obj = AlphaBinding (AttributeNoSugar a) obj
 
 pattern AlphaBinding'' :: LabelId -> [Attribute] -> Object -> Binding
 pattern AlphaBinding'' a as obj = AlphaBinding (AttributeSugar a as) obj
+
+{-# COMPLETE AlphaBinding', AlphaBinding'', EmptyBinding, DeltaBinding, DeltaEmptyBinding, LambdaBinding, MetaBindings, MetaDeltaBinding, AlphaBindingSugar #-}
