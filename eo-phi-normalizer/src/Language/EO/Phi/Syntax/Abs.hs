@@ -81,7 +81,7 @@ data Object
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data Binding
-    = AlphaBinding Attribute Object
+    = AlphaBinding AttributeSugar Object
     | AlphaBindingSugar Object
     | EmptyBinding Attribute
     | DeltaBinding Bytes
@@ -91,14 +91,16 @@ data Binding
     | MetaDeltaBinding BytesMetaId
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
+data AttributeSugar
+    = AttributeNoSugar Attribute | AttributeSugar LabelId [Attribute]
+  deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
+
 data Attribute
     = Phi
-    | PhiSugar [LabelId]
     | Rho
     | Label LabelId
     | Alpha AlphaIndex
     | MetaAttr LabelMetaId
-    | AttrSugar LabelId [LabelId]
   deriving (C.Eq, C.Ord, C.Show, C.Read, C.Data, C.Typeable, C.Generic)
 
 data RuleAttribute = ObjectAttr Attribute | DeltaAttr | LambdaAttr

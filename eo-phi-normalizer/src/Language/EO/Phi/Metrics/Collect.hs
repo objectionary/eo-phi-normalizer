@@ -29,6 +29,7 @@
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedLabels #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE UndecidableInstances #-}
@@ -43,6 +44,7 @@ import Data.Maybe (catMaybes)
 import Data.Traversable (forM)
 import Language.EO.Phi.Metrics.Data (BindingMetrics (..), BindingsByPathMetrics (..), MetricsCount, ObjectMetrics (..), Path, ProgramMetrics (..))
 import Language.EO.Phi.Rules.Common ()
+import Language.EO.Phi.Syntax (pattern AlphaBinding')
 import Language.EO.Phi.Syntax.Abs
 
 -- $setup
@@ -180,8 +182,8 @@ getObjectByPath object path =
               x <- bindings
               Right obj <-
                 case x of
-                  AlphaBinding (Alpha (AlphaIndex name)) obj | name == p -> [getObjectByPath obj ps]
-                  AlphaBinding (Label (LabelId name)) obj | name == p -> [getObjectByPath obj ps]
+                  AlphaBinding' (Alpha (AlphaIndex name)) obj | name == p -> [getObjectByPath obj ps]
+                  AlphaBinding' (Label (LabelId name)) obj | name == p -> [getObjectByPath obj ps]
                   _ -> [Left path]
               pure obj
         _ -> Left path
@@ -203,8 +205,8 @@ getBindingsByPathMetrics object path =
           bindingsMetrics = do
             x <- zip bindings objectMetrics
             case x of
-              (AlphaBinding (Alpha (AlphaIndex name)) _, metrics) -> [BindingMetrics{..}]
-              (AlphaBinding (Label (LabelId name)) _, metrics) -> [BindingMetrics{..}]
+              (AlphaBinding' (Alpha (AlphaIndex name)) _, metrics) -> [BindingMetrics{..}]
+              (AlphaBinding' (Label (LabelId name)) _, metrics) -> [BindingMetrics{..}]
               _ -> []
        in Right $ BindingsByPathMetrics{..}
     Right _ -> Left path

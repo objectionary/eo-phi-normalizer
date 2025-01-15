@@ -394,6 +394,7 @@ extra-source-files:
     test/eo/phi/dataization.yaml
     test/eo/phi/from-eo/as-phi.yaml
     test/eo/phi/metrics.yaml
+    test/eo/phi/parser/expressions.yaml
     test/eo/phi/rewriting.yaml
     test/eo/phi/rules/new.yaml
     test/eo/phi/rules/streams.yaml
@@ -628,6 +629,7 @@ test-suite spec
   main-is: Main.hs
   other-modules:
       Language.EO.Phi.DataizeSpec
+      Language.EO.Phi.ParserSpec
       Language.EO.Phi.RewriteSpec
       Language.EO.PhiSpec
       Language.EO.Rules.PhiPaperSpec

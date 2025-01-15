@@ -82,6 +82,12 @@ module Language.EO.Phi.Syntax (
   errorExpectedDesugaredObject,
   errorExpectedDesugaredBinding,
   errorExpectedDesugaredAttribute,
+
+  -- * Pattern synonyms
+  pattern Label',
+  pattern MetaAttr',
+  pattern AlphaBinding',
+  pattern AlphaBinding'',
 ) where
 
 import Data.ByteString (ByteString)
@@ -154,14 +160,11 @@ instance DesugarableInitially [Binding] where
    where
     go :: Int -> Binding -> Binding
     go idx = \case
-      AlphaBinding (AttrSugar l ls) (Formation bindings) ->
+      AlphaBinding'' l ls (Formation bindings) ->
         let bindingsDesugared = desugarInitially bindings
-         in AlphaBinding (Label l) (Formation ((EmptyBinding . Label <$> ls) <> bindingsDesugared))
-      AlphaBinding (PhiSugar ls) (Formation bindings) ->
-        let bindingsDesugared = desugarInitially bindings
-         in AlphaBinding Phi (Formation ((EmptyBinding . Label <$> ls) <> bindingsDesugared))
+         in AlphaBinding' (Label l) (Formation ((EmptyBinding <$> ls) <> bindingsDesugared))
       AlphaBinding a obj -> AlphaBinding a (desugarInitially obj)
-      AlphaBindingSugar obj -> AlphaBinding (Alpha (AlphaIndex [fmt|α{idx}|])) (desugarInitially obj)
+      AlphaBindingSugar obj -> AlphaBinding' (Alpha (AlphaIndex [fmt|α{idx}|])) (desugarInitially obj)
       binding -> binding
 
 instance DesugarableInitially Program where
@@ -174,6 +177,7 @@ instance DesugarableInitially Binding where
     AlphaBinding a obj -> AlphaBinding a (desugarInitially obj)
     obj -> obj
 
+instance DesugarableInitially AttributeSugar
 instance DesugarableInitially Attribute
 instance DesugarableInitially RuleAttribute
 instance DesugarableInitially PeeledObject
@@ -231,9 +235,8 @@ instance SugarableFinally [Binding] where
     go :: Int -> Binding -> Bool
     go idx = \case
       obj@AlphaBindingSugar{} -> errorExpectedDesugaredBinding obj
-      obj@(AlphaBinding (AttrSugar _ _) _) -> errorExpectedDesugaredBinding obj
-      obj@(AlphaBinding (PhiSugar _) _) -> errorExpectedDesugaredBinding obj
-      AlphaBinding (Alpha (AlphaIndex ('α' : idx'))) _ -> idx == read idx'
+      obj@(AlphaBinding''{}) -> errorExpectedDesugaredBinding obj
+      AlphaBinding' (Alpha (AlphaIndex ('α' : idx'))) _ -> idx == read idx'
       _ -> False
 
 instance SugarableFinally Binding where
@@ -275,12 +278,12 @@ desugar = \case
 
 desugarBinding :: Binding -> Binding
 desugarBinding = \case
-  AlphaBinding (AttrSugar l ls) (Formation bindings) ->
+  AlphaBinding'' l ls (Formation bindings) ->
     let bindingsDesugared = desugarBinding <$> bindings
-     in AlphaBinding (Label l) (Formation ((EmptyBinding . Label <$> ls) <> bindingsDesugared))
-  AlphaBinding (PhiSugar ls) (Formation bindings) ->
+     in AlphaBinding' (Label l) (Formation ((EmptyBinding <$> ls) <> bindingsDesugared))
+  AlphaBinding' l (Formation bindings) ->
     let bindingsDesugared = desugarBinding <$> bindings
-     in AlphaBinding Phi (Formation ((EmptyBinding . Label <$> ls) <> bindingsDesugared))
+     in AlphaBinding' l (Formation bindingsDesugared)
   AlphaBinding a obj -> AlphaBinding a (desugar obj)
   obj@(AlphaBindingSugar{}) -> errorExpectedDesugaredBinding obj
   binding -> binding
@@ -663,6 +666,7 @@ instance IsString Program where fromString = unsafeParseWith pProgram
 instance IsString Object where fromString = unsafeParseWith pObject
 instance IsString Binding where fromString = unsafeParseWith pBinding
 instance IsString Attribute where fromString = unsafeParseWith pAttribute
+instance IsString AttributeSugar where fromString = unsafeParseWith pAttributeSugar
 instance IsString RuleAttribute where fromString = unsafeParseWith pRuleAttribute
 instance IsString PeeledObject where fromString = unsafeParseWith pPeeledObject
 instance IsString ObjectHead where fromString = unsafeParseWith pObjectHead
@@ -698,3 +702,15 @@ printTree =
 
 -- >>> bytesToInt "00-00-00-00-00-00-00-00"
 -- 0
+
+pattern Label' :: LabelId -> AttributeSugar
+pattern Label' a = AttributeNoSugar (Label a)
+
+pattern MetaAttr' :: LabelMetaId -> AttributeSugar
+pattern MetaAttr' a = AttributeNoSugar (MetaAttr a)
+
+pattern AlphaBinding' :: Attribute -> Object -> Binding
+pattern AlphaBinding' a obj = AlphaBinding (AttributeNoSugar a) obj
+
+pattern AlphaBinding'' :: LabelId -> [Attribute] -> Object -> Binding
+pattern AlphaBinding'' a as obj = AlphaBinding (AttributeSugar a as) obj

@@ -28,6 +28,7 @@
 {-# LANGUAGE NumericUnderscores #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE TupleSections #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
@@ -48,7 +49,7 @@ import GHC.Generics (Generic)
 import Language.EO.Phi.Dataize.Context (defaultContext)
 import Language.EO.Phi.Rules.Common (ApplicationLimits (..), NamedRule, applyOneRule, defaultApplicationLimits, equalObject, objectSize)
 import Language.EO.Phi.Rules.Yaml (convertRuleNamed, parseRuleSetFromFile, rules)
-import Language.EO.Phi.Syntax (errorExpectedDesugaredBinding, intToBytes, printTree)
+import Language.EO.Phi.Syntax (errorExpectedDesugaredBinding, intToBytes, printTree, pattern AlphaBinding', pattern AlphaBinding'')
 import Language.EO.Phi.Syntax.Abs as Phi
 import Test.Hspec
 import Test.QuickCheck
@@ -103,13 +104,13 @@ instance Arbitrary Binding where
         ( n
         , do
             attr <- arbitrary
-            AlphaBinding attr <$> arbitrary
+            AlphaBinding' attr <$> arbitrary
         )
       , (1, DeltaBinding <$> arbitrary)
       , (1, LambdaBinding <$> arbitrary)
       , (1, pure DeltaEmptyBinding)
       ]
-  shrink (AlphaBinding attr obj) = AlphaBinding attr <$> shrink obj
+  shrink (AlphaBinding' attr obj) = AlphaBinding' attr <$> shrink obj
   shrink _ = [] -- do not shrink deltas and lambdas
 
 instance Arbitrary Phi.StringRaw where
@@ -143,7 +144,8 @@ listOf' x = sized $ \n -> do
 
 bindingAttr :: Binding -> Attribute
 bindingAttr = \case
-  AlphaBinding a _ -> a
+  AlphaBinding' a _ -> a
+  b@AlphaBinding''{} -> errorExpectedDesugaredBinding b
   EmptyBinding a -> a
   DeltaBinding{} -> Label "Δ"
   DeltaEmptyBinding{} -> Label "Δ"
@@ -160,7 +162,7 @@ arbitraryBindings =
 arbitraryAlphaLabelBindings :: Gen [Binding]
 arbitraryAlphaLabelBindings =
   List.nubBy ((==) `on` bindingAttr)
-    <$> listOf' (AlphaBinding <$> (Label <$> arbitrary) <*> arbitrary)
+    <$> listOf' (AlphaBinding' <$> arbitrary <*> arbitrary)
 
 sizedLiftA2 :: (a -> b -> c) -> Gen a -> Gen b -> Gen c
 sizedLiftA2 f x y = sized $ \n -> do
@@ -210,7 +212,7 @@ genCriticalPair rules = do
     obj <- Formation . List.nubBy sameAttr <$> listOf' arbitrary
     return (obj, applyOneRule (defaultContext rules obj) obj)
 
-  sameAttr (AlphaBinding attr1 _) (AlphaBinding attr2 _) = attr1 == attr2
+  sameAttr (AlphaBinding' attr1 _) (AlphaBinding' attr2 _) = attr1 == attr2
   sameAttr (EmptyBinding attr1) (EmptyBinding attr2) = attr1 == attr2
   sameAttr b1 b2 = toConstr b1 == toConstr b2
 
