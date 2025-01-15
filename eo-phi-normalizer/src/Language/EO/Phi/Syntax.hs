@@ -84,8 +84,6 @@ module Language.EO.Phi.Syntax (
   errorExpectedDesugaredAttribute,
 
   -- * Pattern synonyms
-  pattern Label',
-  pattern MetaAttr',
   pattern AlphaBinding',
   pattern AlphaBinding'',
 ) where
@@ -702,12 +700,6 @@ printTree =
 
 -- >>> bytesToInt "00-00-00-00-00-00-00-00"
 -- 0
-
-pattern Label' :: LabelId -> AttributeSugar
-pattern Label' a = AttributeNoSugar (Label a)
-
-pattern MetaAttr' :: LabelMetaId -> AttributeSugar
-pattern MetaAttr' a = AttributeNoSugar (MetaAttr a)
 
 pattern AlphaBinding' :: Attribute -> Object -> Binding
 pattern AlphaBinding' a obj = AlphaBinding (AttributeNoSugar a) obj
