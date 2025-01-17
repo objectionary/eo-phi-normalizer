@@ -72,7 +72,6 @@ User-defined rules unit tests
     MISS
       Language.EO.Test.YamlSpec[46:13] [✔]
       Should not match if attr is present [✔]
-      Should not match for rho [✔]
       Should apply in subformations [✔]
     DD
       Dispatch on bottom is bottom [✔]
@@ -82,5 +81,5 @@ User-defined rules unit tests
       Phi Paper Example E2 last application [✔]
 
 Finished in 0.0062 seconds
-34 examples, 0 failures
+33 examples, 0 failures
 ```
