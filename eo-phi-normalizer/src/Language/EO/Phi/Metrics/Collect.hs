@@ -160,12 +160,12 @@ getThisObjectMetrics obj = execState (inspect obj) mempty
 
 -- | Get an object by a path within a given object.
 --
--- If no object is accessible by the path, return a prefix of the path that led to a non-formation when the remaining path wasn't empty.
+-- If no object is accessible by the path, return the path that led to a non-formation.
 -- >>> flip getObjectByPath ["org", "eolang"] "⟦ org ↦ ⟦ eolang ↦ ⟦ x ↦ ⟦ φ ↦ Φ.org.eolang.bool ( α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-) ) ⟧, z ↦ ⟦ y ↦ ⟦ x ↦ ∅, φ ↦ ξ.x ⟧, φ ↦ Φ.org.eolang.bool ( α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-) ) ⟧, λ ⤍ Package ⟧, λ ⤍ Package ⟧⟧"
--- Right (Formation [AlphaBinding (Label (LabelId "x")) (Formation [AlphaBinding Phi (Application (ObjectDispatch (ObjectDispatch (ObjectDispatch GlobalObject (Label (LabelId "org"))) (Label (LabelId "eolang"))) (Label (LabelId "bool"))) [AlphaBinding (Alpha (AlphaIndex "\945\&0")) (Application (ObjectDispatch (ObjectDispatch (ObjectDispatch GlobalObject (Label (LabelId "org"))) (Label (LabelId "eolang"))) (Label (LabelId "bytes"))) [DeltaBinding (Bytes "01-")])])]),AlphaBinding (Label (LabelId "z")) (Formation [AlphaBinding (Label (LabelId "y")) (Formation [EmptyBinding (Label (LabelId "x")),AlphaBinding Phi (ObjectDispatch ThisObject (Label (LabelId "x")))]),AlphaBinding Phi (Application (ObjectDispatch (ObjectDispatch (ObjectDispatch GlobalObject (Label (LabelId "org"))) (Label (LabelId "eolang"))) (Label (LabelId "bool"))) [AlphaBinding (Alpha (AlphaIndex "\945\&0")) (Application (ObjectDispatch (ObjectDispatch (ObjectDispatch GlobalObject (Label (LabelId "org"))) (Label (LabelId "eolang"))) (Label (LabelId "bytes"))) [DeltaBinding (Bytes "01-")])])]),LambdaBinding (Function "Package")])
+-- Right (Formation [AlphaBinding (AttributeNoSugar (Label (LabelId "x"))) (Formation [AlphaBinding (AttributeNoSugar Phi) (Application (ObjectDispatch (ObjectDispatch (ObjectDispatch GlobalObject (Label (LabelId "org"))) (Label (LabelId "eolang"))) (Label (LabelId "bool"))) [AlphaBinding (AttributeNoSugar (Alpha (AlphaIndex "\945\&0"))) (Application (ObjectDispatch (ObjectDispatch (ObjectDispatch GlobalObject (Label (LabelId "org"))) (Label (LabelId "eolang"))) (Label (LabelId "bytes"))) [DeltaBinding (Bytes "01-")])])]),AlphaBinding (AttributeNoSugar (Label (LabelId "z"))) (Formation [AlphaBinding (AttributeNoSugar (Label (LabelId "y"))) (Formation [EmptyBinding (Label (LabelId "x")),AlphaBinding (AttributeNoSugar Phi) (ObjectDispatch ThisObject (Label (LabelId "x")))]),AlphaBinding (AttributeNoSugar Phi) (Application (ObjectDispatch (ObjectDispatch (ObjectDispatch GlobalObject (Label (LabelId "org"))) (Label (LabelId "eolang"))) (Label (LabelId "bool"))) [AlphaBinding (AttributeNoSugar (Alpha (AlphaIndex "\945\&0"))) (Application (ObjectDispatch (ObjectDispatch (ObjectDispatch GlobalObject (Label (LabelId "org"))) (Label (LabelId "eolang"))) (Label (LabelId "bytes"))) [DeltaBinding (Bytes "01-")])])]),LambdaBinding (Function "Package")])
 --
 -- >>> flip getObjectByPath ["a"] "⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧.e ⟧"
--- Right (ObjectDispatch (Formation [AlphaBinding (Label (LabelId "b")) (Formation [EmptyBinding (Label (LabelId "c")),AlphaBinding (Label (LabelId "d")) (Formation [AlphaBinding Phi (ObjectDispatch (ObjectDispatch ThisObject Rho) (Label (LabelId "c")))])]),AlphaBinding (Label (LabelId "e")) (ObjectDispatch (Application (ObjectDispatch ThisObject (Label (LabelId "b"))) [AlphaBinding (Label (LabelId "c")) (Formation [])]) (Label (LabelId "d")))]) (Label (LabelId "e")))
+-- Left ["a"]
 getObjectByPath :: Object -> Path -> Either Path Object
 getObjectByPath object path =
   case path of
@@ -182,15 +182,15 @@ getObjectByPath object path =
               x <- bindings
               Right obj <-
                 case x of
-                  AlphaBinding' (Alpha (AlphaIndex name)) obj | name == p -> [getObjectByPath obj ps]
-                  AlphaBinding' (Label (LabelId name)) obj | name == p -> [getObjectByPath obj ps]
+                  AlphaBinding' (Alpha (AlphaIndex name)) obj@(Formation{}) | name == p -> [getObjectByPath obj ps]
+                  AlphaBinding' (Label (LabelId name)) obj@(Formation{}) | name == p -> [getObjectByPath obj ps]
                   _ -> [Left path]
               pure obj
         _ -> Left path
 
 -- | Get metrics for bindings of a formation that is accessible by a path within a given object.
 --
--- If no formation is accessible by the path, return a prefix of the path that led to a non-formation when the remaining path wasn't empty.
+-- If no formation is accessible by the path, return the path that led to a non-formation.
 -- >>> flip getBindingsByPathMetrics ["a"] "⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧.e ⟧"
 -- Left ["a"]
 --
@@ -216,7 +216,7 @@ getBindingsByPathMetrics object path =
 --
 -- Combine metrics produced by 'getThisObjectMetrics' and 'getBindingsByPathMetrics'.
 --
--- If no formation is accessible by the path, return a prefix of the path that led to a non-formation when the remaining path wasn't empty.
+-- If no formation is accessible by the path, return the path that led to a non-formation.
 -- >>> flip getObjectMetrics (Just ["a"]) "⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ∅, d ↦ ⟦ φ ↦ ξ.ρ.c ⟧ ⟧, e ↦ ξ.b(c ↦ ⟦⟧).d ⟧.e ⟧"
 -- Left ["a"]
 --
@@ -225,14 +225,14 @@ getBindingsByPathMetrics object path =
 getObjectMetrics :: Object -> Maybe Path -> Either Path ObjectMetrics
 getObjectMetrics object path = do
   let thisObjectMetrics = getThisObjectMetrics object
-  bindingsByPathMetrics <- forM path $ \path' -> getBindingsByPathMetrics object path'
+  bindingsByPathMetrics <- forM path $ getBindingsByPathMetrics object
   pure ObjectMetrics{..}
 
--- | Get metrics for a program and for bindings of a formation accessible by a given path.
+-- | Get metrics for a program and for bindings of a formation accessible by the given path.
 --
 -- Combine metrics produced by 'getThisObjectMetrics' and 'getBindingsByPathMetrics'.
 --
--- If no formation is accessible by the path, return a prefix of the path that led to a non-formation when the remaining path wasn't empty.
+-- If no formation is accessible by the path, return the path that led to a non-formation.
 -- >>> flip getProgramMetrics (Just ["org", "eolang"]) "{⟦ org ↦ ⟦ eolang ↦ ⟦ x ↦ ⟦ φ ↦ Φ.org.eolang.bool ( α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-) ) ⟧, z ↦ ⟦ y ↦ ⟦ x ↦ ∅, φ ↦ ξ.x ⟧, φ ↦ Φ.org.eolang.bool ( α0 ↦ Φ.org.eolang.bytes (Δ ⤍ 01-) ) ⟧, λ ⤍ Package ⟧, λ ⤍ Package ⟧⟧ }"
 -- Right (ProgramMetrics {bindingsByPathMetrics = Just (BindingsByPathMetrics {path = ["org","eolang"], bindingsMetrics = [BindingMetrics {name = "x", metrics = Metrics {dataless = 1, applications = 2, formations = 1, dispatches = 6}},BindingMetrics {name = "z", metrics = Metrics {dataless = 2, applications = 2, formations = 2, dispatches = 7}}]}), programMetrics = Metrics {dataless = 6, applications = 4, formations = 6, dispatches = 13}})
 --

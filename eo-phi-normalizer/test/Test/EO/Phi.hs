@@ -48,7 +48,7 @@ data PhiTestGroup = PhiTestGroup
   { title :: String
   , tests :: [PhiTest]
   }
-  deriving (Generic, FromJSON)
+  deriving (Generic, FromJSON, Show)
 
 data PhiTest = PhiTest
   { name :: String
@@ -56,13 +56,13 @@ data PhiTest = PhiTest
   , normalized :: Phi.Program
   , prettified :: String
   }
-  deriving (Generic, FromJSON)
+  deriving (Generic, FromJSON, Show)
 
 data DataizeTestGroup = DataizeTestGroup
   { title :: String
   , tests :: [DataizeTest]
   }
-  deriving (Generic, FromJSON)
+  deriving (Generic, FromJSON, Show)
 
 data DataizeTest = DataizeTest
   { name :: String
@@ -70,7 +70,7 @@ data DataizeTest = DataizeTest
   , output :: DataizationResult
   , dependencies :: [FilePath]
   }
-  deriving (Generic, FromJSON)
+  deriving (Generic, FromJSON, Show)
 
 data DataizationResult
   = Bytes {bytes :: Phi.Bytes}

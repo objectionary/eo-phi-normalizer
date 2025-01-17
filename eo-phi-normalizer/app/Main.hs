@@ -466,7 +466,7 @@ instance Show CLI'Exception where
     CouldNotParse{..} -> [fmt|An error occurred when parsing the input program:\n{message}|]
     CouldNotNormalize -> [fmt|Could not normalize the program.|]
     CouldNotMergeDependencies{..} -> message
-    Impossible{..} -> message
+    Impossible{..} -> [fmt|Impossible happened:\n{message}|]
 
 getFile :: Maybe FilePath -> IO (Maybe String)
 getFile = \case

@@ -488,6 +488,7 @@ library
     , text
     , text-manipulate
     , unordered-containers
+    , validation-selective
     , with-utf8
     , yaml
   default-language: Haskell2010
@@ -539,6 +540,7 @@ executable eo-phi-normalizer
     , text
     , text-manipulate
     , unordered-containers
+    , validation-selective
     , with-utf8
     , yaml
   default-language: Haskell2010
@@ -620,6 +622,7 @@ test-suite doctests
     , text
     , text-manipulate
     , unordered-containers
+    , validation-selective
     , with-utf8
     , yaml
   default-language: Haskell2010
@@ -681,6 +684,7 @@ test-suite spec
     , text
     , text-manipulate
     , unordered-containers
+    , validation-selective
     , with-utf8
     , yaml
   default-language: Haskell2010

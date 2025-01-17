@@ -219,9 +219,10 @@ rules:
       - name: Should not match if attr is present
         input: ⟦ t ↦ ⟦⟧ ⟧(t ↦ ⟦ a ↦ ∅ ⟧)
         output: []
-      - name: Should not match for rho
-        input: ⟦ ⟧(ρ ↦ ⟦ ⟧)
-        output: []
+      # TODO #669:10m this is an invalid expression
+      # - name: Should not match for rho
+      #   input: ⟦ ⟧(ρ ↦ ⟦ ⟧)
+      #   output: []
       - name: Should apply in subformations
         input: ⟦ a ↦ ⟦ b ↦ ⟦⟧(t ↦ ⟦⟧) ⟧ ⟧
         output: ['⟦ a ↦ ⟦ b ↦ ⊥ ⟧ ⟧']
