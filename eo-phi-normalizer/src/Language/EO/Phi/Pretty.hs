@@ -128,7 +128,7 @@ instance Pretty Abs.Binding where
 
 instance Pretty Abs.AttributeSugar where
   pretty = \case
-    Abs.AttributeSugar labelid labelids -> pretty labelid <> lparen <> pretty labelids <> rparen
+    Abs.AttributeSugar labelid labelids -> pretty labelid <> lparen <> hsep (punctuate comma (pretty <$> labelids)) <> rparen
     Abs.AttributeNoSugar attribute -> pretty attribute
 
 instance {-# OVERLAPPING #-} Pretty [Abs.Binding] where
