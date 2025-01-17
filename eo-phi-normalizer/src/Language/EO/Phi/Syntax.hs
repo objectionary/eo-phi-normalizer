@@ -82,13 +82,19 @@ module Language.EO.Phi.Syntax (
   errorExpectedDesugaredObject,
   errorExpectedDesugaredBinding,
   errorExpectedDesugaredAttribute,
+
+  -- * Pattern synonyms
+  pattern AlphaBinding',
+  pattern AlphaBinding'',
 ) where
 
 import Data.ByteString (ByteString)
 import Data.ByteString qualified as ByteString.Strict
 import Data.Char (toUpper)
+import Data.Foldable1 (intercalate1)
 import Data.Int
 import Data.List (intercalate)
+import Data.List.NonEmpty (NonEmpty ((:|)))
 import Data.Serialize qualified as Serialize
 import Data.String (IsString (fromString))
 import Data.Text qualified as T
@@ -105,6 +111,7 @@ import Prettyprinter (LayoutOptions (..), PageWidth (..), Pretty (pretty), defau
 import Prettyprinter.Render.Text (renderStrict)
 import PyF (fmt)
 import Text.Printf (printf)
+import Validation (Validation (..))
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -154,14 +161,11 @@ instance DesugarableInitially [Binding] where
    where
     go :: Int -> Binding -> Binding
     go idx = \case
-      AlphaBinding (AttrSugar l ls) (Formation bindings) ->
+      AlphaBinding'' l ls (Formation bindings) ->
         let bindingsDesugared = desugarInitially bindings
-         in AlphaBinding (Label l) (Formation ((EmptyBinding . Label <$> ls) <> bindingsDesugared))
-      AlphaBinding (PhiSugar ls) (Formation bindings) ->
-        let bindingsDesugared = desugarInitially bindings
-         in AlphaBinding Phi (Formation ((EmptyBinding . Label <$> ls) <> bindingsDesugared))
+         in AlphaBinding' (Label l) (Formation ((EmptyBinding <$> ls) <> bindingsDesugared))
       AlphaBinding a obj -> AlphaBinding a (desugarInitially obj)
-      AlphaBindingSugar obj -> AlphaBinding (Alpha (AlphaIndex [fmt|α{idx}|])) (desugarInitially obj)
+      AlphaBindingSugar obj -> AlphaBinding' (Alpha (AlphaIndex [fmt|α{idx}|])) (desugarInitially obj)
       binding -> binding
 
 instance DesugarableInitially Program where
@@ -174,11 +178,70 @@ instance DesugarableInitially Binding where
     AlphaBinding a obj -> AlphaBinding a (desugarInitially obj)
     obj -> obj
 
+instance DesugarableInitially AttributeSugar
 instance DesugarableInitially Attribute
 instance DesugarableInitially RuleAttribute
 instance DesugarableInitially PeeledObject
 instance DesugarableInitially ObjectHead
 instance DesugarableInitially MetaId
+
+class CheckableSyntaxInitially a where
+  checkSyntax :: a -> Validation (NonEmpty String) a
+  checkSyntax = pure
+
+instance CheckableSyntaxInitially Program where
+  checkSyntax (Program bindings) = Program <$> traverse checkSyntax bindings
+
+instance CheckableSyntaxInitially Binding where
+  checkSyntax = \case
+    AlphaBinding' a obj -> AlphaBinding' a <$> checkSyntax obj
+    AlphaBinding'' a as obj ->
+      case (as, obj) of
+        -- inline-voids-on-application
+        -- {⟦ k() ↦ ⟦ ⟧() ⟧}
+        ([], o@(Application (Formation []) [])) -> Failure (printTree o :| [])
+        -- inline-voids-on-dispatch
+        -- {⟦ k() ↦ ⟦ ⟧.x ⟧}
+        ([], o@(ObjectDispatch (Formation []) _)) -> Failure (printTree o :| [])
+        _ -> AlphaBinding'' a as <$> checkSyntax obj
+    AlphaBindingSugar obj -> AlphaBindingSugar <$> checkSyntax obj
+    b -> pure b
+
+instance CheckableSyntaxInitially Object where
+  checkSyntax = \case
+    -- application-to-formation
+    -- {⟦ k ↦ ⟦ ⟧ (t ↦ ξ.t) ⟧}
+    o@(Application (Formation []) [_]) -> Failure (printTree o :| [])
+    o@(Application _ xs)
+      | let
+          isBadBinding = \case
+            -- delta-in-application
+            -- {⟦ k ↦ ξ.t (Δ ⤍ 42-) ⟧}
+            DeltaBinding{} -> True
+            DeltaEmptyBinding{} -> True
+            -- lambda-in-application
+            -- {⟦ k ↦ ξ.t (λ ⤍ Fn) ⟧}
+            LambdaBinding{} -> True
+            -- void-as-value
+            -- {⟦ k ↦ ξ.t (t ↦ ∅) ⟧}
+            EmptyBinding{} -> True
+            _ -> False
+         in
+          [d | d <- xs, isBadBinding d] /= [] ->
+          Failure (printTree o :| [])
+    ObjectDispatch obj x -> ObjectDispatch <$> checkSyntax obj <*> pure x
+    MetaSubstThis obj1 obj2 -> MetaSubstThis <$> checkSyntax obj1 <*> checkSyntax obj2
+    MetaContextualize obj1 obj2 -> MetaContextualize <$> checkSyntax obj1 <*> checkSyntax obj2
+    MetaTailContext obj x -> MetaTailContext <$> checkSyntax obj <*> pure x
+    MetaFunction n obj -> MetaFunction n <$> checkSyntax obj
+    x -> pure x
+
+instance CheckableSyntaxInitially Attribute
+instance CheckableSyntaxInitially AttributeSugar
+instance CheckableSyntaxInitially RuleAttribute
+instance CheckableSyntaxInitially PeeledObject
+instance CheckableSyntaxInitially ObjectHead
+instance CheckableSyntaxInitially MetaId
 
 class SugarableFinally a where
   sugarFinally :: a -> a
@@ -189,7 +252,7 @@ instance SugarableFinally Program where
   sugarFinally (Program bindings) = Program (sugarFinally bindings)
 
 pattern SugarBinding :: Bytes -> Binding
-pattern SugarBinding bs <- AlphaBinding "as-bytes" (Application "Φ.org.eolang.bytes" [AlphaBinding "α0" (Formation [DeltaBinding bs])])
+pattern SugarBinding bs <- AlphaBinding' "as-bytes" (Application "Φ.org.eolang.bytes" [AlphaBinding' "α0" (Formation [DeltaBinding bs])])
 
 instance SugarableFinally Object where
   sugarFinally :: Object -> Object
@@ -231,9 +294,8 @@ instance SugarableFinally [Binding] where
     go :: Int -> Binding -> Bool
     go idx = \case
       obj@AlphaBindingSugar{} -> errorExpectedDesugaredBinding obj
-      obj@(AlphaBinding (AttrSugar _ _) _) -> errorExpectedDesugaredBinding obj
-      obj@(AlphaBinding (PhiSugar _) _) -> errorExpectedDesugaredBinding obj
-      AlphaBinding (Alpha (AlphaIndex ('α' : idx'))) _ -> idx == read idx'
+      obj@(AlphaBinding''{}) -> errorExpectedDesugaredBinding obj
+      AlphaBinding' (Alpha (AlphaIndex ('α' : idx'))) _ -> idx == read idx'
       _ -> False
 
 instance SugarableFinally Binding where
@@ -275,12 +337,12 @@ desugar = \case
 
 desugarBinding :: Binding -> Binding
 desugarBinding = \case
-  AlphaBinding (AttrSugar l ls) (Formation bindings) ->
+  AlphaBinding'' l ls (Formation bindings) ->
     let bindingsDesugared = desugarBinding <$> bindings
-     in AlphaBinding (Label l) (Formation ((EmptyBinding . Label <$> ls) <> bindingsDesugared))
-  AlphaBinding (PhiSugar ls) (Formation bindings) ->
+     in AlphaBinding' (Label l) (Formation ((EmptyBinding <$> ls) <> bindingsDesugared))
+  AlphaBinding' l (Formation bindings) ->
     let bindingsDesugared = desugarBinding <$> bindings
-     in AlphaBinding Phi (Formation ((EmptyBinding . Label <$> ls) <> bindingsDesugared))
+     in AlphaBinding' l (Formation bindingsDesugared)
   AlphaBinding a obj -> AlphaBinding a (desugar obj)
   obj@(AlphaBindingSugar{}) -> errorExpectedDesugaredBinding obj
   binding -> binding
@@ -663,21 +725,32 @@ instance IsString Program where fromString = unsafeParseWith pProgram
 instance IsString Object where fromString = unsafeParseWith pObject
 instance IsString Binding where fromString = unsafeParseWith pBinding
 instance IsString Attribute where fromString = unsafeParseWith pAttribute
+instance IsString AttributeSugar where fromString = unsafeParseWith pAttributeSugar
 instance IsString RuleAttribute where fromString = unsafeParseWith pRuleAttribute
 instance IsString PeeledObject where fromString = unsafeParseWith pPeeledObject
 instance IsString ObjectHead where fromString = unsafeParseWith pObjectHead
 instance IsString MetaId where fromString = unsafeParseWith pMetaId
 
-parseWith :: (DesugarableInitially a) => ([Token] -> Either String a) -> String -> Either String a
-parseWith parser input = either (\x -> Left [fmt|{x}\non the input:\n{input'}|]) (Right . desugarInitially) parsed
+parseWith :: (DesugarableInitially a, CheckableSyntaxInitially a) => ([Token] -> Either String a) -> String -> Either String a
+parseWith parser input = result
  where
   input' = preprocess input
   tokens = myLexer input'
   parsed = parser tokens
+  validated = checkSyntax <$> parsed
+  mkError :: String -> Either String a
+  mkError x = Left [fmt|{x}\non the input:\n{input'}|]
+  result =
+    case validated of
+      Left x -> mkError x
+      Right x ->
+        case x of
+          Failure y -> mkError [fmt|Bad sub-expressions:\n\n{intercalate1 "\n\n" y}\n|]
+          Success y -> Right (desugarInitially y)
 
--- | Parse a 'Object' from a 'String'.
+-- | Parse an 'Object' from a 'String'.
 -- May throw an 'error` if input has a syntactical or lexical errors.
-unsafeParseWith :: (DesugarableInitially a) => ([Token] -> Either String a) -> String -> a
+unsafeParseWith :: (DesugarableInitially a, CheckableSyntaxInitially a) => ([Token] -> Either String a) -> String -> a
 unsafeParseWith parser input =
   case parseWith parser input of
     Left parseError -> error parseError
@@ -698,3 +771,11 @@ printTree =
 
 -- >>> bytesToInt "00-00-00-00-00-00-00-00"
 -- 0
+
+pattern AlphaBinding' :: Attribute -> Object -> Binding
+pattern AlphaBinding' a obj = AlphaBinding (AttributeNoSugar a) obj
+
+pattern AlphaBinding'' :: LabelId -> [Attribute] -> Object -> Binding
+pattern AlphaBinding'' a as obj = AlphaBinding (AttributeSugar a as) obj
+
+{-# COMPLETE AlphaBinding', AlphaBinding'', EmptyBinding, DeltaBinding, DeltaEmptyBinding, LambdaBinding, MetaBindings, MetaDeltaBinding, AlphaBindingSugar #-}

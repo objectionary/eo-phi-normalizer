@@ -394,6 +394,7 @@ extra-source-files:
     test/eo/phi/dataization.yaml
     test/eo/phi/from-eo/as-phi.yaml
     test/eo/phi/metrics.yaml
+    test/eo/phi/parser/expressions.yaml
     test/eo/phi/rewriting.yaml
     test/eo/phi/rules/new.yaml
     test/eo/phi/rules/streams.yaml
@@ -487,6 +488,7 @@ library
     , text
     , text-manipulate
     , unordered-containers
+    , validation-selective
     , with-utf8
     , yaml
   default-language: Haskell2010
@@ -538,6 +540,7 @@ executable eo-phi-normalizer
     , text
     , text-manipulate
     , unordered-containers
+    , validation-selective
     , with-utf8
     , yaml
   default-language: Haskell2010
@@ -619,6 +622,7 @@ test-suite doctests
     , text
     , text-manipulate
     , unordered-containers
+    , validation-selective
     , with-utf8
     , yaml
   default-language: Haskell2010
@@ -628,6 +632,7 @@ test-suite spec
   main-is: Main.hs
   other-modules:
       Language.EO.Phi.DataizeSpec
+      Language.EO.Phi.ParserSpec
       Language.EO.Phi.RewriteSpec
       Language.EO.PhiSpec
       Language.EO.Rules.PhiPaperSpec
@@ -679,6 +684,7 @@ test-suite spec
     , text
     , text-manipulate
     , unordered-containers
+    , validation-selective
     , with-utf8
     , yaml
   default-language: Haskell2010
