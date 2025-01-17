@@ -1,0 +1,125 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">{- FOURMOLU_DISABLE -}</span><span>
+</span><span id="line-2"></span><span class="hs-comment">-- The MIT License (MIT)</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- Copyright (c) 2016-2024 Objectionary.com</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- Permission is hereby granted, free of charge, to any person obtaining a copy</span><span>
+</span><span id="line-7"></span><span class="hs-comment">-- of this software and associated documentation files (the &quot;Software&quot;), to deal</span><span>
+</span><span id="line-8"></span><span class="hs-comment">-- in the Software without restriction, including without limitation the rights</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- copies of the Software, and to permit persons to whom the Software is</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- furnished to do so, subject to the following conditions:</span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- The above copyright notice and this permission notice shall be included</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- in all copies or substantial portions of the Software.</span><span>
+</span><span id="line-15"></span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span><span>
+</span><span id="line-17"></span><span class="hs-comment">-- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span><span>
+</span><span id="line-18"></span><span class="hs-comment">-- FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE</span><span>
+</span><span id="line-19"></span><span class="hs-comment">-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span><span>
+</span><span id="line-20"></span><span class="hs-comment">-- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span><span>
+</span><span id="line-21"></span><span class="hs-comment">-- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span><span>
+</span><span id="line-22"></span><span class="hs-comment">-- SOFTWARE.</span><span>
+</span><span id="line-23"></span><span class="hs-comment">{- FOURMOLU_ENABLE -}</span><span>
+</span><span id="line-24"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.EO.Phi</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-25"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.Normalize.html#normalize"><span class="hs-identifier">normalize</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-26"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.html#parseProgram"><span class="hs-identifier">parseProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-27"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.html#unsafeParseObject"><span class="hs-identifier">unsafeParseObject</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-28"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.html#unsafeParseProgram"><span class="hs-identifier">unsafeParseProgram</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-29"></span><span>  </span><span class="annot"><a href="Language.EO.Phi.html#unsafeParseProgramFromFile"><span class="hs-identifier">unsafeParseProgramFromFile</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-30"></span><span>  </span><span class="hs-keyword">module</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.html"><span class="hs-identifier">Language.EO.Phi.Syntax</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-31"></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-32"></span><span>
+</span><span id="line-33"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Normalize.html"><span class="hs-identifier">Language.EO.Phi.Normalize</span></a></span><span>
+</span><span id="line-34"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.html"><span class="hs-identifier">Language.EO.Phi.Syntax</span></a></span><span>
+</span><span id="line-35"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html"><span class="hs-identifier">Language.EO.Phi.Syntax.Abs</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Phi</span></span><span>
+</span><span id="line-36"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Par.html"><span class="hs-identifier">Language.EO.Phi.Syntax.Par</span></a></span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Phi</span></span><span>
+</span><span id="line-37"></span><span>
+</span><span id="line-38"></span><span class="annot"><span class="hs-comment">-- | Parse a 'Program' or return a parsing error.</span></span><span>
+</span><span id="line-39"></span><span class="annot"><a href="Language.EO.Phi.html#parseProgram"><span class="hs-identifier hs-type">parseProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Program"><span class="hs-identifier hs-type">Phi.Program</span></a></span><span>
+</span><span id="line-40"></span><span id="parseProgram"><span class="annot"><span class="annottext">parseProgram :: String -&gt; Either String Program
+</span><a href="Language.EO.Phi.html#parseProgram"><span class="hs-identifier hs-var hs-var">parseProgram</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">([Token] -&gt; Either String Program)
+-&gt; String -&gt; Either String Program
+forall a.
+(DesugarableInitially a, CheckableSyntaxInitially a) =&gt;
+([Token] -&gt; Either String a) -&gt; String -&gt; Either String a
+</span><a href="Language.EO.Phi.Syntax.html#parseWith"><span class="hs-identifier hs-var">parseWith</span></a></span><span> </span><span class="annot"><span class="annottext">[Token] -&gt; Either String Program
+</span><a href="Language.EO.Phi.Syntax.Par.html#pProgram"><span class="hs-identifier hs-var">Phi.pProgram</span></a></span><span>
+</span><span id="line-41"></span><span>
+</span><span id="line-42"></span><span class="annot"><span class="hs-comment">-- | Parse an 'Object' or return a parsing error.</span></span><span>
+</span><span id="line-43"></span><span class="annot"><a href="Language.EO.Phi.html#parseObject"><span class="hs-identifier hs-type">parseObject</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Object"><span class="hs-identifier hs-type">Phi.Object</span></a></span><span>
+</span><span id="line-44"></span><span id="parseObject"><span class="annot"><span class="annottext">parseObject :: String -&gt; Either String Object
+</span><a href="Language.EO.Phi.html#parseObject"><span class="hs-identifier hs-var hs-var">parseObject</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">([Token] -&gt; Either String Object) -&gt; String -&gt; Either String Object
+forall a.
+(DesugarableInitially a, CheckableSyntaxInitially a) =&gt;
+([Token] -&gt; Either String a) -&gt; String -&gt; Either String a
+</span><a href="Language.EO.Phi.Syntax.html#parseWith"><span class="hs-identifier hs-var">parseWith</span></a></span><span> </span><span class="annot"><span class="annottext">[Token] -&gt; Either String Object
+</span><a href="Language.EO.Phi.Syntax.Par.html#pObject"><span class="hs-identifier hs-var">Phi.pObject</span></a></span><span>
+</span><span id="line-45"></span><span>
+</span><span id="line-46"></span><span class="hs-comment">-- | Parse a 'Program' from a 'String'.</span><span>
+</span><span id="line-47"></span><span class="hs-comment">-- May throw an 'error` if input has a syntactical or lexical errors.</span><span>
+</span><span id="line-48"></span><span class="annot"><a href="Language.EO.Phi.html#unsafeParseProgram"><span class="hs-identifier hs-type">unsafeParseProgram</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Program"><span class="hs-identifier hs-type">Phi.Program</span></a></span><span>
+</span><span id="line-49"></span><span id="unsafeParseProgram"><span class="annot"><span class="annottext">unsafeParseProgram :: String -&gt; Program
+</span><a href="Language.EO.Phi.html#unsafeParseProgram"><span class="hs-identifier hs-var hs-var">unsafeParseProgram</span></a></span></span><span> </span><span id="local-6989586621679745785"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679745785"><span class="hs-identifier hs-var">input</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-50"></span><span>  </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String Program
+</span><a href="Language.EO.Phi.html#parseProgram"><span class="hs-identifier hs-var">parseProgram</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679745785"><span class="hs-identifier hs-var">input</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-51"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679745786"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679745786"><span class="hs-identifier hs-var">parseError</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Program
+forall a. HasCallStack =&gt; String -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679745786"><span class="hs-identifier hs-var">parseError</span></a></span><span>
+</span><span id="line-52"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679745788"><span class="annot"><span class="annottext">Program
+</span><a href="#local-6989586621679745788"><span class="hs-identifier hs-var">program</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="#local-6989586621679745788"><span class="hs-identifier hs-var">program</span></a></span><span>
+</span><span id="line-53"></span><span>
+</span><span id="line-54"></span><span class="hs-comment">-- | Parse an 'Object' from a 'String'.</span><span>
+</span><span id="line-55"></span><span class="hs-comment">-- May throw an 'error` if input has a syntactical or lexical errors.</span><span>
+</span><span id="line-56"></span><span class="annot"><a href="Language.EO.Phi.html#unsafeParseObject"><span class="hs-identifier hs-type">unsafeParseObject</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">String</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Object"><span class="hs-identifier hs-type">Phi.Object</span></a></span><span>
+</span><span id="line-57"></span><span id="unsafeParseObject"><span class="annot"><span class="annottext">unsafeParseObject :: String -&gt; Object
+</span><a href="Language.EO.Phi.html#unsafeParseObject"><span class="hs-identifier hs-var hs-var">unsafeParseObject</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(String -&gt; Object)
+-&gt; (Object -&gt; Object) -&gt; Either String Object -&gt; Object
+forall a c b. (a -&gt; c) -&gt; (b -&gt; c) -&gt; Either a b -&gt; c
+</span><span class="hs-identifier hs-var">either</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Object
+forall a. HasCallStack =&gt; String -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Object
+forall a. a -&gt; a
+</span><span class="hs-identifier hs-var">id</span></span><span> </span><span class="annot"><span class="annottext">(Either String Object -&gt; Object)
+-&gt; (String -&gt; Either String Object) -&gt; String -&gt; Object
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String Object
+</span><a href="Language.EO.Phi.html#parseObject"><span class="hs-identifier hs-var">parseObject</span></a></span><span>
+</span><span id="line-58"></span><span>
+</span><span id="line-59"></span><span class="annot"><a href="Language.EO.Phi.html#unsafeParseProgramFromFile"><span class="hs-identifier hs-type">unsafeParseProgramFromFile</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Program"><span class="hs-identifier hs-type">Phi.Program</span></a></span><span>
+</span><span id="line-60"></span><span id="unsafeParseProgramFromFile"><span class="annot"><span class="annottext">unsafeParseProgramFromFile :: String -&gt; IO Program
+</span><a href="Language.EO.Phi.html#unsafeParseProgramFromFile"><span class="hs-identifier hs-var hs-var">unsafeParseProgramFromFile</span></a></span></span><span> </span><span id="local-6989586621679745793"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679745793"><span class="hs-identifier hs-var">inputFile</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-61"></span><span>  </span><span id="local-6989586621679745794"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679745794"><span class="hs-identifier hs-var">src</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO String
+</span><span class="hs-identifier hs-var">readFile</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679745793"><span class="hs-identifier hs-var">inputFile</span></a></span><span>
+</span><span id="line-62"></span><span>  </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">String -&gt; Either String Program
+</span><a href="Language.EO.Phi.html#parseProgram"><span class="hs-identifier hs-var">parseProgram</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679745794"><span class="hs-identifier hs-var">src</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-63"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679745796"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679745796"><span class="hs-identifier hs-var">err</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; IO Program
+forall a. HasCallStack =&gt; String -&gt; a
+</span><span class="hs-identifier hs-var">error</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;Error parsing program from '&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679745793"><span class="hs-identifier hs-var">inputFile</span></a></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;':\n&quot;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; String -&gt; String
+forall a. [a] -&gt; [a] -&gt; [a]
+</span><span class="hs-operator hs-var">++</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679745796"><span class="hs-identifier hs-var">err</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-64"></span><span>    </span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679745797"><span class="annot"><span class="annottext">Program
+</span><a href="#local-6989586621679745797"><span class="hs-identifier hs-var">program</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Program -&gt; IO Program
+forall a. a -&gt; IO a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">Program
+</span><a href="#local-6989586621679745797"><span class="hs-identifier hs-var">program</span></a></span><span>
+</span><span id="line-65"></span></pre></body></html>

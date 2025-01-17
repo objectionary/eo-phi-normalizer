@@ -1,0 +1,980 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE BangPatterns #-}</span><span>
+</span><span id="line-2"></span><span class="hs-pragma">{-# LANGUAGE CPP #-}</span><span>
+</span><span id="line-3"></span><span class="hs-pragma">{-# LANGUAGE MagicHash #-}</span><span>
+</span><span id="line-4"></span><span class="hs-pragma">{-# LANGUAGE RankNTypes #-}</span><span>
+</span><span id="line-5"></span><span class="hs-pragma">{-# LANGUAGE ViewPatterns #-}</span><span>
+</span><span id="line-6"></span><span>
+</span><span id="line-7"></span><span class="hs-comment">-- Module      : Data.Text.Manipulate.Internal.Fusion</span><span>
+</span><span id="line-8"></span><span class="hs-comment">-- Copyright   : (c) 2014-2020 Brendan Hay &lt;brendan.g.hay@gmail.com&gt;</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- License     : This Source Code Form is subject to the terms of</span><span>
+</span><span id="line-10"></span><span class="hs-comment">--               the Mozilla Public License, v. 2.0.</span><span>
+</span><span id="line-11"></span><span class="hs-comment">--               A copy of the MPL can be found in the LICENSE file or</span><span>
+</span><span id="line-12"></span><span class="hs-comment">--               you can obtain it at http://mozilla.org/MPL/2.0/.</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- Maintainer  : Brendan Hay &lt;brendan.g.hay@gmail.com&gt;</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- Stability   : experimental</span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- Portability : non-portable (GHC extensions)</span><span>
+</span><span id="line-16"></span><span>
+</span><span id="line-17"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Data.Text.Manipulate.Internal.Fusion</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-18"></span><span>
+</span><span id="line-19"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Char</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Char</span></span><span>
+</span><span id="line-20"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Text</span></span><span class="hs-special">)</span><span>
+</span><span id="line-21"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text.Internal.Fusion</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Fusion</span></span><span>
+</span><span id="line-22"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text.Internal.Fusion.CaseMapping</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">lowerMapping</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">upperMapping</span></span><span class="hs-special">)</span><span>
+</span><span id="line-23"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text.Internal.Fusion.Common</span></span><span>
+</span><span id="line-24"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text.Internal.Fusion.Types</span></span><span>
+</span><span id="line-25"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text.Internal.Lazy.Fusion</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">LFusion</span></span><span>
+</span><span id="line-26"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text.Lazy</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">LText</span></span><span>
+</span><span id="line-27"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Types.html"><span class="hs-identifier">Data.Text.Manipulate.Internal.Types</span></a></span><span class="hs-cpp">
+
+#if MIN_VERSION_text(2,0,0)
+</span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Bits</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">shiftL</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">shiftR</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-operator">(.&amp;.)</span></span><span class="hs-special">)</span><span>
+</span><span id="line-31"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Exts</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Char</span></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">Int</span></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">chr#</span></span><span class="hs-special">)</span><span>
+</span><span id="line-32"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.Int</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Int64</span></span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-35"></span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#takeWord"><span class="hs-identifier hs-type">takeWord</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span>
+</span><span id="line-36"></span><span id="takeWord"><span class="annot"><span class="annottext">takeWord :: Stream Char -&gt; Stream Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#takeWord"><span class="hs-identifier hs-var hs-var">takeWord</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(forall s. s -&gt; Step (CC s) Char)
+-&gt; (forall s. Char -&gt; s -&gt; Step (CC s) Char)
+-&gt; Stream Token
+-&gt; Stream Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#transform"><span class="hs-identifier hs-var">transform</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Step (CC s) Char -&gt; s -&gt; Step (CC s) Char
+forall a b. a -&gt; b -&gt; a
+</span><span class="hs-identifier hs-var">const</span></span><span> </span><span class="annot"><span class="annottext">Step (CC s) Char
+forall s a. Step s a
+</span><span class="hs-identifier hs-var">Done</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Char -&gt; s -&gt; Step (CC s) Char
+forall s. Char -&gt; s -&gt; Step (CC s) Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#yield"><span class="hs-identifier hs-var">yield</span></a></span><span> </span><span class="annot"><span class="annottext">(Stream Token -&gt; Stream Char)
+-&gt; (Stream Char -&gt; Stream Token) -&gt; Stream Char -&gt; Stream Char
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Stream Char -&gt; Stream Token
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#tokenise"><span class="hs-identifier hs-var">tokenise</span></a></span><span>
+</span><span id="line-37"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">[</span><span class="hs-pragma">0</span><span class="hs-pragma">]</span><span> </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#takeWord"><span class="hs-pragma hs-type">takeWord</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-38"></span><span>
+</span><span id="line-39"></span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#dropWord"><span class="hs-identifier hs-type">dropWord</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span>
+</span><span id="line-40"></span><span id="dropWord"><span class="annot"><span class="annottext">dropWord :: Stream Char -&gt; Stream Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#dropWord"><span class="hs-identifier hs-var hs-var">dropWord</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Stream Char -&gt; Stream Token
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#tokenise"><span class="hs-identifier hs-var">tokenise</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span id="local-6989586621679038400"><span class="annot"><span class="annottext">s -&gt; Step s Token
+</span><a href="#local-6989586621679038400"><span class="hs-identifier hs-var">next0</span></a></span></span><span> </span><span id="local-6989586621679038401"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038401"><span class="hs-identifier hs-var">s0</span></a></span></span><span> </span><span id="local-6989586621679038402"><span class="annot"><span class="annottext">Size
+</span><a href="#local-6989586621679038402"><span class="hs-identifier hs-var">len</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(PairS Bool s -&gt; Step (PairS Bool s) Char)
+-&gt; PairS Bool s -&gt; Size -&gt; Stream Char
+forall a s. (s -&gt; Step s a) -&gt; s -&gt; Size -&gt; Stream a
+</span><span class="hs-identifier hs-var">Stream</span></span><span> </span><span class="annot"><span class="annottext">PairS Bool s -&gt; Step (PairS Bool s) Char
+</span><a href="#local-6989586621679038403"><span class="hs-identifier hs-var">next</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; s -&gt; PairS Bool s
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038401"><span class="hs-identifier hs-var">s0</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Size
+</span><a href="#local-6989586621679038402"><span class="hs-identifier hs-var">len</span></a></span><span>
+</span><span id="line-41"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-42"></span><span>    </span><span id="local-6989586621679038403"><span class="annot"><span class="annottext">next :: PairS Bool s -&gt; Step (PairS Bool s) Char
+</span><a href="#local-6989586621679038403"><span class="hs-identifier hs-var hs-var">next</span></a></span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679038405"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038405"><span class="hs-identifier hs-var">skip</span></a></span></span><span> </span><span class="annot"><span class="hs-operator hs-type">:*:</span></span><span> </span><span id="local-6989586621679038406"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038406"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-43"></span><span>      </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">s -&gt; Step s Token
+</span><a href="#local-6989586621679038400"><span class="hs-identifier hs-var">next0</span></a></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038406"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-44"></span><span>        </span><span class="annot"><span class="annottext">Step s Token
+</span><span class="hs-identifier hs-var">Done</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Step (PairS Bool s) Char
+forall s a. Step s a
+</span><span class="hs-identifier hs-var">Done</span></span><span>
+</span><span id="line-45"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Skip</span></span><span> </span><span id="local-6989586621679038408"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038408"><span class="hs-identifier hs-var">s'</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">PairS Bool s -&gt; Step (PairS Bool s) Char
+forall s a. s -&gt; Step s a
+</span><span class="hs-identifier hs-var">Skip</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038405"><span class="hs-identifier hs-var">skip</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; s -&gt; PairS Bool s
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038408"><span class="hs-identifier hs-var">s'</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-46"></span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Yield</span></span><span> </span><span id="local-6989586621679038410"><span class="annot"><span class="annottext">Token
+</span><a href="#local-6989586621679038410"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span id="local-6989586621679038411"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038411"><span class="hs-identifier hs-var">s'</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-47"></span><span>          </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Token
+</span><a href="#local-6989586621679038410"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-48"></span><span>            </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#B"><span class="hs-identifier hs-type">B</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\0'</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">PairS Bool s -&gt; Step (PairS Bool s) Char
+forall s a. s -&gt; Step s a
+</span><span class="hs-identifier hs-var">Skip</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; s -&gt; PairS Bool s
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038411"><span class="hs-identifier hs-var">s'</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-49"></span><span>            </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#B"><span class="hs-identifier hs-type">B</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038405"><span class="hs-identifier hs-var">skip</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">PairS Bool s -&gt; Step (PairS Bool s) Char
+forall s a. s -&gt; Step s a
+</span><span class="hs-identifier hs-var">Skip</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; s -&gt; PairS Bool s
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038411"><span class="hs-identifier hs-var">s'</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-50"></span><span>            </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#B"><span class="hs-identifier hs-type">B</span></a></span><span> </span><span id="local-6989586621679038413"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038413"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Char -&gt; PairS Bool s -&gt; Step (PairS Bool s) Char
+forall s a. a -&gt; s -&gt; Step s a
+</span><span class="hs-identifier hs-var">Yield</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038413"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; s -&gt; PairS Bool s
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038411"><span class="hs-identifier hs-var">s'</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-51"></span><span>            </span><span class="annot"><span class="annottext">Token
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038405"><span class="hs-identifier hs-var">skip</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">PairS Bool s -&gt; Step (PairS Bool s) Char
+forall s a. s -&gt; Step s a
+</span><span class="hs-identifier hs-var">Skip</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038405"><span class="hs-identifier hs-var">skip</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; s -&gt; PairS Bool s
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038411"><span class="hs-identifier hs-var">s'</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-52"></span><span>            </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#U"><span class="hs-identifier hs-type">U</span></a></span><span> </span><span id="local-6989586621679038415"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038415"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Char -&gt; PairS Bool s -&gt; Step (PairS Bool s) Char
+forall s a. a -&gt; s -&gt; Step s a
+</span><span class="hs-identifier hs-var">Yield</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038415"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038405"><span class="hs-identifier hs-var">skip</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; s -&gt; PairS Bool s
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038411"><span class="hs-identifier hs-var">s'</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-53"></span><span>            </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#L"><span class="hs-identifier hs-type">L</span></a></span><span> </span><span id="local-6989586621679038417"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038417"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Char -&gt; PairS Bool s -&gt; Step (PairS Bool s) Char
+forall s a. a -&gt; s -&gt; Step s a
+</span><span class="hs-identifier hs-var">Yield</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038417"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038405"><span class="hs-identifier hs-var">skip</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; s -&gt; PairS Bool s
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038411"><span class="hs-identifier hs-var">s'</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-54"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">[</span><span class="hs-pragma">0</span><span class="hs-pragma">]</span><span> </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#dropWord"><span class="hs-pragma hs-type">dropWord</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-55"></span><span>
+</span><span id="line-56"></span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#toTitle"><span class="hs-identifier hs-type">toTitle</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span>
+</span><span id="line-57"></span><span id="toTitle"><span class="annot"><span class="annottext">toTitle :: Stream Char -&gt; Stream Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#toTitle"><span class="hs-identifier hs-var hs-var">toTitle</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Stream Char -&gt; Stream Char) -&gt; Stream Char -&gt; Stream Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#mapHead"><span class="hs-identifier hs-var">mapHead</span></a></span><span> </span><span class="annot"><span class="annottext">Stream Char -&gt; Stream Char
+</span><span class="hs-identifier hs-var">toUpper</span></span><span> </span><span class="annot"><span class="annottext">(Stream Char -&gt; Stream Char)
+-&gt; (Stream Char -&gt; Stream Char) -&gt; Stream Char -&gt; Stream Char
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(forall s. s -&gt; Step (CC s) Char)
+-&gt; (forall s. Char -&gt; s -&gt; Step (CC s) Char)
+-&gt; (forall s. Char -&gt; s -&gt; Step (CC s) Char)
+-&gt; Stream Token
+-&gt; Stream Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#transformWith"><span class="hs-identifier hs-var">transformWith</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; s -&gt; Step (CC s) Char
+forall s. Char -&gt; s -&gt; Step (CC s) Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#yield"><span class="hs-identifier hs-var">yield</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">' '</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Char -&gt; s -&gt; Step (CC s) Char
+forall s. Char -&gt; s -&gt; Step (CC s) Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#upper"><span class="hs-identifier hs-var">upper</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; s -&gt; Step (CC s) Char
+forall s. Char -&gt; s -&gt; Step (CC s) Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#lower"><span class="hs-identifier hs-var">lower</span></a></span><span> </span><span class="annot"><span class="annottext">(Stream Token -&gt; Stream Char)
+-&gt; (Stream Char -&gt; Stream Token) -&gt; Stream Char -&gt; Stream Char
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Stream Char -&gt; Stream Token
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#tokenise"><span class="hs-identifier hs-var">tokenise</span></a></span><span>
+</span><span id="line-58"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">[</span><span class="hs-pragma">0</span><span class="hs-pragma">]</span><span> </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#toTitle"><span class="hs-pragma hs-type">toTitle</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-59"></span><span>
+</span><span id="line-60"></span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#toCamel"><span class="hs-identifier hs-type">toCamel</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span>
+</span><span id="line-61"></span><span id="toCamel"><span class="annot"><span class="annottext">toCamel :: Stream Char -&gt; Stream Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#toCamel"><span class="hs-identifier hs-var hs-var">toCamel</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Stream Char -&gt; Stream Char) -&gt; Stream Char -&gt; Stream Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#mapHead"><span class="hs-identifier hs-var">mapHead</span></a></span><span> </span><span class="annot"><span class="annottext">Stream Char -&gt; Stream Char
+</span><span class="hs-identifier hs-var">toLower</span></span><span> </span><span class="annot"><span class="annottext">(Stream Char -&gt; Stream Char)
+-&gt; (Stream Char -&gt; Stream Char) -&gt; Stream Char -&gt; Stream Char
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(forall s. s -&gt; Step (CC s) Char)
+-&gt; (forall s. Char -&gt; s -&gt; Step (CC s) Char)
+-&gt; (forall s. Char -&gt; s -&gt; Step (CC s) Char)
+-&gt; Stream Token
+-&gt; Stream Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#transformWith"><span class="hs-identifier hs-var">transformWith</span></a></span><span> </span><span class="annot"><span class="annottext">s -&gt; Step (CC s) Char
+forall s. s -&gt; Step (CC s) Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#skip%27"><span class="hs-identifier hs-var">skip'</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; s -&gt; Step (CC s) Char
+forall s. Char -&gt; s -&gt; Step (CC s) Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#upper"><span class="hs-identifier hs-var">upper</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; s -&gt; Step (CC s) Char
+forall s. Char -&gt; s -&gt; Step (CC s) Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#lower"><span class="hs-identifier hs-var">lower</span></a></span><span> </span><span class="annot"><span class="annottext">(Stream Token -&gt; Stream Char)
+-&gt; (Stream Char -&gt; Stream Token) -&gt; Stream Char -&gt; Stream Char
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Stream Char -&gt; Stream Token
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#tokenise"><span class="hs-identifier hs-var">tokenise</span></a></span><span>
+</span><span id="line-62"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">[</span><span class="hs-pragma">0</span><span class="hs-pragma">]</span><span> </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#toCamel"><span class="hs-pragma hs-type">toCamel</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-63"></span><span>
+</span><span id="line-64"></span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#toPascal"><span class="hs-identifier hs-type">toPascal</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span>
+</span><span id="line-65"></span><span id="toPascal"><span class="annot"><span class="annottext">toPascal :: Stream Char -&gt; Stream Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#toPascal"><span class="hs-identifier hs-var hs-var">toPascal</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Stream Char -&gt; Stream Char) -&gt; Stream Char -&gt; Stream Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#mapHead"><span class="hs-identifier hs-var">mapHead</span></a></span><span> </span><span class="annot"><span class="annottext">Stream Char -&gt; Stream Char
+</span><span class="hs-identifier hs-var">toUpper</span></span><span> </span><span class="annot"><span class="annottext">(Stream Char -&gt; Stream Char)
+-&gt; (Stream Char -&gt; Stream Char) -&gt; Stream Char -&gt; Stream Char
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(forall s. s -&gt; Step (CC s) Char)
+-&gt; (forall s. Char -&gt; s -&gt; Step (CC s) Char)
+-&gt; (forall s. Char -&gt; s -&gt; Step (CC s) Char)
+-&gt; Stream Token
+-&gt; Stream Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#transformWith"><span class="hs-identifier hs-var">transformWith</span></a></span><span> </span><span class="annot"><span class="annottext">s -&gt; Step (CC s) Char
+forall s. s -&gt; Step (CC s) Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#skip%27"><span class="hs-identifier hs-var">skip'</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; s -&gt; Step (CC s) Char
+forall s. Char -&gt; s -&gt; Step (CC s) Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#upper"><span class="hs-identifier hs-var">upper</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; s -&gt; Step (CC s) Char
+forall s. Char -&gt; s -&gt; Step (CC s) Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#lower"><span class="hs-identifier hs-var">lower</span></a></span><span> </span><span class="annot"><span class="annottext">(Stream Token -&gt; Stream Char)
+-&gt; (Stream Char -&gt; Stream Token) -&gt; Stream Char -&gt; Stream Char
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Stream Char -&gt; Stream Token
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#tokenise"><span class="hs-identifier hs-var">tokenise</span></a></span><span>
+</span><span id="line-66"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">[</span><span class="hs-pragma">0</span><span class="hs-pragma">]</span><span> </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#toPascal"><span class="hs-pragma hs-type">toPascal</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-67"></span><span>
+</span><span id="line-68"></span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#toSnake"><span class="hs-identifier hs-type">toSnake</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span>
+</span><span id="line-69"></span><span id="toSnake"><span class="annot"><span class="annottext">toSnake :: Stream Char -&gt; Stream Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#toSnake"><span class="hs-identifier hs-var hs-var">toSnake</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(forall s. s -&gt; Step (CC s) Char)
+-&gt; (forall s. Char -&gt; s -&gt; Step (CC s) Char)
+-&gt; Stream Token
+-&gt; Stream Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#transform"><span class="hs-identifier hs-var">transform</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; s -&gt; Step (CC s) Char
+forall s. Char -&gt; s -&gt; Step (CC s) Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#yield"><span class="hs-identifier hs-var">yield</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'_'</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Char -&gt; s -&gt; Step (CC s) Char
+forall s. Char -&gt; s -&gt; Step (CC s) Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#lower"><span class="hs-identifier hs-var">lower</span></a></span><span> </span><span class="annot"><span class="annottext">(Stream Token -&gt; Stream Char)
+-&gt; (Stream Char -&gt; Stream Token) -&gt; Stream Char -&gt; Stream Char
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Stream Char -&gt; Stream Token
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#tokenise"><span class="hs-identifier hs-var">tokenise</span></a></span><span>
+</span><span id="line-70"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">[</span><span class="hs-pragma">0</span><span class="hs-pragma">]</span><span> </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#toSnake"><span class="hs-pragma hs-type">toSnake</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-71"></span><span>
+</span><span id="line-72"></span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#toSpinal"><span class="hs-identifier hs-type">toSpinal</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span>
+</span><span id="line-73"></span><span id="toSpinal"><span class="annot"><span class="annottext">toSpinal :: Stream Char -&gt; Stream Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#toSpinal"><span class="hs-identifier hs-var hs-var">toSpinal</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(forall s. s -&gt; Step (CC s) Char)
+-&gt; (forall s. Char -&gt; s -&gt; Step (CC s) Char)
+-&gt; Stream Token
+-&gt; Stream Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#transform"><span class="hs-identifier hs-var">transform</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; s -&gt; Step (CC s) Char
+forall s. Char -&gt; s -&gt; Step (CC s) Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#yield"><span class="hs-identifier hs-var">yield</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'-'</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Char -&gt; s -&gt; Step (CC s) Char
+forall s. Char -&gt; s -&gt; Step (CC s) Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#lower"><span class="hs-identifier hs-var">lower</span></a></span><span> </span><span class="annot"><span class="annottext">(Stream Token -&gt; Stream Char)
+-&gt; (Stream Char -&gt; Stream Token) -&gt; Stream Char -&gt; Stream Char
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Stream Char -&gt; Stream Token
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#tokenise"><span class="hs-identifier hs-var">tokenise</span></a></span><span>
+</span><span id="line-74"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">[</span><span class="hs-pragma">0</span><span class="hs-pragma">]</span><span> </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#toSpinal"><span class="hs-pragma hs-type">toSpinal</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-75"></span><span>
+</span><span id="line-76"></span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#toTrain"><span class="hs-identifier hs-type">toTrain</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span>
+</span><span id="line-77"></span><span id="toTrain"><span class="annot"><span class="annottext">toTrain :: Stream Char -&gt; Stream Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#toTrain"><span class="hs-identifier hs-var hs-var">toTrain</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Stream Char -&gt; Stream Char) -&gt; Stream Char -&gt; Stream Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#mapHead"><span class="hs-identifier hs-var">mapHead</span></a></span><span> </span><span class="annot"><span class="annottext">Stream Char -&gt; Stream Char
+</span><span class="hs-identifier hs-var">toUpper</span></span><span> </span><span class="annot"><span class="annottext">(Stream Char -&gt; Stream Char)
+-&gt; (Stream Char -&gt; Stream Char) -&gt; Stream Char -&gt; Stream Char
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(forall s. s -&gt; Step (CC s) Char)
+-&gt; (forall s. Char -&gt; s -&gt; Step (CC s) Char)
+-&gt; (forall s. Char -&gt; s -&gt; Step (CC s) Char)
+-&gt; Stream Token
+-&gt; Stream Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#transformWith"><span class="hs-identifier hs-var">transformWith</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; s -&gt; Step (CC s) Char
+forall s. Char -&gt; s -&gt; Step (CC s) Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#yield"><span class="hs-identifier hs-var">yield</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'-'</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Char -&gt; s -&gt; Step (CC s) Char
+forall s. Char -&gt; s -&gt; Step (CC s) Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#upper"><span class="hs-identifier hs-var">upper</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; s -&gt; Step (CC s) Char
+forall s. Char -&gt; s -&gt; Step (CC s) Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#lower"><span class="hs-identifier hs-var">lower</span></a></span><span> </span><span class="annot"><span class="annottext">(Stream Token -&gt; Stream Char)
+-&gt; (Stream Char -&gt; Stream Token) -&gt; Stream Char -&gt; Stream Char
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Stream Char -&gt; Stream Token
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#tokenise"><span class="hs-identifier hs-var">tokenise</span></a></span><span>
+</span><span id="line-78"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">[</span><span class="hs-pragma">0</span><span class="hs-pragma">]</span><span> </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#toTrain"><span class="hs-pragma hs-type">toTrain</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-79"></span><span>
+</span><span id="line-80"></span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#strict"><span class="hs-identifier hs-type">strict</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Text</span></span><span>
+</span><span id="line-81"></span><span id="strict"><span class="annot"><span class="annottext">strict :: (Stream Char -&gt; Stream Char) -&gt; Text -&gt; Text
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#strict"><span class="hs-identifier hs-var hs-var">strict</span></a></span></span><span> </span><span id="local-6989586621679038432"><span class="annot"><span class="annottext">Stream Char -&gt; Stream Char
+</span><a href="#local-6989586621679038432"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679038433"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679038433"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Stream Char -&gt; Text
+</span><span class="hs-identifier hs-var">Fusion.unstream</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Stream Char -&gt; Stream Char
+</span><a href="#local-6989586621679038432"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text -&gt; Stream Char
+</span><span class="hs-identifier hs-var">Fusion.stream</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679038433"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-82"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">[</span><span class="hs-pragma">0</span><span class="hs-pragma">]</span><span> </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#strict"><span class="hs-pragma hs-type">strict</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-83"></span><span>
+</span><span id="line-84"></span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#lazy"><span class="hs-identifier hs-type">lazy</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">LText.Text</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">LText.Text</span></span><span>
+</span><span id="line-85"></span><span id="lazy"><span class="annot"><span class="annottext">lazy :: (Stream Char -&gt; Stream Char) -&gt; Text -&gt; Text
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#lazy"><span class="hs-identifier hs-var hs-var">lazy</span></a></span></span><span> </span><span id="local-6989586621679038437"><span class="annot"><span class="annottext">Stream Char -&gt; Stream Char
+</span><a href="#local-6989586621679038437"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679038438"><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679038438"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Stream Char -&gt; Text
+</span><span class="hs-identifier hs-var">LFusion.unstream</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Stream Char -&gt; Stream Char
+</span><a href="#local-6989586621679038437"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Text -&gt; Stream Char
+</span><span class="hs-identifier hs-var">LFusion.stream</span></span><span> </span><span class="annot"><span class="annottext">Text
+</span><a href="#local-6989586621679038438"><span class="hs-identifier hs-var">t</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-86"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">[</span><span class="hs-pragma">0</span><span class="hs-pragma">]</span><span> </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#lazy"><span class="hs-pragma hs-type">lazy</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-87"></span><span>
+</span><span id="line-88"></span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#skip%27"><span class="hs-identifier hs-type">skip'</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679038441"><span class="annot"><a href="#local-6989586621679038441"><span class="hs-identifier hs-type">s</span></a></span></span><span class="hs-operator">.</span><span> </span><span class="annot"><a href="#local-6989586621679038441"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Step</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">CC</span></span><span> </span><span class="annot"><a href="#local-6989586621679038441"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span class="hs-cpp">
+#if MIN_VERSION_text(2,0,0)
+</span><span id="skip%27"><span class="annot"><span class="annottext">skip' :: forall s. s -&gt; Step (CC s) Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#skip%27"><span class="hs-identifier hs-var hs-var">skip'</span></a></span></span><span> </span><span id="local-6989586621679038444"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038444"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">CC s -&gt; Step (CC s) Char
+forall s a. s -&gt; Step s a
+</span><span class="hs-identifier hs-var">Skip</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">s -&gt; Int64 -&gt; CC s
+forall s. s -&gt; Int64 -&gt; CC s
+</span><span class="hs-identifier hs-var">CC</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038444"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span class="hs-special">)</span><span class="hs-cpp">
+#else
+</span><span class="hs-identifier">skip'</span><span> </span><span class="hs-identifier">s</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">Skip</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">CC</span><span> </span><span class="hs-identifier">s</span><span> </span><span class="hs-char">'\0'</span><span> </span><span class="hs-char">'\0'</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-95"></span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#yield"><span class="hs-identifier hs-type">yield</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#upper"><span class="hs-identifier hs-type">upper</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#lower"><span class="hs-identifier hs-type">lower</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679038446"><span class="annot"><a href="#local-6989586621679038446"><span class="hs-identifier hs-type">s</span></a></span></span><span class="hs-operator">.</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679038446"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Step</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">CC</span></span><span> </span><span class="annot"><a href="#local-6989586621679038446"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span class="hs-cpp">
+#if MIN_VERSION_text(2,0,0)
+</span><span>
+</span><span id="line-98"></span><span id="yield"><span class="annot"><span class="annottext">yield :: forall s. Char -&gt; s -&gt; Step (CC s) Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#yield"><span class="hs-identifier hs-var hs-var">yield</span></a></span></span><span> </span><span class="hs-glyph">!</span><span id="local-6989586621679038448"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038448"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span id="local-6989586621679038449"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038449"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Char -&gt; CC s -&gt; Step (CC s) Char
+forall s a. a -&gt; s -&gt; Step s a
+</span><span class="hs-identifier hs-var">Yield</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038448"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">s -&gt; Int64 -&gt; CC s
+forall s. s -&gt; Int64 -&gt; CC s
+</span><span class="hs-identifier hs-var">CC</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038449"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span class="hs-special">)</span><span>
+</span><span id="line-99"></span><span>
+</span><span id="line-100"></span><span id="upper"><span class="annot"><span class="annottext">upper :: forall s. Char -&gt; s -&gt; Step (CC s) Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#upper"><span class="hs-identifier hs-var hs-var">upper</span></a></span></span><span> </span><span class="hs-glyph">!</span><span id="local-6989586621679038454"><span class="annot"><span class="annottext">c :: Char
+</span><a href="#local-6989586621679038454"><span class="hs-identifier hs-var">c</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">C#</span></span><span> </span><span id="local-6989586621679038455"><span class="annot"><span class="annottext">Char#
+</span><a href="#local-6989586621679038455"><span class="hs-identifier hs-var">c#</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679038456"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038456"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Int64# -&gt; Int64
+</span><span class="hs-identifier hs-var">I64#</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char# -&gt; Int64#
+</span><span class="hs-identifier hs-var">upperMapping</span></span><span> </span><span class="annot"><span class="annottext">Char#
+</span><a href="#local-6989586621679038455"><span class="hs-identifier hs-var">c#</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-101"></span><span>  </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Char -&gt; CC s -&gt; Step (CC s) Char
+forall s a. a -&gt; s -&gt; Step s a
+</span><span class="hs-identifier hs-var">Yield</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038454"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">s -&gt; Int64 -&gt; CC s
+forall s. s -&gt; Int64 -&gt; CC s
+</span><span class="hs-identifier hs-var">CC</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038456"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span class="hs-special">)</span><span>
+</span><span id="line-102"></span><span>  </span><span id="local-6989586621679038458"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679038458"><span class="hs-identifier hs-var">ab</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">let</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679038459"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038459"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679038460"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679038460"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; (Char, Int64)
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#chopOffChar"><span class="hs-identifier hs-var">chopOffChar</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679038458"><span class="hs-identifier hs-var">ab</span></a></span><span> </span><span class="hs-keyword">in</span><span>
+</span><span id="line-103"></span><span>              </span><span class="annot"><span class="annottext">Char -&gt; CC s -&gt; Step (CC s) Char
+forall s a. a -&gt; s -&gt; Step s a
+</span><span class="hs-identifier hs-var">Yield</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038459"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">s -&gt; Int64 -&gt; CC s
+forall s. s -&gt; Int64 -&gt; CC s
+</span><span class="hs-identifier hs-var">CC</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038456"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679038460"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-104"></span><span>
+</span><span id="line-105"></span><span id="lower"><span class="annot"><span class="annottext">lower :: forall s. Char -&gt; s -&gt; Step (CC s) Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#lower"><span class="hs-identifier hs-var hs-var">lower</span></a></span></span><span> </span><span class="hs-glyph">!</span><span id="local-6989586621679038465"><span class="annot"><span class="annottext">c :: Char
+</span><a href="#local-6989586621679038465"><span class="hs-identifier hs-var">c</span></a></span></span><span class="hs-glyph">@</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">C#</span></span><span> </span><span id="local-6989586621679038466"><span class="annot"><span class="annottext">Char#
+</span><a href="#local-6989586621679038466"><span class="hs-identifier hs-var">c#</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679038467"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038467"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Int64# -&gt; Int64
+</span><span class="hs-identifier hs-var">I64#</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char# -&gt; Int64#
+</span><span class="hs-identifier hs-var">lowerMapping</span></span><span> </span><span class="annot"><span class="annottext">Char#
+</span><a href="#local-6989586621679038466"><span class="hs-identifier hs-var">c#</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-106"></span><span>  </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Char -&gt; CC s -&gt; Step (CC s) Char
+forall s a. a -&gt; s -&gt; Step s a
+</span><span class="hs-identifier hs-var">Yield</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038465"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">s -&gt; Int64 -&gt; CC s
+forall s. s -&gt; Int64 -&gt; CC s
+</span><span class="hs-identifier hs-var">CC</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038467"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span class="hs-special">)</span><span>
+</span><span id="line-107"></span><span>  </span><span id="local-6989586621679038468"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679038468"><span class="hs-identifier hs-var">ab</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">let</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679038469"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038469"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679038470"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679038470"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; (Char, Int64)
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#chopOffChar"><span class="hs-identifier hs-var">chopOffChar</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679038468"><span class="hs-identifier hs-var">ab</span></a></span><span> </span><span class="hs-keyword">in</span><span>
+</span><span id="line-108"></span><span>              </span><span class="annot"><span class="annottext">Char -&gt; CC s -&gt; Step (CC s) Char
+forall s a. a -&gt; s -&gt; Step s a
+</span><span class="hs-identifier hs-var">Yield</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038469"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">s -&gt; Int64 -&gt; CC s
+forall s. s -&gt; Int64 -&gt; CC s
+</span><span class="hs-identifier hs-var">CC</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038467"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679038470"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-109"></span><span>
+</span><span id="line-110"></span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#chopOffChar"><span class="hs-identifier hs-type">chopOffChar</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int64</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Int64</span></span><span class="hs-special">)</span><span>
+</span><span id="line-111"></span><span id="chopOffChar"><span class="annot"><span class="annottext">chopOffChar :: Int64 -&gt; (Char, Int64)
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#chopOffChar"><span class="hs-identifier hs-var hs-var">chopOffChar</span></a></span></span><span> </span><span id="local-6989586621679038471"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679038471"><span class="hs-identifier hs-var">ab</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; Char
+</span><a href="#local-6989586621679038472"><span class="hs-identifier hs-var">chr</span></a></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679038473"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679038471"><span class="hs-identifier hs-var">ab</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int -&gt; Int64
+forall a. Bits a =&gt; a -&gt; Int -&gt; a
+</span><span class="hs-operator hs-var">`shiftR`</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">21</span></span><span class="hs-special">)</span><span>
+</span><span id="line-112"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-113"></span><span>    </span><span id="local-6989586621679038472"><span class="annot"><span class="annottext">chr :: Int -&gt; Char
+</span><a href="#local-6989586621679038472"><span class="hs-identifier hs-var hs-var">chr</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">I#</span></span><span> </span><span id="local-6989586621679038474"><span class="annot"><span class="annottext">Int#
+</span><a href="#local-6989586621679038474"><span class="hs-identifier hs-var">n</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Char# -&gt; Char
+</span><span class="hs-identifier hs-var">C#</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int# -&gt; Char#
+</span><span class="hs-identifier hs-var">chr#</span></span><span> </span><span class="annot"><span class="annottext">Int#
+</span><a href="#local-6989586621679038474"><span class="hs-identifier hs-var">n</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-114"></span><span>    </span><span id="local-6989586621679038480"><span class="annot"><span class="annottext">mask :: Int64
+</span><a href="#local-6989586621679038480"><span class="hs-identifier hs-var hs-var">mask</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">1</span></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int -&gt; Int64
+forall a. Bits a =&gt; a -&gt; Int -&gt; a
+</span><span class="hs-operator hs-var">`shiftL`</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">21</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Num a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-glyph hs-var">-</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">1</span></span><span>
+</span><span id="line-115"></span><span>    </span><span id="local-6989586621679038473"><span class="annot"><span class="annottext">a :: Int
+</span><a href="#local-6989586621679038473"><span class="hs-identifier hs-var hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span><span class="hs-identifier hs-var">fromIntegral</span></span><span> </span><span class="annot"><span class="annottext">(Int64 -&gt; Int) -&gt; Int64 -&gt; Int
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679038471"><span class="hs-identifier hs-var">ab</span></a></span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; Int64 -&gt; Int64
+forall a. Bits a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">.&amp;.</span></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679038480"><span class="hs-identifier hs-var">mask</span></a></span><span class="hs-cpp">
+
+#else
+</span><span>
+</span><span id="line-119"></span><span class="hs-identifier">yield</span><span> </span><span class="hs-glyph">!</span><span class="hs-identifier">c</span><span> </span><span class="hs-identifier">s</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">Yield</span><span> </span><span class="hs-identifier">c</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">CC</span><span> </span><span class="hs-identifier">s</span><span> </span><span class="hs-char">'\0'</span><span> </span><span class="hs-char">'\0'</span><span class="hs-special">)</span><span>
+</span><span id="line-120"></span><span class="hs-identifier">upper</span><span> </span><span class="hs-glyph">!</span><span class="hs-identifier">c</span><span> </span><span class="hs-identifier">s</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">upperMapping</span><span> </span><span class="hs-identifier">c</span><span> </span><span class="hs-identifier">s</span><span>
+</span><span id="line-121"></span><span class="hs-identifier">lower</span><span> </span><span class="hs-glyph">!</span><span class="hs-identifier">c</span><span> </span><span class="hs-identifier">s</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">lowerMapping</span><span> </span><span class="hs-identifier">c</span><span> </span><span class="hs-identifier">s</span><span class="hs-cpp">
+
+#endif
+</span><span>
+</span><span id="line-125"></span><span class="hs-comment">-- | Step across word boundaries using a custom action, and transform</span><span>
+</span><span id="line-126"></span><span class="hs-comment">-- both subsequent uppercase and lowercase characters uniformly.</span><span>
+</span><span id="line-127"></span><span class="hs-comment">--</span><span>
+</span><span id="line-128"></span><span class="hs-comment">-- /See:/ 'transformWith'</span><span>
+</span><span id="line-129"></span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#transform"><span class="hs-identifier hs-type">transform</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-130"></span><span>  </span><span class="annot"><span class="hs-comment">-- | Boundary action.</span></span><span>
+</span><span id="line-131"></span><span>  </span><span class="hs-special">(</span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679038323"><span class="annot"><a href="#local-6989586621679038323"><span class="hs-identifier hs-type">s</span></a></span></span><span class="hs-operator">.</span><span> </span><span class="annot"><a href="#local-6989586621679038323"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Step</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">CC</span></span><span> </span><span class="annot"><a href="#local-6989586621679038323"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-132"></span><span>  </span><span class="annot"><span class="hs-comment">-- | Character mapping.</span></span><span>
+</span><span id="line-133"></span><span>  </span><span class="hs-special">(</span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679038326"><span class="annot"><a href="#local-6989586621679038326"><span class="hs-identifier hs-type">s</span></a></span></span><span class="hs-operator">.</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679038326"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Step</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">CC</span></span><span> </span><span class="annot"><a href="#local-6989586621679038326"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-134"></span><span>  </span><span class="annot"><span class="hs-comment">-- | Input stream.</span></span><span>
+</span><span id="line-135"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#Token"><span class="hs-identifier hs-type">Token</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-136"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span>
+</span><span id="line-137"></span><span id="transform"><span class="annot"><span class="annottext">transform :: (forall s. s -&gt; Step (CC s) Char)
+-&gt; (forall s. Char -&gt; s -&gt; Step (CC s) Char)
+-&gt; Stream Token
+-&gt; Stream Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#transform"><span class="hs-identifier hs-var hs-var">transform</span></a></span></span><span> </span><span id="local-6989586621679038486"><span class="annot"><span class="annottext">forall s. s -&gt; Step (CC s) Char
+</span><a href="#local-6989586621679038486"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span id="local-6989586621679038487"><span class="annot"><span class="annottext">forall s. Char -&gt; s -&gt; Step (CC s) Char
+</span><a href="#local-6989586621679038487"><span class="hs-identifier hs-var">m</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(forall s. s -&gt; Step (CC s) Char)
+-&gt; (forall s. Char -&gt; s -&gt; Step (CC s) Char)
+-&gt; (forall s. Char -&gt; s -&gt; Step (CC s) Char)
+-&gt; Stream Token
+-&gt; Stream Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#transformWith"><span class="hs-identifier hs-var">transformWith</span></a></span><span> </span><span class="annot"><span class="annottext">s -&gt; Step (CC s) Char
+forall s. s -&gt; Step (CC s) Char
+</span><a href="#local-6989586621679038486"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; s -&gt; Step (CC s) Char
+forall s. Char -&gt; s -&gt; Step (CC s) Char
+</span><a href="#local-6989586621679038487"><span class="hs-identifier hs-var">m</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; s -&gt; Step (CC s) Char
+forall s. Char -&gt; s -&gt; Step (CC s) Char
+</span><a href="#local-6989586621679038487"><span class="hs-identifier hs-var">m</span></a></span><span>
+</span><span id="line-138"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">[</span><span class="hs-pragma">0</span><span class="hs-pragma">]</span><span> </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#transform"><span class="hs-pragma hs-type">transform</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-139"></span><span>
+</span><span id="line-140"></span><span class="hs-comment">-- | Step across word boundaries using a custom action, and transform</span><span>
+</span><span id="line-141"></span><span class="hs-comment">-- subsequent characters after the word boundary is encountered with a mapping</span><span>
+</span><span id="line-142"></span><span class="hs-comment">-- depending on case.</span><span>
+</span><span id="line-143"></span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#transformWith"><span class="hs-identifier hs-type">transformWith</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-144"></span><span>  </span><span class="annot"><span class="hs-comment">-- | Boundary action.</span></span><span>
+</span><span id="line-145"></span><span>  </span><span class="hs-special">(</span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679038488"><span class="annot"><a href="#local-6989586621679038488"><span class="hs-identifier hs-type">s</span></a></span></span><span class="hs-operator">.</span><span> </span><span class="annot"><a href="#local-6989586621679038488"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Step</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">CC</span></span><span> </span><span class="annot"><a href="#local-6989586621679038488"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-146"></span><span>  </span><span class="annot"><span class="hs-comment">-- | Boundary mapping.</span></span><span>
+</span><span id="line-147"></span><span>  </span><span class="hs-special">(</span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679038489"><span class="annot"><a href="#local-6989586621679038489"><span class="hs-identifier hs-type">s</span></a></span></span><span class="hs-operator">.</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679038489"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Step</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">CC</span></span><span> </span><span class="annot"><a href="#local-6989586621679038489"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-148"></span><span>  </span><span class="annot"><span class="hs-comment">-- | Subsequent character mapping.</span></span><span>
+</span><span id="line-149"></span><span>  </span><span class="hs-special">(</span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679038490"><span class="annot"><a href="#local-6989586621679038490"><span class="hs-identifier hs-type">s</span></a></span></span><span class="hs-operator">.</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679038490"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Step</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">CC</span></span><span> </span><span class="annot"><a href="#local-6989586621679038490"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-150"></span><span>  </span><span class="annot"><span class="hs-comment">-- | Input stream.</span></span><span>
+</span><span id="line-151"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#Token"><span class="hs-identifier hs-type">Token</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-152"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span>
+</span><span id="line-153"></span><span id="transformWith"><span class="annot"><span class="annottext">transformWith :: (forall s. s -&gt; Step (CC s) Char)
+-&gt; (forall s. Char -&gt; s -&gt; Step (CC s) Char)
+-&gt; (forall s. Char -&gt; s -&gt; Step (CC s) Char)
+-&gt; Stream Token
+-&gt; Stream Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#transformWith"><span class="hs-identifier hs-var hs-var">transformWith</span></a></span></span><span> </span><span id="local-6989586621679038491"><span class="annot"><span class="annottext">forall s. s -&gt; Step (CC s) Char
+</span><a href="#local-6989586621679038491"><span class="hs-identifier hs-var">md</span></a></span></span><span> </span><span id="local-6989586621679038492"><span class="annot"><span class="annottext">forall s. Char -&gt; s -&gt; Step (CC s) Char
+</span><a href="#local-6989586621679038492"><span class="hs-identifier hs-var">mu</span></a></span></span><span> </span><span id="local-6989586621679038493"><span class="annot"><span class="annottext">forall s. Char -&gt; s -&gt; Step (CC s) Char
+</span><a href="#local-6989586621679038493"><span class="hs-identifier hs-var">mc</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span id="local-6989586621679038495"><span class="annot"><span class="annottext">s -&gt; Step s Token
+</span><a href="#local-6989586621679038495"><span class="hs-identifier hs-var">next0</span></a></span></span><span> </span><span id="local-6989586621679038496"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038496"><span class="hs-identifier hs-var">s0</span></a></span></span><span> </span><span id="local-6989586621679038497"><span class="annot"><span class="annottext">Size
+</span><a href="#local-6989586621679038497"><span class="hs-identifier hs-var">len</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-154"></span><span>  </span><span class="hs-comment">-- HINT: len incorrect when the boundary replacement yields a char.</span><span class="hs-cpp">
+#if MIN_VERSION_text(2,0,0)
+</span><span>  </span><span class="annot"><span class="annottext">(CC (PairS (PairS Bool Bool) s)
+ -&gt; Step (CC (PairS (PairS Bool Bool) s)) Char)
+-&gt; CC (PairS (PairS Bool Bool) s) -&gt; Size -&gt; Stream Char
+forall a s. (s -&gt; Step s a) -&gt; s -&gt; Size -&gt; Stream a
+</span><span class="hs-identifier hs-var">Stream</span></span><span> </span><span class="annot"><span class="annottext">CC (PairS (PairS Bool Bool) s)
+-&gt; Step (CC (PairS (PairS Bool Bool) s)) Char
+</span><a href="#local-6989586621679038498"><span class="hs-identifier hs-var">next</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PairS (PairS Bool Bool) s
+-&gt; Int64 -&gt; CC (PairS (PairS Bool Bool) s)
+forall s. s -&gt; Int64 -&gt; CC s
+</span><span class="hs-identifier hs-var">CC</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; PairS Bool Bool
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">PairS Bool Bool -&gt; s -&gt; PairS (PairS Bool Bool) s
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038496"><span class="hs-identifier hs-var">s0</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Size
+</span><a href="#local-6989586621679038497"><span class="hs-identifier hs-var">len</span></a></span><span class="hs-cpp">
+#else
+</span><span>  </span><span class="hs-identifier">Stream</span><span> </span><span class="hs-identifier">next</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">CC</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">False</span><span> </span><span class="hs-operator">:*:</span><span> </span><span class="hs-identifier">False</span><span> </span><span class="hs-operator">:*:</span><span> </span><span class="hs-identifier">s0</span><span class="hs-special">)</span><span> </span><span class="hs-char">'\0'</span><span> </span><span class="hs-char">'\0'</span><span class="hs-special">)</span><span> </span><span class="hs-identifier">len</span><span class="hs-cpp">
+#endif
+</span><span>  </span><span class="hs-keyword">where</span><span class="hs-cpp">
+#if MIN_VERSION_text(2,0,0)
+</span><span>    </span><span id="local-6989586621679038498"><span class="annot"><span class="annottext">next :: CC (PairS (PairS Bool Bool) s)
+-&gt; Step (CC (PairS (PairS Bool Bool) s)) Char
+</span><a href="#local-6989586621679038498"><span class="hs-identifier hs-var hs-var">next</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">CC</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679038502"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038502"><span class="hs-identifier hs-var">up</span></a></span></span><span> </span><span class="annot"><span class="hs-operator hs-type">:*:</span></span><span> </span><span id="local-6989586621679038503"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038503"><span class="hs-identifier hs-var">prev</span></a></span></span><span> </span><span class="annot"><span class="hs-operator hs-type">:*:</span></span><span> </span><span id="local-6989586621679038504"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038504"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span class="hs-cpp">
+#else
+</span><span>    </span><span class="hs-identifier">next</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">CC</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">up</span><span> </span><span class="hs-operator">:*:</span><span> </span><span class="hs-identifier">prev</span><span> </span><span class="hs-operator">:*:</span><span> </span><span class="hs-identifier">s</span><span class="hs-special">)</span><span> </span><span class="hs-char">'\0'</span><span> </span><span class="hs-identifier">_</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span class="hs-cpp">
+#endif
+</span><span>      </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">s -&gt; Step s Token
+</span><a href="#local-6989586621679038495"><span class="hs-identifier hs-var">next0</span></a></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038504"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-167"></span><span>        </span><span class="annot"><span class="annottext">Step s Token
+</span><span class="hs-identifier hs-var">Done</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Step (CC (PairS (PairS Bool Bool) s)) Char
+forall s a. Step s a
+</span><span class="hs-identifier hs-var">Done</span></span><span class="hs-cpp">
+#if MIN_VERSION_text(2,0,0)
+</span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Skip</span></span><span> </span><span id="local-6989586621679038505"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038505"><span class="hs-identifier hs-var">s'</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">CC (PairS (PairS Bool Bool) s)
+-&gt; Step (CC (PairS (PairS Bool Bool) s)) Char
+forall s a. s -&gt; Step s a
+</span><span class="hs-identifier hs-var">Skip</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PairS (PairS Bool Bool) s
+-&gt; Int64 -&gt; CC (PairS (PairS Bool Bool) s)
+forall s. s -&gt; Int64 -&gt; CC s
+</span><span class="hs-identifier hs-var">CC</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038502"><span class="hs-identifier hs-var">up</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; PairS Bool Bool
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038503"><span class="hs-identifier hs-var">prev</span></a></span><span> </span><span class="annot"><span class="annottext">PairS Bool Bool -&gt; s -&gt; PairS (PairS Bool Bool) s
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038505"><span class="hs-identifier hs-var">s'</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span class="hs-special">)</span><span class="hs-cpp">
+#else
+</span><span>        </span><span class="hs-identifier">Skip</span><span> </span><span class="hs-identifier">s'</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">Skip</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">CC</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">up</span><span> </span><span class="hs-operator">:*:</span><span> </span><span class="hs-identifier">prev</span><span> </span><span class="hs-operator">:*:</span><span> </span><span class="hs-identifier">s'</span><span class="hs-special">)</span><span> </span><span class="hs-char">'\0'</span><span> </span><span class="hs-char">'\0'</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Yield</span></span><span> </span><span id="local-6989586621679038506"><span class="annot"><span class="annottext">Token
+</span><a href="#local-6989586621679038506"><span class="hs-identifier hs-var">t</span></a></span></span><span> </span><span id="local-6989586621679038507"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038507"><span class="hs-identifier hs-var">s'</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-174"></span><span>          </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">Token
+</span><a href="#local-6989586621679038506"><span class="hs-identifier hs-var">t</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-175"></span><span>            </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#B"><span class="hs-identifier hs-type">B</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">PairS (PairS Bool Bool) s
+-&gt; Step (CC (PairS (PairS Bool Bool) s)) Char
+forall s. s -&gt; Step (CC s) Char
+</span><a href="#local-6989586621679038491"><span class="hs-identifier hs-var">md</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; PairS Bool Bool
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">PairS Bool Bool -&gt; s -&gt; PairS (PairS Bool Bool) s
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038507"><span class="hs-identifier hs-var">s'</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-176"></span><span>            </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#U"><span class="hs-identifier hs-type">U</span></a></span><span> </span><span id="local-6989586621679038508"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038508"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038503"><span class="hs-identifier hs-var">prev</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Char
+-&gt; PairS (PairS Bool Bool) s
+-&gt; Step (CC (PairS (PairS Bool Bool) s)) Char
+forall s. Char -&gt; s -&gt; Step (CC s) Char
+</span><a href="#local-6989586621679038492"><span class="hs-identifier hs-var">mu</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038508"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; PairS Bool Bool
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">PairS Bool Bool -&gt; s -&gt; PairS (PairS Bool Bool) s
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038507"><span class="hs-identifier hs-var">s'</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-177"></span><span>            </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#L"><span class="hs-identifier hs-type">L</span></a></span><span> </span><span id="local-6989586621679038509"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038509"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038503"><span class="hs-identifier hs-var">prev</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Char
+-&gt; PairS (PairS Bool Bool) s
+-&gt; Step (CC (PairS (PairS Bool Bool) s)) Char
+forall s. Char -&gt; s -&gt; Step (CC s) Char
+</span><a href="#local-6989586621679038492"><span class="hs-identifier hs-var">mu</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038509"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; PairS Bool Bool
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">PairS Bool Bool -&gt; s -&gt; PairS (PairS Bool Bool) s
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038507"><span class="hs-identifier hs-var">s'</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-178"></span><span>            </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#U"><span class="hs-identifier hs-type">U</span></a></span><span> </span><span id="local-6989586621679038510"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038510"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038502"><span class="hs-identifier hs-var">up</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Char
+-&gt; PairS (PairS Bool Bool) s
+-&gt; Step (CC (PairS (PairS Bool Bool) s)) Char
+forall s. Char -&gt; s -&gt; Step (CC s) Char
+</span><a href="#local-6989586621679038492"><span class="hs-identifier hs-var">mu</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038510"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; PairS Bool Bool
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">PairS Bool Bool -&gt; s -&gt; PairS (PairS Bool Bool) s
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038507"><span class="hs-identifier hs-var">s'</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-179"></span><span>            </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#U"><span class="hs-identifier hs-type">U</span></a></span><span> </span><span id="local-6989586621679038511"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038511"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Char
+-&gt; PairS (PairS Bool Bool) s
+-&gt; Step (CC (PairS (PairS Bool Bool) s)) Char
+forall s. Char -&gt; s -&gt; Step (CC s) Char
+</span><a href="#local-6989586621679038493"><span class="hs-identifier hs-var">mc</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038511"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; PairS Bool Bool
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">PairS Bool Bool -&gt; s -&gt; PairS (PairS Bool Bool) s
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038507"><span class="hs-identifier hs-var">s'</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-180"></span><span>            </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#L"><span class="hs-identifier hs-type">L</span></a></span><span> </span><span id="local-6989586621679038512"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038512"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Char
+-&gt; PairS (PairS Bool Bool) s
+-&gt; Step (CC (PairS (PairS Bool Bool) s)) Char
+forall s. Char -&gt; s -&gt; Step (CC s) Char
+</span><a href="#local-6989586621679038493"><span class="hs-identifier hs-var">mc</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038512"><span class="hs-identifier hs-var">c</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; PairS Bool Bool
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">PairS Bool Bool -&gt; s -&gt; PairS (PairS Bool Bool) s
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038507"><span class="hs-identifier hs-var">s'</span></a></span><span class="hs-special">)</span><span class="hs-cpp">
+#if MIN_VERSION_text(2,0,0)
+</span><span>    </span><span class="annot"><a href="#local-6989586621679038498"><span class="hs-identifier hs-var">next</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">CC</span></span><span> </span><span id="local-6989586621679038513"><span class="annot"><span class="annottext">PairS (PairS Bool Bool) s
+</span><a href="#local-6989586621679038513"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span id="local-6989586621679038514"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679038514"><span class="hs-identifier hs-var">ab</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">let</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679038515"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038515"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679038516"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679038516"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; (Char, Int64)
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#chopOffChar"><span class="hs-identifier hs-var">chopOffChar</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679038514"><span class="hs-identifier hs-var">ab</span></a></span><span> </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">Char
+-&gt; CC (PairS (PairS Bool Bool) s)
+-&gt; Step (CC (PairS (PairS Bool Bool) s)) Char
+forall s a. a -&gt; s -&gt; Step s a
+</span><span class="hs-identifier hs-var">Yield</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038515"><span class="hs-identifier hs-var">a</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PairS (PairS Bool Bool) s
+-&gt; Int64 -&gt; CC (PairS (PairS Bool Bool) s)
+forall s. s -&gt; Int64 -&gt; CC s
+</span><span class="hs-identifier hs-var">CC</span></span><span> </span><span class="annot"><span class="annottext">PairS (PairS Bool Bool) s
+</span><a href="#local-6989586621679038513"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679038516"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span class="hs-cpp">
+#else
+</span><span>    </span><span class="hs-identifier">next</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">CC</span><span> </span><span class="hs-identifier">s</span><span> </span><span class="hs-identifier">a</span><span> </span><span class="hs-identifier">b</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">Yield</span><span> </span><span class="hs-identifier">a</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">CC</span><span> </span><span class="hs-identifier">s</span><span> </span><span class="hs-identifier">b</span><span> </span><span class="hs-char">'\0'</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">[</span><span class="hs-pragma">0</span><span class="hs-pragma">]</span><span> </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#transformWith"><span class="hs-pragma hs-type">transformWith</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-187"></span><span>
+</span><span id="line-188"></span><span class="annot"><span class="hs-comment">-- | A token representing characters and boundaries in a stream.</span></span><span>
+</span><span id="line-189"></span><span class="hs-keyword">data</span><span> </span><span id="Token"><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#Token"><span class="hs-identifier hs-var">Token</span></a></span></span><span>
+</span><span id="line-190"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-comment">-- | Word boundary.</span></span><span>
+</span><span id="line-191"></span><span>    </span><span id="B"><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#B"><span class="hs-identifier hs-var">B</span></a></span></span><span> </span><span class="hs-pragma">{-# UNPACK</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="hs-glyph">!</span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span>
+</span><span id="line-192"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="hs-comment">-- | Upper case character.</span></span><span>
+</span><span id="line-193"></span><span>    </span><span id="U"><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#U"><span class="hs-identifier hs-var">U</span></a></span></span><span> </span><span class="hs-pragma">{-# UNPACK</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="hs-glyph">!</span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span>
+</span><span id="line-194"></span><span>  </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="hs-comment">-- | Lower case character.</span></span><span>
+</span><span id="line-195"></span><span>    </span><span id="L"><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#L"><span class="hs-identifier hs-var">L</span></a></span></span><span> </span><span class="hs-pragma">{-# UNPACK</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="hs-glyph">!</span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span>
+</span><span id="line-196"></span><span>  </span><span class="hs-keyword">deriving</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679038518"><span id="local-6989586621679038528"><span id="local-6989586621679038532"><span class="annot"><span class="annottext">Int -&gt; Token -&gt; ShowS
+[Token] -&gt; ShowS
+Token -&gt; String
+(Int -&gt; Token -&gt; ShowS)
+-&gt; (Token -&gt; String) -&gt; ([Token] -&gt; ShowS) -&gt; Show Token
+forall a.
+(Int -&gt; a -&gt; ShowS) -&gt; (a -&gt; String) -&gt; ([a] -&gt; ShowS) -&gt; Show a
+$cshowsPrec :: Int -&gt; Token -&gt; ShowS
+showsPrec :: Int -&gt; Token -&gt; ShowS
+$cshow :: Token -&gt; String
+show :: Token -&gt; String
+$cshowList :: [Token] -&gt; ShowS
+showList :: [Token] -&gt; ShowS
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var hs-var hs-var hs-var hs-var">Show</span></span></span></span></span><span class="hs-special">)</span><span>
+</span><span id="line-197"></span><span>
+</span><span id="line-198"></span><span class="hs-comment">-- | Tokenise a character stream using the default 'isBoundary' predicate.</span><span>
+</span><span id="line-199"></span><span class="hs-comment">--</span><span>
+</span><span id="line-200"></span><span class="hs-comment">-- /See:/ 'tokeniseWith'</span><span>
+</span><span id="line-201"></span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#tokenise"><span class="hs-identifier hs-type">tokenise</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-202"></span><span>  </span><span class="annot"><span class="hs-comment">-- | Input stream.</span></span><span>
+</span><span id="line-203"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-204"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#Token"><span class="hs-identifier hs-type">Token</span></a></span><span>
+</span><span id="line-205"></span><span id="tokenise"><span class="annot"><span class="annottext">tokenise :: Stream Char -&gt; Stream Token
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#tokenise"><span class="hs-identifier hs-var hs-var">tokenise</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Char -&gt; Bool) -&gt; Stream Char -&gt; Stream Token
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#tokeniseWith"><span class="hs-identifier hs-var">tokeniseWith</span></a></span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><a href="Data.Text.Manipulate.Internal.Types.html#isBoundary"><span class="hs-identifier hs-var">isBoundary</span></a></span><span>
+</span><span id="line-206"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">[</span><span class="hs-pragma">0</span><span class="hs-pragma">]</span><span> </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#tokenise"><span class="hs-pragma hs-type">tokenise</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-207"></span><span>
+</span><span id="line-208"></span><span class="annot"><span class="hs-comment">-- | Tokenise a character stream using a custom boundary predicate.</span></span><span>
+</span><span id="line-209"></span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#tokeniseWith"><span class="hs-identifier hs-type">tokeniseWith</span></a></span><span> </span><span class="hs-glyph">::</span><span>
+</span><span id="line-210"></span><span>  </span><span class="annot"><span class="hs-comment">-- | Boundary predicate.</span></span><span>
+</span><span id="line-211"></span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-212"></span><span>  </span><span class="annot"><span class="hs-comment">-- | Input stream.</span></span><span>
+</span><span id="line-213"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-214"></span><span>  </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#Token"><span class="hs-identifier hs-type">Token</span></a></span><span>
+</span><span id="line-215"></span><span id="tokeniseWith"><span class="annot"><span class="annottext">tokeniseWith :: (Char -&gt; Bool) -&gt; Stream Char -&gt; Stream Token
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#tokeniseWith"><span class="hs-identifier hs-var hs-var">tokeniseWith</span></a></span></span><span> </span><span id="local-6989586621679038537"><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><a href="#local-6989586621679038537"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span id="local-6989586621679038539"><span class="annot"><span class="annottext">s -&gt; Step s Char
+</span><a href="#local-6989586621679038539"><span class="hs-identifier hs-var">next0</span></a></span></span><span> </span><span id="local-6989586621679038540"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038540"><span class="hs-identifier hs-var">s0</span></a></span></span><span> </span><span id="local-6989586621679038541"><span class="annot"><span class="annottext">Size
+</span><a href="#local-6989586621679038541"><span class="hs-identifier hs-var">len</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-216"></span><span>  </span><span class="hs-comment">-- HINT: len incorrect if there are adjacent boundaries, which are skipped.</span><span class="hs-cpp">
+#if MIN_VERSION_text(2,0,0)
+</span><span>  </span><span class="annot"><span class="annottext">(CC (PairS (PairS (PairS Bool Bool) Bool) s)
+ -&gt; Step (CC (PairS (PairS (PairS Bool Bool) Bool) s)) Token)
+-&gt; CC (PairS (PairS (PairS Bool Bool) Bool) s)
+-&gt; Size
+-&gt; Stream Token
+forall a s. (s -&gt; Step s a) -&gt; s -&gt; Size -&gt; Stream a
+</span><span class="hs-identifier hs-var">Stream</span></span><span> </span><span class="annot"><span class="annottext">CC (PairS (PairS (PairS Bool Bool) Bool) s)
+-&gt; Step (CC (PairS (PairS (PairS Bool Bool) Bool) s)) Token
+</span><a href="#local-6989586621679038542"><span class="hs-identifier hs-var">next</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PairS (PairS (PairS Bool Bool) Bool) s
+-&gt; Int64 -&gt; CC (PairS (PairS (PairS Bool Bool) Bool) s)
+forall s. s -&gt; Int64 -&gt; CC s
+</span><span class="hs-identifier hs-var">CC</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; PairS Bool Bool
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">PairS Bool Bool -&gt; Bool -&gt; PairS (PairS Bool Bool) Bool
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">PairS (PairS Bool Bool) Bool
+-&gt; s -&gt; PairS (PairS (PairS Bool Bool) Bool) s
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038540"><span class="hs-identifier hs-var">s0</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Size
+</span><a href="#local-6989586621679038541"><span class="hs-identifier hs-var">len</span></a></span><span class="hs-cpp">
+#else
+</span><span>  </span><span class="hs-identifier">Stream</span><span> </span><span class="hs-identifier">next</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">CC</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">True</span><span> </span><span class="hs-operator">:*:</span><span> </span><span class="hs-identifier">False</span><span> </span><span class="hs-operator">:*:</span><span> </span><span class="hs-identifier">False</span><span> </span><span class="hs-operator">:*:</span><span> </span><span class="hs-identifier">s0</span><span class="hs-special">)</span><span> </span><span class="hs-char">'\0'</span><span> </span><span class="hs-char">'\0'</span><span class="hs-special">)</span><span> </span><span class="hs-identifier">len</span><span class="hs-cpp">
+#endif
+</span><span>  </span><span class="hs-keyword">where</span><span class="hs-cpp">
+#if MIN_VERSION_text(2,0,0)
+</span><span>    </span><span id="local-6989586621679038542"><span class="annot"><span class="annottext">next :: CC (PairS (PairS (PairS Bool Bool) Bool) s)
+-&gt; Step (CC (PairS (PairS (PairS Bool Bool) Bool) s)) Token
+</span><a href="#local-6989586621679038542"><span class="hs-identifier hs-var hs-var">next</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">CC</span></span><span> </span><span class="hs-special">(</span><span id="local-6989586621679038546"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038546"><span class="hs-identifier hs-var">start</span></a></span></span><span> </span><span class="annot"><span class="hs-operator hs-type">:*:</span></span><span> </span><span id="local-6989586621679038547"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038547"><span class="hs-identifier hs-var">up</span></a></span></span><span> </span><span class="annot"><span class="hs-operator hs-type">:*:</span></span><span> </span><span id="local-6989586621679038548"><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038548"><span class="hs-identifier hs-var">prev</span></a></span></span><span> </span><span class="annot"><span class="hs-operator hs-type">:*:</span></span><span> </span><span id="local-6989586621679038549"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038549"><span class="hs-identifier hs-var">s</span></a></span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span class="hs-cpp">
+#else
+</span><span>    </span><span class="hs-identifier">next</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">CC</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">start</span><span> </span><span class="hs-operator">:*:</span><span> </span><span class="hs-identifier">up</span><span> </span><span class="hs-operator">:*:</span><span> </span><span class="hs-identifier">prev</span><span> </span><span class="hs-operator">:*:</span><span> </span><span class="hs-identifier">s</span><span class="hs-special">)</span><span> </span><span class="hs-char">'\0'</span><span> </span><span class="hs-identifier">_</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span class="hs-cpp">
+#endif
+</span><span>      </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">s -&gt; Step s Char
+</span><a href="#local-6989586621679038539"><span class="hs-identifier hs-var">next0</span></a></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038549"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-229"></span><span>        </span><span class="annot"><span class="annottext">Step s Char
+</span><span class="hs-identifier hs-var">Done</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Step (CC (PairS (PairS (PairS Bool Bool) Bool) s)) Token
+forall s a. Step s a
+</span><span class="hs-identifier hs-var">Done</span></span><span class="hs-cpp">
+#if MIN_VERSION_text(2,0,0)
+</span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Skip</span></span><span> </span><span id="local-6989586621679038550"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038550"><span class="hs-identifier hs-var">s'</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">CC (PairS (PairS (PairS Bool Bool) Bool) s)
+-&gt; Step (CC (PairS (PairS (PairS Bool Bool) Bool) s)) Token
+forall s a. s -&gt; Step s a
+</span><span class="hs-identifier hs-var">Skip</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PairS (PairS (PairS Bool Bool) Bool) s
+-&gt; Int64 -&gt; CC (PairS (PairS (PairS Bool Bool) Bool) s)
+forall s. s -&gt; Int64 -&gt; CC s
+</span><span class="hs-identifier hs-var">CC</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038546"><span class="hs-identifier hs-var">start</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; PairS Bool Bool
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038547"><span class="hs-identifier hs-var">up</span></a></span><span> </span><span class="annot"><span class="annottext">PairS Bool Bool -&gt; Bool -&gt; PairS (PairS Bool Bool) Bool
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038548"><span class="hs-identifier hs-var">prev</span></a></span><span> </span><span class="annot"><span class="annottext">PairS (PairS Bool Bool) Bool
+-&gt; s -&gt; PairS (PairS (PairS Bool Bool) Bool) s
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038550"><span class="hs-identifier hs-var">s'</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span class="hs-special">)</span><span class="hs-cpp">
+#else
+</span><span>        </span><span class="hs-identifier">Skip</span><span> </span><span class="hs-identifier">s'</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-identifier">Skip</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">CC</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">start</span><span> </span><span class="hs-operator">:*:</span><span> </span><span class="hs-identifier">up</span><span> </span><span class="hs-operator">:*:</span><span> </span><span class="hs-identifier">prev</span><span> </span><span class="hs-operator">:*:</span><span> </span><span class="hs-identifier">s'</span><span class="hs-special">)</span><span> </span><span class="hs-char">'\0'</span><span> </span><span class="hs-char">'\0'</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span>        </span><span class="annot"><span class="hs-identifier hs-type">Yield</span></span><span> </span><span id="local-6989586621679038551"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038551"><span class="hs-identifier hs-var">c</span></a></span></span><span> </span><span id="local-6989586621679038552"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038552"><span class="hs-identifier hs-var">s'</span></a></span></span><span>
+</span><span id="line-236"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool
+</span><span class="hs-identifier hs-var">not</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038554"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038546"><span class="hs-identifier hs-var">start</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Step (CC (PairS (PairS (PairS Bool Bool) Bool) s)) Token
+</span><a href="#local-6989586621679038555"><span class="hs-identifier hs-var">push</span></a></span><span>
+</span><span id="line-237"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038547"><span class="hs-identifier hs-var">up</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Step (CC (PairS (PairS (PairS Bool Bool) Bool) s)) Token
+</span><a href="#local-6989586621679038555"><span class="hs-identifier hs-var">push</span></a></span><span>
+</span><span id="line-238"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038554"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038548"><span class="hs-identifier hs-var">prev</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">CC (PairS (PairS (PairS Bool Bool) Bool) s)
+-&gt; Step (CC (PairS (PairS (PairS Bool Bool) Bool) s)) Token
+forall s a. s -&gt; Step s a
+</span><span class="hs-identifier hs-var">Skip</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool -&gt; CC (PairS (PairS (PairS Bool Bool) Bool) s)
+forall {a}. a -&gt; CC (PairS (PairS (PairS a Bool) Bool) s)
+</span><a href="#local-6989586621679038556"><span class="hs-identifier hs-var">step</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038546"><span class="hs-identifier hs-var">start</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-239"></span><span>          </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Step (CC (PairS (PairS (PairS Bool Bool) Bool) s)) Token
+</span><a href="#local-6989586621679038555"><span class="hs-identifier hs-var">push</span></a></span><span>
+</span><span id="line-240"></span><span>          </span><span class="hs-keyword">where</span><span>
+</span><span id="line-241"></span><span>            </span><span id="local-6989586621679038555"><span class="annot"><span class="annottext">push :: Step (CC (PairS (PairS (PairS Bool Bool) Bool) s)) Token
+</span><a href="#local-6989586621679038555"><span class="hs-identifier hs-var hs-var">push</span></a></span></span><span>
+</span><span id="line-242"></span><span>              </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038554"><span class="hs-identifier hs-var">b</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Token
+-&gt; CC (PairS (PairS (PairS Bool Bool) Bool) s)
+-&gt; Step (CC (PairS (PairS (PairS Bool Bool) Bool) s)) Token
+forall s a. a -&gt; s -&gt; Step s a
+</span><span class="hs-identifier hs-var">Yield</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; Token
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#B"><span class="hs-identifier hs-var">B</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038551"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool -&gt; CC (PairS (PairS (PairS Bool Bool) Bool) s)
+forall {a}. a -&gt; CC (PairS (PairS (PairS a Bool) Bool) s)
+</span><a href="#local-6989586621679038556"><span class="hs-identifier hs-var">step</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span class="hs-special">)</span><span>
+</span><span id="line-243"></span><span>              </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038560"><span class="hs-identifier hs-var">u</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038561"><span class="hs-identifier hs-var">skip</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Token
+-&gt; CC (PairS (PairS (PairS Bool Bool) Bool) s)
+-&gt; Step (CC (PairS (PairS (PairS Bool Bool) Bool) s)) Token
+forall s a. a -&gt; s -&gt; Step s a
+</span><span class="hs-identifier hs-var">Yield</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; Token
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#U"><span class="hs-identifier hs-var">U</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038551"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool -&gt; CC (PairS (PairS (PairS Bool Bool) Bool) s)
+forall {a}. a -&gt; CC (PairS (PairS (PairS a Bool) Bool) s)
+</span><a href="#local-6989586621679038556"><span class="hs-identifier hs-var">step</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span class="hs-special">)</span><span class="hs-cpp">
+#if MIN_VERSION_text(2,0,0)
+</span><span>              </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038560"><span class="hs-identifier hs-var">u</span></a></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Token
+-&gt; CC (PairS (PairS (PairS Bool Bool) Bool) s)
+-&gt; Step (CC (PairS (PairS (PairS Bool Bool) Bool) s)) Token
+forall s a. a -&gt; s -&gt; Step s a
+</span><span class="hs-identifier hs-var">Yield</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; Token
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#B"><span class="hs-identifier hs-var">B</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><span class="hs-char">'\0'</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PairS (PairS (PairS Bool Bool) Bool) s
+-&gt; Int64 -&gt; CC (PairS (PairS (PairS Bool Bool) Bool) s)
+forall s. s -&gt; Int64 -&gt; CC s
+</span><span class="hs-identifier hs-var">CC</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; PairS Bool Bool
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038560"><span class="hs-identifier hs-var">u</span></a></span><span> </span><span class="annot"><span class="annottext">PairS Bool Bool -&gt; Bool -&gt; PairS (PairS Bool Bool) Bool
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038554"><span class="hs-identifier hs-var">b</span></a></span><span> </span><span class="annot"><span class="annottext">PairS (PairS Bool Bool) Bool
+-&gt; s -&gt; PairS (PairS (PairS Bool Bool) Bool) s
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038552"><span class="hs-identifier hs-var">s'</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; Int64
+forall a b. (Integral a, Num b) =&gt; a -&gt; b
+</span><span class="hs-identifier hs-var">fromIntegral</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; Int
+</span><span class="hs-identifier hs-var">Char.ord</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038551"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-special">)</span><span class="hs-cpp">
+#else
+</span><span>              </span><span class="hs-glyph">|</span><span> </span><span class="hs-identifier">u</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">Yield</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">B</span><span> </span><span class="hs-char">'\0'</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">CC</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">False</span><span> </span><span class="hs-operator">:*:</span><span> </span><span class="hs-identifier">u</span><span> </span><span class="hs-operator">:*:</span><span> </span><span class="hs-identifier">b</span><span> </span><span class="hs-operator">:*:</span><span> </span><span class="hs-identifier">s'</span><span class="hs-special">)</span><span> </span><span class="hs-identifier">c</span><span> </span><span class="hs-char">'\0'</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span>              </span><span class="hs-glyph">|</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">otherwise</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Token
+-&gt; CC (PairS (PairS (PairS Bool Bool) Bool) s)
+-&gt; Step (CC (PairS (PairS (PairS Bool Bool) Bool) s)) Token
+forall s a. a -&gt; s -&gt; Step s a
+</span><span class="hs-identifier hs-var">Yield</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; Token
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#L"><span class="hs-identifier hs-var">L</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038551"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Bool -&gt; CC (PairS (PairS (PairS Bool Bool) Bool) s)
+forall {a}. a -&gt; CC (PairS (PairS (PairS a Bool) Bool) s)
+</span><a href="#local-6989586621679038556"><span class="hs-identifier hs-var">step</span></a></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">False</span></span><span class="hs-special">)</span><span class="hs-cpp">
+
+#if MIN_VERSION_text(2,0,0)
+</span><span>            </span><span id="local-6989586621679038556"><span class="annot"><span class="annottext">step :: a -&gt; CC (PairS (PairS (PairS a Bool) Bool) s)
+</span><a href="#local-6989586621679038556"><span class="hs-identifier hs-var hs-var">step</span></a></span></span><span> </span><span id="local-6989586621679038564"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679038564"><span class="hs-identifier hs-var">p</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">PairS (PairS (PairS a Bool) Bool) s
+-&gt; Int64 -&gt; CC (PairS (PairS (PairS a Bool) Bool) s)
+forall s. s -&gt; Int64 -&gt; CC s
+</span><span class="hs-identifier hs-var">CC</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679038564"><span class="hs-identifier hs-var">p</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; Bool -&gt; PairS a Bool
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038560"><span class="hs-identifier hs-var">u</span></a></span><span> </span><span class="annot"><span class="annottext">PairS a Bool -&gt; Bool -&gt; PairS (PairS a Bool) Bool
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038554"><span class="hs-identifier hs-var">b</span></a></span><span> </span><span class="annot"><span class="annottext">PairS (PairS a Bool) Bool
+-&gt; s -&gt; PairS (PairS (PairS a Bool) Bool) s
+forall a b. a -&gt; b -&gt; PairS a b
+</span><span class="hs-operator hs-var">:*:</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679038552"><span class="hs-identifier hs-var">s'</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Int64
+</span><span class="hs-number">0</span></span><span class="hs-cpp">
+#else
+</span><span>            </span><span class="hs-identifier">step</span><span> </span><span class="hs-identifier">p</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">CC</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">p</span><span> </span><span class="hs-operator">:*:</span><span> </span><span class="hs-identifier">u</span><span> </span><span class="hs-operator">:*:</span><span> </span><span class="hs-identifier">b</span><span> </span><span class="hs-operator">:*:</span><span> </span><span class="hs-identifier">s'</span><span class="hs-special">)</span><span> </span><span class="hs-char">'\0'</span><span> </span><span class="hs-char">'\0'</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-257"></span><span>            </span><span id="local-6989586621679038561"><span class="annot"><span class="annottext">skip :: Bool
+</span><a href="#local-6989586621679038561"><span class="hs-identifier hs-var hs-var">skip</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038547"><span class="hs-identifier hs-var">up</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038546"><span class="hs-identifier hs-var">start</span></a></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; Bool -&gt; Bool
+</span><span class="hs-operator hs-var">||</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><a href="#local-6989586621679038548"><span class="hs-identifier hs-var">prev</span></a></span><span>
+</span><span id="line-258"></span><span>
+</span><span id="line-259"></span><span>            </span><span id="local-6989586621679038554"><span class="annot"><span class="annottext">b :: Bool
+</span><a href="#local-6989586621679038554"><span class="hs-identifier hs-var hs-var">b</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><a href="#local-6989586621679038537"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038551"><span class="hs-identifier hs-var">c</span></a></span><span>
+</span><span id="line-260"></span><span>            </span><span id="local-6989586621679038560"><span class="annot"><span class="annottext">u :: Bool
+</span><a href="#local-6989586621679038560"><span class="hs-identifier hs-var hs-var">u</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Char -&gt; Bool
+</span><span class="hs-identifier hs-var">Char.isUpper</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038551"><span class="hs-identifier hs-var">c</span></a></span><span class="hs-cpp">
+#if MIN_VERSION_text(2,0,0)
+</span><span>    </span><span class="annot"><a href="#local-6989586621679038542"><span class="hs-identifier hs-var">next</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">CC</span></span><span> </span><span id="local-6989586621679038567"><span class="annot"><span class="annottext">PairS (PairS (PairS Bool Bool) Bool) s
+</span><a href="#local-6989586621679038567"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span id="local-6989586621679038568"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679038568"><span class="hs-identifier hs-var">ab</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">let</span><span> </span><span class="hs-special">(</span><span id="local-6989586621679038569"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038569"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679038570"><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679038570"><span class="hs-identifier hs-var">b</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Int64 -&gt; (Char, Int64)
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#chopOffChar"><span class="hs-identifier hs-var">chopOffChar</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679038568"><span class="hs-identifier hs-var">ab</span></a></span><span> </span><span class="hs-keyword">in</span><span> </span><span class="annot"><span class="annottext">Token
+-&gt; CC (PairS (PairS (PairS Bool Bool) Bool) s)
+-&gt; Step (CC (PairS (PairS (PairS Bool Bool) Bool) s)) Token
+forall s a. a -&gt; s -&gt; Step s a
+</span><span class="hs-identifier hs-var">Yield</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; Token
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#U"><span class="hs-identifier hs-var">U</span></a></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038569"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">PairS (PairS (PairS Bool Bool) Bool) s
+-&gt; Int64 -&gt; CC (PairS (PairS (PairS Bool Bool) Bool) s)
+forall s. s -&gt; Int64 -&gt; CC s
+</span><span class="hs-identifier hs-var">CC</span></span><span> </span><span class="annot"><span class="annottext">PairS (PairS (PairS Bool Bool) Bool) s
+</span><a href="#local-6989586621679038567"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="annot"><span class="annottext">Int64
+</span><a href="#local-6989586621679038570"><span class="hs-identifier hs-var">b</span></a></span><span class="hs-special">)</span><span class="hs-cpp">
+#else
+</span><span>    </span><span class="hs-identifier">next</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">CC</span><span> </span><span class="hs-identifier">s</span><span> </span><span class="hs-identifier">a</span><span> </span><span class="hs-identifier">b</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-identifier">Yield</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">U</span><span> </span><span class="hs-identifier">a</span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="hs-identifier">CC</span><span> </span><span class="hs-identifier">s</span><span> </span><span class="hs-identifier">b</span><span> </span><span class="hs-char">'\0'</span><span class="hs-special">)</span><span class="hs-cpp">
+#endif
+</span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">[</span><span class="hs-pragma">0</span><span class="hs-pragma">]</span><span> </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#tokeniseWith"><span class="hs-pragma hs-type">tokeniseWith</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-267"></span><span>
+</span><span id="line-268"></span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#mapHead"><span class="hs-identifier hs-type">mapHead</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Char</span></span><span>
+</span><span id="line-269"></span><span id="mapHead"><span class="annot"><span class="annottext">mapHead :: (Stream Char -&gt; Stream Char) -&gt; Stream Char -&gt; Stream Char
+</span><a href="Data.Text.Manipulate.Internal.Fusion.html#mapHead"><span class="hs-identifier hs-var hs-var">mapHead</span></a></span></span><span> </span><span id="local-6989586621679038571"><span class="annot"><span class="annottext">Stream Char -&gt; Stream Char
+</span><a href="#local-6989586621679038571"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span id="local-6989586621679038572"><span class="annot"><span class="annottext">Stream Char
+</span><a href="#local-6989586621679038572"><span class="hs-identifier hs-var">s</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Stream Char
+-&gt; ((Char, Stream Char) -&gt; Stream Char)
+-&gt; Maybe (Char, Stream Char)
+-&gt; Stream Char
+forall b a. b -&gt; (a -&gt; b) -&gt; Maybe a -&gt; b
+</span><span class="hs-identifier hs-var">maybe</span></span><span> </span><span class="annot"><span class="annottext">Stream Char
+</span><a href="#local-6989586621679038572"><span class="hs-identifier hs-var">s</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679038574"><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038574"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679038575"><span class="annot"><span class="annottext">Stream Char
+</span><a href="#local-6989586621679038575"><span class="hs-identifier hs-var">s'</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Stream Char -&gt; Stream Char
+</span><a href="#local-6989586621679038571"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Char -&gt; Stream Char
+</span><span class="hs-identifier hs-var">singleton</span></span><span> </span><span class="annot"><span class="annottext">Char
+</span><a href="#local-6989586621679038574"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Stream Char -&gt; Stream Char -&gt; Stream Char
+</span><span class="hs-operator hs-var">`append`</span></span><span> </span><span class="annot"><span class="annottext">Stream Char
+</span><a href="#local-6989586621679038575"><span class="hs-identifier hs-var">s'</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Stream Char -&gt; Maybe (Char, Stream Char)
+</span><span class="hs-identifier hs-var">uncons</span></span><span> </span><span class="annot"><span class="annottext">Stream Char
+</span><a href="#local-6989586621679038572"><span class="hs-identifier hs-var">s</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-270"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">[</span><span class="hs-pragma">0</span><span class="hs-pragma">]</span><span> </span><span class="annot"><a href="Data.Text.Manipulate.Internal.Fusion.html#mapHead"><span class="hs-pragma hs-type">mapHead</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-271"></span></pre></body></html>

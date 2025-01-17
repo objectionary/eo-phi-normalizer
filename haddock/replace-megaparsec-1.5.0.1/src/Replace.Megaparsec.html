@@ -1,0 +1,914 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">-- |</span><span>
+</span><span id="line-2"></span><span class="hs-comment">-- Module    : Replace.Megaparsec</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- Copyright : &#169;2019 James Brock</span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- License   : BSD2</span><span>
+</span><span id="line-5"></span><span class="hs-comment">-- Maintainer: James Brock &lt;jamesbrock@gmail.com&gt;</span><span>
+</span><span id="line-6"></span><span class="hs-comment">--</span><span>
+</span><span id="line-7"></span><span class="hs-comment">-- __Replace.Megaparsec__ is for finding text patterns, and also</span><span>
+</span><span id="line-8"></span><span class="hs-comment">-- replacing or splitting on the found patterns.</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- This activity is traditionally done with regular expressions,</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- but __Replace.Megaparsec__ uses &quot;Text.Megaparsec&quot; parsers instead for</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- the pattern matching.</span><span>
+</span><span id="line-12"></span><span class="hs-comment">--</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- __Replace.Megaparsec__ can be used in the same sort of &#8220;pattern capture&#8221;</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- or &#8220;find all&#8221; situations in which one would use Python</span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- &lt;https://docs.python.org/3/library/re.html#re.findall re.findall&gt;,</span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- or Perl</span><span>
+</span><span id="line-17"></span><span class="hs-comment">-- &lt;https://perldoc.perl.org/functions/m.html m//&gt;,</span><span>
+</span><span id="line-18"></span><span class="hs-comment">-- or Unix</span><span>
+</span><span id="line-19"></span><span class="hs-comment">-- &lt;https://www.gnu.org/software/grep/ grep&gt;.</span><span>
+</span><span id="line-20"></span><span class="hs-comment">--</span><span>
+</span><span id="line-21"></span><span class="hs-comment">-- __Replace.Megaparsec__ can be used in the same sort of &#8220;stream editing&#8221;</span><span>
+</span><span id="line-22"></span><span class="hs-comment">-- or &#8220;search-and-replace&#8221; situations in which one would use Python</span><span>
+</span><span id="line-23"></span><span class="hs-comment">-- &lt;https://docs.python.org/3/library/re.html#re.sub re.sub&gt;,</span><span>
+</span><span id="line-24"></span><span class="hs-comment">-- or Perl</span><span>
+</span><span id="line-25"></span><span class="hs-comment">-- &lt;https://perldoc.perl.org/functions/s.html s///&gt;,</span><span>
+</span><span id="line-26"></span><span class="hs-comment">-- or Unix</span><span>
+</span><span id="line-27"></span><span class="hs-comment">-- &lt;https://www.gnu.org/software/sed/manual/html_node/The-_0022s_0022-Command.html sed&gt;,</span><span>
+</span><span id="line-28"></span><span class="hs-comment">-- or</span><span>
+</span><span id="line-29"></span><span class="hs-comment">-- &lt;https://www.gnu.org/software/gawk/manual/gawk.html awk&gt;.</span><span>
+</span><span id="line-30"></span><span class="hs-comment">--</span><span>
+</span><span id="line-31"></span><span class="hs-comment">-- __Replace.Megaparsec__ can be used in the same sort of &#8220;string splitting&#8221;</span><span>
+</span><span id="line-32"></span><span class="hs-comment">-- situations in which one would use Python</span><span>
+</span><span id="line-33"></span><span class="hs-comment">-- &lt;https://docs.python.org/3/library/re.html#re.split re.split&gt;</span><span>
+</span><span id="line-34"></span><span class="hs-comment">-- or Perl</span><span>
+</span><span id="line-35"></span><span class="hs-comment">-- &lt;https://perldoc.perl.org/functions/split.html split&gt;.</span><span>
+</span><span id="line-36"></span><span class="hs-comment">--</span><span>
+</span><span id="line-37"></span><span class="hs-comment">-- See the __replace-megaparsec__ package README for usage examples.</span><span>
+</span><span id="line-38"></span><span class="hs-comment">--</span><span>
+</span><span id="line-39"></span><span class="hs-comment">-- == Type constraints</span><span>
+</span><span id="line-40"></span><span class="hs-comment">--</span><span>
+</span><span id="line-41"></span><span class="hs-comment">-- === output stream type @Tokens s@ = input stream type @s@</span><span>
+</span><span id="line-42"></span><span class="hs-comment">--</span><span>
+</span><span id="line-43"></span><span class="hs-comment">-- All functions in the __Running Parser__ section require the type of the</span><span>
+</span><span id="line-44"></span><span class="hs-comment">-- stream of text that is input to be</span><span>
+</span><span id="line-45"></span><span class="hs-comment">-- @'Text.Megaparsec.Stream.Stream' s@</span><span>
+</span><span id="line-46"></span><span class="hs-comment">-- such that</span><span>
+</span><span id="line-47"></span><span class="hs-comment">-- @'Text.Megaparsec.Stream.Tokens' s ~ s@,</span><span>
+</span><span id="line-48"></span><span class="hs-comment">-- because we want to output the same type of stream that was input.</span><span>
+</span><span id="line-49"></span><span class="hs-comment">-- That requirement is satisfied for all the 'Text.Megaparsec.Stream' instances</span><span>
+</span><span id="line-50"></span><span class="hs-comment">-- included with &quot;Text.Megaparsec&quot;:</span><span>
+</span><span id="line-51"></span><span class="hs-comment">--</span><span>
+</span><span id="line-52"></span><span class="hs-comment">-- * &quot;Data.String&quot;</span><span>
+</span><span id="line-53"></span><span class="hs-comment">-- * &quot;Data.Text&quot;</span><span>
+</span><span id="line-54"></span><span class="hs-comment">-- * &quot;Data.Text.Lazy&quot;</span><span>
+</span><span id="line-55"></span><span class="hs-comment">-- * &quot;Data.ByteString&quot;</span><span>
+</span><span id="line-56"></span><span class="hs-comment">-- * &quot;Data.ByteString.Lazy&quot;</span><span>
+</span><span id="line-57"></span><span class="hs-comment">--</span><span>
+</span><span id="line-58"></span><span class="hs-comment">-- === Custom error type @e@ should be 'Data.Void'</span><span>
+</span><span id="line-59"></span><span class="hs-comment">--</span><span>
+</span><span id="line-60"></span><span class="hs-comment">-- Megaparsec parsers have a custom error data component @e@. When writing parsers</span><span>
+</span><span id="line-61"></span><span class="hs-comment">-- to be used by this module, the custom error type @e@ should usually</span><span>
+</span><span id="line-62"></span><span class="hs-comment">-- be 'Data.Void', because every function in this module expects a parser</span><span>
+</span><span id="line-63"></span><span class="hs-comment">-- failure to occur on every token in a non-matching section of the input</span><span>
+</span><span id="line-64"></span><span class="hs-comment">-- stream, so parser failure error descriptions are not returned, and you'll</span><span>
+</span><span id="line-65"></span><span class="hs-comment">-- never see the custom error information.</span><span>
+</span><span id="line-66"></span><span class="hs-comment">--</span><span>
+</span><span id="line-67"></span><span class="hs-comment">-- == Special fast input types</span><span>
+</span><span id="line-68"></span><span class="hs-comment">--</span><span>
+</span><span id="line-69"></span><span class="hs-comment">-- Functions in this module will be &#8220;fast&#8221; when the input stream</span><span>
+</span><span id="line-70"></span><span class="hs-comment">-- type @s@ is:</span><span>
+</span><span id="line-71"></span><span class="hs-comment">--</span><span>
+</span><span id="line-72"></span><span class="hs-comment">-- * &quot;Data.Text&quot;</span><span>
+</span><span id="line-73"></span><span class="hs-comment">-- * &quot;Data.ByteString&quot;</span><span>
+</span><span id="line-74"></span><span class="hs-comment">--</span><span>
+</span><span id="line-75"></span><span class="hs-comment">-- We mean &#8220;fast&#8221; in the same sense as 'Text.Megaparsec.MonadParsec':</span><span>
+</span><span id="line-76"></span><span class="hs-comment">-- when returning subsections of the input stream,</span><span>
+</span><span id="line-77"></span><span class="hs-comment">-- we return slices of the input stream data, rather than constructing a list</span><span>
+</span><span id="line-78"></span><span class="hs-comment">-- of tokens and then building a new stream subsection from that list.</span><span>
+</span><span id="line-79"></span><span class="hs-comment">-- This relies on implementation details of the stream representation,</span><span>
+</span><span id="line-80"></span><span class="hs-comment">-- so there are specialization re-write rules in this module to make</span><span>
+</span><span id="line-81"></span><span class="hs-comment">-- that possible without adding new typeclasses.</span><span>
+</span><span id="line-82"></span><span>
+</span><span id="line-83"></span><span>
+</span><span id="line-84"></span><span class="hs-pragma">{-# LANGUAGE LambdaCase #-}</span><span>
+</span><span id="line-85"></span><span class="hs-pragma">{-# LANGUAGE RankNTypes #-}</span><span>
+</span><span id="line-86"></span><span class="hs-pragma">{-# LANGUAGE TypeFamilies #-}</span><span>
+</span><span id="line-87"></span><span class="hs-pragma">{-# LANGUAGE FlexibleContexts #-}</span><span>
+</span><span id="line-88"></span><span class="hs-pragma">{-# LANGUAGE ScopedTypeVariables #-}</span><span>
+</span><span id="line-89"></span><span class="hs-pragma">{-# LANGUAGE TypeApplications #-}</span><span>
+</span><span id="line-90"></span><span class="hs-pragma">{-# LANGUAGE CPP #-}</span><span>
+</span><span id="line-91"></span><span class="hs-pragma">{-# LANGUAGE TypeOperators #-}</span><span>
+</span><span id="line-92"></span><span>
+</span><span id="line-93"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Replace.Megaparsec</span><span>
+</span><span id="line-94"></span><span>  </span><span class="hs-special">(</span><span>
+</span><span id="line-95"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Running parser</span></span><span>
+</span><span id="line-96"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-97"></span><span>    </span><span class="hs-comment">-- | Functions in this section are /ways to run parsers/</span><span>
+</span><span id="line-98"></span><span>    </span><span class="hs-comment">-- (like 'Text.Megaparsec.runParser'). They take</span><span>
+</span><span id="line-99"></span><span>    </span><span class="hs-comment">-- as arguments a @sep@ parser and some input, run the parser on the input,</span><span>
+</span><span id="line-100"></span><span>    </span><span class="hs-comment">-- and return a result.</span><span>
+</span><span id="line-101"></span><span>    </span><span class="annot"><a href="Replace.Megaparsec.html#breakCap"><span class="hs-identifier">breakCap</span></a></span><span>
+</span><span id="line-102"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Replace.Megaparsec.html#breakCapT"><span class="hs-identifier">breakCapT</span></a></span><span>
+</span><span id="line-103"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Replace.Megaparsec.html#splitCap"><span class="hs-identifier">splitCap</span></a></span><span>
+</span><span id="line-104"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Replace.Megaparsec.html#splitCapT"><span class="hs-identifier">splitCapT</span></a></span><span>
+</span><span id="line-105"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Replace.Megaparsec.html#streamEdit"><span class="hs-identifier">streamEdit</span></a></span><span>
+</span><span id="line-106"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Replace.Megaparsec.html#streamEditT"><span class="hs-identifier">streamEditT</span></a></span><span>
+</span><span id="line-107"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Parser combinator</span></span><span>
+</span><span id="line-108"></span><span>    </span><span class="hs-comment">--</span><span>
+</span><span id="line-109"></span><span>    </span><span class="hs-comment">-- | Functions in this section are /parser combinators/. They take</span><span>
+</span><span id="line-110"></span><span>    </span><span class="hs-comment">-- a @sep@ parser for an argument, combine @sep@ with another parser,</span><span>
+</span><span id="line-111"></span><span>    </span><span class="hs-comment">-- and return a new parser.</span><span>
+</span><span id="line-112"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Replace.Megaparsec.html#anyTill"><span class="hs-identifier">anyTill</span></a></span><span>
+</span><span id="line-113"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Replace.Megaparsec.html#sepCap"><span class="hs-identifier">sepCap</span></a></span><span>
+</span><span id="line-114"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Replace.Megaparsec.html#findAll"><span class="hs-identifier">findAll</span></a></span><span>
+</span><span id="line-115"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Replace.Megaparsec.html#findAllCap"><span class="hs-identifier">findAllCap</span></a></span><span>
+</span><span id="line-116"></span><span>  </span><span class="hs-special">)</span><span>
+</span><span id="line-117"></span><span class="hs-keyword">where</span><span>
+</span><span id="line-118"></span><span>
+</span><span id="line-119"></span><span>
+</span><span id="line-120"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Bifunctor</span></span><span>
+</span><span id="line-121"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Functor.Identity</span></span><span>
+</span><span id="line-122"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Proxy</span></span><span>
+</span><span id="line-123"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad</span></span><span>
+</span><span id="line-124"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.ByteString</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">B</span></span><span>
+</span><span id="line-125"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">Data.Text</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">T</span></span><span>
+</span><span id="line-126"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Text.Megaparsec</span></span><span>
+</span><span id="line-127"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Replace.Megaparsec.Internal.ByteString.html"><span class="hs-identifier">Replace.Megaparsec.Internal.ByteString</span></a></span><span>
+</span><span id="line-128"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Replace.Megaparsec.Internal.Text.html"><span class="hs-identifier">Replace.Megaparsec.Internal.Text</span></a></span><span>
+</span><span id="line-129"></span><span>
+</span><span id="line-130"></span><span>
+</span><span id="line-131"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-132"></span><span class="hs-comment">-- === Break on and capture one pattern</span><span>
+</span><span id="line-133"></span><span class="hs-comment">--</span><span>
+</span><span id="line-134"></span><span class="hs-comment">-- Find the first occurence of a pattern in a text stream, capture the found</span><span>
+</span><span id="line-135"></span><span class="hs-comment">-- pattern, and break the input text stream on the found pattern.</span><span>
+</span><span id="line-136"></span><span class="hs-comment">--</span><span>
+</span><span id="line-137"></span><span class="hs-comment">-- The 'breakCap' function is like 'Data.List.takeWhile', but can be predicated</span><span>
+</span><span id="line-138"></span><span class="hs-comment">-- beyond more than just the next one token. It's also like 'Data.Text.breakOn',</span><span>
+</span><span id="line-139"></span><span class="hs-comment">-- but the @needle@ can be a pattern instead of a constant string.</span><span>
+</span><span id="line-140"></span><span class="hs-comment">--</span><span>
+</span><span id="line-141"></span><span class="hs-comment">-- Be careful not to look too far</span><span>
+</span><span id="line-142"></span><span class="hs-comment">-- ahead; if the @sep@ parser looks to the end of the input then 'breakCap'</span><span>
+</span><span id="line-143"></span><span class="hs-comment">-- could be /O(n&#178;)/.</span><span>
+</span><span id="line-144"></span><span class="hs-comment">--</span><span>
+</span><span id="line-145"></span><span class="hs-comment">-- The pattern parser @sep@ may match a zero-width pattern (a pattern which</span><span>
+</span><span id="line-146"></span><span class="hs-comment">-- consumes no parser input on success).</span><span>
+</span><span id="line-147"></span><span class="hs-comment">--</span><span>
+</span><span id="line-148"></span><span class="hs-comment">-- ==== Output</span><span>
+</span><span id="line-149"></span><span class="hs-comment">--</span><span>
+</span><span id="line-150"></span><span class="hs-comment">--  * @Nothing@ when no pattern match was found.</span><span>
+</span><span id="line-151"></span><span class="hs-comment">--  * @Just (prefix, parse_result, suffix)@ for the result of parsing the</span><span>
+</span><span id="line-152"></span><span class="hs-comment">--    pattern match, and the @prefix@ string before and the @suffix@ string</span><span>
+</span><span id="line-153"></span><span class="hs-comment">--    after the pattern match. @prefix@ and @suffix@ may be zero-length strings.</span><span>
+</span><span id="line-154"></span><span class="hs-comment">--</span><span>
+</span><span id="line-155"></span><span class="hs-comment">-- ==== Access the matched section of text</span><span>
+</span><span id="line-156"></span><span class="hs-comment">--</span><span>
+</span><span id="line-157"></span><span class="hs-comment">-- If you want to capture the matched string, then combine the pattern</span><span>
+</span><span id="line-158"></span><span class="hs-comment">-- parser @sep@ with 'Text.Megaparsec.match'.</span><span>
+</span><span id="line-159"></span><span class="hs-comment">--</span><span>
+</span><span id="line-160"></span><span class="hs-comment">-- With the matched string, we can reconstruct the input string.</span><span>
+</span><span id="line-161"></span><span class="hs-comment">-- For all @input@, @sep@, if</span><span>
+</span><span id="line-162"></span><span class="hs-comment">--</span><span>
+</span><span id="line-163"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-164"></span><span class="hs-comment">-- let ('Just' (prefix, (infix, _), suffix)) = breakCap ('Text.Megaparsec.match' sep) input</span><span>
+</span><span id="line-165"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-166"></span><span class="hs-comment">--</span><span>
+</span><span id="line-167"></span><span class="hs-comment">-- then</span><span>
+</span><span id="line-168"></span><span class="hs-comment">--</span><span>
+</span><span id="line-169"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-170"></span><span class="hs-comment">-- input == prefix '&lt;&gt;' infix '&lt;&gt;' suffix</span><span>
+</span><span id="line-171"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-172"></span><span class="annot"><a href="Replace.Megaparsec.html#breakCap"><span class="hs-identifier hs-type">breakCap</span></a></span><span>
+</span><span id="line-173"></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679036958"><span class="annot"><a href="#local-6989586621679036958"><span class="hs-identifier hs-type">e</span></a></span></span><span> </span><span id="local-6989586621679036959"><span class="annot"><a href="#local-6989586621679036959"><span class="hs-identifier hs-type">s</span></a></span></span><span> </span><span id="local-6989586621679036962"><span class="annot"><a href="#local-6989586621679036962"><span class="hs-identifier hs-type">a</span></a></span></span><span class="hs-operator">.</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Ord</span></span><span> </span><span class="annot"><a href="#local-6989586621679036958"><span class="hs-identifier hs-type">e</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><a href="#local-6989586621679036959"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Tokens</span></span><span> </span><span class="annot"><a href="#local-6989586621679036959"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="#local-6989586621679036959"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-174"></span><span>    </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Parsec</span></span><span> </span><span class="annot"><a href="#local-6989586621679036958"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679036959"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679036962"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-175"></span><span>        </span><span class="annot"><span class="hs-comment">-- ^ The pattern matching parser @sep@</span></span><span>
+</span><span id="line-176"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679036959"><span class="hs-identifier hs-type">s</span></a></span><span>
+</span><span id="line-177"></span><span>        </span><span class="annot"><span class="hs-comment">-- ^ The input stream of text</span></span><span>
+</span><span id="line-178"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679036959"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679036962"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679036959"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-179"></span><span>        </span><span class="annot"><span class="hs-comment">-- ^ Maybe (prefix, parse_result, suffix)</span></span><span>
+</span><span id="line-180"></span><span id="breakCap"><span class="annot"><span class="annottext">breakCap :: forall e s a.
+(Ord e, Stream s, Tokens s ~ s) =&gt;
+Parsec e s a -&gt; s -&gt; Maybe (s, a, s)
+</span><a href="Replace.Megaparsec.html#breakCap"><span class="hs-identifier hs-var hs-var">breakCap</span></a></span></span><span> </span><span id="local-6989586621679037164"><span class="annot"><span class="annottext">Parsec e s a
+</span><a href="#local-6989586621679037164"><span class="hs-identifier hs-var">sep</span></a></span></span><span> </span><span id="local-6989586621679037165"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679037165"><span class="hs-identifier hs-var">input</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Identity (Maybe (s, a, s)) -&gt; Maybe (s, a, s)
+forall a. Identity a -&gt; a
+</span><span class="hs-identifier hs-var">runIdentity</span></span><span> </span><span class="annot"><span class="annottext">(Identity (Maybe (s, a, s)) -&gt; Maybe (s, a, s))
+-&gt; Identity (Maybe (s, a, s)) -&gt; Maybe (s, a, s)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Parsec e s a -&gt; s -&gt; Identity (Maybe (s, a, s))
+forall (m :: * -&gt; *) e s a.
+(Ord e, Stream s, Tokens s ~ s, Monad m) =&gt;
+ParsecT e s m a -&gt; s -&gt; m (Maybe (s, a, s))
+</span><a href="Replace.Megaparsec.html#breakCapT"><span class="hs-identifier hs-var">breakCapT</span></a></span><span> </span><span class="annot"><span class="annottext">Parsec e s a
+</span><a href="#local-6989586621679037164"><span class="hs-identifier hs-var">sep</span></a></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679037165"><span class="hs-identifier hs-var">input</span></a></span><span>
+</span><span id="line-181"></span><span class="hs-pragma">{-# INLINABLE</span><span> </span><span class="annot"><a href="Replace.Megaparsec.html#breakCap"><span class="hs-pragma hs-type">breakCap</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-182"></span><span>
+</span><span id="line-183"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-184"></span><span class="hs-comment">-- === Break on and capture one pattern</span><span>
+</span><span id="line-185"></span><span class="hs-comment">--</span><span>
+</span><span id="line-186"></span><span class="hs-comment">-- Monad transformer version of 'breakCap'.</span><span>
+</span><span id="line-187"></span><span class="hs-comment">--</span><span>
+</span><span id="line-188"></span><span class="hs-comment">-- The parser @sep@ will run in the underlying monad context.</span><span>
+</span><span id="line-189"></span><span class="annot"><a href="Replace.Megaparsec.html#breakCapT"><span class="hs-identifier hs-type">breakCapT</span></a></span><span>
+</span><span id="line-190"></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679036977"><span class="annot"><a href="#local-6989586621679036977"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span id="local-6989586621679036975"><span class="annot"><a href="#local-6989586621679036975"><span class="hs-identifier hs-type">e</span></a></span></span><span> </span><span id="local-6989586621679036976"><span class="annot"><a href="#local-6989586621679036976"><span class="hs-identifier hs-type">s</span></a></span></span><span> </span><span id="local-6989586621679036978"><span class="annot"><a href="#local-6989586621679036978"><span class="hs-identifier hs-type">a</span></a></span></span><span class="hs-operator">.</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Ord</span></span><span> </span><span class="annot"><a href="#local-6989586621679036975"><span class="hs-identifier hs-type">e</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><a href="#local-6989586621679036976"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Tokens</span></span><span> </span><span class="annot"><a href="#local-6989586621679036976"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="#local-6989586621679036976"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Monad</span></span><span> </span><span class="annot"><a href="#local-6989586621679036977"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-191"></span><span>    </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ParsecT</span></span><span> </span><span class="annot"><a href="#local-6989586621679036975"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679036976"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679036977"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679036978"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-192"></span><span>        </span><span class="annot"><span class="hs-comment">-- ^ The pattern matching parser @sep@</span></span><span>
+</span><span id="line-193"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679036976"><span class="hs-identifier hs-type">s</span></a></span><span>
+</span><span id="line-194"></span><span>        </span><span class="annot"><span class="hs-comment">-- ^ The input stream of text</span></span><span>
+</span><span id="line-195"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679036977"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679036976"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679036978"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679036976"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-196"></span><span>        </span><span class="annot"><span class="hs-comment">-- ^ Maybe (prefix, parse_result, suffix)</span></span><span>
+</span><span id="line-197"></span><span id="breakCapT"><span class="annot"><span class="annottext">breakCapT :: forall (m :: * -&gt; *) e s a.
+(Ord e, Stream s, Tokens s ~ s, Monad m) =&gt;
+ParsecT e s m a -&gt; s -&gt; m (Maybe (s, a, s))
+</span><a href="Replace.Megaparsec.html#breakCapT"><span class="hs-identifier hs-var hs-var">breakCapT</span></a></span></span><span> </span><span id="local-6989586621679037188"><span class="annot"><span class="annottext">ParsecT e s m a
+</span><a href="#local-6989586621679037188"><span class="hs-identifier hs-var">sep</span></a></span></span><span> </span><span id="local-6989586621679037189"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679037189"><span class="hs-identifier hs-var">input</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-198"></span><span>    </span><span class="annot"><span class="annottext">ParsecT e s m (s, a, s)
+-&gt; String -&gt; s -&gt; m (Either (ParseErrorBundle s e) (s, a, s))
+forall (m :: * -&gt; *) e s a.
+Monad m =&gt;
+ParsecT e s m a
+-&gt; String -&gt; s -&gt; m (Either (ParseErrorBundle s e) a)
+</span><span class="hs-identifier hs-var">runParserT</span></span><span> </span><span class="annot"><span class="annottext">ParsecT e s m (s, a, s)
+</span><a href="#local-6989586621679037191"><span class="hs-identifier hs-var">pser</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679037189"><span class="hs-identifier hs-var">input</span></a></span><span> </span><span class="annot"><span class="annottext">m (Either (ParseErrorBundle s e) (s, a, s))
+-&gt; (Either (ParseErrorBundle s e) (s, a, s) -&gt; m (Maybe (s, a, s)))
+-&gt; m (Maybe (s, a, s))
+forall a b. m a -&gt; (a -&gt; m b) -&gt; m b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-199"></span><span>        </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span class="annot"><span class="annottext">ParseErrorBundle s e
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe (s, a, s) -&gt; m (Maybe (s, a, s))
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">Maybe (s, a, s)
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span>
+</span><span id="line-200"></span><span>        </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679037192"><span class="annot"><span class="annottext">(s, a, s)
+</span><a href="#local-6989586621679037192"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Maybe (s, a, s) -&gt; m (Maybe (s, a, s))
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">(Maybe (s, a, s) -&gt; m (Maybe (s, a, s)))
+-&gt; Maybe (s, a, s) -&gt; m (Maybe (s, a, s))
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">(s, a, s) -&gt; Maybe (s, a, s)
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="annot"><span class="annottext">(s, a, s)
+</span><a href="#local-6989586621679037192"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-201"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-202"></span><span>    </span><span id="local-6989586621679037191"><span class="annot"><span class="annottext">pser :: ParsecT e s m (s, a, s)
+</span><a href="#local-6989586621679037191"><span class="hs-identifier hs-var hs-var">pser</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-203"></span><span>      </span><span class="hs-special">(</span><span id="local-6989586621679037193"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679037193"><span class="hs-identifier hs-var">prefix</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679037194"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679037194"><span class="hs-identifier hs-var">cap</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ParsecT e s m a -&gt; ParsecT e s m (Tokens s, a)
+forall e s (m :: * -&gt; *) a.
+MonadParsec e s m =&gt;
+m a -&gt; m (Tokens s, a)
+</span><a href="Replace.Megaparsec.html#anyTill"><span class="hs-identifier hs-var">anyTill</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT e s m a
+</span><a href="#local-6989586621679037188"><span class="hs-identifier hs-var">sep</span></a></span><span>
+</span><span id="line-204"></span><span>      </span><span id="local-6989586621679037195"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679037195"><span class="hs-identifier hs-var">suffix</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">ParsecT e s m s
+forall e s (m :: * -&gt; *). MonadParsec e s m =&gt; m s
+</span><span class="hs-identifier hs-var">getInput</span></span><span>
+</span><span id="line-205"></span><span>      </span><span class="annot"><span class="annottext">(s, a, s) -&gt; ParsecT e s m (s, a, s)
+forall a. a -&gt; ParsecT e s m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679037193"><span class="hs-identifier hs-var">prefix</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679037194"><span class="hs-identifier hs-var">cap</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679037195"><span class="hs-identifier hs-var">suffix</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-206"></span><span class="hs-pragma">{-# INLINABLE</span><span> </span><span class="annot"><a href="Replace.Megaparsec.html#breakCapT"><span class="hs-pragma hs-type">breakCapT</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-207"></span><span>
+</span><span id="line-208"></span><span>
+</span><span id="line-209"></span><span>
+</span><span id="line-210"></span><span>
+</span><span id="line-211"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-212"></span><span class="hs-comment">-- === Split on and capture all patterns</span><span>
+</span><span id="line-213"></span><span class="hs-comment">--</span><span>
+</span><span id="line-214"></span><span class="hs-comment">-- Find all occurences of the pattern @sep@, split the input string, capture</span><span>
+</span><span id="line-215"></span><span class="hs-comment">-- all the patterns and the splits.</span><span>
+</span><span id="line-216"></span><span class="hs-comment">--</span><span>
+</span><span id="line-217"></span><span class="hs-comment">-- The input string will be split on every leftmost non-overlapping occurence</span><span>
+</span><span id="line-218"></span><span class="hs-comment">-- of the pattern @sep@. The output list will contain</span><span>
+</span><span id="line-219"></span><span class="hs-comment">-- the parsed result of input string sections which match the @sep@ pattern</span><span>
+</span><span id="line-220"></span><span class="hs-comment">-- in 'Right', and non-matching sections in 'Left'.</span><span>
+</span><span id="line-221"></span><span class="hs-comment">--</span><span>
+</span><span id="line-222"></span><span class="hs-comment">-- 'splitCap' depends on 'sepCap', see 'sepCap' for more details.</span><span>
+</span><span id="line-223"></span><span class="hs-comment">--</span><span>
+</span><span id="line-224"></span><span class="hs-comment">-- ==== Access the matched section of text</span><span>
+</span><span id="line-225"></span><span class="hs-comment">--</span><span>
+</span><span id="line-226"></span><span class="hs-comment">-- If you want to capture the matched strings, then combine the pattern</span><span>
+</span><span id="line-227"></span><span class="hs-comment">-- parser @sep@ with 'Text.Megaparsec.match'.</span><span>
+</span><span id="line-228"></span><span class="hs-comment">--</span><span>
+</span><span id="line-229"></span><span class="hs-comment">-- With the matched strings, we can reconstruct the input string.</span><span>
+</span><span id="line-230"></span><span class="hs-comment">-- For all @input@, @sep@, if</span><span>
+</span><span id="line-231"></span><span class="hs-comment">--</span><span>
+</span><span id="line-232"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-233"></span><span class="hs-comment">-- let output = splitCap ('Text.Megaparsec.match' sep) input</span><span>
+</span><span id="line-234"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-235"></span><span class="hs-comment">--</span><span>
+</span><span id="line-236"></span><span class="hs-comment">-- then</span><span>
+</span><span id="line-237"></span><span class="hs-comment">--</span><span>
+</span><span id="line-238"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-239"></span><span class="hs-comment">-- input == 'Data.Monoid.mconcat' ('Data.Bifunctor.second' 'Data.Tuple.fst' '&lt;$&gt;' output)</span><span>
+</span><span id="line-240"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-241"></span><span class="annot"><a href="Replace.Megaparsec.html#splitCap"><span class="hs-identifier hs-type">splitCap</span></a></span><span>
+</span><span id="line-242"></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679037011"><span class="annot"><a href="#local-6989586621679037011"><span class="hs-identifier hs-type">e</span></a></span></span><span> </span><span id="local-6989586621679037012"><span class="annot"><a href="#local-6989586621679037012"><span class="hs-identifier hs-type">s</span></a></span></span><span> </span><span id="local-6989586621679037013"><span class="annot"><a href="#local-6989586621679037013"><span class="hs-identifier hs-type">a</span></a></span></span><span class="hs-operator">.</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Ord</span></span><span> </span><span class="annot"><a href="#local-6989586621679037011"><span class="hs-identifier hs-type">e</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><a href="#local-6989586621679037012"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Tokens</span></span><span> </span><span class="annot"><a href="#local-6989586621679037012"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="#local-6989586621679037012"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-243"></span><span>    </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Parsec</span></span><span> </span><span class="annot"><a href="#local-6989586621679037011"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679037012"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679037013"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-244"></span><span>        </span><span class="annot"><span class="hs-comment">-- ^ The pattern matching parser @sep@</span></span><span>
+</span><span id="line-245"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679037012"><span class="hs-identifier hs-type">s</span></a></span><span>
+</span><span id="line-246"></span><span>        </span><span class="annot"><span class="hs-comment">-- ^ The input stream of text</span></span><span>
+</span><span id="line-247"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="#local-6989586621679037012"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679037013"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-248"></span><span>        </span><span class="annot"><span class="hs-comment">-- ^ List of matching and non-matching input sections.</span></span><span>
+</span><span id="line-249"></span><span id="splitCap"><span class="annot"><span class="annottext">splitCap :: forall e s a.
+(Ord e, Stream s, Tokens s ~ s) =&gt;
+Parsec e s a -&gt; s -&gt; [Either s a]
+</span><a href="Replace.Megaparsec.html#splitCap"><span class="hs-identifier hs-var hs-var">splitCap</span></a></span></span><span> </span><span id="local-6989586621679037210"><span class="annot"><span class="annottext">Parsec e s a
+</span><a href="#local-6989586621679037210"><span class="hs-identifier hs-var">sep</span></a></span></span><span> </span><span id="local-6989586621679037211"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679037211"><span class="hs-identifier hs-var">input</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Identity [Either s a] -&gt; [Either s a]
+forall a. Identity a -&gt; a
+</span><span class="hs-identifier hs-var">runIdentity</span></span><span> </span><span class="annot"><span class="annottext">(Identity [Either s a] -&gt; [Either s a])
+-&gt; Identity [Either s a] -&gt; [Either s a]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Parsec e s a -&gt; s -&gt; Identity [Either s a]
+forall e s (m :: * -&gt; *) a.
+(Ord e, Stream s, Tokens s ~ s, Monad m) =&gt;
+ParsecT e s m a -&gt; s -&gt; m [Either s a]
+</span><a href="Replace.Megaparsec.html#splitCapT"><span class="hs-identifier hs-var">splitCapT</span></a></span><span> </span><span class="annot"><span class="annottext">Parsec e s a
+</span><a href="#local-6989586621679037210"><span class="hs-identifier hs-var">sep</span></a></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679037211"><span class="hs-identifier hs-var">input</span></a></span><span>
+</span><span id="line-250"></span><span class="hs-pragma">{-# INLINABLE</span><span> </span><span class="annot"><a href="Replace.Megaparsec.html#splitCap"><span class="hs-pragma hs-type">splitCap</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-251"></span><span>
+</span><span id="line-252"></span><span>
+</span><span id="line-253"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-254"></span><span class="hs-comment">-- === Split on and capture all patterns</span><span>
+</span><span id="line-255"></span><span class="hs-comment">--</span><span>
+</span><span id="line-256"></span><span class="hs-comment">-- Monad transformer version of 'splitCap'.</span><span>
+</span><span id="line-257"></span><span class="hs-comment">--</span><span>
+</span><span id="line-258"></span><span class="hs-comment">-- The parser @sep@ will run in the underlying monad context.</span><span>
+</span><span id="line-259"></span><span class="annot"><a href="Replace.Megaparsec.html#splitCapT"><span class="hs-identifier hs-type">splitCapT</span></a></span><span>
+</span><span id="line-260"></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679037017"><span class="annot"><a href="#local-6989586621679037017"><span class="hs-identifier hs-type">e</span></a></span></span><span> </span><span id="local-6989586621679037018"><span class="annot"><a href="#local-6989586621679037018"><span class="hs-identifier hs-type">s</span></a></span></span><span> </span><span id="local-6989586621679037019"><span class="annot"><a href="#local-6989586621679037019"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span id="local-6989586621679037020"><span class="annot"><a href="#local-6989586621679037020"><span class="hs-identifier hs-type">a</span></a></span></span><span class="hs-operator">.</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Ord</span></span><span> </span><span class="annot"><a href="#local-6989586621679037017"><span class="hs-identifier hs-type">e</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><a href="#local-6989586621679037018"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Tokens</span></span><span> </span><span class="annot"><a href="#local-6989586621679037018"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="#local-6989586621679037018"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Monad</span></span><span> </span><span class="annot"><a href="#local-6989586621679037019"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-261"></span><span>    </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ParsecT</span></span><span> </span><span class="annot"><a href="#local-6989586621679037017"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679037018"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679037019"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679037020"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-262"></span><span>        </span><span class="annot"><span class="hs-comment">-- ^ The pattern matching parser @sep@</span></span><span>
+</span><span id="line-263"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679037018"><span class="hs-identifier hs-type">s</span></a></span><span>
+</span><span id="line-264"></span><span>        </span><span class="annot"><span class="hs-comment">-- ^ The input stream of text</span></span><span>
+</span><span id="line-265"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679037019"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="#local-6989586621679037018"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679037020"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span>
+</span><span id="line-266"></span><span>        </span><span class="annot"><span class="hs-comment">-- ^ List of matching and non-matching input sections.</span></span><span>
+</span><span id="line-267"></span><span id="splitCapT"><span class="annot"><span class="annottext">splitCapT :: forall e s (m :: * -&gt; *) a.
+(Ord e, Stream s, Tokens s ~ s, Monad m) =&gt;
+ParsecT e s m a -&gt; s -&gt; m [Either s a]
+</span><a href="Replace.Megaparsec.html#splitCapT"><span class="hs-identifier hs-var hs-var">splitCapT</span></a></span></span><span> </span><span id="local-6989586621679037226"><span class="annot"><span class="annottext">ParsecT e s m a
+</span><a href="#local-6989586621679037226"><span class="hs-identifier hs-var">sep</span></a></span></span><span> </span><span id="local-6989586621679037227"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679037227"><span class="hs-identifier hs-var">input</span></a></span></span><span> </span><span class="hs-glyph">=</span><span>
+</span><span id="line-268"></span><span>    </span><span class="annot"><span class="annottext">ParsecT e s m [Either s a]
+-&gt; String -&gt; s -&gt; m (Either (ParseErrorBundle s e) [Either s a])
+forall (m :: * -&gt; *) e s a.
+Monad m =&gt;
+ParsecT e s m a
+-&gt; String -&gt; s -&gt; m (Either (ParseErrorBundle s e) a)
+</span><span class="hs-identifier hs-var">runParserT</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ParsecT e s m a -&gt; ParsecT e s m [Either (Tokens s) a]
+forall e s (m :: * -&gt; *) a.
+MonadParsec e s m =&gt;
+m a -&gt; m [Either (Tokens s) a]
+</span><a href="Replace.Megaparsec.html#sepCap"><span class="hs-identifier hs-var">sepCap</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT e s m a
+</span><a href="#local-6989586621679037226"><span class="hs-identifier hs-var">sep</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679037227"><span class="hs-identifier hs-var">input</span></a></span><span> </span><span class="annot"><span class="annottext">m (Either (ParseErrorBundle s e) [Either s a])
+-&gt; (Either (ParseErrorBundle s e) [Either s a] -&gt; m [Either s a])
+-&gt; m [Either s a]
+forall a b. m a -&gt; (a -&gt; m b) -&gt; m b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-269"></span><span>        </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span class="annot"><span class="annottext">ParseErrorBundle s e
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">m [Either s a]
+forall a. HasCallStack =&gt; a
+</span><span class="hs-identifier hs-var">undefined</span></span><span> </span><span class="hs-comment">-- sepCap can never fail</span><span>
+</span><span id="line-270"></span><span>        </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679037229"><span class="annot"><span class="annottext">[Either s a]
+</span><a href="#local-6989586621679037229"><span class="hs-identifier hs-var">r</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Either s a] -&gt; m [Either s a]
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">[Either s a]
+</span><a href="#local-6989586621679037229"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-271"></span><span class="hs-pragma">{-# INLINABLE</span><span> </span><span class="annot"><a href="Replace.Megaparsec.html#splitCapT"><span class="hs-pragma hs-type">splitCapT</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-272"></span><span>
+</span><span id="line-273"></span><span>
+</span><span id="line-274"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-275"></span><span class="hs-comment">-- === Stream editor</span><span>
+</span><span id="line-276"></span><span class="hs-comment">--</span><span>
+</span><span id="line-277"></span><span class="hs-comment">-- Also known as &#8220;find-and-replace&#8221;, or &#8220;match-and-substitute&#8221;. Finds all</span><span>
+</span><span id="line-278"></span><span class="hs-comment">-- non-overlapping sections of the stream which match the pattern @sep@,</span><span>
+</span><span id="line-279"></span><span class="hs-comment">-- and replaces them with the result of the @editor@ function.</span><span>
+</span><span id="line-280"></span><span class="hs-comment">--</span><span>
+</span><span id="line-281"></span><span class="hs-comment">-- ==== Access the matched section of text in the @editor@</span><span>
+</span><span id="line-282"></span><span class="hs-comment">--</span><span>
+</span><span id="line-283"></span><span class="hs-comment">-- If you want access to the matched string in the @editor@ function,</span><span>
+</span><span id="line-284"></span><span class="hs-comment">-- then combine the pattern parser @sep@ with 'Text.Megaparsec.match'.</span><span>
+</span><span id="line-285"></span><span class="hs-comment">-- This will effectively change the type of the @editor@ function</span><span>
+</span><span id="line-286"></span><span class="hs-comment">-- to @(s,a) -&gt; s@.</span><span>
+</span><span id="line-287"></span><span class="hs-comment">--</span><span>
+</span><span id="line-288"></span><span class="hs-comment">-- This allows us to write an @editor@ function which can choose to not</span><span>
+</span><span id="line-289"></span><span class="hs-comment">-- edit the match and just leave it as it is. If the @editor@ function</span><span>
+</span><span id="line-290"></span><span class="hs-comment">-- returns the first item in the tuple, then @streamEdit@ will not change</span><span>
+</span><span id="line-291"></span><span class="hs-comment">-- the matched string.</span><span>
+</span><span id="line-292"></span><span class="hs-comment">--</span><span>
+</span><span id="line-293"></span><span class="hs-comment">-- So, for all @sep@:</span><span>
+</span><span id="line-294"></span><span class="hs-comment">--</span><span>
+</span><span id="line-295"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-296"></span><span class="hs-comment">-- streamEdit ('Text.Megaparsec.match' sep) 'Data.Tuple.fst' &#8801; 'Data.Function.id'</span><span>
+</span><span id="line-297"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-298"></span><span class="annot"><a href="Replace.Megaparsec.html#streamEdit"><span class="hs-identifier hs-type">streamEdit</span></a></span><span>
+</span><span id="line-299"></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679037032"><span class="annot"><a href="#local-6989586621679037032"><span class="hs-identifier hs-type">e</span></a></span></span><span> </span><span id="local-6989586621679037033"><span class="annot"><a href="#local-6989586621679037033"><span class="hs-identifier hs-type">s</span></a></span></span><span> </span><span id="local-6989586621679037034"><span class="annot"><a href="#local-6989586621679037034"><span class="hs-identifier hs-type">a</span></a></span></span><span class="hs-operator">.</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Ord</span></span><span> </span><span class="annot"><a href="#local-6989586621679037032"><span class="hs-identifier hs-type">e</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><a href="#local-6989586621679037033"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="#local-6989586621679037033"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Tokens</span></span><span> </span><span class="annot"><a href="#local-6989586621679037033"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="#local-6989586621679037033"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-300"></span><span>    </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Parsec</span></span><span> </span><span class="annot"><a href="#local-6989586621679037032"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679037033"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679037034"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-301"></span><span>        </span><span class="annot"><span class="hs-comment">-- ^ The pattern matching parser @sep@</span></span><span>
+</span><span id="line-302"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679037034"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679037033"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-303"></span><span>        </span><span class="hs-comment">-- ^ The @editor@ function. Takes a parsed result of @sep@</span><span>
+</span><span id="line-304"></span><span>        </span><span class="hs-comment">-- and returns a new stream section for the replacement.</span><span>
+</span><span id="line-305"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679037033"><span class="hs-identifier hs-type">s</span></a></span><span>
+</span><span id="line-306"></span><span>        </span><span class="annot"><span class="hs-comment">-- ^ The input stream of text to be edited</span></span><span>
+</span><span id="line-307"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679037033"><span class="hs-identifier hs-type">s</span></a></span><span>
+</span><span id="line-308"></span><span>        </span><span class="annot"><span class="hs-comment">-- ^ The edited input stream</span></span><span>
+</span><span id="line-309"></span><span id="streamEdit"><span class="annot"><span class="annottext">streamEdit :: forall e s a.
+(Ord e, Stream s, Monoid s, Tokens s ~ s) =&gt;
+Parsec e s a -&gt; (a -&gt; s) -&gt; s -&gt; s
+</span><a href="Replace.Megaparsec.html#streamEdit"><span class="hs-identifier hs-var hs-var">streamEdit</span></a></span></span><span> </span><span id="local-6989586621679037243"><span class="annot"><span class="annottext">Parsec e s a
+</span><a href="#local-6989586621679037243"><span class="hs-identifier hs-var">sep</span></a></span></span><span> </span><span id="local-6989586621679037244"><span class="annot"><span class="annottext">a -&gt; s
+</span><a href="#local-6989586621679037244"><span class="hs-identifier hs-var">editor</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Identity s -&gt; s
+forall a. Identity a -&gt; a
+</span><span class="hs-identifier hs-var">runIdentity</span></span><span> </span><span class="annot"><span class="annottext">(Identity s -&gt; s) -&gt; (s -&gt; Identity s) -&gt; s -&gt; s
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Parsec e s a -&gt; (a -&gt; Identity s) -&gt; s -&gt; Identity s
+forall e s (m :: * -&gt; *) a.
+(Ord e, Stream s, Monad m, Monoid s, Tokens s ~ s) =&gt;
+ParsecT e s m a -&gt; (a -&gt; m s) -&gt; s -&gt; m s
+</span><a href="Replace.Megaparsec.html#streamEditT"><span class="hs-identifier hs-var">streamEditT</span></a></span><span> </span><span class="annot"><span class="annottext">Parsec e s a
+</span><a href="#local-6989586621679037243"><span class="hs-identifier hs-var">sep</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">s -&gt; Identity s
+forall a. a -&gt; Identity a
+</span><span class="hs-identifier hs-var">Identity</span></span><span> </span><span class="annot"><span class="annottext">(s -&gt; Identity s) -&gt; (a -&gt; s) -&gt; a -&gt; Identity s
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; s
+</span><a href="#local-6989586621679037244"><span class="hs-identifier hs-var">editor</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-310"></span><span class="hs-pragma">{-# INLINABLE</span><span> </span><span class="annot"><a href="Replace.Megaparsec.html#streamEdit"><span class="hs-pragma hs-type">streamEdit</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-311"></span><span>
+</span><span id="line-312"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-313"></span><span class="hs-comment">-- === Stream editor</span><span>
+</span><span id="line-314"></span><span class="hs-comment">--</span><span>
+</span><span id="line-315"></span><span class="hs-comment">-- Monad transformer version of 'streamEdit'.</span><span>
+</span><span id="line-316"></span><span class="hs-comment">--</span><span>
+</span><span id="line-317"></span><span class="hs-comment">-- Both the parser @sep@ and the @editor@ function will run in the underlying</span><span>
+</span><span id="line-318"></span><span class="hs-comment">-- monad context.</span><span>
+</span><span id="line-319"></span><span class="hs-comment">--</span><span>
+</span><span id="line-320"></span><span class="hs-comment">-- If you want to do 'IO' operations in the @editor@ function or the</span><span>
+</span><span id="line-321"></span><span class="hs-comment">-- parser @sep@, then run this in 'IO'.</span><span>
+</span><span id="line-322"></span><span class="hs-comment">--</span><span>
+</span><span id="line-323"></span><span class="hs-comment">-- If you want the @editor@ function or the parser @sep@ to remember some state,</span><span>
+</span><span id="line-324"></span><span class="hs-comment">-- then run this in a stateful monad.</span><span>
+</span><span id="line-325"></span><span class="annot"><a href="Replace.Megaparsec.html#streamEditT"><span class="hs-identifier hs-type">streamEditT</span></a></span><span>
+</span><span id="line-326"></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679037041"><span class="annot"><a href="#local-6989586621679037041"><span class="hs-identifier hs-type">e</span></a></span></span><span> </span><span id="local-6989586621679037042"><span class="annot"><a href="#local-6989586621679037042"><span class="hs-identifier hs-type">s</span></a></span></span><span> </span><span id="local-6989586621679037043"><span class="annot"><a href="#local-6989586621679037043"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span id="local-6989586621679037044"><span class="annot"><a href="#local-6989586621679037044"><span class="hs-identifier hs-type">a</span></a></span></span><span class="hs-operator">.</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Ord</span></span><span> </span><span class="annot"><a href="#local-6989586621679037041"><span class="hs-identifier hs-type">e</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Stream</span></span><span> </span><span class="annot"><a href="#local-6989586621679037042"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Monad</span></span><span> </span><span class="annot"><a href="#local-6989586621679037043"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="#local-6989586621679037042"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Tokens</span></span><span> </span><span class="annot"><a href="#local-6989586621679037042"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><span class="hs-operator hs-type">~</span></span><span> </span><span class="annot"><a href="#local-6989586621679037042"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-327"></span><span>    </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ParsecT</span></span><span> </span><span class="annot"><a href="#local-6989586621679037041"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679037042"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679037043"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679037044"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-328"></span><span>        </span><span class="annot"><span class="hs-comment">-- ^ The pattern matching parser @sep@</span></span><span>
+</span><span id="line-329"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679037044"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679037043"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679037042"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-330"></span><span>        </span><span class="hs-comment">-- ^ The @editor@ function. Takes a parsed result of @sep@</span><span>
+</span><span id="line-331"></span><span>        </span><span class="hs-comment">-- and returns a new stream section for the replacement.</span><span>
+</span><span id="line-332"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679037042"><span class="hs-identifier hs-type">s</span></a></span><span>
+</span><span id="line-333"></span><span>        </span><span class="annot"><span class="hs-comment">-- ^ The input stream of text to be edited</span></span><span>
+</span><span id="line-334"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679037043"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679037042"><span class="hs-identifier hs-type">s</span></a></span><span>
+</span><span id="line-335"></span><span>        </span><span class="annot"><span class="hs-comment">-- ^ The edited input stream</span></span><span>
+</span><span id="line-336"></span><span id="streamEditT"><span class="annot"><span class="annottext">streamEditT :: forall e s (m :: * -&gt; *) a.
+(Ord e, Stream s, Monad m, Monoid s, Tokens s ~ s) =&gt;
+ParsecT e s m a -&gt; (a -&gt; m s) -&gt; s -&gt; m s
+</span><a href="Replace.Megaparsec.html#streamEditT"><span class="hs-identifier hs-var hs-var">streamEditT</span></a></span></span><span> </span><span id="local-6989586621679037269"><span class="annot"><span class="annottext">ParsecT e s m a
+</span><a href="#local-6989586621679037269"><span class="hs-identifier hs-var">sep</span></a></span></span><span> </span><span id="local-6989586621679037270"><span class="annot"><span class="annottext">a -&gt; m s
+</span><a href="#local-6989586621679037270"><span class="hs-identifier hs-var">editor</span></a></span></span><span> </span><span id="local-6989586621679037271"><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679037271"><span class="hs-identifier hs-var">input</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-337"></span><span>    </span><span class="annot"><span class="annottext">ParsecT e s m [Either s a]
+-&gt; String -&gt; s -&gt; m (Either (ParseErrorBundle s e) [Either s a])
+forall (m :: * -&gt; *) e s a.
+Monad m =&gt;
+ParsecT e s m a
+-&gt; String -&gt; s -&gt; m (Either (ParseErrorBundle s e) a)
+</span><span class="hs-identifier hs-var">runParserT</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">ParsecT e s m a -&gt; ParsecT e s m [Either (Tokens s) a]
+forall e s (m :: * -&gt; *) a.
+MonadParsec e s m =&gt;
+m a -&gt; m [Either (Tokens s) a]
+</span><a href="Replace.Megaparsec.html#sepCap"><span class="hs-identifier hs-var">sepCap</span></a></span><span> </span><span class="annot"><span class="annottext">ParsecT e s m a
+</span><a href="#local-6989586621679037269"><span class="hs-identifier hs-var">sep</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&quot;</span></span><span> </span><span class="annot"><span class="annottext">s
+</span><a href="#local-6989586621679037271"><span class="hs-identifier hs-var">input</span></a></span><span> </span><span class="annot"><span class="annottext">m (Either (ParseErrorBundle s e) [Either s a])
+-&gt; (Either (ParseErrorBundle s e) [Either s a] -&gt; m s) -&gt; m s
+forall a b. m a -&gt; (a -&gt; m b) -&gt; m b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-338"></span><span>        </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span class="annot"><span class="annottext">ParseErrorBundle s e
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">m s
+forall a. HasCallStack =&gt; a
+</span><span class="hs-identifier hs-var">undefined</span></span><span> </span><span class="hs-comment">-- sepCap can never fail</span><span>
+</span><span id="line-339"></span><span>        </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679037272"><span class="annot"><span class="annottext">[Either s a]
+</span><a href="#local-6989586621679037272"><span class="hs-identifier hs-var">r</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[s] -&gt; s
+forall a. Monoid a =&gt; [a] -&gt; a
+</span><span class="hs-identifier hs-var">mconcat</span></span><span> </span><span class="annot"><span class="annottext">([s] -&gt; s) -&gt; m [s] -&gt; m s
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">(Either s a -&gt; m s) -&gt; [Either s a] -&gt; m [s]
+forall (t :: * -&gt; *) (f :: * -&gt; *) a b.
+(Traversable t, Applicative f) =&gt;
+(a -&gt; f b) -&gt; t a -&gt; f (t b)
+forall (f :: * -&gt; *) a b.
+Applicative f =&gt;
+(a -&gt; f b) -&gt; [a] -&gt; f [b]
+</span><span class="hs-identifier hs-var">traverse</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(s -&gt; m s) -&gt; (a -&gt; m s) -&gt; Either s a -&gt; m s
+forall a c b. (a -&gt; c) -&gt; (b -&gt; c) -&gt; Either a b -&gt; c
+</span><span class="hs-identifier hs-var">either</span></span><span> </span><span class="annot"><span class="annottext">s -&gt; m s
+forall a. a -&gt; m a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; m s
+</span><a href="#local-6989586621679037270"><span class="hs-identifier hs-var">editor</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Either s a]
+</span><a href="#local-6989586621679037272"><span class="hs-identifier hs-var">r</span></a></span><span>
+</span><span id="line-340"></span><span class="hs-pragma">{-# INLINABLE</span><span> </span><span class="annot"><a href="Replace.Megaparsec.html#streamEditT"><span class="hs-pragma hs-type">streamEditT</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-341"></span><span>
+</span><span id="line-342"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-343"></span><span class="hs-comment">-- === Specialized &lt;http://hackage.haskell.org/package/parser-combinators/docs/Control-Monad-Combinators.html#v:manyTill_ manyTill_&gt;</span><span>
+</span><span id="line-344"></span><span class="hs-comment">--</span><span>
+</span><span id="line-345"></span><span class="hs-comment">-- Parser combinator to consume input until the @sep@ pattern matches,</span><span>
+</span><span id="line-346"></span><span class="hs-comment">-- equivalent to</span><span>
+</span><span id="line-347"></span><span class="hs-comment">-- @'Control.Monad.Combinators.manyTill_' 'Text.Megaparsec.anySingle' sep@.</span><span>
+</span><span id="line-348"></span><span class="hs-comment">-- On success, returns the prefix before the pattern match and the parsed match.</span><span>
+</span><span id="line-349"></span><span class="hs-comment">--</span><span>
+</span><span id="line-350"></span><span class="hs-comment">-- @sep@ may be a zero-width parser, it may succeed without consuming any</span><span>
+</span><span id="line-351"></span><span class="hs-comment">-- input.</span><span>
+</span><span id="line-352"></span><span class="hs-comment">--</span><span>
+</span><span id="line-353"></span><span class="hs-comment">-- This combinator will produce a parser which</span><span>
+</span><span id="line-354"></span><span class="hs-comment">-- acts like 'Text.Megaparsec.takeWhileP' but is predicated beyond more than</span><span>
+</span><span id="line-355"></span><span class="hs-comment">-- just the next one token. 'anyTill' is also like 'Text.Megaparsec.takeWhileP'</span><span>
+</span><span id="line-356"></span><span class="hs-comment">-- in that it will be &#8220;fast&#8221; when applied to an input stream type @s@</span><span>
+</span><span id="line-357"></span><span class="hs-comment">-- for which there are specialization re-write rules.</span><span>
+</span><span id="line-358"></span><span class="annot"><a href="Replace.Megaparsec.html#anyTill"><span class="hs-identifier hs-type">anyTill</span></a></span><span>
+</span><span id="line-359"></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679037004"><span class="annot"><a href="#local-6989586621679037004"><span class="hs-identifier hs-type">e</span></a></span></span><span> </span><span id="local-6989586621679037005"><span class="annot"><a href="#local-6989586621679037005"><span class="hs-identifier hs-type">s</span></a></span></span><span> </span><span id="local-6989586621679037006"><span class="annot"><a href="#local-6989586621679037006"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span id="local-6989586621679037007"><span class="annot"><a href="#local-6989586621679037007"><span class="hs-identifier hs-type">a</span></a></span></span><span class="hs-operator">.</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadParsec</span></span><span> </span><span class="annot"><a href="#local-6989586621679037004"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679037005"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679037006"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-360"></span><span>    </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679037006"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679037007"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><span class="hs-comment">-- ^ The pattern matching parser @sep@</span></span><span>
+</span><span id="line-361"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679037006"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Tokens</span></span><span> </span><span class="annot"><a href="#local-6989586621679037005"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679037007"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="hs-comment">-- ^ parser</span></span><span>
+</span><span id="line-362"></span><span id="anyTill"><span class="annot"><span class="annottext">anyTill :: forall e s (m :: * -&gt; *) a.
+MonadParsec e s m =&gt;
+m a -&gt; m (Tokens s, a)
+</span><a href="Replace.Megaparsec.html#anyTill"><span class="hs-identifier hs-var hs-var">anyTill</span></a></span></span><span> </span><span id="local-6989586621679037293"><span class="annot"><span class="annottext">m a
+</span><a href="#local-6989586621679037293"><span class="hs-identifier hs-var">sep</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-363"></span><span>    </span><span class="hs-special">(</span><span id="local-6989586621679037294"><span class="annot"><span class="annottext">[Token s]
+</span><a href="#local-6989586621679037294"><span class="hs-keyword hs-var">as</span></a></span></span><span class="hs-special">,</span><span> </span><span id="local-6989586621679037295"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679037295"><span class="hs-identifier hs-var">end</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">m (Token s) -&gt; m a -&gt; m ([Token s], a)
+forall (m :: * -&gt; *) a end.
+MonadPlus m =&gt;
+m a -&gt; m end -&gt; m ([a], end)
+</span><span class="hs-identifier hs-var">manyTill_</span></span><span> </span><span class="annot"><span class="annottext">m (Token s)
+forall e s (m :: * -&gt; *). MonadParsec e s m =&gt; m (Token s)
+</span><span class="hs-identifier hs-var">anySingle</span></span><span> </span><span class="annot"><span class="annottext">m a
+</span><a href="#local-6989586621679037293"><span class="hs-identifier hs-var">sep</span></a></span><span>
+</span><span id="line-364"></span><span>    </span><span class="annot"><span class="annottext">(Tokens s, a) -&gt; m (Tokens s, a)
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Proxy s -&gt; [Token s] -&gt; Tokens s
+forall s. Stream s =&gt; Proxy s -&gt; [Token s] -&gt; Tokens s
+</span><span class="hs-identifier hs-var">tokensToChunk</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Proxy s
+forall {k} (t :: k). Proxy t
+</span><span class="hs-identifier hs-var">Proxy</span></span><span class="hs-glyph">::</span><span class="annot"><span class="hs-identifier hs-type">Proxy</span></span><span> </span><span class="annot"><a href="#local-6989586621679037005"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">[Token s]
+</span><a href="#local-6989586621679037294"><span class="hs-keyword hs-var">as</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679037295"><span class="hs-identifier hs-var">end</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-365"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">[</span><span class="hs-pragma">1</span><span class="hs-pragma">]</span><span> </span><span class="annot"><a href="Replace.Megaparsec.html#anyTill"><span class="hs-pragma hs-type">anyTill</span></a></span><span> </span><span class="hs-pragma">#-}</span><span class="hs-cpp">
+#if MIN_VERSION_GLASGOW_HASKELL(8,8,1,0)
+</span><span class="hs-pragma">{-# RULES</span><span> </span><span class="annot"><span class="hs-pragma">&quot;anyTill/ByteString&quot;</span></span><span> </span><span class="hs-pragma">[</span><span class="hs-pragma">2</span><span class="hs-pragma">]</span><span>
+</span><span id="line-368"></span><span> </span><span class="hs-pragma">forall</span><span> </span><span id="local-6989586621679037299"><span class="annot"><a href="#local-6989586621679037299"><span class="hs-pragma hs-type">e</span></a></span></span><span class="hs-pragma">.</span><span> </span><span class="hs-pragma">forall</span><span class="hs-pragma">.</span><span>
+</span><span id="line-369"></span><span> </span><span class="annot"><a href="Replace.Megaparsec.html#anyTill"><span class="hs-pragma hs-type">anyTill</span></a></span><span>           </span><span class="hs-pragma">@</span><span class="annot"><a href="#local-6989586621679037299"><span class="hs-pragma hs-type">e</span></a></span><span> </span><span class="hs-pragma">@</span><span class="annot"><span class="hs-pragma hs-type">B.ByteString</span></span><span> </span><span class="hs-pragma">=</span><span>
+</span><span id="line-370"></span><span> </span><span class="annot"><a href="Replace.Megaparsec.Internal.ByteString.html#anyTillByteString"><span class="hs-pragma hs-type">anyTillByteString</span></a></span><span> </span><span class="hs-pragma">@</span><span class="annot"><a href="#local-6989586621679037299"><span class="hs-pragma hs-type">e</span></a></span><span> </span><span class="hs-pragma">@</span><span class="annot"><span class="hs-pragma hs-type">B.ByteString</span></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-371"></span><span class="hs-pragma">{-# RULES</span><span> </span><span class="annot"><span class="hs-pragma">&quot;anyTill/Text&quot;</span></span><span> </span><span class="hs-pragma">[</span><span class="hs-pragma">2</span><span class="hs-pragma">]</span><span>
+</span><span id="line-372"></span><span> </span><span class="hs-pragma">forall</span><span> </span><span id="local-6989586621679037302"><span class="annot"><a href="#local-6989586621679037302"><span class="hs-pragma hs-type">e</span></a></span></span><span class="hs-pragma">.</span><span> </span><span class="hs-pragma">forall</span><span class="hs-pragma">.</span><span>
+</span><span id="line-373"></span><span> </span><span class="annot"><a href="Replace.Megaparsec.html#anyTill"><span class="hs-pragma hs-type">anyTill</span></a></span><span>     </span><span class="hs-pragma">@</span><span class="annot"><a href="#local-6989586621679037302"><span class="hs-pragma hs-type">e</span></a></span><span> </span><span class="hs-pragma">@</span><span class="annot"><span class="hs-pragma hs-type">T.Text</span></span><span> </span><span class="hs-pragma">=</span><span>
+</span><span id="line-374"></span><span> </span><span class="annot"><a href="Replace.Megaparsec.Internal.Text.html#anyTillText"><span class="hs-pragma hs-type">anyTillText</span></a></span><span> </span><span class="hs-pragma">@</span><span class="annot"><a href="#local-6989586621679037302"><span class="hs-pragma hs-type">e</span></a></span><span> </span><span class="hs-pragma">@</span><span class="annot"><span class="hs-pragma hs-type">T.Text</span></span><span> </span><span class="hs-pragma">#-}</span><span class="hs-cpp">
+#elif MIN_VERSION_GLASGOW_HASKELL(8,0,2,0)
+</span><span class="hs-pragma">{-# RULES</span><span> </span><span class="hs-pragma">&quot;anyTill/ByteString&quot;</span><span> </span><span class="hs-pragma">[</span><span class="hs-pragma">2</span><span class="hs-pragma">]</span><span>
+</span><span id="line-377"></span><span> </span><span class="hs-pragma">forall</span><span> </span><span class="hs-pragma">(</span><span class="hs-pragma">pa</span><span> </span><span class="hs-pragma">::</span><span> </span><span class="hs-pragma">ParsecT</span><span> </span><span class="hs-pragma">e</span><span> </span><span class="hs-pragma">B.ByteString</span><span> </span><span class="hs-pragma">m</span><span> </span><span class="hs-pragma">a</span><span class="hs-pragma">)</span><span class="hs-pragma">.</span><span>
+</span><span id="line-378"></span><span> </span><span class="hs-pragma">anyTill</span><span>           </span><span class="hs-pragma">@</span><span class="hs-pragma">e</span><span> </span><span class="hs-pragma">@</span><span class="hs-pragma">B.ByteString</span><span> </span><span class="hs-pragma">@</span><span class="hs-pragma">(</span><span class="hs-pragma">ParsecT</span><span> </span><span class="hs-pragma">e</span><span> </span><span class="hs-pragma">B.ByteString</span><span> </span><span class="hs-pragma">m</span><span class="hs-pragma">)</span><span> </span><span class="hs-pragma">@</span><span class="hs-pragma">a</span><span> </span><span class="hs-pragma">pa</span><span> </span><span class="hs-pragma">=</span><span>
+</span><span id="line-379"></span><span> </span><span class="hs-pragma">anyTillByteString</span><span> </span><span class="hs-pragma">@</span><span class="hs-pragma">e</span><span> </span><span class="hs-pragma">@</span><span class="hs-pragma">B.ByteString</span><span> </span><span class="hs-pragma">@</span><span class="hs-pragma">(</span><span class="hs-pragma">ParsecT</span><span> </span><span class="hs-pragma">e</span><span> </span><span class="hs-pragma">B.ByteString</span><span> </span><span class="hs-pragma">m</span><span class="hs-pragma">)</span><span> </span><span class="hs-pragma">@</span><span class="hs-pragma">a</span><span> </span><span class="hs-pragma">pa</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-380"></span><span class="hs-pragma">{-# RULES</span><span> </span><span class="hs-pragma">&quot;anyTill/Text&quot;</span><span> </span><span class="hs-pragma">[</span><span class="hs-pragma">2</span><span class="hs-pragma">]</span><span>
+</span><span id="line-381"></span><span> </span><span class="hs-pragma">forall</span><span> </span><span class="hs-pragma">(</span><span class="hs-pragma">pa</span><span> </span><span class="hs-pragma">::</span><span> </span><span class="hs-pragma">ParsecT</span><span> </span><span class="hs-pragma">e</span><span> </span><span class="hs-pragma">T.Text</span><span> </span><span class="hs-pragma">m</span><span> </span><span class="hs-pragma">a</span><span class="hs-pragma">)</span><span class="hs-pragma">.</span><span>
+</span><span id="line-382"></span><span> </span><span class="hs-pragma">anyTill</span><span>     </span><span class="hs-pragma">@</span><span class="hs-pragma">e</span><span> </span><span class="hs-pragma">@</span><span class="hs-pragma">T.Text</span><span> </span><span class="hs-pragma">@</span><span class="hs-pragma">(</span><span class="hs-pragma">ParsecT</span><span> </span><span class="hs-pragma">e</span><span> </span><span class="hs-pragma">T.Text</span><span> </span><span class="hs-pragma">m</span><span class="hs-pragma">)</span><span> </span><span class="hs-pragma">@</span><span class="hs-pragma">a</span><span> </span><span class="hs-pragma">pa</span><span> </span><span class="hs-pragma">=</span><span>
+</span><span id="line-383"></span><span> </span><span class="hs-pragma">anyTillText</span><span> </span><span class="hs-pragma">@</span><span class="hs-pragma">e</span><span> </span><span class="hs-pragma">@</span><span class="hs-pragma">T.Text</span><span> </span><span class="hs-pragma">@</span><span class="hs-pragma">(</span><span class="hs-pragma">ParsecT</span><span> </span><span class="hs-pragma">e</span><span> </span><span class="hs-pragma">T.Text</span><span> </span><span class="hs-pragma">m</span><span class="hs-pragma">)</span><span> </span><span class="hs-pragma">@</span><span class="hs-pragma">a</span><span> </span><span class="hs-pragma">pa</span><span> </span><span class="hs-pragma">#-}</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-386"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-387"></span><span class="hs-comment">-- === Separate and capture</span><span>
+</span><span id="line-388"></span><span class="hs-comment">--</span><span>
+</span><span id="line-389"></span><span class="hs-comment">-- Parser combinator to find all of the leftmost non-overlapping occurrences</span><span>
+</span><span id="line-390"></span><span class="hs-comment">-- of the pattern parser @sep@ in a text stream.</span><span>
+</span><span id="line-391"></span><span class="hs-comment">-- The 'sepCap' parser will always consume its entire input and can never fail.</span><span>
+</span><span id="line-392"></span><span class="hs-comment">--</span><span>
+</span><span id="line-393"></span><span class="hs-comment">-- @sepCap@ is similar to the @sep*@ family of parser combinators</span><span>
+</span><span id="line-394"></span><span class="hs-comment">-- found in</span><span>
+</span><span id="line-395"></span><span class="hs-comment">-- &lt;http://hackage.haskell.org/package/parser-combinators/docs/Control-Monad-Combinators.html parser-combinators&gt;</span><span>
+</span><span id="line-396"></span><span class="hs-comment">-- and</span><span>
+</span><span id="line-397"></span><span class="hs-comment">-- &lt;http://hackage.haskell.org/package/parsers/docs/Text-Parser-Combinators.html parsers&gt;,</span><span>
+</span><span id="line-398"></span><span class="hs-comment">-- but it returns the parsed result of the @sep@ parser instead</span><span>
+</span><span id="line-399"></span><span class="hs-comment">-- of throwing it away.</span><span>
+</span><span id="line-400"></span><span class="hs-comment">--</span><span>
+</span><span id="line-401"></span><span class="hs-comment">-- ==== Output</span><span>
+</span><span id="line-402"></span><span class="hs-comment">--</span><span>
+</span><span id="line-403"></span><span class="hs-comment">-- The input stream is separated and output into a list of sections:</span><span>
+</span><span id="line-404"></span><span class="hs-comment">--</span><span>
+</span><span id="line-405"></span><span class="hs-comment">-- * Sections which can parsed by the pattern @sep@ will be parsed and captured</span><span>
+</span><span id="line-406"></span><span class="hs-comment">--   as 'Right'.</span><span>
+</span><span id="line-407"></span><span class="hs-comment">-- * Non-matching sections of the stream will be captured in 'Left'.</span><span>
+</span><span id="line-408"></span><span class="hs-comment">--</span><span>
+</span><span id="line-409"></span><span class="hs-comment">-- The output list also has these properties:</span><span>
+</span><span id="line-410"></span><span class="hs-comment">--</span><span>
+</span><span id="line-411"></span><span class="hs-comment">-- * If the input is @&quot;&quot;@ then the output list will be @[]@.</span><span>
+</span><span id="line-412"></span><span class="hs-comment">-- * If there are no pattern matches, then</span><span>
+</span><span id="line-413"></span><span class="hs-comment">--   the entire input stream will be returned as one non-matching 'Left' section.</span><span>
+</span><span id="line-414"></span><span class="hs-comment">-- * The output list will not contain two consecutive 'Left' sections.</span><span>
+</span><span id="line-415"></span><span class="hs-comment">--</span><span>
+</span><span id="line-416"></span><span class="hs-comment">-- ==== Zero-width matches forbidden</span><span>
+</span><span id="line-417"></span><span class="hs-comment">--</span><span>
+</span><span id="line-418"></span><span class="hs-comment">-- If the pattern matching parser @sep@ would succeed without consuming any</span><span>
+</span><span id="line-419"></span><span class="hs-comment">-- input then 'sepCap' will force it to fail.</span><span>
+</span><span id="line-420"></span><span class="hs-comment">-- If we allow @sep@ to match a zero-width pattern,</span><span>
+</span><span id="line-421"></span><span class="hs-comment">-- then it can match the same zero-width pattern again at the same position</span><span>
+</span><span id="line-422"></span><span class="hs-comment">-- on the next iteration, which would result in an infinite number of</span><span>
+</span><span id="line-423"></span><span class="hs-comment">-- overlapping pattern matches.</span><span>
+</span><span id="line-424"></span><span class="annot"><a href="Replace.Megaparsec.html#sepCap"><span class="hs-identifier hs-type">sepCap</span></a></span><span>
+</span><span id="line-425"></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679037026"><span class="annot"><a href="#local-6989586621679037026"><span class="hs-identifier hs-type">e</span></a></span></span><span> </span><span id="local-6989586621679037027"><span class="annot"><a href="#local-6989586621679037027"><span class="hs-identifier hs-type">s</span></a></span></span><span> </span><span id="local-6989586621679037028"><span class="annot"><a href="#local-6989586621679037028"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span id="local-6989586621679037029"><span class="annot"><a href="#local-6989586621679037029"><span class="hs-identifier hs-type">a</span></a></span></span><span class="hs-operator">.</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadParsec</span></span><span> </span><span class="annot"><a href="#local-6989586621679037026"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679037027"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679037028"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-426"></span><span>    </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679037028"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679037029"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><span class="hs-comment">-- ^ The pattern matching parser @sep@</span></span><span>
+</span><span id="line-427"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679037028"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Tokens</span></span><span> </span><span class="annot"><a href="#local-6989586621679037027"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><a href="#local-6989586621679037029"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">]</span><span> </span><span class="annot"><span class="hs-comment">-- ^ parser</span></span><span>
+</span><span id="line-428"></span><span id="sepCap"><span class="annot"><span class="annottext">sepCap :: forall e s (m :: * -&gt; *) a.
+MonadParsec e s m =&gt;
+m a -&gt; m [Either (Tokens s) a]
+</span><a href="Replace.Megaparsec.html#sepCap"><span class="hs-identifier hs-var hs-var">sepCap</span></a></span></span><span> </span><span id="local-6989586621679037336"><span class="annot"><span class="annottext">m a
+</span><a href="#local-6989586621679037336"><span class="hs-identifier hs-var">sep</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">([Either [Token s] a] -&gt; [Either (Tokens s) a])
+-&gt; m [Either [Token s] a] -&gt; m [Either (Tokens s) a]
+forall a b. (a -&gt; b) -&gt; m a -&gt; m b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span class="annot"><span class="annottext">(([Either [Token s] a] -&gt; [Either (Tokens s) a])
+ -&gt; m [Either [Token s] a] -&gt; m [Either (Tokens s) a])
+-&gt; ((Either [Token s] a -&gt; Either (Tokens s) a)
+    -&gt; [Either [Token s] a] -&gt; [Either (Tokens s) a])
+-&gt; (Either [Token s] a -&gt; Either (Tokens s) a)
+-&gt; m [Either [Token s] a]
+-&gt; m [Either (Tokens s) a]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span class="annot"><span class="annottext">(Either [Token s] a -&gt; Either (Tokens s) a)
+-&gt; [Either [Token s] a] -&gt; [Either (Tokens s) a]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">([Token s] -&gt; Tokens s)
+-&gt; Either [Token s] a -&gt; Either (Tokens s) a
+forall a b c. (a -&gt; b) -&gt; Either a c -&gt; Either b c
+forall (p :: * -&gt; * -&gt; *) a b c.
+Bifunctor p =&gt;
+(a -&gt; b) -&gt; p a c -&gt; p b c
+</span><span class="hs-identifier hs-var">first</span></span><span> </span><span class="annot"><span class="annottext">(([Token s] -&gt; Tokens s)
+ -&gt; Either [Token s] a -&gt; Either (Tokens s) a)
+-&gt; ([Token s] -&gt; Tokens s)
+-&gt; Either [Token s] a
+-&gt; Either (Tokens s) a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Proxy s -&gt; [Token s] -&gt; Tokens s
+forall s. Stream s =&gt; Proxy s -&gt; [Token s] -&gt; Tokens s
+</span><span class="hs-identifier hs-var">tokensToChunk</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Proxy s
+forall {k} (t :: k). Proxy t
+</span><span class="hs-identifier hs-var">Proxy</span></span><span class="hs-glyph">::</span><span class="annot"><span class="hs-identifier hs-type">Proxy</span></span><span> </span><span class="annot"><a href="#local-6989586621679037027"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-429"></span><span>             </span><span class="annot"><span class="annottext">(m [Either [Token s] a] -&gt; m [Either (Tokens s) a])
+-&gt; m [Either [Token s] a] -&gt; m [Either (Tokens s) a]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">([Either (Token s) a] -&gt; [Either [Token s] a])
+-&gt; m [Either (Token s) a] -&gt; m [Either [Token s] a]
+forall a b. (a -&gt; b) -&gt; m a -&gt; m b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="annot"><span class="annottext">[Either (Token s) a] -&gt; [Either [Token s] a]
+forall l r. [Either l r] -&gt; [Either [l] r]
+</span><a href="#local-6989586621679037338"><span class="hs-identifier hs-var">sequenceLeft</span></a></span><span>
+</span><span id="line-430"></span><span>             </span><span class="annot"><span class="annottext">(m [Either (Token s) a] -&gt; m [Either [Token s] a])
+-&gt; m [Either (Token s) a] -&gt; m [Either [Token s] a]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">m (Either (Token s) a) -&gt; m [Either (Token s) a]
+forall (m :: * -&gt; *) a. MonadPlus m =&gt; m a -&gt; m [a]
+</span><span class="hs-identifier hs-var">many</span></span><span> </span><span class="annot"><span class="annottext">(m (Either (Token s) a) -&gt; m [Either (Token s) a])
+-&gt; m (Either (Token s) a) -&gt; m [Either (Token s) a]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">(a -&gt; Either (Token s) a) -&gt; m a -&gt; m (Either (Token s) a)
+forall a b. (a -&gt; b) -&gt; m a -&gt; m b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; Either (Token s) a
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">m a -&gt; m a
+forall a. m a -&gt; m a
+forall e s (m :: * -&gt; *) a. MonadParsec e s m =&gt; m a -&gt; m a
+</span><span class="hs-identifier hs-var">try</span></span><span> </span><span class="annot"><span class="annottext">m a
+</span><a href="#local-6989586621679037341"><span class="hs-identifier hs-var">nonZeroSep</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">m (Either (Token s) a)
+-&gt; m (Either (Token s) a) -&gt; m (Either (Token s) a)
+forall a. m a -&gt; m a -&gt; m a
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a -&gt; f a -&gt; f a
+</span><span class="hs-operator hs-var">&lt;|&gt;</span></span><span> </span><span class="annot"><span class="annottext">(Token s -&gt; Either (Token s) a)
+-&gt; m (Token s) -&gt; m (Either (Token s) a)
+forall a b. (a -&gt; b) -&gt; m a -&gt; m b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="annot"><span class="annottext">Token s -&gt; Either (Token s) a
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="annot"><span class="annottext">m (Token s)
+forall e s (m :: * -&gt; *). MonadParsec e s m =&gt; m (Token s)
+</span><span class="hs-identifier hs-var">anySingle</span></span><span>
+</span><span id="line-431"></span><span>  </span><span class="hs-keyword">where</span><span>
+</span><span id="line-432"></span><span>    </span><span id="local-6989586621679037096"><span id="local-6989586621679037097"><span class="annot"><a href="#local-6989586621679037338"><span class="hs-identifier hs-type">sequenceLeft</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="#local-6989586621679037096"><span class="hs-identifier hs-type">l</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679037097"><span class="hs-identifier hs-type">r</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679037096"><span class="hs-identifier hs-type">l</span></a></span><span class="hs-special">]</span><span> </span><span class="annot"><a href="#local-6989586621679037097"><span class="hs-identifier hs-type">r</span></a></span><span class="hs-special">]</span></span></span><span>
+</span><span id="line-433"></span><span>    </span><span id="local-6989586621679037338"><span class="annot"><span class="annottext">sequenceLeft :: forall l r. [Either l r] -&gt; [Either [l] r]
+</span><a href="#local-6989586621679037338"><span class="hs-identifier hs-var hs-var">sequenceLeft</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-pragma">{-# SCC</span><span> </span><span class="hs-pragma">sequenceLeft</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="annot"><span class="annottext">(Either l r -&gt; [Either [l] r] -&gt; [Either [l] r])
+-&gt; [Either [l] r] -&gt; [Either l r] -&gt; [Either [l] r]
+forall a b. (a -&gt; b -&gt; b) -&gt; b -&gt; [a] -&gt; b
+forall (t :: * -&gt; *) a b.
+Foldable t =&gt;
+(a -&gt; b -&gt; b) -&gt; b -&gt; t a -&gt; b
+</span><span class="hs-identifier hs-var">foldr</span></span><span> </span><span class="annot"><span class="annottext">Either l r -&gt; [Either [l] r] -&gt; [Either [l] r]
+forall l r. Either l r -&gt; [Either [l] r] -&gt; [Either [l] r]
+</span><a href="#local-6989586621679037346"><span class="hs-identifier hs-var">consLeft</span></a></span><span> </span><span class="hs-special">[</span><span class="hs-special">]</span><span>
+</span><span id="line-434"></span><span>      </span><span class="hs-keyword">where</span><span>
+</span><span id="line-435"></span><span>        </span><span id="local-6989586621679037109"><span id="local-6989586621679037110"><span class="annot"><a href="#local-6989586621679037346"><span class="hs-identifier hs-type">consLeft</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="annot"><a href="#local-6989586621679037109"><span class="hs-identifier hs-type">l</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679037110"><span class="hs-identifier hs-type">r</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679037109"><span class="hs-identifier hs-type">l</span></a></span><span class="hs-special">]</span><span> </span><span class="annot"><a href="#local-6989586621679037110"><span class="hs-identifier hs-type">r</span></a></span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679037109"><span class="hs-identifier hs-type">l</span></a></span><span class="hs-special">]</span><span> </span><span class="annot"><a href="#local-6989586621679037110"><span class="hs-identifier hs-type">r</span></a></span><span class="hs-special">]</span></span></span><span>
+</span><span id="line-436"></span><span>        </span><span id="local-6989586621679037346"><span class="annot"><span class="annottext">consLeft :: forall l r. Either l r -&gt; [Either [l] r] -&gt; [Either [l] r]
+</span><a href="#local-6989586621679037346"><span class="hs-identifier hs-var hs-var">consLeft</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679037347"><span class="annot"><span class="annottext">l
+</span><a href="#local-6989586621679037347"><span class="hs-identifier hs-var">l</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679037348"><span class="annot"><span class="annottext">[l]
+</span><a href="#local-6989586621679037348"><span class="hs-identifier hs-var">ls</span></a></span></span><span class="hs-special">)</span><span class="annot"><span class="hs-glyph hs-type">:</span></span><span id="local-6989586621679037349"><span class="annot"><span class="annottext">[Either [l] r]
+</span><a href="#local-6989586621679037349"><span class="hs-identifier hs-var">xs</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-pragma">{-# SCC</span><span> </span><span class="hs-pragma">consLeft</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[l] -&gt; Either [l] r
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">l
+</span><a href="#local-6989586621679037347"><span class="hs-identifier hs-var">l</span></a></span><span class="annot"><span class="annottext">l -&gt; [l] -&gt; [l]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">[l]
+</span><a href="#local-6989586621679037348"><span class="hs-identifier hs-var">ls</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span class="annot"><span class="annottext">Either [l] r -&gt; [Either [l] r] -&gt; [Either [l] r]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">[Either [l] r]
+</span><a href="#local-6989586621679037349"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-437"></span><span>        </span><span class="annot"><a href="#local-6989586621679037346"><span class="hs-identifier hs-var">consLeft</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Left</span></span><span> </span><span id="local-6989586621679037350"><span class="annot"><span class="annottext">l
+</span><a href="#local-6989586621679037350"><span class="hs-identifier hs-var">l</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679037351"><span class="annot"><span class="annottext">[Either [l] r]
+</span><a href="#local-6989586621679037351"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-pragma">{-# SCC</span><span> </span><span class="hs-pragma">consLeft</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[l] -&gt; Either [l] r
+forall a b. a -&gt; Either a b
+</span><span class="hs-identifier hs-var">Left</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">l
+</span><a href="#local-6989586621679037350"><span class="hs-identifier hs-var">l</span></a></span><span class="hs-special">]</span><span class="hs-special">)</span><span class="annot"><span class="annottext">Either [l] r -&gt; [Either [l] r] -&gt; [Either [l] r]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">[Either [l] r]
+</span><a href="#local-6989586621679037351"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-438"></span><span>        </span><span class="annot"><a href="#local-6989586621679037346"><span class="hs-identifier hs-var">consLeft</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Right</span></span><span> </span><span id="local-6989586621679037352"><span class="annot"><span class="annottext">r
+</span><a href="#local-6989586621679037352"><span class="hs-identifier hs-var">r</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679037353"><span class="annot"><span class="annottext">[Either [l] r]
+</span><a href="#local-6989586621679037353"><span class="hs-identifier hs-var">xs</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-pragma">{-# SCC</span><span> </span><span class="hs-pragma">consLeft</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">r -&gt; Either [l] r
+forall a b. b -&gt; Either a b
+</span><span class="hs-identifier hs-var">Right</span></span><span> </span><span class="annot"><span class="annottext">r
+</span><a href="#local-6989586621679037352"><span class="hs-identifier hs-var">r</span></a></span><span class="hs-special">)</span><span class="annot"><span class="annottext">Either [l] r -&gt; [Either [l] r] -&gt; [Either [l] r]
+forall a. a -&gt; [a] -&gt; [a]
+</span><span class="hs-glyph hs-var">:</span></span><span class="annot"><span class="annottext">[Either [l] r]
+</span><a href="#local-6989586621679037353"><span class="hs-identifier hs-var">xs</span></a></span><span>
+</span><span id="line-439"></span><span>    </span><span class="hs-comment">-- If sep succeeds and consumes 0 input tokens, we must force it to fail,</span><span>
+</span><span id="line-440"></span><span>    </span><span class="hs-comment">-- otherwise infinite loop</span><span>
+</span><span id="line-441"></span><span>    </span><span id="local-6989586621679037341"><span class="annot"><span class="annottext">nonZeroSep :: m a
+</span><a href="#local-6989586621679037341"><span class="hs-identifier hs-var hs-var">nonZeroSep</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-pragma">{-# SCC</span><span> </span><span class="hs-pragma">nonZeroSep</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-442"></span><span>        </span><span id="local-6989586621679037354"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679037354"><span class="hs-identifier hs-var">offset1</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">m Int
+forall e s (m :: * -&gt; *). MonadParsec e s m =&gt; m Int
+</span><span class="hs-identifier hs-var">getOffset</span></span><span>
+</span><span id="line-443"></span><span>        </span><span id="local-6989586621679037356"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679037356"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="hs-pragma">{-# SCC</span><span> </span><span class="hs-pragma">sep</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="annot"><span class="annottext">m a
+</span><a href="#local-6989586621679037336"><span class="hs-identifier hs-var">sep</span></a></span><span>
+</span><span id="line-444"></span><span>        </span><span id="local-6989586621679037357"><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679037357"><span class="hs-identifier hs-var">offset2</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">m Int
+forall e s (m :: * -&gt; *). MonadParsec e s m =&gt; m Int
+</span><span class="hs-identifier hs-var">getOffset</span></span><span>
+</span><span id="line-445"></span><span>        </span><span class="annot"><span class="annottext">Bool -&gt; m () -&gt; m ()
+forall (f :: * -&gt; *). Applicative f =&gt; Bool -&gt; f () -&gt; f ()
+</span><span class="hs-identifier hs-var">when</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679037354"><span class="hs-identifier hs-var">offset1</span></a></span><span> </span><span class="annot"><span class="annottext">Int -&gt; Int -&gt; Bool
+forall a. Ord a =&gt; a -&gt; a -&gt; Bool
+</span><span class="hs-operator hs-var">&gt;=</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><a href="#local-6989586621679037357"><span class="hs-identifier hs-var">offset2</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">m ()
+forall a. m a
+forall (f :: * -&gt; *) a. Alternative f =&gt; f a
+</span><span class="hs-identifier hs-var">empty</span></span><span>
+</span><span id="line-446"></span><span>        </span><span class="annot"><span class="annottext">a -&gt; m a
+forall a. a -&gt; m a
+forall (m :: * -&gt; *) a. Monad m =&gt; a -&gt; m a
+</span><span class="hs-identifier hs-var">return</span></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679037356"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-447"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="hs-pragma">[</span><span class="hs-pragma">1</span><span class="hs-pragma">]</span><span> </span><span class="annot"><a href="Replace.Megaparsec.html#sepCap"><span class="hs-pragma hs-type">sepCap</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-448"></span><span class="hs-comment">-- https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/glasgow_exts.html#specialisation</span><span>
+</span><span id="line-449"></span><span class="hs-comment">-- What we're missing here is a rule that can pick up non-ParsecT instances</span><span>
+</span><span id="line-450"></span><span class="hs-comment">-- of MonadParsec for GHC &lt; 8.8.</span><span class="hs-cpp">
+#if MIN_VERSION_GLASGOW_HASKELL(8,8,1,0)
+</span><span class="hs-pragma">{-# RULES</span><span> </span><span class="annot"><span class="hs-pragma">&quot;sepCap/ByteString&quot;</span></span><span> </span><span class="hs-pragma">[</span><span class="hs-pragma">2</span><span class="hs-pragma">]</span><span>
+</span><span id="line-453"></span><span> </span><span class="hs-pragma">forall</span><span> </span><span id="local-6989586621679037360"><span class="annot"><a href="#local-6989586621679037360"><span class="hs-pragma hs-type">e</span></a></span></span><span class="hs-pragma">.</span><span> </span><span class="hs-pragma">forall</span><span class="hs-pragma">.</span><span>
+</span><span id="line-454"></span><span> </span><span class="annot"><a href="Replace.Megaparsec.html#sepCap"><span class="hs-pragma hs-type">sepCap</span></a></span><span>           </span><span class="hs-pragma">@</span><span class="annot"><a href="#local-6989586621679037360"><span class="hs-pragma hs-type">e</span></a></span><span> </span><span class="hs-pragma">@</span><span class="annot"><span class="hs-pragma hs-type">B.ByteString</span></span><span> </span><span class="hs-pragma">=</span><span>
+</span><span id="line-455"></span><span> </span><span class="annot"><a href="Replace.Megaparsec.Internal.ByteString.html#sepCapByteString"><span class="hs-pragma hs-type">sepCapByteString</span></a></span><span> </span><span class="hs-pragma">@</span><span class="annot"><a href="#local-6989586621679037360"><span class="hs-pragma hs-type">e</span></a></span><span> </span><span class="hs-pragma">@</span><span class="annot"><span class="hs-pragma hs-type">B.ByteString</span></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-456"></span><span class="hs-pragma">{-# RULES</span><span> </span><span class="annot"><span class="hs-pragma">&quot;sepCap/Text&quot;</span></span><span> </span><span class="hs-pragma">[</span><span class="hs-pragma">2</span><span class="hs-pragma">]</span><span>
+</span><span id="line-457"></span><span> </span><span class="hs-pragma">forall</span><span> </span><span id="local-6989586621679037362"><span class="annot"><a href="#local-6989586621679037362"><span class="hs-pragma hs-type">e</span></a></span></span><span class="hs-pragma">.</span><span> </span><span class="hs-pragma">forall</span><span class="hs-pragma">.</span><span>
+</span><span id="line-458"></span><span> </span><span class="annot"><a href="Replace.Megaparsec.html#sepCap"><span class="hs-pragma hs-type">sepCap</span></a></span><span>     </span><span class="hs-pragma">@</span><span class="annot"><a href="#local-6989586621679037362"><span class="hs-pragma hs-type">e</span></a></span><span> </span><span class="hs-pragma">@</span><span class="annot"><span class="hs-pragma hs-type">T.Text</span></span><span> </span><span class="hs-pragma">=</span><span>
+</span><span id="line-459"></span><span> </span><span class="annot"><a href="Replace.Megaparsec.Internal.Text.html#sepCapText"><span class="hs-pragma hs-type">sepCapText</span></a></span><span> </span><span class="hs-pragma">@</span><span class="annot"><a href="#local-6989586621679037362"><span class="hs-pragma hs-type">e</span></a></span><span> </span><span class="hs-pragma">@</span><span class="annot"><span class="hs-pragma hs-type">T.Text</span></span><span> </span><span class="hs-pragma">#-}</span><span class="hs-cpp">
+#elif MIN_VERSION_GLASGOW_HASKELL(8,0,2,0)
+</span><span class="hs-pragma">{-# RULES</span><span> </span><span class="hs-pragma">&quot;sepCap/ByteString&quot;</span><span> </span><span class="hs-pragma">[</span><span class="hs-pragma">2</span><span class="hs-pragma">]</span><span>
+</span><span id="line-462"></span><span> </span><span class="hs-pragma">forall</span><span> </span><span class="hs-pragma">(</span><span class="hs-pragma">pa</span><span> </span><span class="hs-pragma">::</span><span> </span><span class="hs-pragma">ParsecT</span><span> </span><span class="hs-pragma">e</span><span> </span><span class="hs-pragma">B.ByteString</span><span> </span><span class="hs-pragma">m</span><span> </span><span class="hs-pragma">a</span><span class="hs-pragma">)</span><span class="hs-pragma">.</span><span>
+</span><span id="line-463"></span><span> </span><span class="hs-pragma">sepCap</span><span>           </span><span class="hs-pragma">@</span><span class="hs-pragma">e</span><span> </span><span class="hs-pragma">@</span><span class="hs-pragma">B.ByteString</span><span> </span><span class="hs-pragma">@</span><span class="hs-pragma">(</span><span class="hs-pragma">ParsecT</span><span> </span><span class="hs-pragma">e</span><span> </span><span class="hs-pragma">B.ByteString</span><span> </span><span class="hs-pragma">m</span><span class="hs-pragma">)</span><span> </span><span class="hs-pragma">@</span><span class="hs-pragma">a</span><span> </span><span class="hs-pragma">pa</span><span> </span><span class="hs-pragma">=</span><span>
+</span><span id="line-464"></span><span> </span><span class="hs-pragma">sepCapByteString</span><span> </span><span class="hs-pragma">@</span><span class="hs-pragma">e</span><span> </span><span class="hs-pragma">@</span><span class="hs-pragma">B.ByteString</span><span> </span><span class="hs-pragma">@</span><span class="hs-pragma">(</span><span class="hs-pragma">ParsecT</span><span> </span><span class="hs-pragma">e</span><span> </span><span class="hs-pragma">B.ByteString</span><span> </span><span class="hs-pragma">m</span><span class="hs-pragma">)</span><span> </span><span class="hs-pragma">@</span><span class="hs-pragma">a</span><span> </span><span class="hs-pragma">pa</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-465"></span><span class="hs-pragma">{-# RULES</span><span> </span><span class="hs-pragma">&quot;sepCap/Text&quot;</span><span> </span><span class="hs-pragma">[</span><span class="hs-pragma">2</span><span class="hs-pragma">]</span><span>
+</span><span id="line-466"></span><span> </span><span class="hs-pragma">forall</span><span> </span><span class="hs-pragma">(</span><span class="hs-pragma">pa</span><span> </span><span class="hs-pragma">::</span><span> </span><span class="hs-pragma">ParsecT</span><span> </span><span class="hs-pragma">e</span><span> </span><span class="hs-pragma">T.Text</span><span> </span><span class="hs-pragma">m</span><span> </span><span class="hs-pragma">a</span><span class="hs-pragma">)</span><span class="hs-pragma">.</span><span>
+</span><span id="line-467"></span><span> </span><span class="hs-pragma">sepCap</span><span>     </span><span class="hs-pragma">@</span><span class="hs-pragma">e</span><span> </span><span class="hs-pragma">@</span><span class="hs-pragma">T.Text</span><span> </span><span class="hs-pragma">@</span><span class="hs-pragma">(</span><span class="hs-pragma">ParsecT</span><span> </span><span class="hs-pragma">e</span><span> </span><span class="hs-pragma">T.Text</span><span> </span><span class="hs-pragma">m</span><span class="hs-pragma">)</span><span> </span><span class="hs-pragma">@</span><span class="hs-pragma">a</span><span> </span><span class="hs-pragma">pa</span><span> </span><span class="hs-pragma">=</span><span>
+</span><span id="line-468"></span><span> </span><span class="hs-pragma">sepCapText</span><span> </span><span class="hs-pragma">@</span><span class="hs-pragma">e</span><span> </span><span class="hs-pragma">@</span><span class="hs-pragma">T.Text</span><span> </span><span class="hs-pragma">@</span><span class="hs-pragma">(</span><span class="hs-pragma">ParsecT</span><span> </span><span class="hs-pragma">e</span><span> </span><span class="hs-pragma">T.Text</span><span> </span><span class="hs-pragma">m</span><span class="hs-pragma">)</span><span> </span><span class="hs-pragma">@</span><span class="hs-pragma">a</span><span> </span><span class="hs-pragma">pa</span><span> </span><span class="hs-pragma">#-}</span><span class="hs-cpp">
+#endif
+</span><span>
+</span><span id="line-471"></span><span>
+</span><span id="line-472"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-473"></span><span class="hs-comment">-- === Find all occurences, parse and capture pattern matches</span><span>
+</span><span id="line-474"></span><span class="hs-comment">--</span><span>
+</span><span id="line-475"></span><span class="hs-comment">-- Parser combinator for finding all occurences of a pattern in a stream.</span><span>
+</span><span id="line-476"></span><span class="hs-comment">--</span><span>
+</span><span id="line-477"></span><span class="hs-comment">-- Will call 'sepCap' with the 'Text.Megaparsec.match' combinator so that</span><span>
+</span><span id="line-478"></span><span class="hs-comment">-- the text which matched the pattern parser @sep@ will be returned in</span><span>
+</span><span id="line-479"></span><span class="hs-comment">-- the 'Right' sections, along with the result of the parse of @sep@.</span><span>
+</span><span id="line-480"></span><span class="hs-comment">--</span><span>
+</span><span id="line-481"></span><span class="hs-comment">-- Definition:</span><span>
+</span><span id="line-482"></span><span class="hs-comment">--</span><span>
+</span><span id="line-483"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-484"></span><span class="hs-comment">-- findAllCap sep = 'sepCap' ('Text.Megaparsec.match' sep)</span><span>
+</span><span id="line-485"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-486"></span><span id="local-6989586621679037119"><span id="local-6989586621679037120"><span id="local-6989586621679037121"><span id="local-6989586621679037122"><span class="annot"><a href="Replace.Megaparsec.html#findAllCap"><span class="hs-identifier hs-type">findAllCap</span></a></span><span>
+</span><span id="line-487"></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadParsec</span></span><span> </span><span class="annot"><a href="#local-6989586621679037119"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679037120"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679037121"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-488"></span><span>    </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679037121"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679037122"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><span class="hs-comment">-- ^ The pattern matching parser @sep@</span></span><span>
+</span><span id="line-489"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679037121"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Tokens</span></span><span> </span><span class="annot"><a href="#local-6989586621679037120"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Tokens</span></span><span> </span><span class="annot"><a href="#local-6989586621679037120"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="#local-6989586621679037122"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span></span></span></span></span><span> </span><span class="annot"><span class="hs-comment">-- ^ parser</span></span><span>
+</span><span id="line-490"></span><span id="findAllCap"><span class="annot"><span class="annottext">findAllCap :: forall e s (m :: * -&gt; *) a.
+MonadParsec e s m =&gt;
+m a -&gt; m [Either (Tokens s) (Tokens s, a)]
+</span><a href="Replace.Megaparsec.html#findAllCap"><span class="hs-identifier hs-var hs-var">findAllCap</span></a></span></span><span> </span><span id="local-6989586621679037367"><span class="annot"><span class="annottext">m a
+</span><a href="#local-6989586621679037367"><span class="hs-identifier hs-var">sep</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m (Tokens s, a) -&gt; m [Either (Tokens s) (Tokens s, a)]
+forall e s (m :: * -&gt; *) a.
+MonadParsec e s m =&gt;
+m a -&gt; m [Either (Tokens s) a]
+</span><a href="Replace.Megaparsec.html#sepCap"><span class="hs-identifier hs-var">sepCap</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">m a -&gt; m (Tokens s, a)
+forall e s (m :: * -&gt; *) a.
+MonadParsec e s m =&gt;
+m a -&gt; m (Tokens s, a)
+</span><span class="hs-identifier hs-var">match</span></span><span> </span><span class="annot"><span class="annottext">m a
+</span><a href="#local-6989586621679037367"><span class="hs-identifier hs-var">sep</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-491"></span><span class="hs-pragma">{-# INLINABLE</span><span> </span><span class="annot"><a href="Replace.Megaparsec.html#findAllCap"><span class="hs-pragma hs-type">findAllCap</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-492"></span><span class="hs-pragma">{-# DEPRECATED</span><span> </span><span class="hs-pragma">findAllCap</span><span> </span><span class="hs-pragma">&quot;replace with `findAllCap sep = sepCap (match sep)`&quot;</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-493"></span><span>
+</span><span id="line-494"></span><span>
+</span><span id="line-495"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-496"></span><span class="hs-comment">-- === Find all occurences</span><span>
+</span><span id="line-497"></span><span class="hs-comment">--</span><span>
+</span><span id="line-498"></span><span class="hs-comment">-- Parser combinator for finding all occurences of a pattern in a stream.</span><span>
+</span><span id="line-499"></span><span class="hs-comment">--</span><span>
+</span><span id="line-500"></span><span class="hs-comment">-- Will call 'sepCap' with the 'Text.Megaparsec.match' combinator and</span><span>
+</span><span id="line-501"></span><span class="hs-comment">-- return the text which matched the pattern parser @sep@ in</span><span>
+</span><span id="line-502"></span><span class="hs-comment">-- the 'Right' sections.</span><span>
+</span><span id="line-503"></span><span class="hs-comment">--</span><span>
+</span><span id="line-504"></span><span class="hs-comment">-- Definition:</span><span>
+</span><span id="line-505"></span><span class="hs-comment">--</span><span>
+</span><span id="line-506"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-507"></span><span class="hs-comment">-- findAll sep = (fmap.fmap) ('Data.Bifunctor.second' fst) $ 'sepCap' ('Text.Megaparsec.match' sep)</span><span>
+</span><span id="line-508"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-509"></span><span id="local-6989586621679037127"><span id="local-6989586621679037128"><span id="local-6989586621679037129"><span id="local-6989586621679037130"><span class="annot"><a href="Replace.Megaparsec.html#findAll"><span class="hs-identifier hs-type">findAll</span></a></span><span>
+</span><span id="line-510"></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadParsec</span></span><span> </span><span class="annot"><a href="#local-6989586621679037127"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679037128"><span class="hs-identifier hs-type">s</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679037129"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-511"></span><span>    </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679037129"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679037130"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="annot"><span class="hs-comment">-- ^ The pattern matching parser @sep@</span></span><span>
+</span><span id="line-512"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679037129"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="hs-identifier hs-type">Either</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Tokens</span></span><span> </span><span class="annot"><a href="#local-6989586621679037128"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Tokens</span></span><span> </span><span class="annot"><a href="#local-6989586621679037128"><span class="hs-identifier hs-type">s</span></a></span><span class="hs-special">)</span><span class="hs-special">]</span></span></span></span></span><span> </span><span class="annot"><span class="hs-comment">-- ^ parser</span></span><span>
+</span><span id="line-513"></span><span id="findAll"><span class="annot"><span class="annottext">findAll :: forall e s (m :: * -&gt; *) a.
+MonadParsec e s m =&gt;
+m a -&gt; m [Either (Tokens s) (Tokens s)]
+</span><a href="Replace.Megaparsec.html#findAll"><span class="hs-identifier hs-var hs-var">findAll</span></a></span></span><span> </span><span id="local-6989586621679037378"><span class="annot"><span class="annottext">m a
+</span><a href="#local-6989586621679037378"><span class="hs-identifier hs-var">sep</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">([Either (Tokens s) (Tokens s, a)]
+ -&gt; [Either (Tokens s) (Tokens s)])
+-&gt; m [Either (Tokens s) (Tokens s, a)]
+-&gt; m [Either (Tokens s) (Tokens s)]
+forall a b. (a -&gt; b) -&gt; m a -&gt; m b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span class="annot"><span class="annottext">(([Either (Tokens s) (Tokens s, a)]
+  -&gt; [Either (Tokens s) (Tokens s)])
+ -&gt; m [Either (Tokens s) (Tokens s, a)]
+ -&gt; m [Either (Tokens s) (Tokens s)])
+-&gt; ((Either (Tokens s) (Tokens s, a)
+     -&gt; Either (Tokens s) (Tokens s))
+    -&gt; [Either (Tokens s) (Tokens s, a)]
+    -&gt; [Either (Tokens s) (Tokens s)])
+-&gt; (Either (Tokens s) (Tokens s, a)
+    -&gt; Either (Tokens s) (Tokens s))
+-&gt; m [Either (Tokens s) (Tokens s, a)]
+-&gt; m [Either (Tokens s) (Tokens s)]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span class="annot"><span class="annottext">(Either (Tokens s) (Tokens s, a) -&gt; Either (Tokens s) (Tokens s))
+-&gt; [Either (Tokens s) (Tokens s, a)]
+-&gt; [Either (Tokens s) (Tokens s)]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">((Tokens s, a) -&gt; Tokens s)
+-&gt; Either (Tokens s) (Tokens s, a) -&gt; Either (Tokens s) (Tokens s)
+forall b c a. (b -&gt; c) -&gt; Either a b -&gt; Either a c
+forall (p :: * -&gt; * -&gt; *) b c a.
+Bifunctor p =&gt;
+(b -&gt; c) -&gt; p a b -&gt; p a c
+</span><span class="hs-identifier hs-var">second</span></span><span> </span><span class="annot"><span class="annottext">(Tokens s, a) -&gt; Tokens s
+forall a b. (a, b) -&gt; a
+</span><span class="hs-identifier hs-var">fst</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">(m [Either (Tokens s) (Tokens s, a)]
+ -&gt; m [Either (Tokens s) (Tokens s)])
+-&gt; m [Either (Tokens s) (Tokens s, a)]
+-&gt; m [Either (Tokens s) (Tokens s)]
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">m (Tokens s, a) -&gt; m [Either (Tokens s) (Tokens s, a)]
+forall e s (m :: * -&gt; *) a.
+MonadParsec e s m =&gt;
+m a -&gt; m [Either (Tokens s) a]
+</span><a href="Replace.Megaparsec.html#sepCap"><span class="hs-identifier hs-var">sepCap</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">m a -&gt; m (Tokens s, a)
+forall e s (m :: * -&gt; *) a.
+MonadParsec e s m =&gt;
+m a -&gt; m (Tokens s, a)
+</span><span class="hs-identifier hs-var">match</span></span><span> </span><span class="annot"><span class="annottext">m a
+</span><a href="#local-6989586621679037378"><span class="hs-identifier hs-var">sep</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-514"></span><span class="hs-pragma">{-# INLINABLE</span><span> </span><span class="annot"><a href="Replace.Megaparsec.html#findAll"><span class="hs-pragma hs-type">findAll</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-515"></span><span class="hs-pragma">{-# DEPRECATED</span><span> </span><span class="hs-pragma">findAll</span><span> </span><span class="hs-pragma">&quot;replace with `findAll sep = (fmap.fmap) (second fst) $ sepCap (match sep)`&quot;</span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-516"></span></pre></body></html>

@@ -1,0 +1,83 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">{- FOURMOLU_DISABLE -}</span><span>
+</span><span id="line-2"></span><span class="hs-comment">-- The MIT License (MIT)</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- Copyright (c) 2016-2024 Objectionary.com</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- Permission is hereby granted, free of charge, to any person obtaining a copy</span><span>
+</span><span id="line-7"></span><span class="hs-comment">-- of this software and associated documentation files (the &quot;Software&quot;), to deal</span><span>
+</span><span id="line-8"></span><span class="hs-comment">-- in the Software without restriction, including without limitation the rights</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- copies of the Software, and to permit persons to whom the Software is</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- furnished to do so, subject to the following conditions:</span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- The above copyright notice and this permission notice shall be included</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- in all copies or substantial portions of the Software.</span><span>
+</span><span id="line-15"></span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span><span>
+</span><span id="line-17"></span><span class="hs-comment">-- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span><span>
+</span><span id="line-18"></span><span class="hs-comment">-- FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE</span><span>
+</span><span id="line-19"></span><span class="hs-comment">-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span><span>
+</span><span id="line-20"></span><span class="hs-comment">-- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span><span>
+</span><span id="line-21"></span><span class="hs-comment">-- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span><span>
+</span><span id="line-22"></span><span class="hs-comment">-- SOFTWARE.</span><span>
+</span><span id="line-23"></span><span class="hs-comment">{- FOURMOLU_ENABLE -}</span><span>
+</span><span id="line-24"></span><span class="hs-pragma">{-# LANGUAGE BlockArguments #-}</span><span>
+</span><span id="line-25"></span><span class="hs-pragma">{-# LANGUAGE ScopedTypeVariables #-}</span><span>
+</span><span id="line-26"></span><span>
+</span><span id="line-27"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.EO.Locale</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-28"></span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Exception</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">Exception</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">Handler</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">SomeException</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">catches</span></span><span class="hs-special">)</span><span>
+</span><span id="line-30"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Main.Utf8</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">withUtf8</span></span><span class="hs-special">)</span><span>
+</span><span id="line-31"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.Exit</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">ExitCode</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">exitWith</span></span><span class="hs-special">)</span><span>
+</span><span id="line-32"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.IO.CodePage</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">withCP65001</span></span><span class="hs-special">)</span><span>
+</span><span id="line-33"></span><span>
+</span><span id="line-34"></span><span id="local-6989586621679732516"><span class="annot"><a href="Language.EO.Locale.html#withCorrectLocale"><span class="hs-identifier hs-type">withCorrectLocale</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679732516"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><a href="#local-6989586621679732516"><span class="hs-identifier hs-type">a</span></a></span></span><span>
+</span><span id="line-35"></span><span id="withCorrectLocale"><span class="annot"><span class="annottext">withCorrectLocale :: forall a. IO a -&gt; IO a
+</span><a href="Language.EO.Locale.html#withCorrectLocale"><span class="hs-identifier hs-var hs-var">withCorrectLocale</span></a></span></span><span> </span><span id="local-6989586621679732550"><span class="annot"><span class="annottext">IO a
+</span><a href="#local-6989586621679732550"><span class="hs-identifier hs-var">act</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-36"></span><span>  </span><span class="hs-keyword">let</span><span> </span><span id="local-6989586621679732555"><span class="annot"><span class="annottext">withCorrectLocale' :: IO a -&gt; IO a
+</span><a href="#local-6989586621679732555"><span class="hs-identifier hs-var hs-var">withCorrectLocale'</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IO a -&gt; IO a
+forall a. IO a -&gt; IO a
+</span><span class="hs-identifier hs-var">withCP65001</span></span><span> </span><span class="annot"><span class="annottext">(IO a -&gt; IO a) -&gt; (IO a -&gt; IO a) -&gt; IO a -&gt; IO a
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">IO a -&gt; IO a
+forall (m :: * -&gt; *) r. (MonadIO m, MonadMask m) =&gt; m r -&gt; m r
+</span><span class="hs-identifier hs-var">withUtf8</span></span><span>
+</span><span id="line-37"></span><span>  </span><span class="annot"><span class="annottext">IO a -&gt; IO a
+forall a. IO a -&gt; IO a
+</span><a href="#local-6989586621679732555"><span class="hs-identifier hs-var">withCorrectLocale'</span></a></span><span> </span><span class="annot"><span class="annottext">IO a
+</span><a href="#local-6989586621679732550"><span class="hs-identifier hs-var">act</span></a></span><span>
+</span><span id="line-38"></span><span>    </span><span class="annot"><span class="annottext">IO a -&gt; [Handler a] -&gt; IO a
+forall a. IO a -&gt; [Handler a] -&gt; IO a
+</span><span class="hs-operator hs-var">`catches`</span></span><span> </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">(ExitCode -&gt; IO a) -&gt; Handler a
+forall a e. Exception e =&gt; (e -&gt; IO a) -&gt; Handler a
+</span><span class="hs-identifier hs-var">Handler</span></span><span> </span><span class="annot"><span class="annottext">((ExitCode -&gt; IO a) -&gt; Handler a)
+-&gt; (ExitCode -&gt; IO a) -&gt; Handler a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679732558"><span class="annot"><span class="annottext">ExitCode
+</span><a href="#local-6989586621679732558"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">ExitCode</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">ExitCode -&gt; IO a
+forall a. ExitCode -&gt; IO a
+</span><span class="hs-identifier hs-var">exitWith</span></span><span> </span><span class="annot"><span class="annottext">ExitCode
+</span><a href="#local-6989586621679732558"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-39"></span><span>              </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">(SomeException -&gt; IO a) -&gt; Handler a
+forall a e. Exception e =&gt; (e -&gt; IO a) -&gt; Handler a
+</span><span class="hs-identifier hs-var">Handler</span></span><span> </span><span class="annot"><span class="annottext">((SomeException -&gt; IO a) -&gt; Handler a)
+-&gt; (SomeException -&gt; IO a) -&gt; Handler a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-special">(</span><span id="local-6989586621679732559"><span class="annot"><span class="annottext">SomeException
+</span><a href="#local-6989586621679732559"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">SomeException</span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-40"></span><span>                  </span><span class="annot"><span class="annottext">IO a -&gt; IO a
+forall a. IO a -&gt; IO a
+</span><a href="#local-6989586621679732555"><span class="hs-identifier hs-var">withCorrectLocale'</span></a></span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-41"></span><span>                    </span><span class="annot"><span class="annottext">String -&gt; IO ()
+</span><span class="hs-identifier hs-var">putStrLn</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">SomeException -&gt; String
+forall e. Exception e =&gt; e -&gt; String
+</span><span class="hs-identifier hs-var">displayException</span></span><span> </span><span class="annot"><span class="annottext">SomeException
+</span><a href="#local-6989586621679732559"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-42"></span><span>                    </span><span class="annot"><span class="annottext">ExitCode -&gt; IO a
+forall a. ExitCode -&gt; IO a
+</span><span class="hs-identifier hs-var">exitWith</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Int -&gt; ExitCode
+</span><span class="hs-identifier hs-var">ExitFailure</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">1</span></span><span class="hs-special">)</span><span>
+</span><span id="line-43"></span><span>              </span><span class="hs-special">]</span><span>
+</span><span id="line-44"></span></pre></body></html>

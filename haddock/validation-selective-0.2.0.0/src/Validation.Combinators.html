@@ -1,0 +1,392 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="annot"><span class="hs-comment">{- |
+Copyright:  (c) 2020-2023 Kowainik
+SPDX-License-Identifier: MPL-2.0
+Maintainer:  Kowainik &lt;xrom.xkov@gmail.com&gt;
+Stability:   Stable
+Portability: Portable
+
+Helpful combinators to work with 'Validation' data type.
+-}</span></span><span>
+</span><span id="line-10"></span><span>
+</span><span id="line-11"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Validation.Combinators</span><span>
+</span><span id="line-12"></span><span>    </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Validation.Combinators.html#validateAll"><span class="hs-identifier">validateAll</span></a></span><span>
+</span><span id="line-13"></span><span>
+</span><span id="line-14"></span><span>      </span><span class="annot"><span class="hs-comment">-- * When* functions</span></span><span>
+</span><span id="line-15"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Validation.Combinators.html#whenSuccess"><span class="hs-identifier">whenSuccess</span></a></span><span>
+</span><span id="line-16"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Validation.Combinators.html#whenFailure"><span class="hs-identifier">whenFailure</span></a></span><span>
+</span><span id="line-17"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Validation.Combinators.html#whenSuccess_"><span class="hs-identifier">whenSuccess_</span></a></span><span>
+</span><span id="line-18"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Validation.Combinators.html#whenFailure_"><span class="hs-identifier">whenFailure_</span></a></span><span>
+</span><span id="line-19"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Validation.Combinators.html#whenSuccessM"><span class="hs-identifier">whenSuccessM</span></a></span><span>
+</span><span id="line-20"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Validation.Combinators.html#whenFailureM"><span class="hs-identifier">whenFailureM</span></a></span><span>
+</span><span id="line-21"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Validation.Combinators.html#whenSuccessM_"><span class="hs-identifier">whenSuccessM_</span></a></span><span>
+</span><span id="line-22"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Validation.Combinators.html#whenFailureM_"><span class="hs-identifier">whenFailureM_</span></a></span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span>      </span><span class="annot"><span class="hs-comment">-- * 'Maybe' conversion</span></span><span>
+</span><span id="line-25"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Validation.Combinators.html#failureToMaybe"><span class="hs-identifier">failureToMaybe</span></a></span><span>
+</span><span id="line-26"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Validation.Combinators.html#successToMaybe"><span class="hs-identifier">successToMaybe</span></a></span><span>
+</span><span id="line-27"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Validation.Combinators.html#maybeToFailure"><span class="hs-identifier">maybeToFailure</span></a></span><span>
+</span><span id="line-28"></span><span>    </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Validation.Combinators.html#maybeToSuccess"><span class="hs-identifier">maybeToSuccess</span></a></span><span>
+</span><span id="line-29"></span><span>
+</span><span id="line-30"></span><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-31"></span><span>
+</span><span id="line-32"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Foldable</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">foldl'</span></span><span class="hs-special">)</span><span>
+</span><span id="line-33"></span><span>
+</span><span id="line-34"></span><span class="hs-keyword">import</span><span> </span><span class="hs-pragma">{-# SOURCE</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span class="annot"><a href="Validation.html"><span class="hs-identifier">Validation</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Validation.html#Validation"><span class="hs-identifier">Validation</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Validation.html#validation"><span class="hs-identifier">validation</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-35"></span><span>
+</span><span id="line-36"></span><span>
+</span><span id="line-37"></span><span class="annot"><span class="hs-comment">{- | Validate all given checks in a 'Foldable'. Returns the 'Success' of the
+start element when all checks are successful.
+
+
+A basic example of usage could look like this:
+
+@
+&gt; __let__ validatePassword = 'validateAll'
+        [ validateEmptyPassword
+        , validateShortPassword
+        ]
+
+&gt; 'validateAll' \&quot;VeryStrongPassword\&quot;
+'Success' \&quot;VeryStrongPassword\&quot;
+
+&gt; 'validateAll' &quot;&quot;
+'Failure' (EmptyPassword :| [ShortPassword])
+@
+-}</span></span><span>
+</span><span id="line-56"></span><span class="annot"><a href="Validation.Combinators.html#validateAll"><span class="hs-identifier hs-type">validateAll</span></a></span><span>
+</span><span id="line-57"></span><span>    </span><span class="hs-glyph">::</span><span> </span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679047111"><span class="annot"><a href="#local-6989586621679047111"><span class="hs-identifier hs-type">e</span></a></span></span><span> </span><span id="local-6989586621679047113"><span class="annot"><a href="#local-6989586621679047113"><span class="hs-identifier hs-type">b</span></a></span></span><span> </span><span id="local-6989586621679047112"><span class="annot"><a href="#local-6989586621679047112"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span id="local-6989586621679047110"><span class="annot"><a href="#local-6989586621679047110"><span class="hs-identifier hs-type">f</span></a></span></span><span>
+</span><span id="line-58"></span><span>    </span><span class="hs-operator">.</span><span>  </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">Foldable</span></span><span> </span><span class="annot"><a href="#local-6989586621679047110"><span class="hs-identifier hs-type">f</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Semigroup</span></span><span> </span><span class="annot"><a href="#local-6989586621679047111"><span class="hs-identifier hs-type">e</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-59"></span><span>    </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679047110"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679047112"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Validation.html#Validation"><span class="hs-identifier hs-type">Validation</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047111"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047113"><span class="hs-identifier hs-type">b</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-60"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679047112"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-61"></span><span>    </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Validation.html#Validation"><span class="hs-identifier hs-type">Validation</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047111"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047112"><span class="hs-identifier hs-type">a</span></a></span><span>
+</span><span id="line-62"></span><span id="validateAll"><span class="annot"><span class="annottext">validateAll :: forall e b a (f :: * -&gt; *).
+(Foldable f, Semigroup e) =&gt;
+f (a -&gt; Validation e b) -&gt; a -&gt; Validation e a
+</span><a href="Validation.Combinators.html#validateAll"><span class="hs-identifier hs-var hs-var">validateAll</span></a></span></span><span> </span><span id="local-6989586621679047234"><span class="annot"><span class="annottext">f (a -&gt; Validation e b)
+</span><a href="#local-6989586621679047234"><span class="hs-identifier hs-var">fs</span></a></span></span><span> </span><span id="local-6989586621679047235"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679047235"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(Validation e a -&gt; (a -&gt; Validation e b) -&gt; Validation e a)
+-&gt; Validation e a -&gt; f (a -&gt; Validation e b) -&gt; Validation e a
+forall b a. (b -&gt; a -&gt; b) -&gt; b -&gt; f a -&gt; b
+forall (t :: * -&gt; *) b a.
+Foldable t =&gt;
+(b -&gt; a -&gt; b) -&gt; b -&gt; t a -&gt; b
+</span><span class="hs-identifier hs-var">foldl'</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679047236"><span class="annot"><span class="annottext">Validation e a
+</span><a href="#local-6989586621679047236"><span class="hs-identifier hs-var">res</span></a></span></span><span> </span><span id="local-6989586621679047237"><span class="annot"><span class="annottext">a -&gt; Validation e b
+</span><a href="#local-6989586621679047237"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Validation e a
+</span><a href="#local-6989586621679047236"><span class="hs-identifier hs-var">res</span></a></span><span> </span><span class="annot"><span class="annottext">Validation e a -&gt; Validation e b -&gt; Validation e a
+forall a b. Validation e a -&gt; Validation e b -&gt; Validation e a
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f a
+</span><span class="hs-operator hs-var">&lt;*</span></span><span> </span><span class="annot"><span class="annottext">a -&gt; Validation e b
+</span><a href="#local-6989586621679047237"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679047235"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; Validation e a
+forall e a. a -&gt; Validation e a
+</span><a href="Validation.html#Success"><span class="hs-identifier hs-var">Success</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679047235"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">f (a -&gt; Validation e b)
+</span><a href="#local-6989586621679047234"><span class="hs-identifier hs-var">fs</span></a></span><span>
+</span><span id="line-63"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Validation.Combinators.html#validateAll"><span class="hs-pragma hs-type">validateAll</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-64"></span><span>
+</span><span id="line-65"></span><span class="annot"><span class="hs-comment">{- | Applies the given action to 'Validation' if it is 'Failure' and returns the
+result. In case of 'Success' the default value is returned.
+
+&gt;&gt;&gt; whenFailure &quot;bar&quot; (Failure 42) (\a -&gt; &quot;foo&quot; &lt;$ print a)
+42
+&quot;foo&quot;
+
+&gt;&gt;&gt; whenFailure &quot;bar&quot; (Success 42) (\a -&gt; &quot;foo&quot; &lt;$ print a)
+&quot;bar&quot;
+-}</span></span><span>
+</span><span id="line-75"></span><span id="local-6989586621679047128"><span id="local-6989586621679047129"><span id="local-6989586621679047130"><span id="local-6989586621679047131"><span class="annot"><a href="Validation.Combinators.html#whenFailure"><span class="hs-identifier hs-type">whenFailure</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Applicative</span></span><span> </span><span class="annot"><a href="#local-6989586621679047128"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679047129"><span class="hs-identifier hs-type">x</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Validation.html#Validation"><span class="hs-identifier hs-type">Validation</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047130"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047131"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679047130"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679047128"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047129"><span class="hs-identifier hs-type">x</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679047128"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047129"><span class="hs-identifier hs-type">x</span></a></span></span></span></span></span><span>
+</span><span id="line-76"></span><span id="whenFailure"><span class="annot"><span class="annottext">whenFailure :: forall (f :: * -&gt; *) x e a.
+Applicative f =&gt;
+x -&gt; Validation e a -&gt; (e -&gt; f x) -&gt; f x
+</span><a href="Validation.Combinators.html#whenFailure"><span class="hs-identifier hs-var hs-var">whenFailure</span></a></span></span><span> </span><span class="annot"><span class="annottext">x
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Validation.html#Failure"><span class="hs-identifier hs-type">Failure</span></a></span><span> </span><span id="local-6989586621679047241"><span class="annot"><span class="annottext">e
+</span><a href="#local-6989586621679047241"><span class="hs-identifier hs-var">e</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679047242"><span class="annot"><span class="annottext">e -&gt; f x
+</span><a href="#local-6989586621679047242"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">e -&gt; f x
+</span><a href="#local-6989586621679047242"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">e
+</span><a href="#local-6989586621679047241"><span class="hs-identifier hs-var">e</span></a></span><span>
+</span><span id="line-77"></span><span class="annot"><a href="Validation.Combinators.html#whenFailure"><span class="hs-identifier hs-var">whenFailure</span></a></span><span> </span><span id="local-6989586621679047243"><span class="annot"><span class="annottext">x
+</span><a href="#local-6989586621679047243"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Validation.html#Success"><span class="hs-identifier hs-type">Success</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">e -&gt; f x
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">x -&gt; f x
+forall a. a -&gt; f a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">x
+</span><a href="#local-6989586621679047243"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-78"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Validation.Combinators.html#whenFailure"><span class="hs-pragma hs-type">whenFailure</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-79"></span><span>
+</span><span id="line-80"></span><span class="annot"><span class="hs-comment">{- | Applies given action to the 'Validation' content if it is 'Failure'.
+
+Similar to 'whenFailure' but the default value is @()@.
+
+&gt;&gt;&gt; whenFailure_ (Success 42) putStrLn
+&gt;&gt;&gt; whenFailure_ (Failure &quot;foo&quot;) putStrLn
+foo
+-}</span></span><span>
+</span><span id="line-88"></span><span id="local-6989586621679047137"><span id="local-6989586621679047138"><span id="local-6989586621679047139"><span class="annot"><a href="Validation.Combinators.html#whenFailure_"><span class="hs-identifier hs-type">whenFailure_</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Applicative</span></span><span> </span><span class="annot"><a href="#local-6989586621679047137"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Validation.html#Validation"><span class="hs-identifier hs-type">Validation</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047138"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047139"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679047138"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679047137"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679047137"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span></span></span><span>
+</span><span id="line-89"></span><span id="whenFailure_"><span class="annot"><span class="annottext">whenFailure_ :: forall (f :: * -&gt; *) e a.
+Applicative f =&gt;
+Validation e a -&gt; (e -&gt; f ()) -&gt; f ()
+</span><a href="Validation.Combinators.html#whenFailure_"><span class="hs-identifier hs-var hs-var">whenFailure_</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">() -&gt; Validation e a -&gt; (e -&gt; f ()) -&gt; f ()
+forall (f :: * -&gt; *) x e a.
+Applicative f =&gt;
+x -&gt; Validation e a -&gt; (e -&gt; f x) -&gt; f x
+</span><a href="Validation.Combinators.html#whenFailure"><span class="hs-identifier hs-var">whenFailure</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-90"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Validation.Combinators.html#whenFailure_"><span class="hs-pragma hs-type">whenFailure_</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-91"></span><span>
+</span><span id="line-92"></span><span class="annot"><span class="hs-comment">{- | Monadic version of 'whenFailure'.
+Applies monadic action to the given 'Validation' in case of 'Failure'.
+Returns the resulting value, or provided default.
+
+&gt;&gt;&gt; whenFailureM &quot;bar&quot; (pure $ Failure 42) (\a -&gt; &quot;foo&quot; &lt;$ print a)
+42
+&quot;foo&quot;
+
+&gt;&gt;&gt; whenFailureM &quot;bar&quot; (pure $ Success 42) (\a -&gt; &quot;foo&quot; &lt;$ print a)
+&quot;bar&quot;
+-}</span></span><span>
+</span><span id="line-103"></span><span id="local-6989586621679047143"><span id="local-6989586621679047144"><span id="local-6989586621679047145"><span id="local-6989586621679047146"><span class="annot"><a href="Validation.Combinators.html#whenFailureM"><span class="hs-identifier hs-type">whenFailureM</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Monad</span></span><span> </span><span class="annot"><a href="#local-6989586621679047143"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679047144"><span class="hs-identifier hs-type">x</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679047143"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Validation.html#Validation"><span class="hs-identifier hs-type">Validation</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047145"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047146"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679047145"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679047143"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047144"><span class="hs-identifier hs-type">x</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679047143"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047144"><span class="hs-identifier hs-type">x</span></a></span></span></span></span></span><span>
+</span><span id="line-104"></span><span id="whenFailureM"><span class="annot"><span class="annottext">whenFailureM :: forall (m :: * -&gt; *) x e a.
+Monad m =&gt;
+x -&gt; m (Validation e a) -&gt; (e -&gt; m x) -&gt; m x
+</span><a href="Validation.Combinators.html#whenFailureM"><span class="hs-identifier hs-var hs-var">whenFailureM</span></a></span></span><span> </span><span id="local-6989586621679047251"><span class="annot"><span class="annottext">x
+</span><a href="#local-6989586621679047251"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679047252"><span class="annot"><span class="annottext">m (Validation e a)
+</span><a href="#local-6989586621679047252"><span class="hs-identifier hs-var">mv</span></a></span></span><span> </span><span id="local-6989586621679047253"><span class="annot"><span class="annottext">e -&gt; m x
+</span><a href="#local-6989586621679047253"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m (Validation e a)
+</span><a href="#local-6989586621679047252"><span class="hs-identifier hs-var">mv</span></a></span><span> </span><span class="annot"><span class="annottext">m (Validation e a) -&gt; (Validation e a -&gt; m x) -&gt; m x
+forall a b. m a -&gt; (a -&gt; m b) -&gt; m b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679047254"><span class="annot"><span class="annottext">Validation e a
+</span><a href="#local-6989586621679047254"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">x -&gt; Validation e a -&gt; (e -&gt; m x) -&gt; m x
+forall (f :: * -&gt; *) x e a.
+Applicative f =&gt;
+x -&gt; Validation e a -&gt; (e -&gt; f x) -&gt; f x
+</span><a href="Validation.Combinators.html#whenFailure"><span class="hs-identifier hs-var">whenFailure</span></a></span><span> </span><span class="annot"><span class="annottext">x
+</span><a href="#local-6989586621679047251"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Validation e a
+</span><a href="#local-6989586621679047254"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">e -&gt; m x
+</span><a href="#local-6989586621679047253"><span class="hs-identifier hs-var">f</span></a></span><span>
+</span><span id="line-105"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Validation.Combinators.html#whenFailureM"><span class="hs-pragma hs-type">whenFailureM</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-106"></span><span>
+</span><span id="line-107"></span><span class="annot"><span class="hs-comment">{- | Monadic version of 'whenFailure_'.
+Applies monadic action to the given 'Validation' in case of 'Failure'.
+Similar to 'whenFailureM' but the default is @()@.
+
+&gt;&gt;&gt; whenFailureM_ (pure $ Success 42) putStrLn
+&gt;&gt;&gt; whenFailureM_ (pure $ Failure &quot;foo&quot;) putStrLn
+foo
+-}</span></span><span>
+</span><span id="line-115"></span><span id="local-6989586621679047154"><span id="local-6989586621679047155"><span id="local-6989586621679047156"><span class="annot"><a href="Validation.Combinators.html#whenFailureM_"><span class="hs-identifier hs-type">whenFailureM_</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Monad</span></span><span> </span><span class="annot"><a href="#local-6989586621679047154"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679047154"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Validation.html#Validation"><span class="hs-identifier hs-type">Validation</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047155"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047156"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679047155"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679047154"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679047154"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span></span></span><span>
+</span><span id="line-116"></span><span id="whenFailureM_"><span class="annot"><span class="annottext">whenFailureM_ :: forall (m :: * -&gt; *) e a.
+Monad m =&gt;
+m (Validation e a) -&gt; (e -&gt; m ()) -&gt; m ()
+</span><a href="Validation.Combinators.html#whenFailureM_"><span class="hs-identifier hs-var hs-var">whenFailureM_</span></a></span></span><span> </span><span id="local-6989586621679047259"><span class="annot"><span class="annottext">m (Validation e a)
+</span><a href="#local-6989586621679047259"><span class="hs-identifier hs-var">mv</span></a></span></span><span> </span><span id="local-6989586621679047260"><span class="annot"><span class="annottext">e -&gt; m ()
+</span><a href="#local-6989586621679047260"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m (Validation e a)
+</span><a href="#local-6989586621679047259"><span class="hs-identifier hs-var">mv</span></a></span><span> </span><span class="annot"><span class="annottext">m (Validation e a) -&gt; (Validation e a -&gt; m ()) -&gt; m ()
+forall a b. m a -&gt; (a -&gt; m b) -&gt; m b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679047261"><span class="annot"><span class="annottext">Validation e a
+</span><a href="#local-6989586621679047261"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Validation e a -&gt; (e -&gt; m ()) -&gt; m ()
+forall (f :: * -&gt; *) e a.
+Applicative f =&gt;
+Validation e a -&gt; (e -&gt; f ()) -&gt; f ()
+</span><a href="Validation.Combinators.html#whenFailure_"><span class="hs-identifier hs-var">whenFailure_</span></a></span><span> </span><span class="annot"><span class="annottext">Validation e a
+</span><a href="#local-6989586621679047261"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">e -&gt; m ()
+</span><a href="#local-6989586621679047260"><span class="hs-identifier hs-var">f</span></a></span><span>
+</span><span id="line-117"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Validation.Combinators.html#whenFailureM_"><span class="hs-pragma hs-type">whenFailureM_</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-118"></span><span>
+</span><span id="line-119"></span><span class="annot"><span class="hs-comment">{- | Applies the given action to 'Validation' if it is 'Success' and returns the
+result. In case of 'Failure' the default value is returned.
+
+&gt;&gt;&gt; whenSuccess &quot;bar&quot; (Failure &quot;foo&quot;) (\a -&gt; &quot;success!&quot; &lt;$ print a)
+&quot;bar&quot;
+
+&gt;&gt;&gt; whenSuccess &quot;bar&quot; (Success 42) (\a -&gt; &quot;success!&quot; &lt;$ print a)
+42
+&quot;success!&quot;
+-}</span></span><span>
+</span><span id="line-129"></span><span id="local-6989586621679047160"><span id="local-6989586621679047161"><span id="local-6989586621679047162"><span id="local-6989586621679047163"><span class="annot"><a href="Validation.Combinators.html#whenSuccess"><span class="hs-identifier hs-type">whenSuccess</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Applicative</span></span><span> </span><span class="annot"><a href="#local-6989586621679047160"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679047161"><span class="hs-identifier hs-type">x</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Validation.html#Validation"><span class="hs-identifier hs-type">Validation</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047162"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047163"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679047163"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679047160"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047161"><span class="hs-identifier hs-type">x</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679047160"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047161"><span class="hs-identifier hs-type">x</span></a></span></span></span></span></span><span>
+</span><span id="line-130"></span><span id="whenSuccess"><span class="annot"><span class="annottext">whenSuccess :: forall (f :: * -&gt; *) x e a.
+Applicative f =&gt;
+x -&gt; Validation e a -&gt; (a -&gt; f x) -&gt; f x
+</span><a href="Validation.Combinators.html#whenSuccess"><span class="hs-identifier hs-var hs-var">whenSuccess</span></a></span></span><span> </span><span id="local-6989586621679047264"><span class="annot"><span class="annottext">x
+</span><a href="#local-6989586621679047264"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Validation.html#Failure"><span class="hs-identifier hs-type">Failure</span></a></span><span>  </span><span class="annot"><span class="annottext">e
+</span><span class="hs-identifier">_</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">a -&gt; f x
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">x -&gt; f x
+forall a. a -&gt; f a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">x
+</span><a href="#local-6989586621679047264"><span class="hs-identifier hs-var">x</span></a></span><span>
+</span><span id="line-131"></span><span class="annot"><a href="Validation.Combinators.html#whenSuccess"><span class="hs-identifier hs-var">whenSuccess</span></a></span><span> </span><span class="annot"><span class="annottext">x
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Validation.html#Success"><span class="hs-identifier hs-type">Success</span></a></span><span> </span><span id="local-6989586621679047265"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679047265"><span class="hs-identifier hs-var">a</span></a></span></span><span class="hs-special">)</span><span> </span><span id="local-6989586621679047266"><span class="annot"><span class="annottext">a -&gt; f x
+</span><a href="#local-6989586621679047266"><span class="hs-identifier hs-var">f</span></a></span></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">a -&gt; f x
+</span><a href="#local-6989586621679047266"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679047265"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-132"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Validation.Combinators.html#whenSuccess"><span class="hs-pragma hs-type">whenSuccess</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-133"></span><span>
+</span><span id="line-134"></span><span class="annot"><span class="hs-comment">{- | Applies given action to the 'Validation' content if it is 'Success'.
+
+Similar to 'whenSuccess' but the default value is @()@.
+
+&gt;&gt;&gt; whenSuccess_ (Failure &quot;foo&quot;) print
+&gt;&gt;&gt; whenSuccess_ (Success 42) print
+42
+-}</span></span><span>
+</span><span id="line-142"></span><span id="local-6989586621679047168"><span id="local-6989586621679047169"><span id="local-6989586621679047170"><span class="annot"><a href="Validation.Combinators.html#whenSuccess_"><span class="hs-identifier hs-type">whenSuccess_</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Applicative</span></span><span> </span><span class="annot"><a href="#local-6989586621679047168"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Validation.html#Validation"><span class="hs-identifier hs-type">Validation</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047169"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047170"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679047170"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679047168"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679047168"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span></span></span><span>
+</span><span id="line-143"></span><span id="whenSuccess_"><span class="annot"><span class="annottext">whenSuccess_ :: forall (f :: * -&gt; *) e a.
+Applicative f =&gt;
+Validation e a -&gt; (a -&gt; f ()) -&gt; f ()
+</span><a href="Validation.Combinators.html#whenSuccess_"><span class="hs-identifier hs-var hs-var">whenSuccess_</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">() -&gt; Validation e a -&gt; (a -&gt; f ()) -&gt; f ()
+forall (f :: * -&gt; *) x e a.
+Applicative f =&gt;
+x -&gt; Validation e a -&gt; (a -&gt; f x) -&gt; f x
+</span><a href="Validation.Combinators.html#whenSuccess"><span class="hs-identifier hs-var">whenSuccess</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-144"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Validation.Combinators.html#whenSuccess_"><span class="hs-pragma hs-type">whenSuccess_</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-145"></span><span>
+</span><span id="line-146"></span><span class="annot"><span class="hs-comment">{- | Monadic version of 'whenSuccess'.
+Applies monadic action to the given 'Validation' in case of 'Success'.
+Returns the resulting value, or provided default.
+
+&gt;&gt;&gt; whenSuccessM &quot;bar&quot; (pure $ Failure &quot;foo&quot;) (\a -&gt; &quot;success!&quot; &lt;$ print a)
+&quot;bar&quot;
+
+&gt;&gt;&gt; whenSuccessM &quot;bar&quot; (pure $ Success 42) (\a -&gt; &quot;success!&quot; &lt;$ print a)
+42
+&quot;success!&quot;
+-}</span></span><span>
+</span><span id="line-157"></span><span id="local-6989586621679047174"><span id="local-6989586621679047175"><span id="local-6989586621679047176"><span id="local-6989586621679047177"><span class="annot"><a href="Validation.Combinators.html#whenSuccessM"><span class="hs-identifier hs-type">whenSuccessM</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Monad</span></span><span> </span><span class="annot"><a href="#local-6989586621679047174"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679047175"><span class="hs-identifier hs-type">x</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679047174"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Validation.html#Validation"><span class="hs-identifier hs-type">Validation</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047176"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047177"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679047177"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679047174"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047175"><span class="hs-identifier hs-type">x</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679047174"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047175"><span class="hs-identifier hs-type">x</span></a></span></span></span></span></span><span>
+</span><span id="line-158"></span><span id="whenSuccessM"><span class="annot"><span class="annottext">whenSuccessM :: forall (m :: * -&gt; *) x e a.
+Monad m =&gt;
+x -&gt; m (Validation e a) -&gt; (a -&gt; m x) -&gt; m x
+</span><a href="Validation.Combinators.html#whenSuccessM"><span class="hs-identifier hs-var hs-var">whenSuccessM</span></a></span></span><span> </span><span id="local-6989586621679047273"><span class="annot"><span class="annottext">x
+</span><a href="#local-6989586621679047273"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679047274"><span class="annot"><span class="annottext">m (Validation e a)
+</span><a href="#local-6989586621679047274"><span class="hs-identifier hs-var">mv</span></a></span></span><span> </span><span id="local-6989586621679047275"><span class="annot"><span class="annottext">a -&gt; m x
+</span><a href="#local-6989586621679047275"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m (Validation e a)
+</span><a href="#local-6989586621679047274"><span class="hs-identifier hs-var">mv</span></a></span><span> </span><span class="annot"><span class="annottext">m (Validation e a) -&gt; (Validation e a -&gt; m x) -&gt; m x
+forall a b. m a -&gt; (a -&gt; m b) -&gt; m b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679047276"><span class="annot"><span class="annottext">Validation e a
+</span><a href="#local-6989586621679047276"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">x -&gt; Validation e a -&gt; (a -&gt; m x) -&gt; m x
+forall (f :: * -&gt; *) x e a.
+Applicative f =&gt;
+x -&gt; Validation e a -&gt; (a -&gt; f x) -&gt; f x
+</span><a href="Validation.Combinators.html#whenSuccess"><span class="hs-identifier hs-var">whenSuccess</span></a></span><span> </span><span class="annot"><span class="annottext">x
+</span><a href="#local-6989586621679047273"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">Validation e a
+</span><a href="#local-6989586621679047276"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; m x
+</span><a href="#local-6989586621679047275"><span class="hs-identifier hs-var">f</span></a></span><span>
+</span><span id="line-159"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Validation.Combinators.html#whenSuccessM"><span class="hs-pragma hs-type">whenSuccessM</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-160"></span><span>
+</span><span id="line-161"></span><span class="annot"><span class="hs-comment">{- | Monadic version of 'whenSuccess_'.
+Applies monadic action to the given 'Validation' in case of 'Success'.
+Similar to 'whenSuccessM' but the default is @()@.
+
+&gt;&gt;&gt; whenSuccessM_ (pure $ Failure &quot;foo&quot;) print
+&gt;&gt;&gt; whenSuccessM_ (pure $ Success 42) print
+42
+-}</span></span><span>
+</span><span id="line-169"></span><span id="local-6989586621679047182"><span id="local-6989586621679047183"><span id="local-6989586621679047184"><span class="annot"><a href="Validation.Combinators.html#whenSuccessM_"><span class="hs-identifier hs-type">whenSuccessM_</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Monad</span></span><span> </span><span class="annot"><a href="#local-6989586621679047182"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679047182"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Validation.html#Validation"><span class="hs-identifier hs-type">Validation</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047183"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047184"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="#local-6989586621679047184"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679047182"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679047182"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span></span></span><span>
+</span><span id="line-170"></span><span id="whenSuccessM_"><span class="annot"><span class="annottext">whenSuccessM_ :: forall (m :: * -&gt; *) e a.
+Monad m =&gt;
+m (Validation e a) -&gt; (a -&gt; m ()) -&gt; m ()
+</span><a href="Validation.Combinators.html#whenSuccessM_"><span class="hs-identifier hs-var hs-var">whenSuccessM_</span></a></span></span><span> </span><span id="local-6989586621679047281"><span class="annot"><span class="annottext">m (Validation e a)
+</span><a href="#local-6989586621679047281"><span class="hs-identifier hs-var">mv</span></a></span></span><span> </span><span id="local-6989586621679047282"><span class="annot"><span class="annottext">a -&gt; m ()
+</span><a href="#local-6989586621679047282"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m (Validation e a)
+</span><a href="#local-6989586621679047281"><span class="hs-identifier hs-var">mv</span></a></span><span> </span><span class="annot"><span class="annottext">m (Validation e a) -&gt; (Validation e a -&gt; m ()) -&gt; m ()
+forall a b. m a -&gt; (a -&gt; m b) -&gt; m b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679047283"><span class="annot"><span class="annottext">Validation e a
+</span><a href="#local-6989586621679047283"><span class="hs-identifier hs-var">v</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Validation e a -&gt; (a -&gt; m ()) -&gt; m ()
+forall (f :: * -&gt; *) e a.
+Applicative f =&gt;
+Validation e a -&gt; (a -&gt; f ()) -&gt; f ()
+</span><a href="Validation.Combinators.html#whenSuccess_"><span class="hs-identifier hs-var">whenSuccess_</span></a></span><span> </span><span class="annot"><span class="annottext">Validation e a
+</span><a href="#local-6989586621679047283"><span class="hs-identifier hs-var">v</span></a></span><span> </span><span class="annot"><span class="annottext">a -&gt; m ()
+</span><a href="#local-6989586621679047282"><span class="hs-identifier hs-var">f</span></a></span><span>
+</span><span id="line-171"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Validation.Combinators.html#whenSuccessM_"><span class="hs-pragma hs-type">whenSuccessM_</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-172"></span><span>
+</span><span id="line-173"></span><span>
+</span><span id="line-174"></span><span class="annot"><span class="hs-comment">{- | Maps 'Failure' of 'Validation' to 'Just'.
+
+&gt;&gt;&gt; failureToMaybe (Failure True)
+Just True
+&gt;&gt;&gt; failureToMaybe (Success &quot;aba&quot;)
+Nothing
+-}</span></span><span>
+</span><span id="line-181"></span><span id="local-6989586621679047188"><span id="local-6989586621679047189"><span class="annot"><a href="Validation.Combinators.html#failureToMaybe"><span class="hs-identifier hs-type">failureToMaybe</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Validation.html#Validation"><span class="hs-identifier hs-type">Validation</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047188"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047189"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679047188"><span class="hs-identifier hs-type">e</span></a></span></span></span><span>
+</span><span id="line-182"></span><span id="failureToMaybe"><span class="annot"><span class="annottext">failureToMaybe :: forall e a. Validation e a -&gt; Maybe e
+</span><a href="Validation.Combinators.html#failureToMaybe"><span class="hs-identifier hs-var hs-var">failureToMaybe</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(e -&gt; Maybe e) -&gt; (a -&gt; Maybe e) -&gt; Validation e a -&gt; Maybe e
+forall e x a. (e -&gt; x) -&gt; (a -&gt; x) -&gt; Validation e a -&gt; x
+</span><a href="Validation.html#validation"><span class="hs-identifier hs-var">validation</span></a></span><span> </span><span class="annot"><span class="annottext">e -&gt; Maybe e
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Maybe e -&gt; a -&gt; Maybe e
+forall a b. a -&gt; b -&gt; a
+</span><span class="hs-identifier hs-var">const</span></span><span> </span><span class="annot"><span class="annottext">Maybe e
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-special">)</span><span>
+</span><span id="line-183"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Validation.Combinators.html#failureToMaybe"><span class="hs-pragma hs-type">failureToMaybe</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-184"></span><span>
+</span><span id="line-185"></span><span class="annot"><span class="hs-comment">{- | Maps 'Success' of 'Validation' to 'Just'.
+
+&gt;&gt;&gt; successToMaybe (Failure True)
+Nothing
+&gt;&gt;&gt; successToMaybe (Success &quot;aba&quot;)
+Just &quot;aba&quot;
+-}</span></span><span>
+</span><span id="line-192"></span><span id="local-6989586621679047198"><span id="local-6989586621679047199"><span class="annot"><a href="Validation.Combinators.html#successToMaybe"><span class="hs-identifier hs-type">successToMaybe</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Validation.html#Validation"><span class="hs-identifier hs-type">Validation</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047198"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047199"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679047199"><span class="hs-identifier hs-type">a</span></a></span></span></span><span>
+</span><span id="line-193"></span><span id="successToMaybe"><span class="annot"><span class="annottext">successToMaybe :: forall e a. Validation e a -&gt; Maybe a
+</span><a href="Validation.Combinators.html#successToMaybe"><span class="hs-identifier hs-var hs-var">successToMaybe</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(e -&gt; Maybe a) -&gt; (a -&gt; Maybe a) -&gt; Validation e a -&gt; Maybe a
+forall e x a. (e -&gt; x) -&gt; (a -&gt; x) -&gt; Validation e a -&gt; x
+</span><a href="Validation.html#validation"><span class="hs-identifier hs-var">validation</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Maybe a -&gt; e -&gt; Maybe a
+forall a b. a -&gt; b -&gt; a
+</span><span class="hs-identifier hs-var">const</span></span><span> </span><span class="annot"><span class="annottext">Maybe a
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">a -&gt; Maybe a
+forall a. a -&gt; Maybe a
+</span><span class="hs-identifier hs-var">Just</span></span><span>
+</span><span id="line-194"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Validation.Combinators.html#successToMaybe"><span class="hs-pragma hs-type">successToMaybe</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-195"></span><span>
+</span><span id="line-196"></span><span class="annot"><span class="hs-comment">{- | Maps 'Just' to 'Failure' In case of 'Nothing' it wraps the given default
+value into 'Success'.
+
+&gt;&gt;&gt; maybeToFailure True (Just &quot;aba&quot;)
+Failure &quot;aba&quot;
+&gt;&gt;&gt; maybeToFailure True Nothing
+Success True
+-}</span></span><span>
+</span><span id="line-204"></span><span id="local-6989586621679047202"><span id="local-6989586621679047203"><span class="annot"><a href="Validation.Combinators.html#maybeToFailure"><span class="hs-identifier hs-type">maybeToFailure</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679047202"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679047203"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Validation.html#Validation"><span class="hs-identifier hs-type">Validation</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047203"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047202"><span class="hs-identifier hs-type">a</span></a></span></span></span><span>
+</span><span id="line-205"></span><span id="maybeToFailure"><span class="annot"><span class="annottext">maybeToFailure :: forall a e. a -&gt; Maybe e -&gt; Validation e a
+</span><a href="Validation.Combinators.html#maybeToFailure"><span class="hs-identifier hs-var hs-var">maybeToFailure</span></a></span></span><span> </span><span id="local-6989586621679047285"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679047285"><span class="hs-identifier hs-var">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Validation e a
+-&gt; (e -&gt; Validation e a) -&gt; Maybe e -&gt; Validation e a
+forall b a. b -&gt; (a -&gt; b) -&gt; Maybe a -&gt; b
+</span><span class="hs-identifier hs-var">maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">a -&gt; Validation e a
+forall e a. a -&gt; Validation e a
+</span><a href="Validation.html#Success"><span class="hs-identifier hs-var">Success</span></a></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679047285"><span class="hs-identifier hs-var">a</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">e -&gt; Validation e a
+forall e a. e -&gt; Validation e a
+</span><a href="Validation.html#Failure"><span class="hs-identifier hs-var">Failure</span></a></span><span>
+</span><span id="line-206"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Validation.Combinators.html#maybeToFailure"><span class="hs-pragma hs-type">maybeToFailure</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-207"></span><span>
+</span><span id="line-208"></span><span class="annot"><span class="hs-comment">{- | Maps 'Just' to 'Success'. In case of 'Nothing' it wraps the given default
+value into 'Failure'
+
+&gt;&gt;&gt; maybeToSuccess True (Just &quot;aba&quot;)
+Success &quot;aba&quot;
+&gt;&gt;&gt; maybeToSuccess True Nothing
+Failure True
+-}</span></span><span>
+</span><span id="line-216"></span><span id="local-6989586621679047208"><span id="local-6989586621679047209"><span class="annot"><a href="Validation.Combinators.html#maybeToSuccess"><span class="hs-identifier hs-type">maybeToSuccess</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679047208"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679047209"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Validation.html#Validation"><span class="hs-identifier hs-type">Validation</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047208"><span class="hs-identifier hs-type">e</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679047209"><span class="hs-identifier hs-type">a</span></a></span></span></span><span>
+</span><span id="line-217"></span><span id="maybeToSuccess"><span class="annot"><span class="annottext">maybeToSuccess :: forall e a. e -&gt; Maybe a -&gt; Validation e a
+</span><a href="Validation.Combinators.html#maybeToSuccess"><span class="hs-identifier hs-var hs-var">maybeToSuccess</span></a></span></span><span> </span><span id="local-6989586621679047287"><span class="annot"><span class="annottext">e
+</span><a href="#local-6989586621679047287"><span class="hs-identifier hs-var">e</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Validation e a
+-&gt; (a -&gt; Validation e a) -&gt; Maybe a -&gt; Validation e a
+forall b a. b -&gt; (a -&gt; b) -&gt; Maybe a -&gt; b
+</span><span class="hs-identifier hs-var">maybe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">e -&gt; Validation e a
+forall e a. e -&gt; Validation e a
+</span><a href="Validation.html#Failure"><span class="hs-identifier hs-var">Failure</span></a></span><span> </span><span class="annot"><span class="annottext">e
+</span><a href="#local-6989586621679047287"><span class="hs-identifier hs-var">e</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">a -&gt; Validation e a
+forall e a. a -&gt; Validation e a
+</span><a href="Validation.html#Success"><span class="hs-identifier hs-var">Success</span></a></span><span>
+</span><span id="line-218"></span><span class="hs-pragma">{-# INLINE</span><span> </span><span class="annot"><a href="Validation.Combinators.html#maybeToSuccess"><span class="hs-pragma hs-type">maybeToSuccess</span></a></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-219"></span></pre></body></html>

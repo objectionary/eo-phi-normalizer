@@ -1,0 +1,292 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-pragma">{-# LANGUAGE RankNTypes #-}</span><span>
+</span><span id="line-2"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-3"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- Module     : Control.Selective.Free</span><span>
+</span><span id="line-5"></span><span class="hs-comment">-- Copyright  : (c) Andrey Mokhov 2018-2023</span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- License    : MIT (see the file LICENSE)</span><span>
+</span><span id="line-7"></span><span class="hs-comment">-- Maintainer : andrey.mokhov@gmail.com</span><span>
+</span><span id="line-8"></span><span class="hs-comment">-- Stability  : experimental</span><span>
+</span><span id="line-9"></span><span class="hs-comment">--</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- This is a library for /selective applicative functors/, or just</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- /selective functors/ for short, an abstraction between applicative functors</span><span>
+</span><span id="line-12"></span><span class="hs-comment">-- and monads, introduced in this paper:</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- https://www.staff.ncl.ac.uk/andrey.mokhov/selective-functors.pdf.</span><span>
+</span><span id="line-14"></span><span class="hs-comment">--</span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- This module defines /free selective functors/ using the ideas from the</span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- Sjoerd Visscher's package 'free-functors':</span><span>
+</span><span id="line-17"></span><span class="hs-comment">-- https://hackage.haskell.org/package/free-functors-1.0.1/docs/Data-Functor-HFree.html.</span><span>
+</span><span id="line-18"></span><span class="hs-comment">--</span><span>
+</span><span id="line-19"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-20"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Control.Selective.Free</span><span> </span><span class="hs-special">(</span><span>
+</span><span id="line-21"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Free selective functors</span></span><span>
+</span><span id="line-22"></span><span>    </span><span class="annot"><a href="Control.Selective.Free.html#Select"><span class="hs-identifier">Select</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Control.Selective.Free.html#liftSelect"><span class="hs-identifier">liftSelect</span></a></span><span class="hs-special">,</span><span>
+</span><span id="line-23"></span><span>
+</span><span id="line-24"></span><span>    </span><span class="annot"><span class="hs-comment">-- * Static analysis</span></span><span>
+</span><span id="line-25"></span><span>    </span><span class="annot"><a href="Control.Selective.Free.html#getPure"><span class="hs-identifier">getPure</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Control.Selective.Free.html#getEffects"><span class="hs-identifier">getEffects</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Control.Selective.Free.html#getNecessaryEffects"><span class="hs-identifier">getNecessaryEffects</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Control.Selective.Free.html#runSelect"><span class="hs-identifier">runSelect</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Control.Selective.Free.html#foldSelect"><span class="hs-identifier">foldSelect</span></a></span><span>
+</span><span id="line-26"></span><span>    </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-27"></span><span>
+</span><span id="line-28"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Control.Selective.html"><span class="hs-identifier">Control.Selective</span></a></span><span>
+</span><span id="line-29"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Functor</span></span><span>
+</span><span id="line-30"></span><span>
+</span><span id="line-31"></span><span class="annot"><span class="hs-comment">-- | Free selective functors.</span></span><span>
+</span><span id="line-32"></span><span class="hs-keyword">newtype</span><span> </span><span id="Select"><span class="annot"><a href="Control.Selective.Free.html#Select"><span class="hs-identifier hs-var">Select</span></a></span></span><span> </span><span id="local-6989586621679065824"><span class="annot"><a href="#local-6989586621679065824"><span class="hs-identifier hs-type">f</span></a></span></span><span> </span><span id="local-6989586621679065825"><span class="annot"><a href="#local-6989586621679065825"><span class="hs-identifier hs-type">a</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span id="Select"><span class="annot"><a href="Control.Selective.Free.html#Select"><span class="hs-identifier hs-var">Select</span></a></span></span><span> </span><span class="hs-special">(</span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679065821"><span class="annot"><a href="#local-6989586621679065821"><span class="hs-identifier hs-type">g</span></a></span></span><span class="hs-operator">.</span><span> </span><span class="annot"><a href="Control.Selective.html#Selective"><span class="hs-identifier hs-type">Selective</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679065821"><span class="hs-identifier hs-type">g</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">(</span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679065823"><span class="annot"><a href="#local-6989586621679065823"><span class="hs-identifier hs-type">x</span></a></span></span><span class="hs-operator">.</span><span> </span><span class="annot"><a href="#local-6989586621679065824"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679065823"><span class="hs-identifier hs-type">x</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679065821"><span class="hs-identifier hs-type">g</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679065823"><span class="hs-identifier hs-type">x</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679065821"><span class="hs-identifier hs-type">g</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679065825"><span class="hs-identifier hs-type">a</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-33"></span><span>
+</span><span id="line-34"></span><span class="hs-comment">-- Ignoring the hint, since GHC can't type check the suggested code.</span><span>
+</span><span id="line-35"></span><span class="hs-pragma">{-# ANN</span><span> </span><span class="hs-pragma">module</span><span> </span><span class="annot"><span class="hs-pragma">&quot;HLint: ignore Use fmap&quot;</span></span><span> </span><span class="hs-pragma">#-}</span><span>
+</span><span id="line-36"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679065818"><span id="local-6989586621679065931"><span class="annot"><span class="hs-identifier hs-type">Functor</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Control.Selective.Free.html#Select"><span class="hs-identifier hs-type">Select</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679065818"><span class="hs-identifier hs-type">f</span></a></span><span class="hs-special">)</span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-37"></span><span>    </span><span id="local-6989586621679065935"><span class="annot"><span class="annottext">fmap :: forall a b. (a -&gt; b) -&gt; Select f a -&gt; Select f b
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">fmap</span></span></span><span> </span><span id="local-6989586621679065936"><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679065936"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Control.Selective.Free.html#Select"><span class="hs-identifier hs-type">Select</span></a></span><span> </span><span id="local-6989586621679065937"><span class="annot"><span class="annottext">forall (g :: * -&gt; *). Selective g =&gt; (forall x. f x -&gt; g x) -&gt; g a
+</span><a href="#local-6989586621679065937"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(forall (g :: * -&gt; *).
+ Selective g =&gt;
+ (forall x. f x -&gt; g x) -&gt; g b)
+-&gt; Select f b
+forall (f :: * -&gt; *) a.
+(forall (g :: * -&gt; *).
+ Selective g =&gt;
+ (forall x. f x -&gt; g x) -&gt; g a)
+-&gt; Select f a
+</span><a href="Control.Selective.Free.html#Select"><span class="hs-identifier hs-var">Select</span></a></span><span> </span><span class="annot"><span class="annottext">((forall (g :: * -&gt; *).
+  Selective g =&gt;
+  (forall x. f x -&gt; g x) -&gt; g b)
+ -&gt; Select f b)
+-&gt; (forall (g :: * -&gt; *).
+    Selective g =&gt;
+    (forall x. f x -&gt; g x) -&gt; g b)
+-&gt; Select f b
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679065945"><span class="annot"><span class="annottext">forall x. f x -&gt; g x
+</span><a href="#local-6989586621679065945"><span class="hs-identifier hs-var">k</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">a -&gt; b
+</span><a href="#local-6989586621679065936"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">(a -&gt; b) -&gt; g a -&gt; g b
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">(forall x. f x -&gt; g x) -&gt; g a
+forall (g :: * -&gt; *). Selective g =&gt; (forall x. f x -&gt; g x) -&gt; g a
+</span><a href="#local-6989586621679065937"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">f x -&gt; g x
+forall x. f x -&gt; g x
+</span><a href="#local-6989586621679065945"><span class="hs-identifier hs-var">k</span></a></span><span>
+</span><span id="line-38"></span><span>
+</span><span id="line-39"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679065847"><span id="local-6989586621679065952"><span id="local-6989586621679065956"><span id="local-6989586621679065959"><span class="annot"><span class="hs-identifier hs-type">Applicative</span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Control.Selective.Free.html#Select"><span class="hs-identifier hs-type">Select</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679065847"><span class="hs-identifier hs-type">f</span></a></span><span class="hs-special">)</span></span></span></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-40"></span><span>    </span><span id="local-6989586621679065962"><span class="annot"><span class="annottext">pure :: forall a. a -&gt; Select f a
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pure</span></span></span><span> </span><span id="local-6989586621679065963"><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679065963"><span class="hs-identifier hs-var">a</span></a></span></span><span>                </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(forall (g :: * -&gt; *).
+ Selective g =&gt;
+ (forall x. f x -&gt; g x) -&gt; g a)
+-&gt; Select f a
+forall (f :: * -&gt; *) a.
+(forall (g :: * -&gt; *).
+ Selective g =&gt;
+ (forall x. f x -&gt; g x) -&gt; g a)
+-&gt; Select f a
+</span><a href="Control.Selective.Free.html#Select"><span class="hs-identifier hs-var">Select</span></a></span><span> </span><span class="annot"><span class="annottext">((forall (g :: * -&gt; *).
+  Selective g =&gt;
+  (forall x. f x -&gt; g x) -&gt; g a)
+ -&gt; Select f a)
+-&gt; (forall (g :: * -&gt; *).
+    Selective g =&gt;
+    (forall x. f x -&gt; g x) -&gt; g a)
+-&gt; Select f a
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span class="annot"><span class="annottext">forall x. f x -&gt; g x
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">a -&gt; g a
+forall a. a -&gt; g a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">a
+</span><a href="#local-6989586621679065963"><span class="hs-identifier hs-var">a</span></a></span><span>
+</span><span id="line-41"></span><span>    </span><span class="annot"><a href="Control.Selective.Free.html#Select"><span class="hs-identifier hs-type">Select</span></a></span><span> </span><span id="local-6989586621679065967"><span class="annot"><span class="annottext">forall (g :: * -&gt; *).
+Selective g =&gt;
+(forall x. f x -&gt; g x) -&gt; g (a -&gt; b)
+</span><a href="#local-6989586621679065967"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span id="local-6989586621679065968"><span class="annot"><span class="annottext">&lt;*&gt; :: forall a b. Select f (a -&gt; b) -&gt; Select f a -&gt; Select f b
+</span><span class="hs-operator hs-var hs-var hs-var hs-var">&lt;*&gt;</span></span></span><span> </span><span class="annot"><a href="Control.Selective.Free.html#Select"><span class="hs-identifier hs-type">Select</span></a></span><span> </span><span id="local-6989586621679065969"><span class="annot"><span class="annottext">forall (g :: * -&gt; *). Selective g =&gt; (forall x. f x -&gt; g x) -&gt; g a
+</span><a href="#local-6989586621679065969"><span class="hs-identifier hs-var">y</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(forall (g :: * -&gt; *).
+ Selective g =&gt;
+ (forall x. f x -&gt; g x) -&gt; g b)
+-&gt; Select f b
+forall (f :: * -&gt; *) a.
+(forall (g :: * -&gt; *).
+ Selective g =&gt;
+ (forall x. f x -&gt; g x) -&gt; g a)
+-&gt; Select f a
+</span><a href="Control.Selective.Free.html#Select"><span class="hs-identifier hs-var">Select</span></a></span><span> </span><span class="annot"><span class="annottext">((forall (g :: * -&gt; *).
+  Selective g =&gt;
+  (forall x. f x -&gt; g x) -&gt; g b)
+ -&gt; Select f b)
+-&gt; (forall (g :: * -&gt; *).
+    Selective g =&gt;
+    (forall x. f x -&gt; g x) -&gt; g b)
+-&gt; Select f b
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679065975"><span class="annot"><span class="annottext">forall x. f x -&gt; g x
+</span><a href="#local-6989586621679065975"><span class="hs-identifier hs-var">k</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">(forall x. f x -&gt; g x) -&gt; g (a -&gt; b)
+forall (g :: * -&gt; *).
+Selective g =&gt;
+(forall x. f x -&gt; g x) -&gt; g (a -&gt; b)
+</span><a href="#local-6989586621679065967"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">f x -&gt; g x
+forall x. f x -&gt; g x
+</span><a href="#local-6989586621679065975"><span class="hs-identifier hs-var">k</span></a></span><span> </span><span class="annot"><span class="annottext">g (a -&gt; b) -&gt; g a -&gt; g b
+forall a b. g (a -&gt; b) -&gt; g a -&gt; g b
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;*&gt;</span></span><span> </span><span class="annot"><span class="annottext">(forall x. f x -&gt; g x) -&gt; g a
+forall (g :: * -&gt; *). Selective g =&gt; (forall x. f x -&gt; g x) -&gt; g a
+</span><a href="#local-6989586621679065969"><span class="hs-identifier hs-var">y</span></a></span><span> </span><span class="annot"><span class="annottext">f x -&gt; g x
+forall x. f x -&gt; g x
+</span><a href="#local-6989586621679065975"><span class="hs-identifier hs-var">k</span></a></span><span>
+</span><span id="line-42"></span><span>
+</span><span id="line-43"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679065858"><span class="annot"><a href="Control.Selective.html#Selective"><span class="hs-identifier hs-type">Selective</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Control.Selective.Free.html#Select"><span class="hs-identifier hs-type">Select</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679065858"><span class="hs-identifier hs-type">f</span></a></span><span class="hs-special">)</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-44"></span><span>    </span><span id="local-6989586621679065981"><span class="annot"><span class="annottext">select :: forall a b.
+Select f (Either a b) -&gt; Select f (a -&gt; b) -&gt; Select f b
+</span><a href="#local-6989586621679065981"><span class="hs-identifier hs-var hs-var hs-var hs-var">select</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Control.Selective.Free.html#Select"><span class="hs-identifier hs-type">Select</span></a></span><span> </span><span id="local-6989586621679065983"><span class="annot"><span class="annottext">forall (g :: * -&gt; *).
+Selective g =&gt;
+(forall x. f x -&gt; g x) -&gt; g (Either a b)
+</span><a href="#local-6989586621679065983"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Control.Selective.Free.html#Select"><span class="hs-identifier hs-type">Select</span></a></span><span> </span><span id="local-6989586621679065984"><span class="annot"><span class="annottext">forall (g :: * -&gt; *).
+Selective g =&gt;
+(forall x. f x -&gt; g x) -&gt; g (a -&gt; b)
+</span><a href="#local-6989586621679065984"><span class="hs-identifier hs-var">y</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(forall (g :: * -&gt; *).
+ Selective g =&gt;
+ (forall x. f x -&gt; g x) -&gt; g b)
+-&gt; Select f b
+forall (f :: * -&gt; *) a.
+(forall (g :: * -&gt; *).
+ Selective g =&gt;
+ (forall x. f x -&gt; g x) -&gt; g a)
+-&gt; Select f a
+</span><a href="Control.Selective.Free.html#Select"><span class="hs-identifier hs-var">Select</span></a></span><span> </span><span class="annot"><span class="annottext">((forall (g :: * -&gt; *).
+  Selective g =&gt;
+  (forall x. f x -&gt; g x) -&gt; g b)
+ -&gt; Select f b)
+-&gt; (forall (g :: * -&gt; *).
+    Selective g =&gt;
+    (forall x. f x -&gt; g x) -&gt; g b)
+-&gt; Select f b
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-glyph">\</span><span id="local-6989586621679065989"><span class="annot"><span class="annottext">forall x. f x -&gt; g x
+</span><a href="#local-6989586621679065989"><span class="hs-identifier hs-var">k</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">(forall x. f x -&gt; g x) -&gt; g (Either a b)
+forall (g :: * -&gt; *).
+Selective g =&gt;
+(forall x. f x -&gt; g x) -&gt; g (Either a b)
+</span><a href="#local-6989586621679065983"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">f x -&gt; g x
+forall x. f x -&gt; g x
+</span><a href="#local-6989586621679065989"><span class="hs-identifier hs-var">k</span></a></span><span> </span><span class="annot"><span class="annottext">g (Either a b) -&gt; g (a -&gt; b) -&gt; g b
+forall (f :: * -&gt; *) a b.
+Selective f =&gt;
+f (Either a b) -&gt; f (a -&gt; b) -&gt; f b
+</span><a href="Control.Selective.html#%3C%2A%3F"><span class="hs-operator hs-var">&lt;*?</span></a></span><span> </span><span class="annot"><span class="annottext">(forall x. f x -&gt; g x) -&gt; g (a -&gt; b)
+forall (g :: * -&gt; *).
+Selective g =&gt;
+(forall x. f x -&gt; g x) -&gt; g (a -&gt; b)
+</span><a href="#local-6989586621679065984"><span class="hs-identifier hs-var">y</span></a></span><span> </span><span class="annot"><span class="annottext">f x -&gt; g x
+forall x. f x -&gt; g x
+</span><a href="#local-6989586621679065989"><span class="hs-identifier hs-var">k</span></a></span><span>
+</span><span id="line-45"></span><span>
+</span><span id="line-46"></span><span class="annot"><span class="hs-comment">-- | Lift a functor into a free selective computation.</span></span><span>
+</span><span id="line-47"></span><span id="local-6989586621679065867"><span id="local-6989586621679065868"><span class="annot"><a href="Control.Selective.Free.html#liftSelect"><span class="hs-identifier hs-type">liftSelect</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="#local-6989586621679065867"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679065868"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Control.Selective.Free.html#Select"><span class="hs-identifier hs-type">Select</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679065867"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679065868"><span class="hs-identifier hs-type">a</span></a></span></span></span><span>
+</span><span id="line-48"></span><span id="liftSelect"><span class="annot"><span class="annottext">liftSelect :: forall (f :: * -&gt; *) a. f a -&gt; Select f a
+</span><a href="Control.Selective.Free.html#liftSelect"><span class="hs-identifier hs-var hs-var">liftSelect</span></a></span></span><span> </span><span id="local-6989586621679065991"><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679065991"><span class="hs-identifier hs-var">x</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(forall (g :: * -&gt; *).
+ Selective g =&gt;
+ (forall x. f x -&gt; g x) -&gt; g a)
+-&gt; Select f a
+forall (f :: * -&gt; *) a.
+(forall (g :: * -&gt; *).
+ Selective g =&gt;
+ (forall x. f x -&gt; g x) -&gt; g a)
+-&gt; Select f a
+</span><a href="Control.Selective.Free.html#Select"><span class="hs-identifier hs-var">Select</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span id="local-6989586621679065993"><span class="annot"><span class="annottext">forall x. f x -&gt; g x
+</span><a href="#local-6989586621679065993"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">f a -&gt; g a
+forall x. f x -&gt; g x
+</span><a href="#local-6989586621679065993"><span class="hs-identifier hs-var">f</span></a></span><span> </span><span class="annot"><span class="annottext">f a
+</span><a href="#local-6989586621679065991"><span class="hs-identifier hs-var">x</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-49"></span><span>
+</span><span id="line-50"></span><span class="hs-comment">-- | Given a natural transformation from @f@ to @g@, this gives a canonical</span><span>
+</span><span id="line-51"></span><span class="hs-comment">-- natural transformation from @Select f@ to @g@. Note that here we rely on the</span><span>
+</span><span id="line-52"></span><span class="hs-comment">-- fact that @g@ is a lawful selective functor.</span><span>
+</span><span id="line-53"></span><span id="local-6989586621679065872"><span id="local-6989586621679065873"><span id="local-6989586621679065875"><span class="annot"><a href="Control.Selective.Free.html#runSelect"><span class="hs-identifier hs-type">runSelect</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Control.Selective.html#Selective"><span class="hs-identifier hs-type">Selective</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679065872"><span class="hs-identifier hs-type">g</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">(</span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679065874"><span class="annot"><a href="#local-6989586621679065874"><span class="hs-identifier hs-type">x</span></a></span></span><span class="hs-operator">.</span><span> </span><span class="annot"><a href="#local-6989586621679065873"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679065874"><span class="hs-identifier hs-type">x</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679065872"><span class="hs-identifier hs-type">g</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679065874"><span class="hs-identifier hs-type">x</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Control.Selective.Free.html#Select"><span class="hs-identifier hs-type">Select</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679065873"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679065875"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679065872"><span class="hs-identifier hs-type">g</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679065875"><span class="hs-identifier hs-type">a</span></a></span></span></span></span><span>
+</span><span id="line-54"></span><span id="runSelect"><span class="annot"><span class="annottext">runSelect :: forall (g :: * -&gt; *) (f :: * -&gt; *) a.
+Selective g =&gt;
+(forall x. f x -&gt; g x) -&gt; Select f a -&gt; g a
+</span><a href="Control.Selective.Free.html#runSelect"><span class="hs-identifier hs-var hs-var">runSelect</span></a></span></span><span> </span><span id="local-6989586621679065996"><span class="annot"><span class="annottext">forall x. f x -&gt; g x
+</span><a href="#local-6989586621679065996"><span class="hs-identifier hs-var">k</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Control.Selective.Free.html#Select"><span class="hs-identifier hs-type">Select</span></a></span><span> </span><span id="local-6989586621679065997"><span class="annot"><span class="annottext">forall (g :: * -&gt; *). Selective g =&gt; (forall x. f x -&gt; g x) -&gt; g a
+</span><a href="#local-6989586621679065997"><span class="hs-identifier hs-var">x</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(forall x. f x -&gt; g x) -&gt; g a
+forall (g :: * -&gt; *). Selective g =&gt; (forall x. f x -&gt; g x) -&gt; g a
+</span><a href="#local-6989586621679065997"><span class="hs-identifier hs-var">x</span></a></span><span> </span><span class="annot"><span class="annottext">f x -&gt; g x
+forall x. f x -&gt; g x
+</span><a href="#local-6989586621679065996"><span class="hs-identifier hs-var">k</span></a></span><span>
+</span><span id="line-55"></span><span>
+</span><span id="line-56"></span><span class="annot"><span class="hs-comment">-- | Concatenate all effects of a free selective computation.</span></span><span>
+</span><span id="line-57"></span><span id="local-6989586621679065880"><span id="local-6989586621679065881"><span id="local-6989586621679065883"><span class="annot"><a href="Control.Selective.Free.html#foldSelect"><span class="hs-identifier hs-type">foldSelect</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Monoid</span></span><span> </span><span class="annot"><a href="#local-6989586621679065880"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">(</span><span class="hs-keyword">forall</span><span> </span><span id="local-6989586621679065882"><span class="annot"><a href="#local-6989586621679065882"><span class="hs-identifier hs-type">x</span></a></span></span><span class="hs-operator">.</span><span> </span><span class="annot"><a href="#local-6989586621679065881"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679065882"><span class="hs-identifier hs-type">x</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679065880"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="Control.Selective.Free.html#Select"><span class="hs-identifier hs-type">Select</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679065881"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679065883"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679065880"><span class="hs-identifier hs-type">m</span></a></span></span></span></span><span>
+</span><span id="line-58"></span><span id="foldSelect"><span class="annot"><span class="annottext">foldSelect :: forall m (f :: * -&gt; *) a.
+Monoid m =&gt;
+(forall x. f x -&gt; m) -&gt; Select f a -&gt; m
+</span><a href="Control.Selective.Free.html#foldSelect"><span class="hs-identifier hs-var hs-var">foldSelect</span></a></span></span><span> </span><span id="local-6989586621679066001"><span class="annot"><span class="annottext">forall x. f x -&gt; m
+</span><a href="#local-6989586621679066001"><span class="hs-identifier hs-var">f</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Over m a -&gt; m
+forall m a. Over m a -&gt; m
+</span><a href="Control.Selective.html#getOver"><span class="hs-identifier hs-var">getOver</span></a></span><span> </span><span class="annot"><span class="annottext">(Over m a -&gt; m) -&gt; (Select f a -&gt; Over m a) -&gt; Select f a -&gt; m
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(forall x. f x -&gt; Over m x) -&gt; Select f a -&gt; Over m a
+forall (g :: * -&gt; *) (f :: * -&gt; *) a.
+Selective g =&gt;
+(forall x. f x -&gt; g x) -&gt; Select f a -&gt; g a
+</span><a href="Control.Selective.Free.html#runSelect"><span class="hs-identifier hs-var">runSelect</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">m -&gt; Over m x
+forall m a. m -&gt; Over m a
+</span><a href="Control.Selective.html#Over"><span class="hs-identifier hs-var">Over</span></a></span><span> </span><span class="annot"><span class="annottext">(m -&gt; Over m x) -&gt; (f x -&gt; m) -&gt; f x -&gt; Over m x
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">f x -&gt; m
+forall x. f x -&gt; m
+</span><a href="#local-6989586621679066001"><span class="hs-identifier hs-var">f</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-59"></span><span>
+</span><span id="line-60"></span><span class="annot"><span class="hs-comment">-- | Extract the resulting value if there are no necessary effects.</span></span><span>
+</span><span id="line-61"></span><span id="local-6989586621679065897"><span id="local-6989586621679065898"><span class="annot"><a href="Control.Selective.Free.html#getPure"><span class="hs-identifier hs-type">getPure</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><a href="Control.Selective.Free.html#Select"><span class="hs-identifier hs-type">Select</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679065897"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679065898"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Maybe</span></span><span> </span><span class="annot"><a href="#local-6989586621679065898"><span class="hs-identifier hs-type">a</span></a></span></span></span><span>
+</span><span id="line-62"></span><span id="getPure"><span class="annot"><span class="annottext">getPure :: forall (f :: * -&gt; *) a. Select f a -&gt; Maybe a
+</span><a href="Control.Selective.Free.html#getPure"><span class="hs-identifier hs-var hs-var">getPure</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(forall x. f x -&gt; Maybe x) -&gt; Select f a -&gt; Maybe a
+forall (g :: * -&gt; *) (f :: * -&gt; *) a.
+Selective g =&gt;
+(forall x. f x -&gt; g x) -&gt; Select f a -&gt; g a
+</span><a href="Control.Selective.Free.html#runSelect"><span class="hs-identifier hs-var">runSelect</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Maybe x -&gt; f x -&gt; Maybe x
+forall a b. a -&gt; b -&gt; a
+</span><span class="hs-identifier hs-var">const</span></span><span> </span><span class="annot"><span class="annottext">Maybe x
+forall a. Maybe a
+</span><span class="hs-identifier hs-var">Nothing</span></span><span class="hs-special">)</span><span>
+</span><span id="line-63"></span><span>
+</span><span id="line-64"></span><span class="hs-comment">-- | Collect /all possible effects/ in the order they appear in a free selective</span><span>
+</span><span id="line-65"></span><span class="hs-comment">-- computation.</span><span>
+</span><span id="line-66"></span><span id="local-6989586621679065905"><span id="local-6989586621679065906"><span class="annot"><a href="Control.Selective.Free.html#getEffects"><span class="hs-identifier hs-type">getEffects</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Functor</span></span><span> </span><span class="annot"><a href="#local-6989586621679065905"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Control.Selective.Free.html#Select"><span class="hs-identifier hs-type">Select</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679065905"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679065906"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679065905"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span class="hs-special">]</span></span></span><span>
+</span><span id="line-67"></span><span id="getEffects"><span class="annot"><span class="annottext">getEffects :: forall (f :: * -&gt; *) a. Functor f =&gt; Select f a -&gt; [f ()]
+</span><a href="Control.Selective.Free.html#getEffects"><span class="hs-identifier hs-var hs-var">getEffects</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">(forall x. f x -&gt; [f ()]) -&gt; Select f a -&gt; [f ()]
+forall m (f :: * -&gt; *) a.
+Monoid m =&gt;
+(forall x. f x -&gt; m) -&gt; Select f a -&gt; m
+</span><a href="Control.Selective.Free.html#foldSelect"><span class="hs-identifier hs-var">foldSelect</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">f () -&gt; [f ()]
+forall a. a -&gt; [a]
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">(f () -&gt; [f ()]) -&gt; (f x -&gt; f ()) -&gt; f x -&gt; [f ()]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">f x -&gt; f ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><span class="hs-identifier hs-var">void</span></span><span class="hs-special">)</span><span>
+</span><span id="line-68"></span><span>
+</span><span id="line-69"></span><span class="hs-comment">-- | Extract /all necessary effects/ in the order they appear in a free</span><span>
+</span><span id="line-70"></span><span class="hs-comment">-- selective computation.</span><span>
+</span><span id="line-71"></span><span id="local-6989586621679066015"><span id="local-6989586621679066016"><span class="annot"><a href="Control.Selective.Free.html#getNecessaryEffects"><span class="hs-identifier hs-type">getNecessaryEffects</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">Functor</span></span><span> </span><span class="annot"><a href="#local-6989586621679066015"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="Control.Selective.Free.html#Select"><span class="hs-identifier hs-type">Select</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679066015"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679066016"><span class="hs-identifier hs-type">a</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">[</span><span class="annot"><a href="#local-6989586621679066015"><span class="hs-identifier hs-type">f</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span class="hs-special">]</span></span></span><span>
+</span><span id="line-72"></span><span id="getNecessaryEffects"><span class="annot"><span class="annottext">getNecessaryEffects :: forall (f :: * -&gt; *) a. Functor f =&gt; Select f a -&gt; [f ()]
+</span><a href="Control.Selective.Free.html#getNecessaryEffects"><span class="hs-identifier hs-var hs-var">getNecessaryEffects</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Under [f ()] a -&gt; [f ()]
+forall m a. Under m a -&gt; m
+</span><a href="Control.Selective.html#getUnder"><span class="hs-identifier hs-var">getUnder</span></a></span><span> </span><span class="annot"><span class="annottext">(Under [f ()] a -&gt; [f ()])
+-&gt; (Select f a -&gt; Under [f ()] a) -&gt; Select f a -&gt; [f ()]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(forall x. f x -&gt; Under [f ()] x) -&gt; Select f a -&gt; Under [f ()] a
+forall (g :: * -&gt; *) (f :: * -&gt; *) a.
+Selective g =&gt;
+(forall x. f x -&gt; g x) -&gt; Select f a -&gt; g a
+</span><a href="Control.Selective.Free.html#runSelect"><span class="hs-identifier hs-var">runSelect</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[f ()] -&gt; Under [f ()] x
+forall m a. m -&gt; Under m a
+</span><a href="Control.Selective.html#Under"><span class="hs-identifier hs-var">Under</span></a></span><span> </span><span class="annot"><span class="annottext">([f ()] -&gt; Under [f ()] x)
+-&gt; (f x -&gt; [f ()]) -&gt; f x -&gt; Under [f ()] x
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">f () -&gt; [f ()]
+forall a. a -&gt; [a]
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">(f () -&gt; [f ()]) -&gt; (f x -&gt; f ()) -&gt; f x -&gt; [f ()]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">f x -&gt; f ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><span class="hs-identifier hs-var">void</span></span><span class="hs-special">)</span><span>
+</span><span id="line-73"></span></pre></body></html>

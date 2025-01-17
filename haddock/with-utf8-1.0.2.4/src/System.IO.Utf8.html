@@ -1,0 +1,364 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">{- SPDX-FileCopyrightText: 2020 Serokell &lt;https://serokell.io/&gt;
+ -
+ - SPDX-License-Identifier: MPL-2.0
+ -}</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-pragma">{-# LANGUAGE LambdaCase #-}</span><span>
+</span><span id="line-7"></span><span>
+</span><span id="line-8"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-10"></span><span class="hs-comment">--</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- Standard IO functions assume that the character encoding of the data</span><span>
+</span><span id="line-12"></span><span class="hs-comment">-- they read or write is the same as the one used by the current locale. In many</span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- situtations this assumption is wrong, as tools work with files, and</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- files nowadays are mostly UTF-8 encoded, regardless of the locale.</span><span>
+</span><span id="line-15"></span><span class="hs-comment">-- Therefore, it is almost always a good idea to switch the encoding of</span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- file handles to UTF-8.</span><span>
+</span><span id="line-17"></span><span class="hs-comment">--</span><span>
+</span><span id="line-18"></span><span class="hs-comment">-- The same applies to standard input, output, and error handles. However,</span><span>
+</span><span id="line-19"></span><span class="hs-comment">-- there is an edge-case: if they are attached to a terminal, and the</span><span>
+</span><span id="line-20"></span><span class="hs-comment">-- current locale encoding is not UTF-8, using UTF-8 might actually be unsafe.</span><span>
+</span><span id="line-21"></span><span class="hs-comment">--</span><span>
+</span><span id="line-22"></span><span class="hs-comment">-- If you are developing an executable, in most cases, it is enough to</span><span>
+</span><span id="line-23"></span><span class="hs-comment">-- configure the environment accordingly on program start, see the</span><span>
+</span><span id="line-24"></span><span class="hs-comment">-- &quot;Main.Utf8&quot; for functions that help with this.</span><span>
+</span><span id="line-25"></span><span class="hs-comment">-- However, if you are a library author, you should avoid modifying the</span><span>
+</span><span id="line-26"></span><span class="hs-comment">-- global environment.</span><span>
+</span><span id="line-27"></span><span class="hs-comment">--</span><span>
+</span><span id="line-28"></span><span class="hs-comment">-- = Quick start</span><span>
+</span><span id="line-29"></span><span class="hs-comment">--</span><span>
+</span><span id="line-30"></span><span class="hs-comment">-- == Opening new files</span><span>
+</span><span id="line-31"></span><span class="hs-comment">--</span><span>
+</span><span id="line-32"></span><span class="hs-comment">-- If you need to open a text file, use @Utf8.@'withFile'</span><span>
+</span><span id="line-33"></span><span class="hs-comment">-- (or @Utf8.@'openFile'). These will not only open the file, but also</span><span>
+</span><span id="line-34"></span><span class="hs-comment">-- set the handle&#8217;s encoding to UTF-8, regardless of the user&#8217;s locale.</span><span>
+</span><span id="line-35"></span><span class="hs-comment">--</span><span>
+</span><span id="line-36"></span><span class="hs-comment">-- == Working with existing handles</span><span>
+</span><span id="line-37"></span><span class="hs-comment">--</span><span>
+</span><span id="line-38"></span><span class="hs-comment">-- Suppose you are creating a function which produces some text and writes</span><span>
+</span><span id="line-39"></span><span class="hs-comment">-- it to a file handle that is passed to it from the outside.</span><span>
+</span><span id="line-40"></span><span class="hs-comment">-- Ask yourself this question: do I want to encode this text in UTF-8</span><span>
+</span><span id="line-41"></span><span class="hs-comment">-- or using the encoding from the user&#8217;s locale?</span><span>
+</span><span id="line-42"></span><span class="hs-comment">--</span><span>
+</span><span id="line-43"></span><span class="hs-comment">-- In many cases this question is easy to answer. For example, if your</span><span>
+</span><span id="line-44"></span><span class="hs-comment">-- function produces Haskell code, then you always want it in UTF-8,</span><span>
+</span><span id="line-45"></span><span class="hs-comment">-- because that is what all other tools (including GHC) expect.</span><span>
+</span><span id="line-46"></span><span class="hs-comment">--</span><span>
+</span><span id="line-47"></span><span class="hs-comment">-- In some cases it is not that clear. What you can do then is consider</span><span>
+</span><span id="line-48"></span><span class="hs-comment">-- what the user is going to do with the data produced.</span><span>
+</span><span id="line-49"></span><span class="hs-comment">-- If it is, primarily, meant to be displayed on their screen and then</span><span>
+</span><span id="line-50"></span><span class="hs-comment">-- forgotten, you don&#8217;t need UTF-8. On the other hand, if it is meant</span><span>
+</span><span id="line-51"></span><span class="hs-comment">-- to be saved somewhere and then used or edited by other tools, then</span><span>
+</span><span id="line-52"></span><span class="hs-comment">-- you need UTF-8.</span><span>
+</span><span id="line-53"></span><span class="hs-comment">--</span><span>
+</span><span id="line-54"></span><span class="hs-comment">-- If you decided that your function needs to try to switch the handle</span><span>
+</span><span id="line-55"></span><span class="hs-comment">-- to UTF-8, it is very easy to achieve:</span><span>
+</span><span id="line-56"></span><span class="hs-comment">--</span><span>
+</span><span id="line-57"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-58"></span><span class="hs-comment">-- import qualified System.IO.Utf8 as Utf8</span><span>
+</span><span id="line-59"></span><span class="hs-comment">--</span><span>
+</span><span id="line-60"></span><span class="hs-comment">-- writeData :: 'IO.Handle' -&gt; InputDataType -&gt; IO ()</span><span>
+</span><span id="line-61"></span><span class="hs-comment">-- writeData hOut inData = Utf8.'withHandle' hOut $ do</span><span>
+</span><span id="line-62"></span><span class="hs-comment">--   {- ... write the data ...  -}</span><span>
+</span><span id="line-63"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-64"></span><span class="hs-comment">--</span><span>
+</span><span id="line-65"></span><span class="hs-comment">-- If you decided that you don&#8217;t need to try to switch it to UTF-8,</span><span>
+</span><span id="line-66"></span><span class="hs-comment">-- replace @withHandle@ with 'withTerminalHandle' to only make the</span><span>
+</span><span id="line-67"></span><span class="hs-comment">-- handle safe to write to without runtime errors.</span><span>
+</span><span id="line-68"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">System.IO.Utf8</span><span>
+</span><span id="line-69"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="System.IO.Utf8.html#withHandle"><span class="hs-identifier">withHandle</span></a></span><span>
+</span><span id="line-70"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="System.IO.Utf8.html#withTerminalHandle"><span class="hs-identifier">withTerminalHandle</span></a></span><span>
+</span><span id="line-71"></span><span>
+</span><span id="line-72"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="System.IO.Utf8.html#setHandleEncoding"><span class="hs-identifier">setHandleEncoding</span></a></span><span>
+</span><span id="line-73"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="System.IO.Utf8.html#setTerminalHandleEncoding"><span class="hs-identifier">setTerminalHandleEncoding</span></a></span><span>
+</span><span id="line-74"></span><span>
+</span><span id="line-75"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="System.IO.Utf8.html#openFile"><span class="hs-identifier">openFile</span></a></span><span>
+</span><span id="line-76"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="System.IO.Utf8.html#withFile"><span class="hs-identifier">withFile</span></a></span><span>
+</span><span id="line-77"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-78"></span><span>
+</span><span id="line-79"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Exception.Safe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">MonadMask</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">bracket</span></span><span class="hs-special">)</span><span>
+</span><span id="line-80"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.IO.Class</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">MonadIO</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">liftIO</span></span><span class="hs-special">)</span><span>
+</span><span id="line-81"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Data.Functor</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">void</span></span><span class="hs-special">)</span><span>
+</span><span id="line-82"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.IO.Encoding</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">mkTextEncoding</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">utf8</span></span><span class="hs-special">)</span><span>
+</span><span id="line-83"></span><span>
+</span><span id="line-84"></span><span class="hs-keyword">import</span><span> </span><span class="hs-keyword">qualified</span><span> </span><span class="annot"><span class="hs-identifier">System.IO</span></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">IO</span></span><span>
+</span><span id="line-85"></span><span>
+</span><span id="line-86"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="System.IO.Utf8.Internal.html"><span class="hs-identifier">System.IO.Utf8.Internal</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="System.IO.Utf8.Internal.html#EncodingAction"><span class="hs-identifier">EncodingAction</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">..</span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><a href="System.IO.Utf8.Internal.html#chooseBestEnc"><span class="hs-identifier">chooseBestEnc</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-87"></span><span>
+</span><span id="line-88"></span><span>
+</span><span id="line-89"></span><span class="hs-keyword">type</span><span> </span><span id="EncRestoreAction"><span class="annot"><a href="System.IO.Utf8.html#EncRestoreAction"><span class="hs-identifier hs-var">EncRestoreAction</span></a></span></span><span> </span><span id="local-6989586621679050203"><span class="annot"><a href="#local-6989586621679050203"><span class="hs-identifier hs-type">m</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO.Handle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679050203"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span>
+</span><span id="line-90"></span><span>
+</span><span id="line-91"></span><span class="hs-comment">-- | Set the best available UTF-8-compatible encoding for the handle.</span><span>
+</span><span id="line-92"></span><span class="hs-comment">-- Returns the action that will restore the previous one.</span><span>
+</span><span id="line-93"></span><span class="hs-comment">--</span><span>
+</span><span id="line-94"></span><span class="hs-comment">-- If the handle is in binary mode, does nothing.</span><span>
+</span><span id="line-95"></span><span class="hs-comment">-- If the handle is not attached to a terminal, sets UTF-8.</span><span>
+</span><span id="line-96"></span><span class="hs-comment">-- Otherwise, keeps its current encoding, but augments it to transliterate</span><span>
+</span><span id="line-97"></span><span class="hs-comment">-- unsupported characters.</span><span>
+</span><span id="line-98"></span><span id="local-6989586621679050142"><span class="annot"><a href="System.IO.Utf8.html#hSetBestUtf8Enc"><span class="hs-identifier hs-type">hSetBestUtf8Enc</span></a></span><span>
+</span><span id="line-99"></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadIO</span></span><span> </span><span class="annot"><a href="#local-6989586621679050142"><span class="hs-identifier hs-type">m</span></a></span><span>
+</span><span id="line-100"></span><span>  </span><span class="hs-glyph">=&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">IO.Handle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO</span></span><span> </span><span class="annot"><span class="hs-identifier hs-type">Bool</span></span><span class="hs-special">)</span><span>
+</span><span id="line-101"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO.Handle</span></span><span>
+</span><span id="line-102"></span><span>  </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679050142"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="System.IO.Utf8.html#EncRestoreAction"><span class="hs-identifier hs-type">EncRestoreAction</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679050142"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span></span><span>
+</span><span id="line-103"></span><span id="hSetBestUtf8Enc"><span class="annot"><span class="annottext">hSetBestUtf8Enc :: forall (m :: * -&gt; *).
+MonadIO m =&gt;
+(Handle -&gt; IO Bool) -&gt; Handle -&gt; m (EncRestoreAction m)
+</span><a href="System.IO.Utf8.html#hSetBestUtf8Enc"><span class="hs-identifier hs-var hs-var">hSetBestUtf8Enc</span></a></span></span><span> </span><span id="local-6989586621679050221"><span class="annot"><span class="annottext">Handle -&gt; IO Bool
+</span><a href="#local-6989586621679050221"><span class="hs-identifier hs-var">hIsTerm</span></a></span></span><span> </span><span id="local-6989586621679050222"><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679050222"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IO (EncRestoreAction m) -&gt; m (EncRestoreAction m)
+forall a. IO a -&gt; m a
+forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
+</span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">(IO (EncRestoreAction m) -&gt; m (EncRestoreAction m))
+-&gt; IO (EncRestoreAction m) -&gt; m (EncRestoreAction m)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-104"></span><span>    </span><span class="annot"><span class="annottext">Handle -&gt; IO (Maybe TextEncoding)
+</span><span class="hs-identifier hs-var">IO.hGetEncoding</span></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679050222"><span class="hs-identifier hs-var">h</span></a></span><span> </span><span class="annot"><span class="annottext">IO (Maybe TextEncoding)
+-&gt; (Maybe TextEncoding -&gt; IO EncodingAction) -&gt; IO EncodingAction
+forall a b. IO a -&gt; (a -&gt; IO b) -&gt; IO b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="annot"><span class="annottext">Handle
+-&gt; (Handle -&gt; IO Bool) -&gt; Maybe TextEncoding -&gt; IO EncodingAction
+</span><a href="System.IO.Utf8.Internal.html#chooseBestEnc"><span class="hs-identifier hs-var">chooseBestEnc</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679050222"><span class="hs-identifier hs-var">h</span></a></span><span> </span><span class="annot"><span class="annottext">Handle -&gt; IO Bool
+</span><a href="#local-6989586621679050221"><span class="hs-identifier hs-var">hIsTerm</span></a></span><span> </span><span class="annot"><span class="annottext">IO EncodingAction
+-&gt; (EncodingAction -&gt; IO (EncRestoreAction m))
+-&gt; IO (EncRestoreAction m)
+forall a b. IO a -&gt; (a -&gt; IO b) -&gt; IO b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-105"></span><span>      </span><span class="annot"><span class="annottext">EncodingAction
+</span><a href="System.IO.Utf8.Internal.html#Keep"><span class="hs-identifier hs-var">Keep</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">EncRestoreAction m -&gt; IO (EncRestoreAction m)
+forall a. a -&gt; IO a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="hs-special">(</span><span class="hs-glyph">\</span><span class="annot"><span class="annottext">Handle
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">() -&gt; m ()
+forall a. a -&gt; m a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-106"></span><span>      </span><span class="annot"><a href="System.IO.Utf8.Internal.html#ChangeFromTo"><span class="hs-identifier hs-type">ChangeFromTo</span></a></span><span> </span><span id="local-6989586621679050226"><span class="annot"><span class="annottext">TextEncoding
+</span><a href="#local-6989586621679050226"><span class="hs-identifier hs-var">enc</span></a></span></span><span> </span><span id="local-6989586621679050227"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050227"><span class="hs-identifier hs-var">newName</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-107"></span><span>        </span><span class="annot"><span class="annottext">String -&gt; IO TextEncoding
+</span><span class="hs-identifier hs-var">mkTextEncoding</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050227"><span class="hs-identifier hs-var">newName</span></a></span><span> </span><span class="annot"><span class="annottext">IO TextEncoding -&gt; (TextEncoding -&gt; IO ()) -&gt; IO ()
+forall a b. IO a -&gt; (a -&gt; IO b) -&gt; IO b
+forall (m :: * -&gt; *) a b. Monad m =&gt; m a -&gt; (a -&gt; m b) -&gt; m b
+</span><span class="hs-operator hs-var">&gt;&gt;=</span></span><span> </span><span class="annot"><span class="annottext">Handle -&gt; TextEncoding -&gt; IO ()
+</span><span class="hs-identifier hs-var">IO.hSetEncoding</span></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679050222"><span class="hs-identifier hs-var">h</span></a></span><span>
+</span><span id="line-108"></span><span>        </span><span class="annot"><span class="annottext">EncRestoreAction m -&gt; IO (EncRestoreAction m)
+forall a. a -&gt; IO a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">(EncRestoreAction m -&gt; IO (EncRestoreAction m))
+-&gt; EncRestoreAction m -&gt; IO (EncRestoreAction m)
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">IO () -&gt; m ()
+forall a. IO a -&gt; m a
+forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
+</span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; m ()) -&gt; (Handle -&gt; IO ()) -&gt; EncRestoreAction m
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(Handle -&gt; TextEncoding -&gt; IO ())
+-&gt; TextEncoding -&gt; Handle -&gt; IO ()
+forall a b c. (a -&gt; b -&gt; c) -&gt; b -&gt; a -&gt; c
+</span><span class="hs-identifier hs-var">flip</span></span><span> </span><span class="annot"><span class="annottext">Handle -&gt; TextEncoding -&gt; IO ()
+</span><span class="hs-identifier hs-var">IO.hSetEncoding</span></span><span> </span><span class="annot"><span class="annottext">TextEncoding
+</span><a href="#local-6989586621679050226"><span class="hs-identifier hs-var">enc</span></a></span><span>
+</span><span id="line-109"></span><span>
+</span><span id="line-110"></span><span>
+</span><span id="line-111"></span><span class="hs-comment">-- | Set handle encoding to the best possible.</span><span>
+</span><span id="line-112"></span><span class="hs-comment">--</span><span>
+</span><span id="line-113"></span><span class="hs-comment">-- See 'withHandle' for description and prefer it, if possible.</span><span>
+</span><span id="line-114"></span><span id="local-6989586621679050165"><span class="annot"><a href="System.IO.Utf8.html#setHandleEncoding"><span class="hs-identifier hs-type">setHandleEncoding</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadIO</span></span><span> </span><span class="annot"><a href="#local-6989586621679050165"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO.Handle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679050165"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span><span>
+</span><span id="line-115"></span><span id="setHandleEncoding"><span class="annot"><span class="annottext">setHandleEncoding :: forall (m :: * -&gt; *). MonadIO m =&gt; Handle -&gt; m ()
+</span><a href="System.IO.Utf8.html#setHandleEncoding"><span class="hs-identifier hs-var hs-var">setHandleEncoding</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IO () -&gt; m ()
+forall a. IO a -&gt; m a
+forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
+</span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; m ()) -&gt; (Handle -&gt; IO ()) -&gt; Handle -&gt; m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">IO (Handle -&gt; IO ()) -&gt; IO ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><span class="hs-identifier hs-var">void</span></span><span> </span><span class="annot"><span class="annottext">(IO (Handle -&gt; IO ()) -&gt; IO ())
+-&gt; (Handle -&gt; IO (Handle -&gt; IO ())) -&gt; Handle -&gt; IO ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(Handle -&gt; IO Bool) -&gt; Handle -&gt; IO (Handle -&gt; IO ())
+forall (m :: * -&gt; *).
+MonadIO m =&gt;
+(Handle -&gt; IO Bool) -&gt; Handle -&gt; m (EncRestoreAction m)
+</span><a href="System.IO.Utf8.html#hSetBestUtf8Enc"><span class="hs-identifier hs-var">hSetBestUtf8Enc</span></a></span><span> </span><span class="annot"><span class="annottext">Handle -&gt; IO Bool
+</span><span class="hs-identifier hs-var">IO.hIsTerminalDevice</span></span><span>
+</span><span id="line-116"></span><span>
+</span><span id="line-117"></span><span class="hs-comment">-- | Temporarily set handle encoding to the best possible.</span><span>
+</span><span id="line-118"></span><span class="hs-comment">--</span><span>
+</span><span id="line-119"></span><span class="hs-comment">-- &#8220;Best possible&#8221; means UTF-8, unless the handle points to a terminal</span><span>
+</span><span id="line-120"></span><span class="hs-comment">-- device, in which case the encoding will be left the same, but tweaked</span><span>
+</span><span id="line-121"></span><span class="hs-comment">-- to approximate unencodable characters.</span><span>
+</span><span id="line-122"></span><span class="hs-comment">--</span><span>
+</span><span id="line-123"></span><span class="hs-comment">-- This function is safe to call on handles open in binary mode and it will</span><span>
+</span><span id="line-124"></span><span class="hs-comment">-- do nothing on them.</span><span>
+</span><span id="line-125"></span><span class="hs-comment">--</span><span>
+</span><span id="line-126"></span><span class="hs-comment">-- To sum up:</span><span>
+</span><span id="line-127"></span><span class="hs-comment">--</span><span>
+</span><span id="line-128"></span><span class="hs-comment">--   * If the handle is in binary mode, do nothing.</span><span>
+</span><span id="line-129"></span><span class="hs-comment">--   * If the handle points to a terminal device, act like 'withTerminalHandle'.</span><span>
+</span><span id="line-130"></span><span class="hs-comment">--   * For regular files always choose UTF-8, of course.</span><span>
+</span><span id="line-131"></span><span id="local-6989586621679050169"><span id="local-6989586621679050171"><span class="annot"><a href="System.IO.Utf8.html#withHandle"><span class="hs-identifier hs-type">withHandle</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadIO</span></span><span> </span><span class="annot"><a href="#local-6989586621679050169"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadMask</span></span><span> </span><span class="annot"><a href="#local-6989586621679050169"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO.Handle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679050169"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679050171"><span class="hs-identifier hs-type">r</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679050169"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679050171"><span class="hs-identifier hs-type">r</span></a></span></span></span><span>
+</span><span id="line-132"></span><span id="withHandle"><span class="annot"><span class="annottext">withHandle :: forall (m :: * -&gt; *) r.
+(MonadIO m, MonadMask m) =&gt;
+Handle -&gt; m r -&gt; m r
+</span><a href="System.IO.Utf8.html#withHandle"><span class="hs-identifier hs-var hs-var">withHandle</span></a></span></span><span> </span><span id="local-6989586621679050244"><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679050244"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m (EncRestoreAction m)
+-&gt; (EncRestoreAction m -&gt; m ())
+-&gt; (EncRestoreAction m -&gt; m r)
+-&gt; m r
+forall (m :: * -&gt; *) a b c.
+(HasCallStack, MonadMask m) =&gt;
+m a -&gt; (a -&gt; m b) -&gt; (a -&gt; m c) -&gt; m c
+</span><span class="hs-identifier hs-var">bracket</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Handle -&gt; IO Bool) -&gt; Handle -&gt; m (EncRestoreAction m)
+forall (m :: * -&gt; *).
+MonadIO m =&gt;
+(Handle -&gt; IO Bool) -&gt; Handle -&gt; m (EncRestoreAction m)
+</span><a href="System.IO.Utf8.html#hSetBestUtf8Enc"><span class="hs-identifier hs-var">hSetBestUtf8Enc</span></a></span><span> </span><span class="annot"><span class="annottext">Handle -&gt; IO Bool
+</span><span class="hs-identifier hs-var">IO.hIsTerminalDevice</span></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679050244"><span class="hs-identifier hs-var">h</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">EncRestoreAction m -&gt; EncRestoreAction m
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679050244"><span class="hs-identifier hs-var">h</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">((EncRestoreAction m -&gt; m r) -&gt; m r)
+-&gt; (m r -&gt; EncRestoreAction m -&gt; m r) -&gt; m r -&gt; m r
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">m r -&gt; EncRestoreAction m -&gt; m r
+forall a b. a -&gt; b -&gt; a
+</span><span class="hs-identifier hs-var">const</span></span><span>
+</span><span id="line-133"></span><span>
+</span><span id="line-134"></span><span class="hs-comment">-- | Make a handle safe to write any text to.</span><span>
+</span><span id="line-135"></span><span class="hs-comment">--</span><span>
+</span><span id="line-136"></span><span class="hs-comment">-- See 'withTerminalHandle' for description and prefer it, if possible.</span><span>
+</span><span id="line-137"></span><span id="local-6989586621679050246"><span class="annot"><a href="System.IO.Utf8.html#setTerminalHandleEncoding"><span class="hs-identifier hs-type">setTerminalHandleEncoding</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadIO</span></span><span> </span><span class="annot"><a href="#local-6989586621679050246"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO.Handle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679050246"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-special">(</span><span class="hs-special">)</span></span><span>
+</span><span id="line-138"></span><span id="setTerminalHandleEncoding"><span class="annot"><span class="annottext">setTerminalHandleEncoding :: forall (m :: * -&gt; *). MonadIO m =&gt; Handle -&gt; m ()
+</span><a href="System.IO.Utf8.html#setTerminalHandleEncoding"><span class="hs-identifier hs-var hs-var">setTerminalHandleEncoding</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IO () -&gt; m ()
+forall a. IO a -&gt; m a
+forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
+</span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; m ()) -&gt; (Handle -&gt; IO ()) -&gt; Handle -&gt; m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">IO (Handle -&gt; IO ()) -&gt; IO ()
+forall (f :: * -&gt; *) a. Functor f =&gt; f a -&gt; f ()
+</span><span class="hs-identifier hs-var">void</span></span><span> </span><span class="annot"><span class="annottext">(IO (Handle -&gt; IO ()) -&gt; IO ())
+-&gt; (Handle -&gt; IO (Handle -&gt; IO ())) -&gt; Handle -&gt; IO ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(Handle -&gt; IO Bool) -&gt; Handle -&gt; IO (Handle -&gt; IO ())
+forall (m :: * -&gt; *).
+MonadIO m =&gt;
+(Handle -&gt; IO Bool) -&gt; Handle -&gt; m (EncRestoreAction m)
+</span><a href="System.IO.Utf8.html#hSetBestUtf8Enc"><span class="hs-identifier hs-var">hSetBestUtf8Enc</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">IO Bool -&gt; Handle -&gt; IO Bool
+forall a b. a -&gt; b -&gt; a
+</span><span class="hs-identifier hs-var">const</span></span><span> </span><span class="annot"><span class="annottext">(IO Bool -&gt; Handle -&gt; IO Bool) -&gt; IO Bool -&gt; Handle -&gt; IO Bool
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; IO Bool
+forall a. a -&gt; IO a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span class="hs-special">)</span><span>
+</span><span id="line-139"></span><span>
+</span><span id="line-140"></span><span class="hs-comment">-- | Temporarily make a handle safe to write any text to.</span><span>
+</span><span id="line-141"></span><span class="hs-comment">--</span><span>
+</span><span id="line-142"></span><span class="hs-comment">-- If the handle is not using UTF-8, adjust the encoding to remain the same</span><span>
+</span><span id="line-143"></span><span class="hs-comment">-- as before, but approximate unencodable characters. When the action is done,</span><span>
+</span><span id="line-144"></span><span class="hs-comment">-- restore it back to the previous one.</span><span>
+</span><span id="line-145"></span><span class="hs-comment">--</span><span>
+</span><span id="line-146"></span><span class="hs-comment">-- Use this function only if you are sure you want to treat this handle as</span><span>
+</span><span id="line-147"></span><span class="hs-comment">-- a terminal (that is, you will be using it to interact with the user</span><span>
+</span><span id="line-148"></span><span class="hs-comment">-- and to write user-visible messages, rather than something that can</span><span>
+</span><span id="line-149"></span><span class="hs-comment">-- be reasonably expected to go to a file).</span><span>
+</span><span id="line-150"></span><span class="hs-comment">--</span><span>
+</span><span id="line-151"></span><span class="hs-comment">-- This function is safe to call on handles open in binary mode and it will</span><span>
+</span><span id="line-152"></span><span class="hs-comment">-- do nothing on them.</span><span>
+</span><span id="line-153"></span><span id="local-6989586621679050252"><span id="local-6989586621679050253"><span class="annot"><a href="System.IO.Utf8.html#withTerminalHandle"><span class="hs-identifier hs-type">withTerminalHandle</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadIO</span></span><span> </span><span class="annot"><a href="#local-6989586621679050252"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadMask</span></span><span> </span><span class="annot"><a href="#local-6989586621679050252"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO.Handle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679050252"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679050253"><span class="hs-identifier hs-type">r</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679050252"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679050253"><span class="hs-identifier hs-type">r</span></a></span></span></span><span>
+</span><span id="line-154"></span><span id="withTerminalHandle"><span class="annot"><span class="annottext">withTerminalHandle :: forall (m :: * -&gt; *) r.
+(MonadIO m, MonadMask m) =&gt;
+Handle -&gt; m r -&gt; m r
+</span><a href="System.IO.Utf8.html#withTerminalHandle"><span class="hs-identifier hs-var hs-var">withTerminalHandle</span></a></span></span><span> </span><span id="local-6989586621679050261"><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679050261"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m (EncRestoreAction m)
+-&gt; (EncRestoreAction m -&gt; m ())
+-&gt; (EncRestoreAction m -&gt; m r)
+-&gt; m r
+forall (m :: * -&gt; *) a b c.
+(HasCallStack, MonadMask m) =&gt;
+m a -&gt; (a -&gt; m b) -&gt; (a -&gt; m c) -&gt; m c
+</span><span class="hs-identifier hs-var">bracket</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">(Handle -&gt; IO Bool) -&gt; Handle -&gt; m (EncRestoreAction m)
+forall (m :: * -&gt; *).
+MonadIO m =&gt;
+(Handle -&gt; IO Bool) -&gt; Handle -&gt; m (EncRestoreAction m)
+</span><a href="System.IO.Utf8.html#hSetBestUtf8Enc"><span class="hs-identifier hs-var">hSetBestUtf8Enc</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">IO Bool -&gt; Handle -&gt; IO Bool
+forall a b. a -&gt; b -&gt; a
+</span><span class="hs-identifier hs-var">const</span></span><span> </span><span class="annot"><span class="annottext">(IO Bool -&gt; Handle -&gt; IO Bool) -&gt; IO Bool -&gt; Handle -&gt; IO Bool
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Bool -&gt; IO Bool
+forall a. a -&gt; IO a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">Bool
+</span><span class="hs-identifier hs-var">True</span></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679050261"><span class="hs-identifier hs-var">h</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">EncRestoreAction m -&gt; EncRestoreAction m
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679050261"><span class="hs-identifier hs-var">h</span></a></span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">((EncRestoreAction m -&gt; m r) -&gt; m r)
+-&gt; (m r -&gt; EncRestoreAction m -&gt; m r) -&gt; m r -&gt; m r
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">m r -&gt; EncRestoreAction m -&gt; m r
+forall a b. a -&gt; b -&gt; a
+</span><span class="hs-identifier hs-var">const</span></span><span>
+</span><span id="line-155"></span><span>
+</span><span id="line-156"></span><span>
+</span><span id="line-157"></span><span class="hs-comment">-- | Like 'System.IO.openFile', but sets the file encoding to UTF-8, regardless</span><span>
+</span><span id="line-158"></span><span class="hs-comment">-- of the current locale.</span><span>
+</span><span id="line-159"></span><span id="local-6989586621679050184"><span class="annot"><a href="System.IO.Utf8.html#openFile"><span class="hs-identifier hs-type">openFile</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadIO</span></span><span> </span><span class="annot"><a href="#local-6989586621679050184"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO.FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO.IOMode</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679050184"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO.Handle</span></span></span><span>
+</span><span id="line-160"></span><span id="openFile"><span class="annot"><span class="annottext">openFile :: forall (m :: * -&gt; *). MonadIO m =&gt; String -&gt; IOMode -&gt; m Handle
+</span><a href="System.IO.Utf8.html#openFile"><span class="hs-identifier hs-var hs-var">openFile</span></a></span></span><span> </span><span id="local-6989586621679050268"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050268"><span class="hs-identifier hs-var">path</span></a></span></span><span> </span><span id="local-6989586621679050269"><span class="annot"><span class="annottext">IOMode
+</span><a href="#local-6989586621679050269"><span class="hs-identifier hs-var">mode</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">IO Handle -&gt; m Handle
+forall a. IO a -&gt; m a
+forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
+</span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">(IO Handle -&gt; m Handle) -&gt; IO Handle -&gt; m Handle
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="hs-keyword">do</span><span>
+</span><span id="line-161"></span><span>  </span><span id="local-6989586621679050270"><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679050270"><span class="hs-identifier hs-var">h</span></a></span></span><span> </span><span class="hs-glyph">&lt;-</span><span> </span><span class="annot"><span class="annottext">String -&gt; IOMode -&gt; IO Handle
+</span><span class="hs-identifier hs-var">IO.openFile</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050268"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">IOMode
+</span><a href="#local-6989586621679050269"><span class="hs-identifier hs-var">mode</span></a></span><span>
+</span><span id="line-162"></span><span>  </span><span class="annot"><span class="annottext">Handle -&gt; TextEncoding -&gt; IO ()
+</span><span class="hs-identifier hs-var">IO.hSetEncoding</span></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679050270"><span class="hs-identifier hs-var">h</span></a></span><span> </span><span class="annot"><span class="annottext">TextEncoding
+</span><span class="hs-identifier hs-var">utf8</span></span><span>
+</span><span id="line-163"></span><span>  </span><span class="annot"><span class="annottext">Handle -&gt; IO Handle
+forall a. a -&gt; IO a
+forall (f :: * -&gt; *) a. Applicative f =&gt; a -&gt; f a
+</span><span class="hs-identifier hs-var">pure</span></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><a href="#local-6989586621679050270"><span class="hs-identifier hs-var">h</span></a></span><span>
+</span><span id="line-164"></span><span>
+</span><span id="line-165"></span><span class="hs-comment">-- | Like 'System.IO.withFile', but sets the file encoding to UTF-8, regardless</span><span>
+</span><span id="line-166"></span><span class="hs-comment">-- of the current locale.</span><span>
+</span><span id="line-167"></span><span id="local-6989586621679050187"><span id="local-6989586621679050188"><span class="annot"><a href="System.IO.Utf8.html#withFile"><span class="hs-identifier hs-type">withFile</span></a></span><span>
+</span><span id="line-168"></span><span>  </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadIO</span></span><span> </span><span class="annot"><a href="#local-6989586621679050187"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadMask</span></span><span> </span><span class="annot"><a href="#local-6989586621679050187"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-169"></span><span>  </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO.FilePath</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="hs-identifier hs-type">IO.IOMode</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">IO.Handle</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679050187"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679050188"><span class="hs-identifier hs-type">r</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679050187"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679050188"><span class="hs-identifier hs-type">r</span></a></span></span></span><span>
+</span><span id="line-170"></span><span id="withFile"><span class="annot"><span class="annottext">withFile :: forall (m :: * -&gt; *) r.
+(MonadIO m, MonadMask m) =&gt;
+String -&gt; IOMode -&gt; (Handle -&gt; m r) -&gt; m r
+</span><a href="System.IO.Utf8.html#withFile"><span class="hs-identifier hs-var hs-var">withFile</span></a></span></span><span> </span><span id="local-6989586621679050279"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050279"><span class="hs-identifier hs-var">path</span></a></span></span><span> </span><span id="local-6989586621679050280"><span class="annot"><span class="annottext">IOMode
+</span><a href="#local-6989586621679050280"><span class="hs-identifier hs-var">mode</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m Handle -&gt; (Handle -&gt; m ()) -&gt; (Handle -&gt; m r) -&gt; m r
+forall (m :: * -&gt; *) a b c.
+(HasCallStack, MonadMask m) =&gt;
+m a -&gt; (a -&gt; m b) -&gt; (a -&gt; m c) -&gt; m c
+</span><span class="hs-identifier hs-var">bracket</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; IOMode -&gt; m Handle
+forall (m :: * -&gt; *). MonadIO m =&gt; String -&gt; IOMode -&gt; m Handle
+</span><a href="System.IO.Utf8.html#openFile"><span class="hs-identifier hs-var">openFile</span></a></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679050279"><span class="hs-identifier hs-var">path</span></a></span><span> </span><span class="annot"><span class="annottext">IOMode
+</span><a href="#local-6989586621679050280"><span class="hs-identifier hs-var">mode</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">IO () -&gt; m ()
+forall a. IO a -&gt; m a
+forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
+</span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; m ()) -&gt; (Handle -&gt; IO ()) -&gt; Handle -&gt; m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Handle -&gt; IO ()
+</span><span class="hs-identifier hs-var">IO.hClose</span></span><span class="hs-special">)</span><span>
+</span><span id="line-171"></span></pre></body></html>

@@ -1,0 +1,804 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">{- FOURMOLU_DISABLE -}</span><span>
+</span><span id="line-2"></span><span class="hs-comment">-- The MIT License (MIT)</span><span>
+</span><span id="line-3"></span><span>
+</span><span id="line-4"></span><span class="hs-comment">-- Copyright (c) 2016-2024 Objectionary.com</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-comment">-- Permission is hereby granted, free of charge, to any person obtaining a copy</span><span>
+</span><span id="line-7"></span><span class="hs-comment">-- of this software and associated documentation files (the &quot;Software&quot;), to deal</span><span>
+</span><span id="line-8"></span><span class="hs-comment">-- in the Software without restriction, including without limitation the rights</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- copies of the Software, and to permit persons to whom the Software is</span><span>
+</span><span id="line-11"></span><span class="hs-comment">-- furnished to do so, subject to the following conditions:</span><span>
+</span><span id="line-12"></span><span>
+</span><span id="line-13"></span><span class="hs-comment">-- The above copyright notice and this permission notice shall be included</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- in all copies or substantial portions of the Software.</span><span>
+</span><span id="line-15"></span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span><span>
+</span><span id="line-17"></span><span class="hs-comment">-- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span><span>
+</span><span id="line-18"></span><span class="hs-comment">-- FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE</span><span>
+</span><span id="line-19"></span><span class="hs-comment">-- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span><span>
+</span><span id="line-20"></span><span class="hs-comment">-- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span><span>
+</span><span id="line-21"></span><span class="hs-comment">-- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span><span>
+</span><span id="line-22"></span><span class="hs-comment">-- SOFTWARE.</span><span>
+</span><span id="line-23"></span><span class="hs-comment">{- FOURMOLU_ENABLE -}</span><span>
+</span><span id="line-24"></span><span class="hs-pragma">{-# LANGUAGE FlexibleInstances #-}</span><span>
+</span><span id="line-25"></span><span class="hs-pragma">{-# LANGUAGE LambdaCase #-}</span><span>
+</span><span id="line-26"></span><span class="hs-pragma">{-# OPTIONS_GHC -Wno-orphans #-}</span><span>
+</span><span id="line-27"></span><span>
+</span><span id="line-28"></span><span class="hs-comment">-- {-# LANGUAGE OverloadedStrings #-}</span><span>
+</span><span id="line-29"></span><span>
+</span><span id="line-30"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Language.EO.Phi.Pretty</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-31"></span><span>
+</span><span id="line-32"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html"><span class="hs-identifier">Language.EO.Phi.Syntax.Abs</span></a></span><span> </span><span class="hs-keyword">as</span><span> </span><span class="annot"><span class="hs-identifier">Abs</span></span><span>
+</span><span id="line-33"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Prettyprinter</span></span><span>
+</span><span id="line-34"></span><span>
+</span><span id="line-35"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679737187"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Bytes"><span class="hs-identifier hs-type">Abs.Bytes</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-36"></span><span>  </span><span id="local-6989586621679737195"><span class="annot"><span class="annottext">pretty :: forall ann. Bytes -&gt; Doc ann
+</span><a href="#local-6989586621679737195"><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></a></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Bytes"><span class="hs-identifier hs-type">Abs.Bytes</span></a></span><span> </span><span id="local-6989586621679737198"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679737198"><span class="hs-identifier hs-var">i</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679737198"><span class="hs-identifier hs-var">i</span></a></span><span>
+</span><span id="line-37"></span><span>
+</span><span id="line-38"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679737201"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Function"><span class="hs-identifier hs-type">Abs.Function</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-39"></span><span>  </span><span id="local-6989586621679737206"><span class="annot"><span class="annottext">pretty :: forall ann. Function -&gt; Doc ann
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Function"><span class="hs-identifier hs-type">Abs.Function</span></a></span><span> </span><span id="local-6989586621679737208"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679737208"><span class="hs-identifier hs-var">i</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679737208"><span class="hs-identifier hs-var">i</span></a></span><span>
+</span><span id="line-40"></span><span>
+</span><span id="line-41"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679737211"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#LabelId"><span class="hs-identifier hs-type">Abs.LabelId</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-42"></span><span>  </span><span id="local-6989586621679737216"><span class="annot"><span class="annottext">pretty :: forall ann. LabelId -&gt; Doc ann
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#LabelId"><span class="hs-identifier hs-type">Abs.LabelId</span></a></span><span> </span><span id="local-6989586621679737218"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679737218"><span class="hs-identifier hs-var">i</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679737218"><span class="hs-identifier hs-var">i</span></a></span><span>
+</span><span id="line-43"></span><span>
+</span><span id="line-44"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679737221"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AlphaIndex"><span class="hs-identifier hs-type">Abs.AlphaIndex</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-45"></span><span>  </span><span id="local-6989586621679737226"><span class="annot"><span class="annottext">pretty :: forall ann. AlphaIndex -&gt; Doc ann
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AlphaIndex"><span class="hs-identifier hs-type">Abs.AlphaIndex</span></a></span><span> </span><span id="local-6989586621679737228"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679737228"><span class="hs-identifier hs-var">i</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679737228"><span class="hs-identifier hs-var">i</span></a></span><span>
+</span><span id="line-46"></span><span>
+</span><span id="line-47"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679737231"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#LabelMetaId"><span class="hs-identifier hs-type">Abs.LabelMetaId</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-48"></span><span>  </span><span id="local-6989586621679737236"><span class="annot"><span class="annottext">pretty :: forall ann. LabelMetaId -&gt; Doc ann
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#LabelMetaId"><span class="hs-identifier hs-type">Abs.LabelMetaId</span></a></span><span> </span><span id="local-6989586621679737238"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679737238"><span class="hs-identifier hs-var">i</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679737238"><span class="hs-identifier hs-var">i</span></a></span><span>
+</span><span id="line-49"></span><span>
+</span><span id="line-50"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679737241"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#TailMetaId"><span class="hs-identifier hs-type">Abs.TailMetaId</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-51"></span><span>  </span><span id="local-6989586621679737246"><span class="annot"><span class="annottext">pretty :: forall ann. TailMetaId -&gt; Doc ann
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#TailMetaId"><span class="hs-identifier hs-type">Abs.TailMetaId</span></a></span><span> </span><span id="local-6989586621679737248"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679737248"><span class="hs-identifier hs-var">i</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679737248"><span class="hs-identifier hs-var">i</span></a></span><span>
+</span><span id="line-52"></span><span>
+</span><span id="line-53"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679737251"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#BindingsMetaId"><span class="hs-identifier hs-type">Abs.BindingsMetaId</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-54"></span><span>  </span><span id="local-6989586621679737256"><span class="annot"><span class="annottext">pretty :: forall ann. BindingsMetaId -&gt; Doc ann
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#BindingsMetaId"><span class="hs-identifier hs-type">Abs.BindingsMetaId</span></a></span><span> </span><span id="local-6989586621679737258"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679737258"><span class="hs-identifier hs-var">i</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679737258"><span class="hs-identifier hs-var">i</span></a></span><span>
+</span><span id="line-55"></span><span>
+</span><span id="line-56"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679737261"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#ObjectMetaId"><span class="hs-identifier hs-type">Abs.ObjectMetaId</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-57"></span><span>  </span><span id="local-6989586621679737266"><span class="annot"><span class="annottext">pretty :: forall ann. ObjectMetaId -&gt; Doc ann
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#ObjectMetaId"><span class="hs-identifier hs-type">Abs.ObjectMetaId</span></a></span><span> </span><span id="local-6989586621679737268"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679737268"><span class="hs-identifier hs-var">i</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679737268"><span class="hs-identifier hs-var">i</span></a></span><span>
+</span><span id="line-58"></span><span>
+</span><span id="line-59"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679737271"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#BytesMetaId"><span class="hs-identifier hs-type">Abs.BytesMetaId</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-60"></span><span>  </span><span id="local-6989586621679737276"><span class="annot"><span class="annottext">pretty :: forall ann. BytesMetaId -&gt; Doc ann
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#BytesMetaId"><span class="hs-identifier hs-type">Abs.BytesMetaId</span></a></span><span> </span><span id="local-6989586621679737278"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679737278"><span class="hs-identifier hs-var">i</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679737278"><span class="hs-identifier hs-var">i</span></a></span><span>
+</span><span id="line-61"></span><span>
+</span><span id="line-62"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679737281"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#MetaFunctionName"><span class="hs-identifier hs-type">Abs.MetaFunctionName</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-63"></span><span>  </span><span id="local-6989586621679737286"><span class="annot"><span class="annottext">pretty :: forall ann. MetaFunctionName -&gt; Doc ann
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#MetaFunctionName"><span class="hs-identifier hs-type">Abs.MetaFunctionName</span></a></span><span> </span><span id="local-6989586621679737288"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679737288"><span class="hs-identifier hs-var">i</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679737288"><span class="hs-identifier hs-var">i</span></a></span><span>
+</span><span id="line-64"></span><span>
+</span><span id="line-65"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679737291"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#IntegerSigned"><span class="hs-identifier hs-type">Abs.IntegerSigned</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-66"></span><span>  </span><span id="local-6989586621679737296"><span class="annot"><span class="annottext">pretty :: forall ann. IntegerSigned -&gt; Doc ann
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#IntegerSigned"><span class="hs-identifier hs-type">Abs.IntegerSigned</span></a></span><span> </span><span id="local-6989586621679737298"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679737298"><span class="hs-identifier hs-var">i</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679737298"><span class="hs-identifier hs-var">i</span></a></span><span>
+</span><span id="line-67"></span><span>
+</span><span id="line-68"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679737301"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#DoubleSigned"><span class="hs-identifier hs-type">Abs.DoubleSigned</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-69"></span><span>  </span><span id="local-6989586621679737306"><span class="annot"><span class="annottext">pretty :: forall ann. DoubleSigned -&gt; Doc ann
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#DoubleSigned"><span class="hs-identifier hs-type">Abs.DoubleSigned</span></a></span><span> </span><span id="local-6989586621679737308"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679737308"><span class="hs-identifier hs-var">i</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679737308"><span class="hs-identifier hs-var">i</span></a></span><span>
+</span><span id="line-70"></span><span>
+</span><span id="line-71"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679737311"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#StringRaw"><span class="hs-identifier hs-type">Abs.StringRaw</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-72"></span><span>  </span><span id="local-6989586621679737320"><span class="annot"><span class="annottext">pretty :: forall ann. StringRaw -&gt; Doc ann
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></span></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#StringRaw"><span class="hs-identifier hs-type">Abs.StringRaw</span></a></span><span> </span><span id="local-6989586621679737322"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679737322"><span class="hs-identifier hs-var">i</span></a></span></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679737322"><span class="hs-identifier hs-var">i</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-73"></span><span>
+</span><span id="line-74"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679737326"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Program"><span class="hs-identifier hs-type">Abs.Program</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-75"></span><span>  </span><span id="local-6989586621679737331"><span class="annot"><span class="annottext">pretty :: forall ann. Program -&gt; Doc ann
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-76"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Program"><span class="hs-identifier hs-type">Abs.Program</span></a></span><span> </span><span id="local-6989586621679737333"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679737333"><span class="hs-identifier hs-var">bindings</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-77"></span><span>      </span><span class="annot"><span class="annottext">[Doc ann] -&gt; Doc ann
+forall ann. [Doc ann] -&gt; Doc ann
+</span><span class="hs-identifier hs-var">vsep</span></span><span>
+</span><span id="line-78"></span><span>        </span><span class="hs-special">[</span><span> </span><span class="annot"><span class="annottext">Doc ann
+forall ann. Doc ann
+</span><span class="hs-identifier hs-var">lbrace</span></span><span>
+</span><span id="line-79"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Doc ann -&gt; Doc ann
+forall ann. Int -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-identifier hs-var">indent</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">2</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Object -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. Object -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Binding] -&gt; Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-var">Formation</span></a></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679737333"><span class="hs-identifier hs-var">bindings</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span>
+</span><span id="line-80"></span><span>        </span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Doc ann
+forall ann. Doc ann
+</span><span class="hs-identifier hs-var">rbrace</span></span><span>
+</span><span id="line-81"></span><span>        </span><span class="hs-special">]</span><span>
+</span><span id="line-82"></span><span>
+</span><span id="line-83"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679737341"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#MetaId"><span class="hs-identifier hs-type">Abs.MetaId</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-84"></span><span>  </span><span id="local-6989586621679737349"><span class="annot"><span class="annottext">pretty :: forall ann. MetaId -&gt; Doc ann
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-85"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#MetaIdLabel"><span class="hs-identifier hs-type">Abs.MetaIdLabel</span></a></span><span> </span><span id="local-6989586621679737351"><span class="annot"><span class="annottext">LabelMetaId
+</span><a href="#local-6989586621679737351"><span class="hs-identifier hs-var">labelmetaid</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">LabelMetaId -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. LabelMetaId -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">LabelMetaId
+</span><a href="#local-6989586621679737351"><span class="hs-identifier hs-var">labelmetaid</span></a></span><span>
+</span><span id="line-86"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#MetaIdTail"><span class="hs-identifier hs-type">Abs.MetaIdTail</span></a></span><span> </span><span id="local-6989586621679737353"><span class="annot"><span class="annottext">TailMetaId
+</span><a href="#local-6989586621679737353"><span class="hs-identifier hs-var">tailmetaid</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">TailMetaId -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. TailMetaId -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">TailMetaId
+</span><a href="#local-6989586621679737353"><span class="hs-identifier hs-var">tailmetaid</span></a></span><span>
+</span><span id="line-87"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#MetaIdBindings"><span class="hs-identifier hs-type">Abs.MetaIdBindings</span></a></span><span> </span><span id="local-6989586621679737355"><span class="annot"><span class="annottext">BindingsMetaId
+</span><a href="#local-6989586621679737355"><span class="hs-identifier hs-var">bindingsmetaid</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">BindingsMetaId -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. BindingsMetaId -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">BindingsMetaId
+</span><a href="#local-6989586621679737355"><span class="hs-identifier hs-var">bindingsmetaid</span></a></span><span>
+</span><span id="line-88"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#MetaIdObject"><span class="hs-identifier hs-type">Abs.MetaIdObject</span></a></span><span> </span><span id="local-6989586621679737357"><span class="annot"><span class="annottext">ObjectMetaId
+</span><a href="#local-6989586621679737357"><span class="hs-identifier hs-var">objectmetaid</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">ObjectMetaId -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. ObjectMetaId -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">ObjectMetaId
+</span><a href="#local-6989586621679737357"><span class="hs-identifier hs-var">objectmetaid</span></a></span><span>
+</span><span id="line-89"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#MetaIdBytes"><span class="hs-identifier hs-type">Abs.MetaIdBytes</span></a></span><span> </span><span id="local-6989586621679737359"><span class="annot"><span class="annottext">BytesMetaId
+</span><a href="#local-6989586621679737359"><span class="hs-identifier hs-var">bytesmetaid</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">BytesMetaId -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. BytesMetaId -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">BytesMetaId
+</span><a href="#local-6989586621679737359"><span class="hs-identifier hs-var">bytesmetaid</span></a></span><span>
+</span><span id="line-90"></span><span>
+</span><span id="line-91"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679737362"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Object"><span class="hs-identifier hs-type">Abs.Object</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-92"></span><span>  </span><span id="local-6989586621679737415"><span class="annot"><span class="annottext">pretty :: forall ann. Object -&gt; Doc ann
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-93"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Formation"><span class="hs-identifier hs-type">Abs.Formation</span></a></span><span> </span><span id="local-6989586621679737416"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679737416"><span class="hs-identifier hs-var">bindings</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-94"></span><span>      </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679737416"><span class="hs-identifier hs-var">bindings</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-95"></span><span>        </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#10214;&quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#10215;&quot;</span></span><span>
+</span><span id="line-96"></span><span>        </span><span class="annot"><span class="annottext">[Binding]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Doc ann] -&gt; Doc ann
+forall ann. [Doc ann] -&gt; Doc ann
+</span><span class="hs-identifier hs-var">vsep</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#10214;&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Doc ann -&gt; Doc ann
+forall ann. Int -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-identifier hs-var">indent</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">2</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Binding] -&gt; Doc ann
+forall ann. [Binding] -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679737416"><span class="hs-identifier hs-var">bindings</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#10215;&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-97"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Application"><span class="hs-identifier hs-type">Abs.Application</span></a></span><span> </span><span id="local-6989586621679737418"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679737418"><span class="hs-identifier hs-var">object</span></a></span></span><span> </span><span id="local-6989586621679737419"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679737419"><span class="hs-identifier hs-var">bindings</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span>
+</span><span id="line-98"></span><span>      </span><span class="hs-keyword">case</span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679737419"><span class="hs-identifier hs-var">bindings</span></a></span><span> </span><span class="hs-keyword">of</span><span>
+</span><span id="line-99"></span><span>        </span><span class="hs-special">[</span><span class="hs-special">]</span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Object -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. Object -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679737418"><span class="hs-identifier hs-var">object</span></a></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Doc ann
+forall ann. Doc ann
+</span><span class="hs-identifier hs-var">lparen</span></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Doc ann
+forall ann. Doc ann
+</span><span class="hs-identifier hs-var">rparen</span></span><span>
+</span><span id="line-100"></span><span>        </span><span class="annot"><span class="annottext">[Binding]
+</span><span class="hs-identifier">_</span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Doc ann] -&gt; Doc ann
+forall ann. [Doc ann] -&gt; Doc ann
+</span><span class="hs-identifier hs-var">vsep</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Object -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. Object -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679737418"><span class="hs-identifier hs-var">object</span></a></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Doc ann
+forall ann. Doc ann
+</span><span class="hs-identifier hs-var">lparen</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Doc ann -&gt; Doc ann
+forall ann. Int -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-identifier hs-var">indent</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">2</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Binding] -&gt; Doc ann
+forall ann. [Binding] -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679737419"><span class="hs-identifier hs-var">bindings</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Doc ann
+forall ann. Doc ann
+</span><span class="hs-identifier hs-var">rparen</span></span><span class="hs-special">]</span><span>
+</span><span id="line-101"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#ObjectDispatch"><span class="hs-identifier hs-type">Abs.ObjectDispatch</span></a></span><span> </span><span id="local-6989586621679737423"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679737423"><span class="hs-identifier hs-var">object</span></a></span></span><span> </span><span id="local-6989586621679737424"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679737424"><span class="hs-identifier hs-var">attribute</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Object -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. Object -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679737423"><span class="hs-identifier hs-var">object</span></a></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;.&quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. Attribute -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679737424"><span class="hs-identifier hs-var">attribute</span></a></span><span>
+</span><span id="line-102"></span><span>    </span><span class="annot"><span class="annottext">Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#GlobalObject"><span class="hs-identifier hs-var">Abs.GlobalObject</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#934;&quot;</span></span><span>
+</span><span id="line-103"></span><span>    </span><span class="annot"><span class="annottext">Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#GlobalObjectPhiOrg"><span class="hs-identifier hs-var">Abs.GlobalObjectPhiOrg</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#934;&#775;&quot;</span></span><span>
+</span><span id="line-104"></span><span>    </span><span class="annot"><span class="annottext">Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#ThisObject"><span class="hs-identifier hs-var">Abs.ThisObject</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#958;&quot;</span></span><span>
+</span><span id="line-105"></span><span>    </span><span class="annot"><span class="annottext">Object
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Termination"><span class="hs-identifier hs-var">Abs.Termination</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#8869;&quot;</span></span><span>
+</span><span id="line-106"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#ConstStringRaw"><span class="hs-identifier hs-type">Abs.ConstStringRaw</span></a></span><span> </span><span id="local-6989586621679737430"><span class="annot"><span class="annottext">StringRaw
+</span><a href="#local-6989586621679737430"><span class="hs-identifier hs-var">str</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">StringRaw -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. StringRaw -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">StringRaw
+</span><a href="#local-6989586621679737430"><span class="hs-identifier hs-var">str</span></a></span><span>
+</span><span id="line-107"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#ConstString"><span class="hs-identifier hs-type">Abs.ConstString</span></a></span><span> </span><span id="local-6989586621679737432"><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679737432"><span class="hs-identifier hs-var">str</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">String -&gt; String
+forall a. Show a =&gt; a -&gt; String
+</span><span class="hs-identifier hs-var">show</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><a href="#local-6989586621679737432"><span class="hs-identifier hs-var">str</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-108"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#ConstIntRaw"><span class="hs-identifier hs-type">Abs.ConstIntRaw</span></a></span><span> </span><span id="local-6989586621679737434"><span class="annot"><span class="annottext">IntegerSigned
+</span><a href="#local-6989586621679737434"><span class="hs-identifier hs-var">integersigned</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">IntegerSigned -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. IntegerSigned -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">IntegerSigned
+</span><a href="#local-6989586621679737434"><span class="hs-identifier hs-var">integersigned</span></a></span><span>
+</span><span id="line-109"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#ConstFloatRaw"><span class="hs-identifier hs-type">Abs.ConstFloatRaw</span></a></span><span> </span><span id="local-6989586621679737436"><span class="annot"><span class="annottext">DoubleSigned
+</span><a href="#local-6989586621679737436"><span class="hs-identifier hs-var">doublesigned</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">DoubleSigned -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. DoubleSigned -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">DoubleSigned
+</span><a href="#local-6989586621679737436"><span class="hs-identifier hs-var">doublesigned</span></a></span><span>
+</span><span id="line-110"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#MetaSubstThis"><span class="hs-identifier hs-type">Abs.MetaSubstThis</span></a></span><span> </span><span id="local-6989586621679737438"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679737438"><span class="hs-identifier hs-var">object1</span></a></span></span><span> </span><span id="local-6989586621679737439"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679737439"><span class="hs-identifier hs-var">object2</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Object -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. Object -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679737438"><span class="hs-identifier hs-var">object1</span></a></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-operator hs-var">&lt;+&gt;</span></span><span> </span><span class="annot"><span class="annottext">Doc ann
+forall ann. Doc ann
+</span><span class="hs-identifier hs-var">lbracket</span></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-operator hs-var">&lt;+&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#958; &#8614;&quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-operator hs-var">&lt;+&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. Object -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679737439"><span class="hs-identifier hs-var">object2</span></a></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-operator hs-var">&lt;+&gt;</span></span><span> </span><span class="annot"><span class="annottext">Doc ann
+forall ann. Doc ann
+</span><span class="hs-identifier hs-var">rbracket</span></span><span>
+</span><span id="line-111"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#MetaContextualize"><span class="hs-identifier hs-type">Abs.MetaContextualize</span></a></span><span> </span><span id="local-6989586621679737444"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679737444"><span class="hs-identifier hs-var">object1</span></a></span></span><span> </span><span id="local-6989586621679737445"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679737445"><span class="hs-identifier hs-var">object2</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#8968;&quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-operator hs-var">&lt;+&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. Object -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679737444"><span class="hs-identifier hs-var">object1</span></a></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;,&quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-operator hs-var">&lt;+&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. Object -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679737445"><span class="hs-identifier hs-var">object2</span></a></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#8969;&quot;</span></span><span>
+</span><span id="line-112"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#MetaObject"><span class="hs-identifier hs-type">Abs.MetaObject</span></a></span><span> </span><span id="local-6989586621679737447"><span class="annot"><span class="annottext">ObjectMetaId
+</span><a href="#local-6989586621679737447"><span class="hs-identifier hs-var">objectmetaid</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">ObjectMetaId -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. ObjectMetaId -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">ObjectMetaId
+</span><a href="#local-6989586621679737447"><span class="hs-identifier hs-var">objectmetaid</span></a></span><span>
+</span><span id="line-113"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#MetaTailContext"><span class="hs-identifier hs-type">Abs.MetaTailContext</span></a></span><span> </span><span id="local-6989586621679737449"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679737449"><span class="hs-identifier hs-var">object</span></a></span></span><span> </span><span id="local-6989586621679737450"><span class="annot"><span class="annottext">TailMetaId
+</span><a href="#local-6989586621679737450"><span class="hs-identifier hs-var">tailmetaid</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Object -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. Object -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679737449"><span class="hs-identifier hs-var">object</span></a></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-operator hs-var">&lt;+&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;*&quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-operator hs-var">&lt;+&gt;</span></span><span> </span><span class="annot"><span class="annottext">TailMetaId -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. TailMetaId -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">TailMetaId
+</span><a href="#local-6989586621679737450"><span class="hs-identifier hs-var">tailmetaid</span></a></span><span>
+</span><span id="line-114"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#MetaFunction"><span class="hs-identifier hs-type">Abs.MetaFunction</span></a></span><span> </span><span id="local-6989586621679737452"><span class="annot"><span class="annottext">MetaFunctionName
+</span><a href="#local-6989586621679737452"><span class="hs-identifier hs-var">metafunctionname</span></a></span></span><span> </span><span id="local-6989586621679737453"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679737453"><span class="hs-identifier hs-var">object</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Doc ann] -&gt; Doc ann
+forall ann. [Doc ann] -&gt; Doc ann
+</span><span class="hs-identifier hs-var">vsep</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">MetaFunctionName -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. MetaFunctionName -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">MetaFunctionName
+</span><a href="#local-6989586621679737452"><span class="hs-identifier hs-var">metafunctionname</span></a></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-operator hs-var">&lt;+&gt;</span></span><span> </span><span class="annot"><span class="annottext">Doc ann
+forall ann. Doc ann
+</span><span class="hs-identifier hs-var">lparen</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Object -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. Object -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679737453"><span class="hs-identifier hs-var">object</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Doc ann
+forall ann. Doc ann
+</span><span class="hs-identifier hs-var">rparen</span></span><span class="hs-special">]</span><span>
+</span><span id="line-115"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#ConstFloat"><span class="hs-identifier hs-type">Abs.ConstFloat</span></a></span><span> </span><span id="local-6989586621679737455"><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679737455"><span class="hs-identifier hs-var">d</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Double -&gt; Doc ann
+forall ann. Double -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">Double
+</span><a href="#local-6989586621679737455"><span class="hs-identifier hs-var">d</span></a></span><span>
+</span><span id="line-116"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#ConstInt"><span class="hs-identifier hs-type">Abs.ConstInt</span></a></span><span> </span><span id="local-6989586621679737457"><span class="annot"><span class="annottext">Integer
+</span><a href="#local-6989586621679737457"><span class="hs-identifier hs-var">n</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Integer -&gt; Doc ann
+forall ann. Integer -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">Integer
+</span><a href="#local-6989586621679737457"><span class="hs-identifier hs-var">n</span></a></span><span>
+</span><span id="line-117"></span><span>
+</span><span id="line-118"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679737460"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Binding"><span class="hs-identifier hs-type">Abs.Binding</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-119"></span><span>  </span><span id="local-6989586621679737479"><span class="annot"><span class="annottext">pretty :: forall ann. Binding -&gt; Doc ann
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-120"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBinding"><span class="hs-identifier hs-type">Abs.AlphaBinding</span></a></span><span> </span><span id="local-6989586621679737481"><span class="annot"><span class="annottext">AttributeSugar
+</span><a href="#local-6989586621679737481"><span class="hs-identifier hs-var">attribute</span></a></span></span><span> </span><span id="local-6989586621679737482"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679737482"><span class="hs-identifier hs-var">object</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">AttributeSugar -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. AttributeSugar -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">AttributeSugar
+</span><a href="#local-6989586621679737481"><span class="hs-identifier hs-var">attribute</span></a></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-operator hs-var">&lt;+&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#8614;&quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-operator hs-var">&lt;+&gt;</span></span><span> </span><span class="annot"><span class="annottext">Object -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. Object -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679737482"><span class="hs-identifier hs-var">object</span></a></span><span>
+</span><span id="line-121"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AlphaBindingSugar"><span class="hs-identifier hs-type">Abs.AlphaBindingSugar</span></a></span><span> </span><span id="local-6989586621679737484"><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679737484"><span class="hs-identifier hs-var">object</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Object -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. Object -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">Object
+</span><a href="#local-6989586621679737484"><span class="hs-identifier hs-var">object</span></a></span><span>
+</span><span id="line-122"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#EmptyBinding"><span class="hs-identifier hs-type">Abs.EmptyBinding</span></a></span><span> </span><span id="local-6989586621679737486"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679737486"><span class="hs-identifier hs-var">attribute</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. Attribute -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679737486"><span class="hs-identifier hs-var">attribute</span></a></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-operator hs-var">&lt;+&gt;</span></span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#8614; &#8709;&quot;</span></span><span>
+</span><span id="line-123"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#DeltaBinding"><span class="hs-identifier hs-type">Abs.DeltaBinding</span></a></span><span> </span><span id="local-6989586621679737488"><span class="annot"><span class="annottext">Bytes
+</span><a href="#local-6989586621679737488"><span class="hs-identifier hs-var">bytes</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#916; &#10509;&quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-operator hs-var">&lt;+&gt;</span></span><span> </span><span class="annot"><span class="annottext">Bytes -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. Bytes -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">Bytes
+</span><a href="#local-6989586621679737488"><span class="hs-identifier hs-var">bytes</span></a></span><span>
+</span><span id="line-124"></span><span>    </span><span class="annot"><span class="annottext">Binding
+</span><a href="Language.EO.Phi.Syntax.Abs.html#DeltaEmptyBinding"><span class="hs-identifier hs-var">Abs.DeltaEmptyBinding</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#916; &#10509; &#8709;&quot;</span></span><span>
+</span><span id="line-125"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#LambdaBinding"><span class="hs-identifier hs-type">Abs.LambdaBinding</span></a></span><span> </span><span id="local-6989586621679737491"><span class="annot"><span class="annottext">Function
+</span><a href="#local-6989586621679737491"><span class="hs-identifier hs-var">function</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#955; &#10509;&quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-operator hs-var">&lt;+&gt;</span></span><span> </span><span class="annot"><span class="annottext">Function -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. Function -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">Function
+</span><a href="#local-6989586621679737491"><span class="hs-identifier hs-var">function</span></a></span><span>
+</span><span id="line-126"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#MetaBindings"><span class="hs-identifier hs-type">Abs.MetaBindings</span></a></span><span> </span><span id="local-6989586621679737493"><span class="annot"><span class="annottext">BindingsMetaId
+</span><a href="#local-6989586621679737493"><span class="hs-identifier hs-var">bindingsmetaid</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">BindingsMetaId -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. BindingsMetaId -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">BindingsMetaId
+</span><a href="#local-6989586621679737493"><span class="hs-identifier hs-var">bindingsmetaid</span></a></span><span>
+</span><span id="line-127"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#MetaDeltaBinding"><span class="hs-identifier hs-type">Abs.MetaDeltaBinding</span></a></span><span> </span><span id="local-6989586621679737495"><span class="annot"><span class="annottext">BytesMetaId
+</span><a href="#local-6989586621679737495"><span class="hs-identifier hs-var">bytesmetaid</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#916; &#10509;&quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-operator hs-var">&lt;+&gt;</span></span><span> </span><span class="annot"><span class="annottext">BytesMetaId -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. BytesMetaId -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">BytesMetaId
+</span><a href="#local-6989586621679737495"><span class="hs-identifier hs-var">bytesmetaid</span></a></span><span>
+</span><span id="line-128"></span><span>
+</span><span id="line-129"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679737498"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AttributeSugar"><span class="hs-identifier hs-type">Abs.AttributeSugar</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-130"></span><span>  </span><span id="local-6989586621679737508"><span class="annot"><span class="annottext">pretty :: forall ann. AttributeSugar -&gt; Doc ann
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-131"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AttributeSugar"><span class="hs-identifier hs-type">Abs.AttributeSugar</span></a></span><span> </span><span id="local-6989586621679737510"><span class="annot"><span class="annottext">LabelId
+</span><a href="#local-6989586621679737510"><span class="hs-identifier hs-var">labelid</span></a></span></span><span> </span><span id="local-6989586621679737511"><span class="annot"><span class="annottext">[Attribute]
+</span><a href="#local-6989586621679737511"><span class="hs-identifier hs-var">labelids</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">LabelId -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. LabelId -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">LabelId
+</span><a href="#local-6989586621679737510"><span class="hs-identifier hs-var">labelid</span></a></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Doc ann
+forall ann. Doc ann
+</span><span class="hs-identifier hs-var">lparen</span></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">[Doc ann] -&gt; Doc ann
+forall ann. [Doc ann] -&gt; Doc ann
+</span><span class="hs-identifier hs-var">hsep</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Doc ann -&gt; [Doc ann] -&gt; [Doc ann]
+forall ann. Doc ann -&gt; [Doc ann] -&gt; [Doc ann]
+</span><span class="hs-identifier hs-var">punctuate</span></span><span> </span><span class="annot"><span class="annottext">Doc ann
+forall ann. Doc ann
+</span><span class="hs-identifier hs-var">comma</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">Attribute -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. Attribute -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">(Attribute -&gt; Doc ann) -&gt; [Attribute] -&gt; [Doc ann]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-operator hs-var">&lt;$&gt;</span></span><span> </span><span class="annot"><span class="annottext">[Attribute]
+</span><a href="#local-6989586621679737511"><span class="hs-identifier hs-var">labelids</span></a></span><span class="hs-special">)</span><span class="hs-special">)</span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Doc ann
+forall ann. Doc ann
+</span><span class="hs-identifier hs-var">rparen</span></span><span>
+</span><span id="line-132"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#AttributeNoSugar"><span class="hs-identifier hs-type">Abs.AttributeNoSugar</span></a></span><span> </span><span id="local-6989586621679737517"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679737517"><span class="hs-identifier hs-var">attribute</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. Attribute -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679737517"><span class="hs-identifier hs-var">attribute</span></a></span><span>
+</span><span id="line-133"></span><span>
+</span><span id="line-134"></span><span class="hs-keyword">instance</span><span> </span><span class="hs-pragma">{-# OVERLAPPING</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span id="local-6989586621679737520"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Binding"><span class="hs-identifier hs-type">Abs.Binding</span></a></span><span class="hs-special">]</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-135"></span><span>  </span><span id="local-6989586621679737524"><span class="annot"><span class="annottext">pretty :: forall ann. [Binding] -&gt; Doc ann
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Doc ann] -&gt; Doc ann
+forall ann. [Doc ann] -&gt; Doc ann
+</span><span class="hs-identifier hs-var">vsep</span></span><span> </span><span class="annot"><span class="annottext">([Doc ann] -&gt; Doc ann)
+-&gt; ([Binding] -&gt; [Doc ann]) -&gt; [Binding] -&gt; Doc ann
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; [Doc ann] -&gt; [Doc ann]
+forall ann. Doc ann -&gt; [Doc ann] -&gt; [Doc ann]
+</span><span class="hs-identifier hs-var">punctuate</span></span><span> </span><span class="annot"><span class="annottext">Doc ann
+forall ann. Doc ann
+</span><span class="hs-identifier hs-var">comma</span></span><span> </span><span class="annot"><span class="annottext">([Doc ann] -&gt; [Doc ann])
+-&gt; ([Binding] -&gt; [Doc ann]) -&gt; [Binding] -&gt; [Doc ann]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(Binding -&gt; Doc ann) -&gt; [Binding] -&gt; [Doc ann]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="annot"><span class="annottext">Binding -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. Binding -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span>
+</span><span id="line-136"></span><span>
+</span><span id="line-137"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679737528"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Attribute"><span class="hs-identifier hs-type">Abs.Attribute</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-138"></span><span>  </span><span id="local-6989586621679737536"><span class="annot"><span class="annottext">pretty :: forall ann. Attribute -&gt; Doc ann
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-139"></span><span>    </span><span class="annot"><span class="annottext">Attribute
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Phi"><span class="hs-identifier hs-var">Abs.Phi</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#966;&quot;</span></span><span>
+</span><span id="line-140"></span><span>    </span><span class="annot"><span class="annottext">Attribute
+</span><a href="Language.EO.Phi.Syntax.Abs.html#Rho"><span class="hs-identifier hs-var">Abs.Rho</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#961;&quot;</span></span><span>
+</span><span id="line-141"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Label"><span class="hs-identifier hs-type">Abs.Label</span></a></span><span> </span><span id="local-6989586621679737540"><span class="annot"><span class="annottext">LabelId
+</span><a href="#local-6989586621679737540"><span class="hs-identifier hs-var">labelid</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">LabelId -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. LabelId -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">LabelId
+</span><a href="#local-6989586621679737540"><span class="hs-identifier hs-var">labelid</span></a></span><span>
+</span><span id="line-142"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#Alpha"><span class="hs-identifier hs-type">Abs.Alpha</span></a></span><span> </span><span id="local-6989586621679737542"><span class="annot"><span class="annottext">AlphaIndex
+</span><a href="#local-6989586621679737542"><span class="hs-identifier hs-var">alphaindex</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">AlphaIndex -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. AlphaIndex -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">AlphaIndex
+</span><a href="#local-6989586621679737542"><span class="hs-identifier hs-var">alphaindex</span></a></span><span>
+</span><span id="line-143"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#MetaAttr"><span class="hs-identifier hs-type">Abs.MetaAttr</span></a></span><span> </span><span id="local-6989586621679737544"><span class="annot"><span class="annottext">LabelMetaId
+</span><a href="#local-6989586621679737544"><span class="hs-identifier hs-var">labelmetaid</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">LabelMetaId -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. LabelMetaId -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">LabelMetaId
+</span><a href="#local-6989586621679737544"><span class="hs-identifier hs-var">labelmetaid</span></a></span><span>
+</span><span id="line-144"></span><span>
+</span><span id="line-145"></span><span class="hs-keyword">instance</span><span> </span><span class="hs-pragma">{-# OVERLAPPING</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span id="local-6989586621679737547"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#LabelId"><span class="hs-identifier hs-type">Abs.LabelId</span></a></span><span class="hs-special">]</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-146"></span><span>  </span><span id="local-6989586621679737552"><span class="annot"><span class="annottext">pretty :: forall ann. [LabelId] -&gt; Doc ann
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Doc ann] -&gt; Doc ann
+forall ann. [Doc ann] -&gt; Doc ann
+</span><span class="hs-identifier hs-var">hsep</span></span><span> </span><span class="annot"><span class="annottext">([Doc ann] -&gt; Doc ann)
+-&gt; ([LabelId] -&gt; [Doc ann]) -&gt; [LabelId] -&gt; Doc ann
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; [Doc ann] -&gt; [Doc ann]
+forall ann. Doc ann -&gt; [Doc ann] -&gt; [Doc ann]
+</span><span class="hs-identifier hs-var">punctuate</span></span><span> </span><span class="annot"><span class="annottext">Doc ann
+forall ann. Doc ann
+</span><span class="hs-identifier hs-var">comma</span></span><span> </span><span class="annot"><span class="annottext">([Doc ann] -&gt; [Doc ann])
+-&gt; ([LabelId] -&gt; [Doc ann]) -&gt; [LabelId] -&gt; [Doc ann]
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(LabelId -&gt; Doc ann) -&gt; [LabelId] -&gt; [Doc ann]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="annot"><span class="annottext">LabelId -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. LabelId -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span>
+</span><span id="line-147"></span><span>
+</span><span id="line-148"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679737555"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#RuleAttribute"><span class="hs-identifier hs-type">Abs.RuleAttribute</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-149"></span><span>  </span><span id="local-6989586621679737562"><span class="annot"><span class="annottext">pretty :: forall ann. RuleAttribute -&gt; Doc ann
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-150"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#ObjectAttr"><span class="hs-identifier hs-type">Abs.ObjectAttr</span></a></span><span> </span><span id="local-6989586621679737564"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679737564"><span class="hs-identifier hs-var">attribute</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. Attribute -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679737564"><span class="hs-identifier hs-var">attribute</span></a></span><span>
+</span><span id="line-151"></span><span>    </span><span class="annot"><span class="annottext">RuleAttribute
+</span><a href="Language.EO.Phi.Syntax.Abs.html#DeltaAttr"><span class="hs-identifier hs-var">Abs.DeltaAttr</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#916;&quot;</span></span><span>
+</span><span id="line-152"></span><span>    </span><span class="annot"><span class="annottext">RuleAttribute
+</span><a href="Language.EO.Phi.Syntax.Abs.html#LambdaAttr"><span class="hs-identifier hs-var">Abs.LambdaAttr</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#955;&quot;</span></span><span>
+</span><span id="line-153"></span><span>
+</span><span id="line-154"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679737569"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#PeeledObject"><span class="hs-identifier hs-type">Abs.PeeledObject</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-155"></span><span>  </span><span id="local-6989586621679737576"><span class="annot"><span class="annottext">pretty :: forall ann. PeeledObject -&gt; Doc ann
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-156"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#PeeledObject"><span class="hs-identifier hs-type">Abs.PeeledObject</span></a></span><span> </span><span id="local-6989586621679737578"><span class="annot"><span class="annottext">ObjectHead
+</span><a href="#local-6989586621679737578"><span class="hs-identifier hs-var">objecthead</span></a></span></span><span> </span><span id="local-6989586621679737579"><span class="annot"><span class="annottext">[ObjectAction]
+</span><a href="#local-6989586621679737579"><span class="hs-identifier hs-var">objectactions</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">ObjectHead -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. ObjectHead -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">ObjectHead
+</span><a href="#local-6989586621679737578"><span class="hs-identifier hs-var">objecthead</span></a></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall ann. Doc ann -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-operator hs-var">&lt;+&gt;</span></span><span> </span><span class="annot"><span class="annottext">[ObjectAction] -&gt; Doc ann
+forall ann. [ObjectAction] -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">[ObjectAction]
+</span><a href="#local-6989586621679737579"><span class="hs-identifier hs-var">objectactions</span></a></span><span>
+</span><span id="line-157"></span><span>
+</span><span id="line-158"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679737582"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#ObjectHead"><span class="hs-identifier hs-type">Abs.ObjectHead</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-159"></span><span>  </span><span id="local-6989586621679737591"><span class="annot"><span class="annottext">pretty :: forall ann. ObjectHead -&gt; Doc ann
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-160"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#HeadFormation"><span class="hs-identifier hs-type">Abs.HeadFormation</span></a></span><span> </span><span id="local-6989586621679737593"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679737593"><span class="hs-identifier hs-var">bindings</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Doc ann] -&gt; Doc ann
+forall ann. [Doc ann] -&gt; Doc ann
+</span><span class="hs-identifier hs-var">vsep</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#10214;&quot;</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Doc ann -&gt; Doc ann
+forall ann. Int -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-identifier hs-var">indent</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">2</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Binding] -&gt; Doc ann
+forall ann. [Binding] -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679737593"><span class="hs-identifier hs-var">bindings</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#10215;&quot;</span></span><span class="hs-special">]</span><span>
+</span><span id="line-161"></span><span>    </span><span class="annot"><span class="annottext">ObjectHead
+</span><a href="Language.EO.Phi.Syntax.Abs.html#HeadGlobal"><span class="hs-identifier hs-var">Abs.HeadGlobal</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#934;&quot;</span></span><span>
+</span><span id="line-162"></span><span>    </span><span class="annot"><span class="annottext">ObjectHead
+</span><a href="Language.EO.Phi.Syntax.Abs.html#HeadThis"><span class="hs-identifier hs-var">Abs.HeadThis</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#958;&quot;</span></span><span>
+</span><span id="line-163"></span><span>    </span><span class="annot"><span class="annottext">ObjectHead
+</span><a href="Language.EO.Phi.Syntax.Abs.html#HeadTermination"><span class="hs-identifier hs-var">Abs.HeadTermination</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;&#8869;&quot;</span></span><span>
+</span><span id="line-164"></span><span>
+</span><span id="line-165"></span><span class="hs-keyword">instance</span><span> </span><span id="local-6989586621679737599"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#ObjectAction"><span class="hs-identifier hs-type">Abs.ObjectAction</span></a></span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-166"></span><span>  </span><span id="local-6989586621679737607"><span class="annot"><span class="annottext">pretty :: forall ann. ObjectAction -&gt; Doc ann
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="hs-glyph">\</span><span class="hs-glyph">case</span><span>
+</span><span id="line-167"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#ActionApplication"><span class="hs-identifier hs-type">Abs.ActionApplication</span></a></span><span> </span><span id="local-6989586621679737609"><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679737609"><span class="hs-identifier hs-var">bindings</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">[Doc ann] -&gt; Doc ann
+forall ann. [Doc ann] -&gt; Doc ann
+</span><span class="hs-identifier hs-var">vsep</span></span><span> </span><span class="hs-special">[</span><span class="annot"><span class="annottext">Doc ann
+forall ann. Doc ann
+</span><span class="hs-identifier hs-var">lparen</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Int -&gt; Doc ann -&gt; Doc ann
+forall ann. Int -&gt; Doc ann -&gt; Doc ann
+</span><span class="hs-identifier hs-var">indent</span></span><span> </span><span class="annot"><span class="annottext">Int
+</span><span class="hs-number">2</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="annottext">[Binding] -&gt; Doc ann
+forall ann. [Binding] -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">[Binding]
+</span><a href="#local-6989586621679737609"><span class="hs-identifier hs-var">bindings</span></a></span><span class="hs-special">)</span><span class="hs-special">,</span><span> </span><span class="annot"><span class="annottext">Doc ann
+forall ann. Doc ann
+</span><span class="hs-identifier hs-var">rparen</span></span><span class="hs-special">]</span><span>
+</span><span id="line-168"></span><span>    </span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#ActionDispatch"><span class="hs-identifier hs-type">Abs.ActionDispatch</span></a></span><span> </span><span id="local-6989586621679737611"><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679737611"><span class="hs-identifier hs-var">attribute</span></a></span></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><span class="annottext">String -&gt; Doc ann
+forall ann. String -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">String
+</span><span class="hs-string">&quot;.&quot;</span></span><span> </span><span class="annot"><span class="annottext">Doc ann -&gt; Doc ann -&gt; Doc ann
+forall a. Semigroup a =&gt; a -&gt; a -&gt; a
+</span><span class="hs-operator hs-var">&lt;&gt;</span></span><span> </span><span class="annot"><span class="annottext">Attribute -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. Attribute -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span> </span><span class="annot"><span class="annottext">Attribute
+</span><a href="#local-6989586621679737611"><span class="hs-identifier hs-var">attribute</span></a></span><span>
+</span><span id="line-169"></span><span>
+</span><span id="line-170"></span><span class="hs-keyword">instance</span><span> </span><span class="hs-pragma">{-# OVERLAPPING</span><span> </span><span class="hs-pragma">#-}</span><span> </span><span id="local-6989586621679737614"><span class="annot"><span class="hs-identifier hs-type">Pretty</span></span><span> </span><span class="hs-special">[</span><span class="annot"><a href="Language.EO.Phi.Syntax.Abs.html#ObjectAction"><span class="hs-identifier hs-type">Abs.ObjectAction</span></a></span><span class="hs-special">]</span></span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-171"></span><span>  </span><span id="local-6989586621679737618"><span class="annot"><span class="annottext">pretty :: forall ann. [ObjectAction] -&gt; Doc ann
+</span><span class="hs-identifier hs-var hs-var hs-var hs-var">pretty</span></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">[Doc ann] -&gt; Doc ann
+forall ann. [Doc ann] -&gt; Doc ann
+</span><span class="hs-identifier hs-var">hsep</span></span><span> </span><span class="annot"><span class="annottext">([Doc ann] -&gt; Doc ann)
+-&gt; ([ObjectAction] -&gt; [Doc ann]) -&gt; [ObjectAction] -&gt; Doc ann
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">(ObjectAction -&gt; Doc ann) -&gt; [ObjectAction] -&gt; [Doc ann]
+forall a b. (a -&gt; b) -&gt; [a] -&gt; [b]
+forall (f :: * -&gt; *) a b. Functor f =&gt; (a -&gt; b) -&gt; f a -&gt; f b
+</span><span class="hs-identifier hs-var">fmap</span></span><span> </span><span class="annot"><span class="annottext">ObjectAction -&gt; Doc ann
+forall a ann. Pretty a =&gt; a -&gt; Doc ann
+forall ann. ObjectAction -&gt; Doc ann
+</span><span class="hs-identifier hs-var">pretty</span></span><span>
+</span><span id="line-172"></span></pre></body></html>

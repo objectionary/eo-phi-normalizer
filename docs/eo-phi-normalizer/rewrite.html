@@ -1,0 +1,460 @@
+<!DOCTYPE HTML>
+<html lang="en" class="light sidebar-visible" dir="ltr">
+    <head>
+        <!-- Book generated using mdBook -->
+        <meta charset="UTF-8">
+        <title>eo-phi-normalizer rewrite - phi-normalizer</title>
+
+
+        <!-- Custom HTML head -->
+
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="theme-color" content="#ffffff">
+
+        <link rel="icon" href="../favicon.svg">
+        <link rel="shortcut icon" href="../favicon.png">
+        <link rel="stylesheet" href="../css/variables.css">
+        <link rel="stylesheet" href="../css/general.css">
+        <link rel="stylesheet" href="../css/chrome.css">
+        <link rel="stylesheet" href="../css/print.css" media="print">
+
+        <!-- Fonts -->
+        <link rel="stylesheet" href="../FontAwesome/css/font-awesome.css">
+        <link rel="stylesheet" href="../fonts/fonts.css">
+
+        <!-- Highlight.js Stylesheets -->
+        <link rel="stylesheet" href="../highlight.css">
+        <link rel="stylesheet" href="../tomorrow-night.css">
+        <link rel="stylesheet" href="../ayu-highlight.css">
+
+        <!-- Custom theme stylesheets -->
+        <link rel="stylesheet" href="../theme/pagetoc.css">
+
+        <!-- MathJax -->
+        <script async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+        <!-- Provide site root to javascript -->
+        <script>
+            var path_to_root = "../";
+            var default_theme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "navy" : "light";
+        </script>
+        <!-- Start loading toc.js asap -->
+        <script src="../toc.js"></script>
+    </head>
+    <body>
+    <div id="body-container">
+        <!-- Work around some values being stored in localStorage wrapped in quotes -->
+        <script>
+            try {
+                var theme = localStorage.getItem('mdbook-theme');
+                var sidebar = localStorage.getItem('mdbook-sidebar');
+
+                if (theme.startsWith('"') && theme.endsWith('"')) {
+                    localStorage.setItem('mdbook-theme', theme.slice(1, theme.length - 1));
+                }
+
+                if (sidebar.startsWith('"') && sidebar.endsWith('"')) {
+                    localStorage.setItem('mdbook-sidebar', sidebar.slice(1, sidebar.length - 1));
+                }
+            } catch (e) { }
+        </script>
+
+        <!-- Set the theme before any content is loaded, prevents flash -->
+        <script>
+            var theme;
+            try { theme = localStorage.getItem('mdbook-theme'); } catch(e) { }
+            if (theme === null || theme === undefined) { theme = default_theme; }
+            const html = document.documentElement;
+            html.classList.remove('light')
+            html.classList.add(theme);
+            html.classList.add("js");
+        </script>
+
+        <input type="checkbox" id="sidebar-toggle-anchor" class="hidden">
+
+        <!-- Hide / unhide sidebar before it is displayed -->
+        <script>
+            var sidebar = null;
+            var sidebar_toggle = document.getElementById("sidebar-toggle-anchor");
+            if (document.body.clientWidth >= 1080) {
+                try { sidebar = localStorage.getItem('mdbook-sidebar'); } catch(e) { }
+                sidebar = sidebar || 'visible';
+            } else {
+                sidebar = 'hidden';
+            }
+            sidebar_toggle.checked = sidebar === 'visible';
+            html.classList.remove('sidebar-visible');
+            html.classList.add("sidebar-" + sidebar);
+        </script>
+
+        <nav id="sidebar" class="sidebar" aria-label="Table of contents">
+            <!-- populated by js -->
+            <mdbook-sidebar-scrollbox class="sidebar-scrollbox"></mdbook-sidebar-scrollbox>
+            <noscript>
+                <iframe class="sidebar-iframe-outer" src="../toc.html"></iframe>
+            </noscript>
+            <div id="sidebar-resize-handle" class="sidebar-resize-handle">
+                <div class="sidebar-resize-indicator"></div>
+            </div>
+        </nav>
+
+        <div id="page-wrapper" class="page-wrapper">
+
+            <div class="page">
+                <div id="menu-bar-hover-placeholder"></div>
+                <div id="menu-bar" class="menu-bar sticky">
+                    <div class="left-buttons">
+                        <label id="sidebar-toggle" class="icon-button" for="sidebar-toggle-anchor" title="Toggle Table of Contents" aria-label="Toggle Table of Contents" aria-controls="sidebar">
+                            <i class="fa fa-bars"></i>
+                        </label>
+                        <button id="theme-toggle" class="icon-button" type="button" title="Change theme" aria-label="Change theme" aria-haspopup="true" aria-expanded="false" aria-controls="theme-list">
+                            <i class="fa fa-paint-brush"></i>
+                        </button>
+                        <ul id="theme-list" class="theme-popup" aria-label="Themes" role="menu">
+                            <li role="none"><button role="menuitem" class="theme" id="light">Light</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="rust">Rust</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="coal">Coal</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="navy">Navy</button></li>
+                            <li role="none"><button role="menuitem" class="theme" id="ayu">Ayu</button></li>
+                        </ul>
+                        <button id="search-toggle" class="icon-button" type="button" title="Search. (Shortkey: s)" aria-label="Toggle Searchbar" aria-expanded="false" aria-keyshortcuts="S" aria-controls="searchbar">
+                            <i class="fa fa-search"></i>
+                        </button>
+                    </div>
+
+                    <h1 class="menu-title">phi-normalizer</h1>
+
+                    <div class="right-buttons">
+                        <a href="../print.html" title="Print this book" aria-label="Print this book">
+                            <i id="print-button" class="fa fa-print"></i>
+                        </a>
+                        <a href="https://github.com/objectionary/eo-phi-normalizer" title="Git repository" aria-label="Git repository">
+                            <i id="git-repository-button" class="fa fa-github"></i>
+                        </a>
+
+                    </div>
+                </div>
+
+                <div id="search-wrapper" class="hidden">
+                    <form id="searchbar-outer" class="searchbar-outer">
+                        <input type="search" id="searchbar" name="searchbar" placeholder="Search this book ..." aria-controls="searchresults-outer" aria-describedby="searchresults-header">
+                    </form>
+                    <div id="searchresults-outer" class="searchresults-outer hidden">
+                        <div id="searchresults-header" class="searchresults-header"></div>
+                        <ul id="searchresults">
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Apply ARIA attributes after the sidebar and the sidebar toggle button are added to the DOM -->
+                <script>
+                    document.getElementById('sidebar-toggle').setAttribute('aria-expanded', sidebar === 'visible');
+                    document.getElementById('sidebar').setAttribute('aria-hidden', sidebar !== 'visible');
+                    Array.from(document.querySelectorAll('#sidebar a')).forEach(function(link) {
+                        link.setAttribute('tabIndex', sidebar === 'visible' ? 0 : -1);
+                    });
+                </script>
+
+                <div id="content" class="content">
+                    <main>
+                        <div class="content-wrap">
+                            <h1 id="eo-phi-normalizer-rewrite"><a class="header" href="#eo-phi-normalizer-rewrite"><code>eo-phi-normalizer rewrite</code></a></h1>
+<h2 id="environment"><a class="header" href="#environment">Environment</a></h2>
+<h3 id="repository"><a class="header" href="#repository">Repository</a></h3>
+<p>The commands in the following sections access files that are available in the project repository.</p>
+<p>Clone and enter the project repository.</p>
+<pre><code class="language-sh">git clone https://github.com/objectionary/eo-phi-normalizer --recurse-submodules
+cd eo-phi-normalizer
+</code></pre>
+<h3 id="sample-program"><a class="header" href="#sample-program">Sample program</a></h3>
+<p>Save a <code>PHI</code> program to a file.</p>
+<pre><code class="language-$">cat &gt; celsius.phi &lt;&lt;EOM
+{
+  ⟦
+    c ↦ Φ.org.eolang.float (
+      as-bytes ↦ 25.0
+    ),
+    result ↦ ξ.c.times (
+      x ↦ 1.8
+    )
+    .plus (
+      x ↦ 32.0
+    ),
+    λ ⤍ Package
+  ⟧
+}
+EOM
+</code></pre>
+<h2 id="cli"><a class="header" href="#cli">CLI</a></h2>
+<h3 id="--help"><a class="header" href="#--help"><code>--help</code></a></h3>
+<pre><code class="language-$ as console">eo-phi-normalizer rewrite --help
+</code></pre>
+<pre><code class="language-console">Usage: eo-phi-normalizer rewrite [-c|--chain] [-d|--dependency-file FILE]
+                                 [-j|--json] [--max-depth INT]
+                                 [--max-growth-factor INT] [--no-sugar]
+                                 [-o|--output-file FILE] [-r|--rules FILE]
+                                 [-s|--single] [-l|--single-line] [--tex] [FILE]
+
+  Rewrite a PHI program.
+
+Available options:
+  -c,--chain               Output rewriting steps.
+  -d,--dependency-file FILE
+                           FILE to read dependencies from (zero or more
+                           dependency files allowed).
+  -j,--json                Output JSON.
+  --max-depth INT          Maximum depth of rules application. Defaults to 10.
+  --max-growth-factor INT  The factor by which to allow the input term to grow
+                           before stopping. Defaults to 10.
+  --no-sugar               Output desugared expressions.
+  -o,--output-file FILE    Output to FILE. When this option is not specified,
+                           output to stdout.
+  -r,--rules FILE          FILE with user-defined rules. If unspecified, builtin
+                           set of rules is used.
+  -s,--single              Output a single expression.
+  -l,--single-line         Output a single expression on a single line. Has
+                           effect only if the --single is enabled.
+  --tex                    Output LaTeX.
+  FILE                     FILE to read input from. When no FILE is specified,
+                           read from stdin.
+  -h,--help                Show this help text
+</code></pre>
+<h3 id="--rules-file"><a class="header" href="#--rules-file"><code>--rules FILE</code></a></h3>
+<p>Normalize a 𝜑-expression from <code>celsius.phi</code> using the rules from a given file.</p>
+<p>The output may contain multiple numbered results that correspond to different possible rule application sequences
+(even if the final result is the same).</p>
+<pre><code class="language-$ as console">eo-phi-normalizer rewrite --rules ./eo-phi-normalizer/test/eo/phi/rules/new.yaml celsius.phi
+</code></pre>
+<pre><code class="language-console">Rule set following Nov 2024 revision
+Input:
+{
+  ⟦
+    c ↦ Φ̇.float(
+      as-bytes ↦ 25.0
+    ),
+    result ↦ ξ.c.times(
+      x ↦ 1.8
+    ).plus(
+      x ↦ 32.0
+    ),
+    λ ⤍ Package
+  ⟧
+}
+====================================================
+Result 1 out of 1:
+{
+  ⟦
+    c ↦ Φ̇.float(
+      as-bytes ↦ 25.0
+    ),
+    result ↦ ξ.c.times(
+      x ↦ 1.8
+    ).plus(
+      x ↦ 32.0
+    ),
+    λ ⤍ Package
+  ⟧
+}
+----------------------------------------------------
+</code></pre>
+<h3 id="--chain"><a class="header" href="#--chain"><code>--chain</code></a></h3>
+<p>Use <code>--chain</code> to see numbered normalization steps for each normalization result.</p>
+<pre><code class="language-$ as console">eo-phi-normalizer rewrite --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/new.yaml celsius.phi
+</code></pre>
+<pre><code class="language-console">Rule set following Nov 2024 revision
+Input:
+{
+  ⟦
+    c ↦ Φ̇.float(
+      as-bytes ↦ 25.0
+    ),
+    result ↦ ξ.c.times(
+      x ↦ 1.8
+    ).plus(
+      x ↦ 32.0
+    ),
+    λ ⤍ Package
+  ⟧
+}
+====================================================
+Result 1 out of 1:
+[ 1 / 1 ] NF: {
+  ⟦
+    c ↦ Φ̇.float(
+      as-bytes ↦ 25.0
+    ),
+    result ↦ ξ.c.times(
+      x ↦ 1.8
+    ).plus(
+      x ↦ 32.0
+    ),
+    λ ⤍ Package
+  ⟧
+}
+----------------------------------------------------
+</code></pre>
+<h3 id="--chain---tex"><a class="header" href="#--chain---tex"><code>--chain</code> <code>--tex</code></a></h3>
+<pre><code class="language-$ as tex">printf "{⟦ m ↦ ⟦ x ↦ ⟦ t ↦ ⟦ Δ ⤍ 42- ⟧ ⟧.t ⟧.x ⟧}" &gt; bar.phi
+
+eo-phi-normalizer rewrite --chain --tex bar.phi
+</code></pre>
+<pre><code class="language-tex">% Rule set following Nov 2024 revision
+
+\documentclass{article}
+\usepackage{eolang}
+\begin{document}
+
+
+This is the 1st possible chain of normalizing rewritings:
+
+\begin{phiquation*}
+[[ m -&gt; [[ x -&gt; [[ t -&gt; [[ D&gt; 42- ]] ]].t ]].x ]] \trans_{\rulename{DOT}}
+  \trans [[ m -&gt; [[ x -&gt; [[ D&gt; 42- ]]( ^ -&gt; [[ t -&gt; [[ D&gt; 42- ]] ]] ) ]].x ]] \trans_{\rulename{DOT}}
+  \trans [[ m -&gt; [[ D&gt; 42- ]]( ^ -&gt; [[ t -&gt; [[ D&gt; 42- ]] ]] )( ^ -&gt; [[ x -&gt; [[ D&gt; 42- ]]( ^ -&gt; [[ t -&gt; [[ D&gt; 42- ]] ]] ) ]] ) ]] \trans_{\rulename{RHO}}
+  \trans [[ m -&gt; [[ D&gt; 42-, ^ -&gt; [[ t -&gt; [[ D&gt; 42- ]] ]] ]](  )( ^ -&gt; [[ x -&gt; [[ D&gt; 42- ]]( ^ -&gt; [[ t -&gt; [[ D&gt; 42- ]] ]] ) ]] ) ]] \trans_{\rulename{DUP}}
+  \trans [[ m -&gt; [[ D&gt; 42-, ^ -&gt; [[ t -&gt; [[ D&gt; 42- ]] ]] ]]( ^ -&gt; [[ x -&gt; [[ D&gt; 42- ]]( ^ -&gt; [[ t -&gt; [[ D&gt; 42- ]] ]] ) ]] ) ]] \trans_{\rulename{STAY}}
+  \trans [[ m -&gt; [[ ^ -&gt; [[ t -&gt; [[ D&gt; 42- ]] ]], D&gt; 42- ]](  ) ]] \trans_{\rulename{DUP}}
+  \trans [[ m -&gt; [[ ^ -&gt; [[ t -&gt; [[ D&gt; 42- ]] ]], D&gt; 42- ]] ]] \trans_{\rulename{NF}}
+  \trans [[ m -&gt; [[ ^ -&gt; [[ t -&gt; [[ D&gt; 42- ]] ]], D&gt; 42- ]] ]].
+\end{phiquation*}
+
+This is the 2nd possible chain of normalizing rewritings:
+
+\begin{phiquation*}
+[[ m -&gt; [[ x -&gt; [[ t -&gt; [[ D&gt; 42- ]] ]].t ]].x ]] \trans_{\rulename{DOT}}
+  \trans [[ m -&gt; [[ x -&gt; [[ D&gt; 42- ]]( ^ -&gt; [[ t -&gt; [[ D&gt; 42- ]] ]] ) ]].x ]] \trans_{\rulename{RHO}}
+  \trans [[ m -&gt; [[ x -&gt; [[ D&gt; 42-, ^ -&gt; [[ t -&gt; [[ D&gt; 42- ]] ]] ]](  ) ]].x ]] \trans_{\rulename{DUP}}
+  \trans [[ m -&gt; [[ x -&gt; [[ D&gt; 42-, ^ -&gt; [[ t -&gt; [[ D&gt; 42- ]] ]] ]] ]].x ]] \trans_{\rulename{DOT}}
+  \trans [[ m -&gt; [[ D&gt; 42-, ^ -&gt; [[ t -&gt; [[ D&gt; 42- ]] ]] ]]( ^ -&gt; [[ x -&gt; [[ D&gt; 42-, ^ -&gt; [[ t -&gt; [[ D&gt; 42- ]] ]] ]] ]] ) ]] \trans_{\rulename{STAY}}
+  \trans [[ m -&gt; [[ ^ -&gt; [[ t -&gt; [[ D&gt; 42- ]] ]], D&gt; 42- ]](  ) ]] \trans_{\rulename{DUP}}
+  \trans [[ m -&gt; [[ ^ -&gt; [[ t -&gt; [[ D&gt; 42- ]] ]], D&gt; 42- ]] ]] \trans_{\rulename{NF}}
+  \trans [[ m -&gt; [[ ^ -&gt; [[ t -&gt; [[ D&gt; 42- ]] ]], D&gt; 42- ]] ]].
+\end{phiquation*}
+
+\end{document}
+</code></pre>
+<h3 id="--json"><a class="header" href="#--json"><code>--json</code></a></h3>
+<pre><code class="language-$ as json">eo-phi-normalizer rewrite --json --chain --rules ./eo-phi-normalizer/test/eo/phi/rules/new.yaml celsius.phi
+</code></pre>
+<pre><code class="language-json">{
+  "input": "{\n  ⟦\n    c ↦ Φ̇.float(\n      as-bytes ↦ 25.0\n    ),\n    result ↦ ξ.c.times(\n      x ↦ 1.8\n    ).plus(\n      x ↦ 32.0\n    ),\n    λ ⤍ Package\n  ⟧\n}",
+  "output": [
+    [
+      [
+        "NF",
+        "{\n  ⟦\n    c ↦ Φ̇.float(\n      as-bytes ↦ 25.0\n    ),\n    result ↦ ξ.c.times(\n      x ↦ 1.8\n    ).plus(\n      x ↦ 32.0\n    ),\n    λ ⤍ Package\n  ⟧\n}"
+      ]
+    ]
+  ]
+}
+</code></pre>
+<h3 id="--single"><a class="header" href="#--single"><code>--single</code></a></h3>
+<pre><code class="language-$ as console">eo-phi-normalizer rewrite --single --rules ./eo-phi-normalizer/test/eo/phi/rules/new.yaml celsius.phi
+</code></pre>
+<pre><code class="language-console">{
+  ⟦
+    c ↦ Φ̇.float(
+      as-bytes ↦ 25.0
+    ),
+    result ↦ ξ.c.times(
+      x ↦ 1.8
+    ).plus(
+      x ↦ 32.0
+    ),
+    λ ⤍ Package
+  ⟧
+}
+</code></pre>
+<h3 id="--single---single-line"><a class="header" href="#--single---single-line"><code>--single --single-line</code></a></h3>
+<pre><code class="language-$ as console">eo-phi-normalizer rewrite --single --single-line --rules ./eo-phi-normalizer/test/eo/phi/rules/new.yaml celsius.phi
+</code></pre>
+<pre><code class="language-console">{ ⟦ c ↦ Φ̇.float( as-bytes ↦ 25.0 ), result ↦ ξ.c.times( x ↦ 1.8 ).plus( x ↦ 32.0 ), λ ⤍ Package ⟧ }
+</code></pre>
+<h3 id="--single---json"><a class="header" href="#--single---json"><code>--single</code> <code>--json</code></a></h3>
+<pre><code class="language-$ as console">eo-phi-normalizer rewrite --single --json --rules ./eo-phi-normalizer/test/eo/phi/rules/new.yaml celsius.phi
+</code></pre>
+<pre><code class="language-console">"{\n  ⟦\n    c ↦ Φ̇.float(\n      as-bytes ↦ 25.0\n    ),\n    result ↦ ξ.c.times(\n      x ↦ 1.8\n    ).plus(\n      x ↦ 32.0\n    ),\n    λ ⤍ Package\n  ⟧\n}"
+</code></pre>
+<h3 id="--tex"><a class="header" href="#--tex"><code>--tex</code></a></h3>
+<pre><code class="language-$ as tex">eo-phi-normalizer rewrite --tex bar.phi
+</code></pre>
+<pre><code class="language-tex">% Rule set following Nov 2024 revision
+
+\documentclass{article}
+\usepackage{eolang}
+\begin{document}
+
+\begin{phiquation*}
+[[ m -&gt; [[ ^ -&gt; [[ t -&gt; [[ D&gt; 42- ]] ]], D&gt; 42- ]] ]]
+\end{phiquation*}
+
+\end{document}
+</code></pre>
+<h3 id="--output-file-file"><a class="header" href="#--output-file-file"><code>--output-file FILE</code></a></h3>
+<p>Redirects the output to file of the given path instead of <code>stdout</code>.</p>
+<h3 id="--dependency-file-file"><a class="header" href="#--dependency-file-file"><code>--dependency-file FILE</code></a></h3>
+<p>Injects package dependencies from a given file into the context when transforming the input.
+Can be used multiple times to inject multiple dependencies.</p>
+<h3 id="file-not-specified-read-from-stdin"><a class="header" href="#file-not-specified-read-from-stdin"><code>FILE</code> not specified (read from stdin)</a></h3>
+<pre><code class="language-$ as console">cat celsius.phi | eo-phi-normalizer rewrite --single --json --rules ./eo-phi-normalizer/test/eo/phi/rules/new.yaml
+</code></pre>
+<pre><code class="language-console">"{\n  ⟦\n    c ↦ Φ̇.float(\n      as-bytes ↦ 25.0\n    ),\n    result ↦ ξ.c.times(\n      x ↦ 1.8\n    ).plus(\n      x ↦ 32.0\n    ),\n    λ ⤍ Package\n  ⟧\n}"
+</code></pre>
+
+                        </div>
+                        <div class="sidetoc">
+                            <nav class="pagetoc"></nav>
+                        </div>
+                    </main>
+
+                    <nav class="nav-wrapper" aria-label="Page navigation">
+                        <!-- Mobile navigation buttons -->
+                            <a rel="prev" href="../eo-phi-normalizer.html" class="mobile-nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                                <i class="fa fa-angle-left"></i>
+                            </a>
+
+                            <a rel="next prefetch" href="../eo-phi-normalizer/dataize.html" class="mobile-nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                                <i class="fa fa-angle-right"></i>
+                            </a>
+
+                        <div style="clear: both"></div>
+                    </nav>
+                </div>
+            </div>
+
+            <nav class="nav-wide-wrapper" aria-label="Page navigation">
+                    <a rel="prev" href="../eo-phi-normalizer.html" class="nav-chapters previous" title="Previous chapter" aria-label="Previous chapter" aria-keyshortcuts="Left">
+                        <i class="fa fa-angle-left"></i>
+                    </a>
+
+                    <a rel="next prefetch" href="../eo-phi-normalizer/dataize.html" class="nav-chapters next" title="Next chapter" aria-label="Next chapter" aria-keyshortcuts="Right">
+                        <i class="fa fa-angle-right"></i>
+                    </a>
+            </nav>
+
+        </div>
+
+
+
+
+        <script>
+            window.playground_copyable = true;
+        </script>
+
+
+        <script src="../elasticlunr.min.js"></script>
+        <script src="../mark.min.js"></script>
+        <script src="../searcher.js"></script>
+
+        <script src="../clipboard.min.js"></script>
+        <script src="../highlight.js"></script>
+        <script src="../book.js"></script>
+
+        <!-- Custom JS scripts -->
+        <script src="../theme/pagetoc.js"></script>
+
+
+    </div>
+    </body>
+</html>

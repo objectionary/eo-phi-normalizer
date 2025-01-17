@@ -1,0 +1,135 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd"><html xmlns="http://www.w3.org/1999/xhtml"><head><link rel="stylesheet" type="text/css" href="style.css" /><script type="text/javascript" src="highlight.js"></script></head><body><pre><span class="hs-comment">{- SPDX-FileCopyrightText: 2020 Serokell &lt;https://serokell.io/&gt;
+ -
+ - SPDX-License-Identifier: MPL-2.0
+ -}</span><span>
+</span><span id="line-5"></span><span>
+</span><span id="line-6"></span><span class="hs-comment">-----------------------------------------------------------------------------</span><span>
+</span><span id="line-7"></span><span class="hs-comment">-- |</span><span>
+</span><span id="line-8"></span><span class="hs-comment">--</span><span>
+</span><span id="line-9"></span><span class="hs-comment">-- Functions in this module will help you make your /executable/ work</span><span>
+</span><span id="line-10"></span><span class="hs-comment">-- correctly with encodings of text files and standard handles.</span><span>
+</span><span id="line-11"></span><span class="hs-comment">--</span><span>
+</span><span id="line-12"></span><span class="hs-comment">-- /Note: if you are developing a library, see &quot;System.IO.Utf8&quot;./</span><span>
+</span><span id="line-13"></span><span class="hs-comment">--</span><span>
+</span><span id="line-14"></span><span class="hs-comment">-- = Quick start</span><span>
+</span><span id="line-15"></span><span class="hs-comment">--</span><span>
+</span><span id="line-16"></span><span class="hs-comment">-- Wrap a call to 'withUtf8' around your @main@:</span><span>
+</span><span id="line-17"></span><span class="hs-comment">--</span><span>
+</span><span id="line-18"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-19"></span><span class="hs-comment">-- import Main.Utf8 (withUtf8)</span><span>
+</span><span id="line-20"></span><span class="hs-comment">--</span><span>
+</span><span id="line-21"></span><span class="hs-comment">-- main :: IO ()</span><span>
+</span><span id="line-22"></span><span class="hs-comment">-- main = 'withUtf8' $ do</span><span>
+</span><span id="line-23"></span><span class="hs-comment">--   putStrLn &quot;Hello, &#1084;&#1080;&#1088;!&quot;</span><span>
+</span><span id="line-24"></span><span class="hs-comment">-- @</span><span>
+</span><span id="line-25"></span><span class="hs-comment">--</span><span>
+</span><span id="line-26"></span><span class="hs-comment">-- Basically, this is all you have to do for a program that uses</span><span>
+</span><span id="line-27"></span><span class="hs-comment">-- @stdin@ and @stdout@ to interact with the user. However, some</span><span>
+</span><span id="line-28"></span><span class="hs-comment">-- programs read input from and write output to files and,</span><span>
+</span><span id="line-29"></span><span class="hs-comment">-- at the same time, allow the user to redirect @stdin@ and @stdout@</span><span>
+</span><span id="line-30"></span><span class="hs-comment">-- instead of providing explicit file names.</span><span>
+</span><span id="line-31"></span><span class="hs-comment">--</span><span>
+</span><span id="line-32"></span><span class="hs-comment">-- If this is the case for your executable, you should also wrap</span><span>
+</span><span id="line-33"></span><span class="hs-comment">-- @Utf8.@'System.IO.Utf8.withHandle' around the code that passes</span><span>
+</span><span id="line-34"></span><span class="hs-comment">-- the handle to a third-party library. It is not necessary to do</span><span>
+</span><span id="line-35"></span><span class="hs-comment">-- when passing it to your own library, assuming that it follows</span><span>
+</span><span id="line-36"></span><span class="hs-comment">-- the recommendations from the documentation of &quot;System.IO.Utf8&quot;.</span><span>
+</span><span id="line-37"></span><span class="hs-keyword">module</span><span> </span><span class="hs-identifier">Main.Utf8</span><span>
+</span><span id="line-38"></span><span>  </span><span class="hs-special">(</span><span> </span><span class="annot"><a href="Main.Utf8.html#withUtf8"><span class="hs-identifier">withUtf8</span></a></span><span>
+</span><span id="line-39"></span><span>  </span><span class="hs-special">,</span><span> </span><span class="annot"><a href="Main.Utf8.html#withStdTerminalHandles"><span class="hs-identifier">withStdTerminalHandles</span></a></span><span>
+</span><span id="line-40"></span><span>  </span><span class="hs-special">)</span><span> </span><span class="hs-keyword">where</span><span>
+</span><span id="line-41"></span><span>
+</span><span id="line-42"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Exception.Safe</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">MonadMask</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">bracket</span></span><span class="hs-special">)</span><span>
+</span><span id="line-43"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">Control.Monad.IO.Class</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">MonadIO</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">liftIO</span></span><span class="hs-special">)</span><span>
+</span><span id="line-44"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">GHC.IO.Encoding</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">getLocaleEncoding</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">setLocaleEncoding</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">utf8</span></span><span class="hs-special">)</span><span>
+</span><span id="line-45"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><span class="hs-identifier">System.IO</span></span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier">stderr</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">stdin</span></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier">stdout</span></span><span class="hs-special">)</span><span>
+</span><span id="line-46"></span><span>
+</span><span id="line-47"></span><span class="hs-keyword">import</span><span> </span><span class="annot"><a href="System.IO.Utf8.html"><span class="hs-identifier">System.IO.Utf8</span></a></span><span> </span><span class="hs-special">(</span><span class="annot"><a href="System.IO.Utf8.html#withTerminalHandle"><span class="hs-identifier">withTerminalHandle</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-48"></span><span>
+</span><span id="line-49"></span><span>
+</span><span id="line-50"></span><span class="hs-comment">-- | Make standard handles safe to write anything to them and change</span><span>
+</span><span id="line-51"></span><span class="hs-comment">-- program-global default file handle encoding to UTF-8.</span><span>
+</span><span id="line-52"></span><span class="hs-comment">--</span><span>
+</span><span id="line-53"></span><span class="hs-comment">-- This function will:</span><span>
+</span><span id="line-54"></span><span class="hs-comment">--</span><span>
+</span><span id="line-55"></span><span class="hs-comment">--   1. Adjust the encoding of 'stdin', 'stdout', and 'stderr' to</span><span>
+</span><span id="line-56"></span><span class="hs-comment">--      enable transliteration, like 'withStdTerminalHandles' does.</span><span>
+</span><span id="line-57"></span><span class="hs-comment">--   2. Call 'setLocaleEncoding' to change the program-global locale</span><span>
+</span><span id="line-58"></span><span class="hs-comment">--      encoding to UTF-8.</span><span>
+</span><span id="line-59"></span><span class="hs-comment">--   3. Undo everything when the wrapped action finishes.</span><span>
+</span><span id="line-60"></span><span id="local-6989586621679050282"><span id="local-6989586621679050285"><span class="annot"><a href="Main.Utf8.html#withUtf8"><span class="hs-identifier hs-type">withUtf8</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadIO</span></span><span> </span><span class="annot"><a href="#local-6989586621679050282"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadMask</span></span><span> </span><span class="annot"><a href="#local-6989586621679050282"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679050282"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679050285"><span class="hs-identifier hs-type">r</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679050282"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679050285"><span class="hs-identifier hs-type">r</span></a></span></span></span><span>
+</span><span id="line-61"></span><span id="withUtf8"><span class="annot"><span class="annottext">withUtf8 :: forall (m :: * -&gt; *) r. (MonadIO m, MonadMask m) =&gt; m r -&gt; m r
+</span><a href="Main.Utf8.html#withUtf8"><span class="hs-identifier hs-var hs-var">withUtf8</span></a></span></span><span> </span><span id="local-6989586621679050334"><span class="annot"><span class="annottext">m r
+</span><a href="#local-6989586621679050334"><span class="hs-identifier hs-var">act</span></a></span></span><span> </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">m r -&gt; m r
+forall (m :: * -&gt; *) r. (MonadIO m, MonadMask m) =&gt; m r -&gt; m r
+</span><a href="Main.Utf8.html#withStdTerminalHandles"><span class="hs-identifier hs-var">withStdTerminalHandles</span></a></span><span> </span><span class="annot"><span class="annottext">(m r -&gt; m r) -&gt; m r -&gt; m r
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span>
+</span><span id="line-62"></span><span>  </span><span class="annot"><span class="annottext">m TextEncoding
+-&gt; (TextEncoding -&gt; m ()) -&gt; (TextEncoding -&gt; m r) -&gt; m r
+forall (m :: * -&gt; *) a b c.
+(HasCallStack, MonadMask m) =&gt;
+m a -&gt; (a -&gt; m b) -&gt; (a -&gt; m c) -&gt; m c
+</span><span class="hs-identifier hs-var">bracket</span></span><span>
+</span><span id="line-63"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">IO TextEncoding -&gt; m TextEncoding
+forall a. IO a -&gt; m a
+forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
+</span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">(IO TextEncoding -&gt; m TextEncoding)
+-&gt; IO TextEncoding -&gt; m TextEncoding
+forall a b. (a -&gt; b) -&gt; a -&gt; b
+</span><span class="hs-operator hs-var">$</span></span><span> </span><span class="annot"><span class="annottext">IO TextEncoding
+</span><span class="hs-identifier hs-var">getLocaleEncoding</span></span><span> </span><span class="annot"><span class="annottext">IO TextEncoding -&gt; IO () -&gt; IO TextEncoding
+forall a b. IO a -&gt; IO b -&gt; IO a
+forall (f :: * -&gt; *) a b. Applicative f =&gt; f a -&gt; f b -&gt; f a
+</span><span class="hs-operator hs-var">&lt;*</span></span><span> </span><span class="annot"><span class="annottext">TextEncoding -&gt; IO ()
+</span><span class="hs-identifier hs-var">setLocaleEncoding</span></span><span> </span><span class="annot"><span class="annottext">TextEncoding
+</span><span class="hs-identifier hs-var">utf8</span></span><span class="hs-special">)</span><span>
+</span><span id="line-64"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">IO () -&gt; m ()
+forall a. IO a -&gt; m a
+forall (m :: * -&gt; *) a. MonadIO m =&gt; IO a -&gt; m a
+</span><span class="hs-identifier hs-var">liftIO</span></span><span> </span><span class="annot"><span class="annottext">(IO () -&gt; m ()) -&gt; (TextEncoding -&gt; IO ()) -&gt; TextEncoding -&gt; m ()
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">TextEncoding -&gt; IO ()
+</span><span class="hs-identifier hs-var">setLocaleEncoding</span></span><span class="hs-special">)</span><span>
+</span><span id="line-65"></span><span>    </span><span class="hs-special">(</span><span class="annot"><span class="annottext">m r -&gt; TextEncoding -&gt; m r
+forall a b. a -&gt; b -&gt; a
+</span><span class="hs-identifier hs-var">const</span></span><span> </span><span class="annot"><span class="annottext">m r
+</span><a href="#local-6989586621679050334"><span class="hs-identifier hs-var">act</span></a></span><span class="hs-special">)</span><span>
+</span><span id="line-66"></span><span>
+</span><span id="line-67"></span><span class="hs-comment">-- | Make standard handles safe to write anything to them.</span><span>
+</span><span id="line-68"></span><span class="hs-comment">--</span><span>
+</span><span id="line-69"></span><span class="hs-comment">-- This function will for each of 'stdin', 'stdout', 'stderr' do:</span><span>
+</span><span id="line-70"></span><span class="hs-comment">--</span><span>
+</span><span id="line-71"></span><span class="hs-comment">--   1. Tweak the existing encoding so that unrepresentable characters</span><span>
+</span><span id="line-72"></span><span class="hs-comment">--      will get approximated (aka transliterated) by visually similar</span><span>
+</span><span id="line-73"></span><span class="hs-comment">--      ones or question marks.</span><span>
+</span><span id="line-74"></span><span class="hs-comment">--   2. Restore the original encoding when the wrapped action finishes.</span><span>
+</span><span id="line-75"></span><span class="hs-comment">--</span><span>
+</span><span id="line-76"></span><span class="hs-comment">-- Use this function only if you do not want to change the program-global</span><span>
+</span><span id="line-77"></span><span class="hs-comment">-- locale encoding. Otherwise prefer 'withUtf8'.</span><span>
+</span><span id="line-78"></span><span id="local-6989586621679050338"><span id="local-6989586621679050339"><span class="annot"><a href="Main.Utf8.html#withStdTerminalHandles"><span class="hs-identifier hs-type">withStdTerminalHandles</span></a></span><span> </span><span class="hs-glyph">::</span><span> </span><span class="hs-special">(</span><span class="annot"><span class="hs-identifier hs-type">MonadIO</span></span><span> </span><span class="annot"><a href="#local-6989586621679050338"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">,</span><span> </span><span class="annot"><span class="hs-identifier hs-type">MonadMask</span></span><span> </span><span class="annot"><a href="#local-6989586621679050338"><span class="hs-identifier hs-type">m</span></a></span><span class="hs-special">)</span><span> </span><span class="hs-glyph">=&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679050338"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679050339"><span class="hs-identifier hs-type">r</span></a></span><span> </span><span class="hs-glyph">-&gt;</span><span> </span><span class="annot"><a href="#local-6989586621679050338"><span class="hs-identifier hs-type">m</span></a></span><span> </span><span class="annot"><a href="#local-6989586621679050339"><span class="hs-identifier hs-type">r</span></a></span></span></span><span>
+</span><span id="line-79"></span><span id="withStdTerminalHandles"><span class="annot"><span class="annottext">withStdTerminalHandles :: forall (m :: * -&gt; *) r. (MonadIO m, MonadMask m) =&gt; m r -&gt; m r
+</span><a href="Main.Utf8.html#withStdTerminalHandles"><span class="hs-identifier hs-var hs-var">withStdTerminalHandles</span></a></span></span><span>
+</span><span id="line-80"></span><span>  </span><span class="hs-glyph">=</span><span> </span><span class="annot"><span class="annottext">Handle -&gt; m r -&gt; m r
+forall (m :: * -&gt; *) r.
+(MonadIO m, MonadMask m) =&gt;
+Handle -&gt; m r -&gt; m r
+</span><a href="System.IO.Utf8.html#withTerminalHandle"><span class="hs-identifier hs-var">withTerminalHandle</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><span class="hs-identifier hs-var">stdin</span></span><span>
+</span><span id="line-81"></span><span>  </span><span class="annot"><span class="annottext">(m r -&gt; m r) -&gt; (m r -&gt; m r) -&gt; m r -&gt; m r
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Handle -&gt; m r -&gt; m r
+forall (m :: * -&gt; *) r.
+(MonadIO m, MonadMask m) =&gt;
+Handle -&gt; m r -&gt; m r
+</span><a href="System.IO.Utf8.html#withTerminalHandle"><span class="hs-identifier hs-var">withTerminalHandle</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><span class="hs-identifier hs-var">stdout</span></span><span>
+</span><span id="line-82"></span><span>  </span><span class="annot"><span class="annottext">(m r -&gt; m r) -&gt; (m r -&gt; m r) -&gt; m r -&gt; m r
+forall b c a. (b -&gt; c) -&gt; (a -&gt; b) -&gt; a -&gt; c
+</span><span class="hs-operator hs-var">.</span></span><span> </span><span class="annot"><span class="annottext">Handle -&gt; m r -&gt; m r
+forall (m :: * -&gt; *) r.
+(MonadIO m, MonadMask m) =&gt;
+Handle -&gt; m r -&gt; m r
+</span><a href="System.IO.Utf8.html#withTerminalHandle"><span class="hs-identifier hs-var">withTerminalHandle</span></a></span><span> </span><span class="annot"><span class="annottext">Handle
+</span><span class="hs-identifier hs-var">stderr</span></span><span>
+</span><span id="line-83"></span></pre></body></html>
