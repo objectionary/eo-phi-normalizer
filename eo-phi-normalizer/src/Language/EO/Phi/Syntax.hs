@@ -253,7 +253,7 @@ class SugarableFinally a where
 
 instance SugarableFinally Program where
   sugarFinally :: Program -> Program
-  sugarFinally (Program bindings) = Program (sugarFinally <$> bindings)
+  sugarFinally (Program bindings) = Program (sugarFinally bindings)
 
 pattern SugarBinding :: Bytes -> Binding
 pattern SugarBinding bs <- AlphaBinding' "as-bytes" (Application "Φ.org.eolang.bytes" [AlphaBinding' "α0" (Formation [DeltaBinding bs])])
@@ -275,7 +275,7 @@ instance SugarableFinally Object where
     obj@ConstIntRaw{} -> errorExpectedDesugaredObject obj
     obj@ConstFloat{} -> obj
     obj@ConstFloatRaw{} -> errorExpectedDesugaredObject obj
-    Formation bindings -> Formation (sugarFinally <$> bindings)
+    Formation bindings -> Formation (sugarFinally bindings)
     Application obj bindings -> Application (sugarFinally obj) (sugarFinally (ApplicationBindings bindings)).applicationBindings
     ObjectDispatch obj a -> ObjectDispatch (sugarFinally obj) a
     GlobalObject -> GlobalObject
@@ -299,7 +299,7 @@ instance SugarableFinally ApplicationBindings where
     ApplicationBindings $
       if and (zipWith go [0 ..] bs)
         then (\(~(AlphaBinding _ obj)) -> AlphaBindingSugar (sugarFinally obj)) <$> bs
-        else sugarFinally <$> bs
+        else sugarFinally bs
    where
     go :: Int -> Binding -> Bool
     go idx = \case
@@ -315,8 +315,8 @@ instance SugarableFinally Binding where
     obj@AlphaBinding''{} -> errorExpectedDesugaredBinding obj
     AlphaBinding' a@(Label l) (Formation bs) ->
       case es of
-        ([], _) -> AlphaBinding' a (Formation bs)
-        (es', es'') -> AlphaBinding'' l ((\(~(EmptyBinding e)) -> e) <$> es') (Formation es'')
+        ([], _) -> AlphaBinding' a (sugarFinally (Formation bs))
+        (es', es'') -> AlphaBinding'' l ((\(~(EmptyBinding e)) -> e) <$> es') (sugarFinally (Formation es''))
      where
       es = span (\case EmptyBinding _ -> True; _ -> False) bs
     AlphaBinding a obj -> AlphaBinding a (sugarFinally obj)
