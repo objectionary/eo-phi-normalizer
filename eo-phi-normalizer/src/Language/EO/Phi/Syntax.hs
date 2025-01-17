@@ -24,6 +24,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE QuasiQuotes #-}
@@ -82,6 +83,9 @@ module Language.EO.Phi.Syntax (
   errorExpectedDesugaredObject,
   errorExpectedDesugaredBinding,
   errorExpectedDesugaredAttribute,
+
+  -- * Classes
+  SugarableFinally (..),
 
   -- * Pattern synonyms
   pattern AlphaBinding',
@@ -249,7 +253,7 @@ class SugarableFinally a where
 
 instance SugarableFinally Program where
   sugarFinally :: Program -> Program
-  sugarFinally (Program bindings) = Program (sugarFinally bindings)
+  sugarFinally (Program bindings) = Program (sugarFinally <$> bindings)
 
 pattern SugarBinding :: Bytes -> Binding
 pattern SugarBinding bs <- AlphaBinding' "as-bytes" (Application "Φ.org.eolang.bytes" [AlphaBinding' "α0" (Formation [DeltaBinding bs])])
@@ -272,7 +276,7 @@ instance SugarableFinally Object where
     obj@ConstFloat{} -> obj
     obj@ConstFloatRaw{} -> errorExpectedDesugaredObject obj
     Formation bindings -> Formation (sugarFinally <$> bindings)
-    Application obj bindings -> Application (sugarFinally obj) (sugarFinally bindings)
+    Application obj bindings -> Application (sugarFinally obj) (sugarFinally (ApplicationBindings bindings)).applicationBindings
     ObjectDispatch obj a -> ObjectDispatch (sugarFinally obj) a
     GlobalObject -> GlobalObject
     obj@GlobalObjectPhiOrg -> errorExpectedDesugaredObject obj
@@ -284,17 +288,23 @@ instance SugarableFinally Object where
     MetaTailContext obj metaId -> MetaTailContext (sugarFinally obj) metaId
     MetaFunction name obj -> MetaFunction name (sugarFinally obj)
 
-instance SugarableFinally [Binding] where
-  sugarFinally :: [Binding] -> [Binding]
-  sugarFinally bs =
-    if and (zipWith go [0 ..] bs)
-      then (\(~(AlphaBinding _ obj)) -> AlphaBindingSugar (sugarFinally obj)) <$> bs
-      else sugarFinally <$> bs
+instance (SugarableFinally a) => SugarableFinally [a] where
+  sugarFinally = fmap sugarFinally
+
+newtype ApplicationBindings = ApplicationBindings {applicationBindings :: [Binding]}
+
+instance SugarableFinally ApplicationBindings where
+  sugarFinally :: ApplicationBindings -> ApplicationBindings
+  sugarFinally (ApplicationBindings bs) =
+    ApplicationBindings $
+      if and (zipWith go [0 ..] bs)
+        then (\(~(AlphaBinding _ obj)) -> AlphaBindingSugar (sugarFinally obj)) <$> bs
+        else sugarFinally <$> bs
    where
     go :: Int -> Binding -> Bool
     go idx = \case
       obj@AlphaBindingSugar{} -> errorExpectedDesugaredBinding obj
-      obj@(AlphaBinding''{}) -> errorExpectedDesugaredBinding obj
+      obj@AlphaBinding''{} -> errorExpectedDesugaredBinding obj
       AlphaBinding' (Alpha (AlphaIndex ('α' : idx'))) _ -> idx == read idx'
       _ -> False
 
@@ -302,6 +312,13 @@ instance SugarableFinally Binding where
   sugarFinally :: Binding -> Binding
   sugarFinally = \case
     obj@AlphaBindingSugar{} -> errorExpectedDesugaredBinding obj
+    obj@AlphaBinding''{} -> errorExpectedDesugaredBinding obj
+    AlphaBinding' a@(Label l) (Formation bs) ->
+      case es of
+        ([], _) -> AlphaBinding' a (Formation bs)
+        (es', es'') -> AlphaBinding'' l ((\(~(EmptyBinding e)) -> e) <$> es') (Formation es'')
+     where
+      es = span (\case EmptyBinding _ -> True; _ -> False) bs
     AlphaBinding a obj -> AlphaBinding a (sugarFinally obj)
     x -> x
 
