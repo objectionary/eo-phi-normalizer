@@ -17,7 +17,7 @@ Usage: eo-phi-normalizer dataize [--as-package] [--chain]
                                  [-d|--dependency-file FILE]
                                  [--disable-atom ATOM_NAME]
                                  [--enable-atom ATOM_NAME]
-                                 [--minimize-stuck-terms]
+                                 [--minimize-stuck-terms] [--no-sugar]
                                  [-o|--output-file FILE] [--recursive]
                                  [-r|--rules FILE] [--tex] [--wrap-raw-bytes]
                                  [FILE]
@@ -36,6 +36,7 @@ Available options:
   --minimize-stuck-terms   If a dataized (sub)term is stuck (cannot be fully
                            dataized), use the minimal (by size) intermediate
                            result.
+  --no-sugar               Output desugared expressions.
   -o,--output-file FILE    Output to FILE. When this option is not specified,
                            output to stdout.
   --recursive              Apply dataization + normalization recursively.

@@ -23,7 +23,7 @@ eo-phi-normalizer rewrite --help
 ```console
 Usage: eo-phi-normalizer rewrite [-c|--chain] [-d|--dependency-file FILE]
                                  [-j|--json] [--max-depth INT]
-                                 [--max-growth-factor INT]
+                                 [--max-growth-factor INT] [--no-sugar]
                                  [-o|--output-file FILE] [-r|--rules FILE]
                                  [-s|--single] [-l|--single-line] [--tex] [FILE]
 
@@ -38,6 +38,7 @@ Available options:
   --max-depth INT          Maximum depth of rules application. Defaults to 10.
   --max-growth-factor INT  The factor by which to allow the input term to grow
                            before stopping. Defaults to 10.
+  --no-sugar               Output desugared expressions.
   -o,--output-file FILE    Output to FILE. When this option is not specified,
                            output to stdout.
   -r,--rules FILE          FILE with user-defined rules. If unspecified, builtin
