@@ -12,7 +12,7 @@ homepage:       https://github.com/objectionary/eo-phi-normalizer#readme
 bug-reports:    https://github.com/objectionary/eo-phi-normalizer/issues
 author:         EO/Polystat Development Team
 maintainer:     nickolay.kudasov@gmail.com
-copyright:      2023-2024 EO/Polystat Development Team
+copyright:      2023-2025 EO/Polystat Development Team
 license:        BSD3
 license-file:   LICENSE
 build-type:     Custom
