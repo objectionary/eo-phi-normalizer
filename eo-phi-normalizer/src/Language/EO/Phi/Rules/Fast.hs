@@ -1,7 +1,7 @@
 {- FOURMOLU_DISABLE -}
 -- The MIT License (MIT)
 
--- Copyright (c) 2016-2024 Objectionary.com
+-- Copyright (c) 2016-2025 Objectionary.com
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -36,8 +36,9 @@ import Language.EO.Phi.Syntax
 
 withBinding :: (Context -> Object -> Object) -> Context -> Binding -> Binding
 withBinding f ctx = \case
-  AlphaBinding Rho obj -> AlphaBinding Rho obj -- do not apply f inside ρ-bindings
-  AlphaBinding a obj -> AlphaBinding a (f ctx{currentAttr = a} obj)
+  AlphaBinding' Rho obj -> AlphaBinding' Rho obj -- do not apply f inside ρ-bindings
+  AlphaBinding' a obj -> AlphaBinding' a (f ctx{currentAttr = a} obj)
+  b@AlphaBinding''{} -> errorExpectedDesugaredBinding b
   binding -> binding
 
 isLambdaBinding :: Binding -> Bool
@@ -117,13 +118,13 @@ fastYegorInsideOut ctx = \case
       obj'@(Formation bindings) -> do
         let argBindings' = map (fastYegorInsideOutBinding ctx) argBindings
         case argBindings' of
-          [AlphaBinding (Alpha "α0") arg0, AlphaBinding (Alpha "α1") arg1, AlphaBinding (Alpha "α2") arg2] ->
+          [AlphaBinding' (Alpha "α0") arg0, AlphaBinding' (Alpha "α1") arg1, AlphaBinding' (Alpha "α2") arg2] ->
             case filter isEmptyBinding bindings of
               EmptyBinding a0 : EmptyBinding a1 : EmptyBinding a2 : _ ->
                 Formation
-                  ( AlphaBinding a0 arg0
-                      : AlphaBinding a1 arg1
-                      : AlphaBinding a2 arg2
+                  ( AlphaBinding' a0 arg0
+                      : AlphaBinding' a1 arg1
+                      : AlphaBinding' a2 arg2
                       : [ binding
                         | binding <- bindings
                         , case binding of
@@ -134,12 +135,12 @@ fastYegorInsideOut ctx = \case
               _
                 | not (any isLambdaBinding bindings) -> Termination
                 | otherwise -> Application obj' argBindings'
-          [AlphaBinding (Alpha "α0") arg0, AlphaBinding (Alpha "α1") arg1] ->
+          [AlphaBinding' (Alpha "α0") arg0, AlphaBinding' (Alpha "α1") arg1] ->
             case filter isEmptyBinding bindings of
               EmptyBinding a0 : EmptyBinding a1 : _ ->
                 Formation
-                  ( AlphaBinding a0 arg0
-                      : AlphaBinding a1 arg1
+                  ( AlphaBinding' a0 arg0
+                      : AlphaBinding' a1 arg1
                       : [ binding
                         | binding <- bindings
                         , case binding of
@@ -150,11 +151,11 @@ fastYegorInsideOut ctx = \case
               _
                 | not (any isLambdaBinding bindings) -> Termination
                 | otherwise -> Application obj' argBindings'
-          [AlphaBinding (Alpha "α0") arg0] ->
+          [AlphaBinding' (Alpha "α0") arg0] ->
             case filter isEmptyBinding bindings of
               EmptyBinding a0 : _ ->
                 Formation
-                  ( AlphaBinding a0 arg0
+                  ( AlphaBinding' a0 arg0
                       : [ binding
                         | binding <- bindings
                         , case binding of
@@ -165,10 +166,10 @@ fastYegorInsideOut ctx = \case
               _
                 | not (any isLambdaBinding bindings) -> Termination
                 | otherwise -> Application obj' argBindings'
-          [AlphaBinding a argA]
+          [AlphaBinding' a argA]
             | EmptyBinding a `elem` bindings ->
                 Formation
-                  ( AlphaBinding a argA
+                  ( AlphaBinding' a argA
                       : [ binding
                         | binding <- bindings
                         , case binding of
@@ -199,10 +200,11 @@ fastYegorInsideOut ctx = \case
           | binding <- bindings
           , let binding' =
                   case binding of
-                    AlphaBinding Rho _ -> binding
-                    AlphaBinding a objA -> do
+                    AlphaBinding' Rho _ -> binding
+                    AlphaBinding' a objA -> do
                       let ctx' = (extendContextWith root ctx){insideFormation = True, currentAttr = a}
-                      AlphaBinding a (fastYegorInsideOut ctx' objA)
+                      AlphaBinding' a (fastYegorInsideOut ctx' objA)
+                    b@AlphaBinding''{} -> errorExpectedDesugaredBinding b
                     _ -> binding
           ]
   obj@GlobalObjectPhiOrg -> errorExpectedDesugaredObject obj

@@ -21,23 +21,55 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 {- FOURMOLU_ENABLE -}
+{-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleInstances #-}
-{-# OPTIONS_GHC -Wno-orphans #-}
+{-# LANGUAGE OverloadedRecordDot #-}
+{-# LANGUAGE RecordWildCards #-}
 
-module Language.EO.Test.Yaml where
+module Language.EO.Phi.ParserSpec where
 
-import Control.Monad (forM)
-import Data.List (sort)
-import Language.EO.Phi.Rules.Yaml (RuleSet, parseRuleSetFromFile)
-import System.Directory (listDirectory)
-import System.FilePath ((</>))
+import Control.Monad (forM_)
+import Test.Hspec
 
-fileTests :: FilePath -> IO RuleSet
-fileTests = parseRuleSetFromFile
+import Data.Aeson (FromJSON)
+import Data.Either (isLeft, isRight)
+import Data.Yaml (decodeFileThrow)
+import GHC.Generics (Generic)
+import Language.EO.Phi (parseProgram)
 
-directoryTests :: FilePath -> IO [RuleSet]
-directoryTests dir = do
-  paths <- listDirectory dir
-  forM (sort paths) $ \path ->
-    fileTests (dir </> path)
+data ParserTests = ParserTests
+  { title :: String
+  , tests :: TestTypes
+  }
+  deriving (Generic, FromJSON)
+
+data TestTypes = TestTypes
+  { positive :: [ParserTest]
+  , negative :: [ParserTest]
+  }
+  deriving (Generic, FromJSON)
+
+data ParserTest = ParserTest
+  { title :: String
+  , source :: String
+  , input :: String
+  }
+  deriving (Generic, FromJSON)
+
+spec :: Spec
+spec = do
+  ParserTests{..} <- runIO (decodeFileThrow "test/eo/phi/parser/expressions.yaml")
+  describe title do
+    forM_
+      [ ("Positive", tests.positive, isRight)
+      , ("Negative", tests.negative, isLeft)
+      ]
+      $ \(title', set, check) ->
+        describe title' do
+          forM_ set $ \test -> do
+            let p = parseProgram test.input
+            it test.title do
+              shouldSatisfy p check

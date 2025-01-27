@@ -1,7 +1,7 @@
 {- FOURMOLU_DISABLE -}
 -- The MIT License (MIT)
 
--- Copyright (c) 2016-2024 Objectionary.com
+-- Copyright (c) 2016-2025 Objectionary.com
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -69,7 +69,7 @@ instance Pretty Abs.DoubleSigned where
   pretty (Abs.DoubleSigned i) = pretty i
 
 instance Pretty Abs.StringRaw where
-  pretty (Abs.StringRaw i) = pretty i
+  pretty (Abs.StringRaw i) = pretty (show i)
 
 instance Pretty Abs.Program where
   pretty = \case
@@ -104,7 +104,7 @@ instance Pretty Abs.Object where
     Abs.ThisObject -> pretty "ξ"
     Abs.Termination -> pretty "⊥"
     Abs.ConstStringRaw str -> pretty str
-    Abs.ConstString str -> pretty str
+    Abs.ConstString str -> pretty (show str)
     Abs.ConstIntRaw integersigned -> pretty integersigned
     Abs.ConstFloatRaw doublesigned -> pretty doublesigned
     Abs.MetaSubstThis object1 object2 -> pretty object1 <+> lbracket <+> pretty "ξ ↦" <+> pretty object2 <+> rbracket
@@ -126,6 +126,11 @@ instance Pretty Abs.Binding where
     Abs.MetaBindings bindingsmetaid -> pretty bindingsmetaid
     Abs.MetaDeltaBinding bytesmetaid -> pretty "Δ ⤍" <+> pretty bytesmetaid
 
+instance Pretty Abs.AttributeSugar where
+  pretty = \case
+    Abs.AttributeSugar labelid labelids -> pretty labelid <> lparen <> hsep (punctuate comma (pretty <$> labelids)) <> rparen
+    Abs.AttributeNoSugar attribute -> pretty attribute
+
 instance {-# OVERLAPPING #-} Pretty [Abs.Binding] where
   pretty = vsep . punctuate comma . fmap pretty
 
@@ -136,8 +141,6 @@ instance Pretty Abs.Attribute where
     Abs.Label labelid -> pretty labelid
     Abs.Alpha alphaindex -> pretty alphaindex
     Abs.MetaAttr labelmetaid -> pretty labelmetaid
-    Abs.AttrSugar labelid labelids -> pretty labelid <> lparen <> pretty labelids <> rparen
-    Abs.PhiSugar labelids -> pretty Abs.Phi <> lparen <> pretty labelids <> rparen
 
 instance {-# OVERLAPPING #-} Pretty [Abs.LabelId] where
   pretty = hsep . punctuate comma . fmap pretty

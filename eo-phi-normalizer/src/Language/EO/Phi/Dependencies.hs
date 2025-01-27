@@ -1,7 +1,7 @@
 {- FOURMOLU_DISABLE -}
 -- The MIT License (MIT)
 
--- Copyright (c) 2016-2024 Objectionary.com
+-- Copyright (c) 2016-2025 Objectionary.com
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -30,7 +30,8 @@ import Language.EO.Phi
 import Control.Monad (foldM)
 
 bindingAttr :: Binding -> Maybe Attribute
-bindingAttr (AlphaBinding a _) = Just a
+bindingAttr (AlphaBinding' a _) = Just a
+bindingAttr b@(AlphaBinding _ _) = errorExpectedDesugaredBinding b
 bindingAttr (EmptyBinding a) = Just a
 bindingAttr (DeltaBinding _) = Just (Alpha (AlphaIndex "Δ"))
 bindingAttr DeltaEmptyBinding = Just (Alpha (AlphaIndex "Δ"))

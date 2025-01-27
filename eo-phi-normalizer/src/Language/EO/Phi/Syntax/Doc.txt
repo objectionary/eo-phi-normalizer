@@ -44,38 +44,38 @@ Bytes literals are recognized by the regular expression
 
 Function literals are recognized by the regular expression
 `````upper (char - ["
- !'(),-.:;?[]{|}⟦⟧"])*`````
+ !'(),-.:;?[]{|}↦⟦⟧"])*`````
 
 LabelId literals are recognized by the regular expression
 `````lower (char - ["
- !'(),.:;?[]{|}⟦⟧"])*`````
+ !'(),.:;?[]{|}↦⟦⟧"])*`````
 
 AlphaIndex literals are recognized by the regular expression
 `````{"α0"} | 'α' (digit - '0') digit*`````
 
 LabelMetaId literals are recognized by the regular expression
 `````{"!τ"} (char - ["
- !'(),-.:;?[]{|}⟦⟧"])*`````
+ !'(),-.:;?[]{|}↦⟦⟧"])*`````
 
 TailMetaId literals are recognized by the regular expression
 `````{"!t"} (char - ["
- !'(),-.:;?[]{|}⟦⟧"])*`````
+ !'(),-.:;?[]{|}↦⟦⟧"])*`````
 
 BindingsMetaId literals are recognized by the regular expression
 `````{"!B"} (char - ["
- !'(),-.:;?[]{|}⟦⟧"])*`````
+ !'(),-.:;?[]{|}↦⟦⟧"])*`````
 
 ObjectMetaId literals are recognized by the regular expression
 `````{"!b"} (char - ["
- !'(),-.:;?[]{|}⟦⟧"])*`````
+ !'(),-.:;?[]{|}↦⟦⟧"])*`````
 
 BytesMetaId literals are recognized by the regular expression
 `````{"!y"} (char - ["
- !'(),-.:;?[]{|}⟦⟧"])*`````
+ !'(),-.:;?[]{|}↦⟦⟧"])*`````
 
 MetaFunctionName literals are recognized by the regular expression
 `````'@' (char - ["
- !'(),-.:;?[]{|}⟦⟧"])*`````
+ !'(),-.:;?[]{|}↦⟦⟧"])*`````
 
 IntegerSigned literals are recognized by the regular expression
 `````'-'? digit+`````
@@ -99,7 +99,7 @@ The symbols used in Syntax are the following:
   | ( | ) | . | Φ̇
   | ⊥ | [ | ↦ | ]
   | ⌈ | , | ⌉ | *
-  | ∅ | ⤍ | ~ |
+  | ∅ | ⤍ | # | ~
 
 ===Comments===
 Single-line comments begin with //.Multiple-line comments are  enclosed with /* and */.
@@ -131,7 +131,7 @@ All other symbols are terminals.
   |  |  **|**  | //ObjectMetaId//
   |  |  **|**  | //Object// ``*`` //TailMetaId//
   |  |  **|**  | //MetaFunctionName// ``(`` //Object// ``)``
-  | //Binding// | -> | //Attribute// ``↦`` //Object//
+  | //Binding// | -> | //AttributeSugar// ``↦`` //Object//
   |  |  **|**  | //Object//
   |  |  **|**  | //Attribute// ``↦`` ``∅``
   |  |  **|**  | ``Δ`` ``⤍`` //Bytes//
@@ -142,16 +142,16 @@ All other symbols are terminals.
   | //[Binding]// | -> | **eps**
   |  |  **|**  | //Binding//
   |  |  **|**  | //Binding// ``,`` //[Binding]//
+  | //AttributeSugar// | -> | ``#`` //Attribute//
+  |  |  **|**  | ``~`` //LabelId// ``(`` //[Attribute]// ``)``
+  | //[Attribute]// | -> | **eps**
+  |  |  **|**  | //Attribute//
+  |  |  **|**  | //Attribute// ``,`` //[Attribute]//
   | //Attribute// | -> | ``φ``
-  |  |  **|**  | ``~`` ``φ`` ``(`` //[LabelId]// ``)``
   |  |  **|**  | ``ρ``
   |  |  **|**  | //LabelId//
   |  |  **|**  | //AlphaIndex//
   |  |  **|**  | //LabelMetaId//
-  |  |  **|**  | ``~`` //LabelId// ``(`` //[LabelId]// ``)``
-  | //[LabelId]// | -> | **eps**
-  |  |  **|**  | //LabelId//
-  |  |  **|**  | //LabelId// ``,`` //[LabelId]//
   | //RuleAttribute// | -> | //Attribute//
   |  |  **|**  | ``Δ``
   |  |  **|**  | ``λ``

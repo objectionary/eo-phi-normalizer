@@ -1,7 +1,7 @@
 {- FOURMOLU_DISABLE -}
 -- The MIT License (MIT)
 
--- Copyright (c) 2016-2024 Objectionary.com
+-- Copyright (c) 2016-2025 Objectionary.com
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -163,11 +163,11 @@ knownAtomsList =
          where
           isPackage (LambdaBinding (Function "Package")) = True
           isPackage _ = False
-          dataizeBindingChain (AlphaBinding attr o) = do
+          dataizeBindingChain (AlphaBinding' attr o) = do
             ctx <- getContext
             let extendedContext = (extendContextWith obj ctx){currentAttr = attr}
             dataizationResult <- incLogLevel $ withContext extendedContext $ dataizeRecursivelyChain False o
-            return (AlphaBinding attr (either id (Formation . singleton . DeltaBinding) dataizationResult))
+            return (AlphaBinding' attr (either id (Formation . singleton . DeltaBinding) dataizationResult))
           dataizeBindingChain b = return b
         f name _otherwise = evaluateBuiltinFunChainUnknown name _otherwise
        in

@@ -1,7 +1,7 @@
 {- FOURMOLU_DISABLE -}
 -- The MIT License (MIT)
 
--- Copyright (c) 2016-2024 Objectionary.com
+-- Copyright (c) 2016-2025 Objectionary.com
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GeneralisedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
 {-# OPTIONS_GHC -Wno-unrecognised-pragmas #-}
@@ -40,7 +41,22 @@ import Data.HashMap.Strict qualified as HashMap
 import Data.List (minimumBy, nubBy, sortOn)
 import Data.List.NonEmpty (NonEmpty (..), (<|))
 import Data.Ord (comparing)
-import Language.EO.Phi.Syntax
+import Language.EO.Phi.Syntax (
+  Attribute (..),
+  Binding (..),
+  BindingsMetaId (BindingsMetaId),
+  Bytes,
+  LabelId (LabelId),
+  LabelMetaId (LabelMetaId),
+  Object (..),
+  Program (..),
+  desugar,
+  errorExpectedDesugaredBinding,
+  errorExpectedDesugaredObject,
+  printTree,
+  pattern AlphaBinding',
+  pattern AlphaBinding'',
+ )
 
 -- $setup
 -- >>> :set -XOverloadedStrings
@@ -145,7 +161,7 @@ propagateName2 f (name, obj) bs = (name, f obj bs)
 
 withSubObjectBindings :: (Context -> Object -> [(String, Object)]) -> Context -> [Binding] -> [(String, [Binding])]
 withSubObjectBindings _ _ [] = []
-withSubObjectBindings f ctx (b@(AlphaBinding Rho _) : bs) =
+withSubObjectBindings f ctx (b@(AlphaBinding' Rho _) : bs) =
   -- do not apply rules inside ρ-bindings
   [(name, b : bs') | (name, bs') <- withSubObjectBindings f ctx bs]
 withSubObjectBindings f ctx (b : bs) =
@@ -156,7 +172,8 @@ withSubObjectBindings f ctx (b : bs) =
 
 withSubObjectBinding :: (Context -> Object -> [(String, Object)]) -> Context -> Binding -> [(String, Binding)]
 withSubObjectBinding f ctx = \case
-  AlphaBinding a obj -> propagateName1 (AlphaBinding a) <$> withSubObject f (ctx{currentAttr = a}) obj
+  AlphaBinding' a obj -> propagateName1 (AlphaBinding' a) <$> withSubObject f (ctx{currentAttr = a}) obj
+  b@AlphaBinding{} -> errorExpectedDesugaredBinding b
   b@AlphaBindingSugar{} -> errorExpectedDesugaredBinding b
   EmptyBinding{} -> []
   DeltaBinding{} -> []
@@ -258,7 +275,8 @@ equalObjectNamed x y = snd x `equalObject` snd y
 equalBindings :: [Binding] -> [Binding] -> Bool
 equalBindings bindings1 bindings2 = and (zipWith equalBinding (sortOn attr bindings1) (sortOn attr bindings2))
  where
-  attr (AlphaBinding a _) = a
+  attr (AlphaBinding' a _) = a
+  attr b@(AlphaBinding''{}) = errorExpectedDesugaredBinding b
   attr (EmptyBinding a) = a
   attr (DeltaBinding _) = Label (LabelId "Δ")
   attr DeltaEmptyBinding = Label (LabelId "Δ")
@@ -396,9 +414,10 @@ applyRulesChainWith limits@ApplicationLimits{..} obj
 -- | Lookup a binding by the attribute name.
 lookupBinding :: Attribute -> [Binding] -> Maybe Object
 lookupBinding _ [] = Nothing
-lookupBinding a (AlphaBinding a' object : bindings)
+lookupBinding a (AlphaBinding' a' object : bindings)
   | a == a' = Just object
   | otherwise = lookupBinding a bindings
+lookupBinding _ (b@(AlphaBinding''{}) : _) = errorExpectedDesugaredBinding b
 lookupBinding a (_ : bindings) = lookupBinding a bindings
 
 objectBindings :: Object -> [Binding]
@@ -408,7 +427,7 @@ objectBindings (ObjectDispatch obj _attr) = objectBindings obj
 objectBindings _ = []
 
 isRhoBinding :: Binding -> Bool
-isRhoBinding (AlphaBinding Rho _) = True
+isRhoBinding (AlphaBinding' Rho _) = True
 isRhoBinding _ = False
 
 hideRhoInBinding :: Binding -> Binding

@@ -1,0 +1,196 @@
+# The MIT License (MIT)
+
+# Copyright (c) 2016-2025 Objectionary.com
+
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+
+# The above copyright notice and this permission notice shall be included
+# in all copies or substantial portions of the Software.
+
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+title: Parser tests
+tests:
+  positive:
+    - title: all-the-basics
+      source: https://github.com/objectionary/eo/blob/master/eo-parser/src/test/resources/org/eolang/parser/phi-syntax/all-the-basics.phi
+      input: |
+        {⟦
+          k ↦ ⟦
+            x ↦ ξ.t (z ↦ ξ.f) . the-атрибут (p ↦ ξ.ρ.ρ.ρ.f, t ↦ ξ.ρ),
+            t ↦ ∅,
+            Δ ⤍ 42-41-40
+          ⟧.thank.you (z ↦ ξ.f) . very (z ↦ ξ.f) . much (z ↦ ξ.f),
+          self ↦ ξ,
+          φ ↦ ξ.φ,
+          copy_Of_Self ↦ ξ(z ↦ ξ.f),
+          error-on-purpose ↦ ⊥,
+          the-атрибут ↦ Φ.ρ,
+          hi-大家 ↦ ⟦ ⟧,
+          α0 ↦ Φ () () (),
+          α65536 ↦ Φ.r,
+          k ↦ ⟦ λ ⤍ Function_Name_i64, α0 ↦ ⟦ λ ⤍ FunctionName, Δ ⤍ 42- ⟧ ⟧,
+          terminator-application ↦ ⊥ (t ↦ ξ.t),
+          terminator-dispatch ↦ ⊥.t,
+          string ↦ "Hello",
+          int ↦ 42,
+          float ↦ 12.3,
+          float-with-exponent ↦ 0.36e-10,
+          string-dot ↦ "Hello".print,
+          string-application ↦ "Hello"(z ↦ ξ.f),
+          int-dot ↦ 42.plus,
+          int-application ↦ 42(z ↦ ξ.f),
+          float-dot ↦ 52.1.print,
+          float-application ↦ 52.1(z ↦ ξ.f, k ↦ ξ.i),
+          minus ↦ -0,
+          inline-application ↦ Φ.x(
+            "Hello", 42, Φ.y("world", 11.plus(12)), 42.5
+          ),
+          default-package ↦ Φ̇.number(42),
+          inline-voids(text, α0, φ) ↦ ⟦ ⟧,
+          empty-inline-voids() ↦ ⟦
+            num ↦ 42
+          ⟧,
+          with-void-phi-sweet(φ) ↦ ⟦⟧,
+          with-void-phi-salty ↦ ⟦ φ ↦ ∅ ⟧
+        ⟧}
+    - title: alpha-twice
+      source: https://github.com/objectionary/eo/blob/master/eo-parser/src/test/resources/org/eolang/parser/phi-syntax/alpha-twice.phi
+      input: |
+        {⟦ k ↦ ⟦ α2 ↦ ξ.k, α2 ↦ ξ.t ⟧ ⟧}
+    - title: delta-twice
+      source: https://github.com/objectionary/eo/blob/master/eo-parser/src/test/resources/org/eolang/parser/phi-syntax/delta-twice.phi
+      input: |
+        {⟦ k ↦ ⟦ Δ ⤍ 42-, Δ ⤍ 55- ⟧ ⟧}
+    - title: inline-voids
+      source: https://github.com/objectionary/eo/blob/master/eo-parser/src/test/resources/org/eolang/parser/phi-syntax/inline-voids.phi
+      input: |
+        {⟦ k(text, α2, φ) ↦ ⟦ ⟧⟧}
+    - title: lambda-twice
+      source: https://github.com/objectionary/eo/blob/master/eo-parser/src/test/resources/org/eolang/parser/phi-syntax/lambda-twice.phi
+      input: |
+        {⟦ k ↦ ⟦ λ ⤍ Foo, λ ⤍ Bar ⟧ ⟧}
+    - title: lambda-twice
+      source: https://github.com/objectionary/eo/blob/master/eo-parser/src/test/resources/org/eolang/parser/phi-syntax/primitive.phi
+      input: |
+        {⟦ k ↦ ⟦ Δ ⤍ 42- ⟧ ⟧}
+  negative:
+    - title: Phi-as-attribute
+      source: https://github.com/objectionary/eo/tree/master/eo-parser/src/test/resources/org/eolang/parser/phi-typos/Phi-as-attribute.phi
+      input: |
+        {⟦ k ↦ ξ.a.Φ.t ⟧}
+    - title: Phi-in-path
+      source: https://github.com/objectionary/eo/tree/master/eo-parser/src/test/resources/org/eolang/parser/phi-typos/Phi-in-path.phi
+      input: |
+        {⟦ k ↦ ξ.a.Φ.t ⟧}
+    - title: alpha-without-index
+      source: https://github.com/objectionary/eo/tree/master/eo-parser/src/test/resources/org/eolang/parser/phi-typos/alpha-without-index.phi
+      input: |
+        {⟦ k ↦ ξ.α.t ⟧}
+    - title: application-to-data
+      source: https://github.com/objectionary/eo/tree/master/eo-parser/src/test/resources/org/eolang/parser/phi-typos/application-to-data.phi
+      input: |
+        {⟦ k ↦ ⟦ Δ ⤍ 42-40 (t ↦ ξ.t) ⟧ ⟧}
+    - title: application-to-formation
+      source: https://github.com/objectionary/eo/tree/master/eo-parser/src/test/resources/org/eolang/parser/phi-typos/application-to-formation.phi
+      input: |
+        {⟦ k ↦ ⟦ ⟧ (t ↦ ξ.t) ⟧}
+    - title: application-to-void
+      source: https://github.com/objectionary/eo/tree/master/eo-parser/src/test/resources/org/eolang/parser/phi-typos/application-to-void.phi
+      input: |
+        {⟦ k ↦ ∅ (t ↦ ξ.t) ⟧}
+    - title: bytes-without-trailing-dash
+      source: https://github.com/objectionary/eo/tree/master/eo-parser/src/test/resources/org/eolang/parser/phi-typos/bytes-without-trailing-dash.phi
+      input: |
+        {⟦ Δ ⤍ 42 ⟧}
+    - title: delta-in-application
+      source: https://github.com/objectionary/eo/tree/master/eo-parser/src/test/resources/org/eolang/parser/phi-typos/delta-in-application.phi
+      input: |
+        {⟦ k ↦ ξ.t (Δ ⤍ 42-) ⟧}
+    - title: delta-in-path
+      source: https://github.com/objectionary/eo/tree/master/eo-parser/src/test/resources/org/eolang/parser/phi-typos/delta-in-path.phi
+      input: |
+        {⟦ k ↦ ξ.a.Δ.c ⟧}
+    - title: dot-to-data
+      source: https://github.com/objectionary/eo/tree/master/eo-parser/src/test/resources/org/eolang/parser/phi-typos/dot-to-data.phi
+      input: |
+        {⟦ k ↦ ⟦ Δ ⤍ 42-40.t ⟧ ⟧}
+    - title: inline-voids-on-application
+      source: https://github.com/objectionary/eo/tree/master/eo-parser/src/test/resources/org/eolang/parser/phi-typos/inline-voids-on-application.phi
+      input: |
+        {⟦ k() ↦ ⟦ ⟧() ⟧}
+    - title: inline-voids-on-dispatch
+      source: https://github.com/objectionary/eo/tree/master/eo-parser/src/test/resources/org/eolang/parser/phi-typos/inline-voids-on-dispatch.phi
+      input: |
+        {⟦ k() ↦ ⟦ ⟧.x ⟧}
+    - title: invalid-arrow
+      source: https://github.com/objectionary/eo/tree/master/eo-parser/src/test/resources/org/eolang/parser/phi-typos/invalid-arrow.phi
+      input: |
+        {⟦ k ↦ ⟦ x ⤍ ∅ ⟧ ⟧}
+    - title: lambda-at-start
+      source: https://github.com/objectionary/eo/tree/master/eo-parser/src/test/resources/org/eolang/parser/phi-typos/lambda-at-start.phi
+      input: |
+        {⟦ k ↦ λ.t ⟧}
+    - title: lambda-in-application
+      source: https://github.com/objectionary/eo/tree/master/eo-parser/src/test/resources/org/eolang/parser/phi-typos/lambda-in-application.phi
+      input: |
+        {⟦ k ↦ ξ.t (λ ⤍ Fn) ⟧}
+    - title: lambda-in-path
+      source: https://github.com/objectionary/eo/tree/master/eo-parser/src/test/resources/org/eolang/parser/phi-typos/lambda-in-path.phi
+      input: |
+        {⟦ k ↦ ξ.a.b.λ.c ⟧}
+    - title: no-xi-at-start
+      source: https://github.com/objectionary/eo/tree/master/eo-parser/src/test/resources/org/eolang/parser/phi-typos/no-xi-at-start.phi
+      input: |
+        {⟦ k ↦ a.b.c ⟧}
+    - title: phi-at-start
+      source: https://github.com/objectionary/eo/tree/master/eo-parser/src/test/resources/org/eolang/parser/phi-typos/phi-at-start.phi
+      input: |
+        {⟦ k ↦ φ.c ⟧}
+    - title: rho-at-start
+      source: https://github.com/objectionary/eo/tree/master/eo-parser/src/test/resources/org/eolang/parser/phi-typos/rho-at-start.phi
+      input: |
+        {⟦ k ↦ ρ.c ⟧}
+    - title: tau-as-name
+      source: https://github.com/objectionary/eo/tree/master/eo-parser/src/test/resources/org/eolang/parser/phi-typos/tau-as-name.phi
+      input: |
+        {⟦ τ ↦ ξ.t ⟧}
+    - title: terminator-in-path
+      source: https://github.com/objectionary/eo/tree/master/eo-parser/src/test/resources/org/eolang/parser/phi-typos/terminator-in-path.phi
+      input: |
+        {⟦ k ↦ ξ.a.⊥.t ⟧}
+    - title: void-as-value
+      source: https://github.com/objectionary/eo/tree/master/eo-parser/src/test/resources/org/eolang/parser/phi-typos/void-as-value.phi
+      input: |
+        {⟦ k ↦ ξ.t (t ↦ ∅) ⟧}
+    - title: void-in-path
+      source: https://github.com/objectionary/eo/tree/master/eo-parser/src/test/resources/org/eolang/parser/phi-typos/void-in-path.phi
+      input: |
+        {⟦ k ↦ ξ.a.b.∅.c ⟧}
+    - title: wrong-attribute-name
+      source: https://github.com/objectionary/eo/tree/master/eo-parser/src/test/resources/org/eolang/parser/phi-typos/wrong-attribute-name.phi
+      input: |
+        {⟦ k ↦ ⟦ NotGoodName ↦ ∅ ⟧ ⟧}
+    - title: wrong-function-name
+      source: https://github.com/objectionary/eo/tree/master/eo-parser/src/test/resources/org/eolang/parser/phi-typos/wrong-function-name.phi
+      input: |
+        {⟦ k ↦ ⟦ λ ⤍ bad-function-name ⟧ ⟧}
+    - title: xi-as-name
+      source: https://github.com/objectionary/eo/tree/master/eo-parser/src/test/resources/org/eolang/parser/phi-typos/xi-as-name.phi
+      input: |
+        {⟦ ξ ↦ ξ.t ⟧}
+    - title: xi-in-path
+      source: https://github.com/objectionary/eo/tree/master/eo-parser/src/test/resources/org/eolang/parser/phi-typos/xi-in-path.phi
+      input: |
+        {⟦ k ↦ ξ.ξ.ξ.t ⟧}

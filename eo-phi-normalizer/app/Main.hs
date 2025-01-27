@@ -1,7 +1,7 @@
 {- FOURMOLU_DISABLE -}
 -- The MIT License (MIT)
 
--- Copyright (c) 2016-2024 Objectionary.com
+-- Copyright (c) 2016-2025 Objectionary.com
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -83,12 +83,13 @@ import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), Cont
 import Language.EO.Phi.Rules.Fast (fastYegorInsideOut, fastYegorInsideOutAsRule)
 import Language.EO.Phi.Rules.RunYegor (yegorRuleSet)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRuleNamed, parseRuleSetFromFile)
-import Language.EO.Phi.Syntax (desugar, errorExpectedDesugaredObject, wrapBytesInBytes, wrapTermination)
+import Language.EO.Phi.Syntax (SugarableFinally, desugar, errorExpectedDesugaredObject, printTreeDontSugar, wrapBytesInBytes, wrapTermination)
 import Language.EO.Phi.ToLaTeX
 import Language.EO.Test.YamlSpec (spec)
 import Options.Applicative hiding (metavar)
 import Options.Applicative qualified as Optparse (metavar)
 import Paths_eo_phi_normalizer (version)
+import Prettyprinter (Pretty)
 import PyF (fmt, fmtTrim)
 import System.Directory (createDirectoryIfMissing, doesFileExist)
 import System.FilePath (takeDirectory)
@@ -107,6 +108,7 @@ data CLI'RewritePhi = CLI'RewritePhi
   , dependencies :: [FilePath]
   , maxDepth :: Int
   , maxGrowthFactor :: Int
+  , noSugar :: Bool
   }
   deriving stock (Show)
 
@@ -123,6 +125,7 @@ data CLI'DataizePhi = CLI'DataizePhi
   , wrapRawBytes :: Bool
   , disabledAtomNames :: [String]
   , enabledAtomNames :: [String]
+  , noSugar :: Bool
   }
   deriving stock (Show)
 
@@ -243,6 +246,9 @@ asPackageSwitch = switch (long "as-package" <> help "Automatically inject (Î» â†
 minimizeStuckTermsSwitch :: Parser Bool
 minimizeStuckTermsSwitch = switch (long "minimize-stuck-terms" <> help "If a dataized (sub)term is stuck (cannot be fully dataized), use the minimal (by size) intermediate result.")
 
+noSugarSwitch :: Parser Bool
+noSugarSwitch = switch (long "no-sugar" <> help [fmt|Output desugared expressions.|])
+
 bindingsPathOption :: Parser (Maybe String)
 bindingsPathOption =
   optional $
@@ -302,6 +308,7 @@ commandParser =
     maxGrowthFactor <-
       let maxValue = 10
        in option auto (long "max-growth-factor" <> metavar.int <> value maxValue <> help [fmt|The factor by which to allow the input term to grow before stopping. Defaults to {maxValue}.|])
+    noSugar <- noSugarSwitch
     outputFile <- outputFileOption
     rulesPath <- optional $ strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. If unspecified, builtin set of rules is used.|])
     let singleFlag :: String
@@ -318,6 +325,7 @@ commandParser =
     disabledAtomNames <- many $ strOption (long "disable-atom" <> metavar.atomName <> help "Name of an atom to disable.")
     enabledAtomNames <- many $ strOption (long "enable-atom" <> metavar.atomName <> help "Name of an atom to enable.")
     minimizeStuckTerms <- minimizeStuckTermsSwitch
+    noSugar <- noSugarSwitch
     outputFile <- outputFileOption
     recursive <- switch (long "recursive" <> help "Apply dataization + normalization recursively.")
     rulesPath <- optional $ strOption (long "rules" <> short 'r' <> metavar.file <> help [fmt|{metavarName.file} with user-defined rules. If unspecified, builtin set of rules is used.|])
@@ -466,7 +474,7 @@ instance Show CLI'Exception where
     CouldNotParse{..} -> [fmt|An error occurred when parsing the input program:\n{message}|]
     CouldNotNormalize -> [fmt|Could not normalize the program.|]
     CouldNotMergeDependencies{..} -> message
-    Impossible{..} -> message
+    Impossible{..} -> [fmt|Impossible happened:\n{message}|]
 
 getFile :: Maybe FilePath -> IO (Maybe String)
 getFile = \case
@@ -575,14 +583,19 @@ wrapRawBytesIn = \case
   obj@ConstFloat{} -> wrapRawBytesIn (desugar obj)
   obj@ConstFloatRaw{} -> errorExpectedDesugaredObject obj
 
+printSugarable :: (Pretty a, SugarableFinally a) => Bool -> a -> String
+printSugarable noSugar = if noSugar then printTreeDontSugar else printTree
+
+printAsProgramOrAsObject :: Bool -> Object -> String
+printAsProgramOrAsObject noSugar = \case
+  Formation bindings' -> printSugarable noSugar $ Program bindings'
+  x -> printSugarable noSugar x
+
 -- * Main
 
 main :: IO ()
 main = withCorrectLocale do
   opts <- customExecParser pprefs (cliOpts (showVersion version))
-  let printAsProgramOrAsObject = \case
-        Formation bindings' -> printTree $ Program bindings'
-        x -> printTree x
   case opts of
     CLI'MetricsPhi' CLI'MetricsPhi{..} -> do
       (logStrLn, _) <- getLoggers outputFile
@@ -641,23 +654,27 @@ main = withCorrectLocale do
             logStrLn [fmtTrim|{phiExpr}|]
             logStrLn "\\end{phiquation*}"
       when (null uniqueResults || null (head uniqueResults)) (throwIO CouldNotNormalize)
+      let printAsProgramOrAsObject' :: Object -> String
+          printAsProgramOrAsObject' = printAsProgramOrAsObject noSugar
+          printSugarable' :: (Pretty a, SugarableFinally a) => a -> String
+          printSugarable' = printSugarable noSugar
       if
         | single && json ->
             logStrLn
               . encodeToJSONString
-              . printAsProgramOrAsObject
+              . printAsProgramOrAsObject'
               $ logEntryLog (head (head uniqueResults))
         | single -> do
             let removeExtraSpaces = unwords . words
             logStrLn
               . (if singleLine then removeExtraSpaces else id)
-              . printAsProgramOrAsObject
+              . printAsProgramOrAsObject'
               $ logEntryLog (head (head uniqueResults))
         | json ->
             logStrLn . encodeToJSONString $
               StructuredJSON
-                { input = printTree program'
-                , output = (logEntryToPair . fmap printAsProgramOrAsObject <$>) <$> uniqueResults
+                { input = printSugarable' program'
+                , output = (logEntryToPair . fmap printAsProgramOrAsObject' <$>) <$> uniqueResults
                 }
         | chain && latex -> inLatexDocument $ do
             forM_ (zip [1 ..] uniqueResults) $ \(index, steps) -> do
@@ -684,7 +701,7 @@ main = withCorrectLocale do
                   logEntryLog (head (head uniqueResults))
         | otherwise -> do
             logStrLn "Input:"
-            logStrLn (printTree program')
+            logStrLn (printSugarable' program')
             logStrLn "===================================================="
             forM_ (zip [1 ..] uniqueResults) $ \(index, steps) -> do
               logStrLn $
@@ -693,7 +710,7 @@ main = withCorrectLocale do
               forM_ (zip [1 ..] steps) $ \(k, LogEntry{..}) -> do
                 when chain $
                   logStr ("[ " <> show k <> " / " <> show n <> " ] " <> logEntryMessage <> ": ")
-                logStrLn . printAsProgramOrAsObject $ logEntryLog
+                logStrLn . printAsProgramOrAsObject' $ logEntryLog
               logStrLn "----------------------------------------------------"
     CLI'DataizePhi' CLI'DataizePhi{..} -> do
       (logStrLn, _logStr) <- getLoggers outputFile
@@ -730,6 +747,10 @@ main = withCorrectLocale do
               , enabledAtoms = mkEnabledAtoms enabledAtomNames disabledAtomNames
               , knownAtoms = knownAtomsMap
               }
+      let printAsProgramOrAsObject' :: Object -> String
+          printAsProgramOrAsObject' = printAsProgramOrAsObject noSugar
+          printSugarable' :: (Pretty a, SugarableFinally a) => a -> String
+          printSugarable' = printSugarable noSugar
       if chain
         then do
           let dataizeChain
@@ -748,7 +769,7 @@ main = withCorrectLocale do
             else do
               forM_ (fst (dataizeChain ctx inputObject)) $ \LogEntry{..} ->
                 case logEntryLog of
-                  Left obj -> logStrLn (replicate logEntryLevel ' ' ++ logEntryMessage ++ ": " ++ printTree obj)
+                  Left obj -> logStrLn (replicate logEntryLevel ' ' ++ logEntryMessage ++ ": " ++ printSugarable' obj)
                   Right (Bytes bytes) -> logStrLn (replicate logEntryLevel ' ' ++ logEntryMessage ++ ": " ++ bytes)
         else do
           let dataize
@@ -763,7 +784,7 @@ main = withCorrectLocale do
                   obj''
                     | wrapRawBytes = wrapRawBytesIn obj'
                     | otherwise = obj'
-               in logStrLn (printAsProgramOrAsObject obj'')
+               in logStrLn (printAsProgramOrAsObject' obj'')
             Right (Bytes bytes) -> logStrLn bytes
     CLI'Pipeline' (CLI'Pipeline'Report' CLI'Pipeline'Report{..}) -> do
       pipelineConfig <- readPipelineConfig configFile

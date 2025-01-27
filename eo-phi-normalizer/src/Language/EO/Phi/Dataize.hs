@@ -1,7 +1,7 @@
 {- FOURMOLU_DISABLE -}
 -- The MIT License (MIT)
 
--- Copyright (c) 2016-2024 Objectionary.com
+-- Copyright (c) 2016-2025 Objectionary.com
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -108,7 +108,7 @@ dataizeStepChain mode obj@(Formation bs)
               ctx <- getContext
               return (ctx, AsObject obj')
   | DataizeAll <- mode
-  , Just (AlphaBinding Phi decoratee) <- listToMaybe [b | b@(AlphaBinding Phi _) <- bs]
+  , Just (AlphaBinding' Phi decoratee) <- listToMaybe [b | b@(AlphaBinding' Phi _) <- bs]
   , not hasEmpty = do
       let decoratee' = substThis obj decoratee
       logStep "Dataizing inside phi" (AsObject decoratee')

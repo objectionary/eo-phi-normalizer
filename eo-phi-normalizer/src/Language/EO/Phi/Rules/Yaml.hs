@@ -1,7 +1,7 @@
 {- FOURMOLU_DISABLE -}
 -- The MIT License (MIT)
 
--- Copyright (c) 2016-2024 Objectionary.com
+-- Copyright (c) 2016-2025 Objectionary.com
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -248,7 +248,8 @@ objectLabelIds = \case
 
 bindingLabelIds :: Binding -> Set LabelId
 bindingLabelIds = \case
-  AlphaBinding a obj -> objectLabelIds obj <> attrLabelIds a
+  AlphaBinding' a obj -> objectLabelIds obj <> attrLabelIds a
+  b@AlphaBinding{} -> errorExpectedDesugaredBinding b
   DeltaBinding _bytes -> mempty
   EmptyBinding a -> attrLabelIds a
   DeltaEmptyBinding -> mempty
@@ -299,7 +300,8 @@ objectMetaIds obj@ConstFloat{} = objectMetaIds (desugar obj)
 objectMetaIds obj@ConstFloatRaw{} = errorExpectedDesugaredObject obj
 
 bindingMetaIds :: Binding -> Set MetaId
-bindingMetaIds (AlphaBinding attr obj) = attrMetaIds attr <> objectMetaIds obj
+bindingMetaIds (AlphaBinding' attr obj) = attrMetaIds attr <> objectMetaIds obj
+bindingMetaIds b@AlphaBinding{} = errorExpectedDesugaredBinding b
 bindingMetaIds (EmptyBinding attr) = attrMetaIds attr
 bindingMetaIds (DeltaBinding _) = mempty
 bindingMetaIds DeltaEmptyBinding = mempty
@@ -314,8 +316,6 @@ attrMetaIds Rho = mempty
 attrMetaIds (Label _) = mempty
 attrMetaIds (Alpha _) = mempty
 attrMetaIds (MetaAttr x) = Set.singleton (MetaIdLabel x)
-attrMetaIds a@(AttrSugar{}) = errorExpectedDesugaredAttribute a
-attrMetaIds a@(PhiSugar{}) = errorExpectedDesugaredAttribute a
 
 objectHasMetavars :: Object -> Bool
 objectHasMetavars (Formation bindings) = any bindingHasMetavars bindings
@@ -338,7 +338,8 @@ objectHasMetavars obj@ConstFloat{} = objectHasMetavars (desugar obj)
 objectHasMetavars obj@ConstFloatRaw{} = errorExpectedDesugaredObject obj
 
 bindingHasMetavars :: Binding -> Bool
-bindingHasMetavars (AlphaBinding attr obj) = attrHasMetavars attr || objectHasMetavars obj
+bindingHasMetavars (AlphaBinding' attr obj) = attrHasMetavars attr || objectHasMetavars obj
+bindingHasMetavars b@(AlphaBinding''{}) = errorExpectedDesugaredBinding b
 bindingHasMetavars (EmptyBinding attr) = attrHasMetavars attr
 bindingHasMetavars (DeltaBinding _) = False
 bindingHasMetavars DeltaEmptyBinding = False
@@ -353,8 +354,6 @@ attrHasMetavars Rho = False
 attrHasMetavars (Label _) = False
 attrHasMetavars (Alpha _) = False
 attrHasMetavars (MetaAttr _) = True
-attrHasMetavars a@AttrSugar{} = errorExpectedDesugaredAttribute a
-attrHasMetavars a@PhiSugar{} = errorExpectedDesugaredAttribute a
 
 -- | Given a condition, and a substition from object matching
 --   tells whether the condition matches the object
@@ -387,7 +386,7 @@ checkCond ctx (ApplyInAbstractSubformations shouldApply) _subst
 hasAttr :: RuleAttribute -> [Binding] -> Bool
 hasAttr attr = any (isAttr attr)
  where
-  isAttr (ObjectAttr a) (AlphaBinding a' _) = a == a'
+  isAttr (ObjectAttr a) (AlphaBinding' a' _) = a == a'
   isAttr (ObjectAttr a) (EmptyBinding a') = a == a'
   isAttr DeltaAttr (DeltaBinding _) = True
   isAttr DeltaAttr DeltaEmptyBinding = True
@@ -485,8 +484,9 @@ applySubstBindings subst = concatMap (applySubstBinding subst)
 
 applySubstBinding :: Subst -> Binding -> [Binding]
 applySubstBinding subst@Subst{..} = \case
-  AlphaBinding a obj ->
-    [AlphaBinding (applySubstAttr subst a) (applySubst subst obj)]
+  AlphaBinding' a obj ->
+    [AlphaBinding' (applySubstAttr subst a) (applySubst subst obj)]
+  b@AlphaBinding{} -> errorExpectedDesugaredBinding b
   EmptyBinding a ->
     [EmptyBinding (applySubstAttr subst a)]
   DeltaBinding bytes -> [DeltaBinding (coerce bytes)]
@@ -616,7 +616,7 @@ matchFindBinding p bindings =
 
 matchBinding :: Binding -> Binding -> [Subst]
 matchBinding MetaBindings{} _ = []
-matchBinding (AlphaBinding a obj) (AlphaBinding a' obj') = do
+matchBinding (AlphaBinding' a obj) (AlphaBinding' a' obj') = do
   subst1 <- matchAttr a a'
   subst2 <- matchObject obj obj'
   pure (subst1 <> subst2)
@@ -641,7 +641,7 @@ matchAttr _ _ = []
 substThis :: Object -> Object -> Object
 substThis thisObj = go
  where
-  isAttachedRho (AlphaBinding Rho _) = True
+  isAttachedRho (AlphaBinding' Rho _) = True
   isAttachedRho _ = False
 
   isEmptyRho (EmptyBinding Rho) = True
@@ -652,7 +652,7 @@ substThis thisObj = go
     -- IMPORTANT: we are injecting a ρ-attribute in formations!
     obj@(Formation bindings)
       | any isAttachedRho bindings -> obj
-      | otherwise -> Formation (filter (not . isEmptyRho) bindings ++ [AlphaBinding Rho thisObj])
+      | otherwise -> Formation (filter (not . isEmptyRho) bindings ++ [AlphaBinding' Rho thisObj])
     -- everywhere else we simply recursively traverse the φ-term
     Application obj bindings -> Application (go obj) (map (substThisBinding thisObj) bindings)
     ObjectDispatch obj a -> ObjectDispatch (go obj) a

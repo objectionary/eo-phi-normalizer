@@ -1,6 +1,6 @@
 # The MIT License (MIT)
 
-# Copyright (c) 2016-2024 Objectionary.com
+# Copyright (c) 2016-2025 Objectionary.com
 
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
@@ -22,12 +22,12 @@
 
 name: eo-phi-normalizer
 synopsis: "Command line normalizer of 𝜑-calculus expressions."
-version: 3.1.0
+version: 3.2.0
 github: "objectionary/eo-phi-normalizer"
 license: BSD3
 author: "EO/Polystat Development Team"
 maintainer: "nickolay.kudasov@gmail.com"
-copyright: "2023-2024 EO/Polystat Development Team"
+copyright: "2023-2025 EO/Polystat Development Team"
 
 extra-source-files:
   - README.md
@@ -97,6 +97,7 @@ dependencies:
   - megaparsec
   - parser-combinators
   - prettyprinter
+  - validation-selective
 
 default-extensions:
   - ImportQualifiedPost

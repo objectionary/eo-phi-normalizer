@@ -1,7 +1,7 @@
 {- FOURMOLU_DISABLE -}
 -- The MIT License (MIT)
 
--- Copyright (c) 2016-2024 Objectionary.com
+-- Copyright (c) 2016-2025 Objectionary.com
 
 -- Permission is hereby granted, free of charge, to any person obtaining a copy
 -- of this software and associated documentation files (the "Software"), to deal
@@ -22,15 +22,17 @@
 -- SOFTWARE.
 {- FOURMOLU_ENABLE -}
 {-# LANGUAGE BlockArguments #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Language.EO.Phi.Preprocess where
 
 import Control.Monad (void)
 import Data.Void (Void)
+import Language.EO.Phi.Syntax.Abs
 import Replace.Megaparsec (splitCap)
-import Text.Megaparsec (MonadParsec (..), Parsec, Stream (..), between, match, sepBy)
+import Text.Megaparsec (MonadParsec (..), Parsec, Stream (..), between, choice, match, oneOf, optional, sepBy)
 import Text.Megaparsec.Byte.Lexer qualified as L
-import Text.Megaparsec.Char (lowerChar, space)
+import Text.Megaparsec.Char (space, string)
 
 symbol :: String -> Parser String
 symbol = L.symbol space
@@ -40,41 +42,96 @@ lexeme = L.lexeme space
 
 type Parser = Parsec Void String
 
-parseLabelId :: Parser ()
+parseTail :: Parser String
+parseTail = takeWhileP (Just "LabelId") (`notElem` " \r\n\t,.|':;!?][}{)(⟧⟦↦")
+
+parseLabelId :: Parser LabelId
 parseLabelId = lexeme do
-  void lowerChar
-  void $ takeWhileP (Just "LabelId") (`notElem` " \r\n\t,.|':;!?][}{)(⟧⟦")
+  l <- oneOf ['a' .. 'z']
+  ls <- parseTail
+  pure $ LabelId (l : ls)
+
+parseToken :: String -> (String -> a) -> Parser a
+parseToken prefix cons = lexeme do
+  void $ string prefix
+  ls <- parseTail
+  pure $ cons (prefix <> ls)
+
+parseObjectMetaId :: Parser ObjectMetaId
+parseObjectMetaId = parseToken "!b" ObjectMetaId
+
+parseBytesMetaId :: Parser BytesMetaId
+parseBytesMetaId = parseToken "!y" BytesMetaId
+
+parseLabelMetaId :: Parser LabelMetaId
+parseLabelMetaId = parseToken "!τ" LabelMetaId
+
+parseMetaId :: Parser MetaId
+parseMetaId =
+  choice
+    [ MetaIdObject <$> parseObjectMetaId
+    , MetaIdBytes <$> parseBytesMetaId
+    , MetaIdLabel <$> parseLabelMetaId
+    ]
+
+parseAlphaIndex :: Parser AlphaIndex
+parseAlphaIndex = parseToken "α" AlphaIndex
+
+parseAttribute :: Parser Attribute
+parseAttribute = lexeme do
+  choice
+    [ Phi <$ symbol "φ"
+    , Rho <$ symbol "ρ"
+    , Label <$> parseLabelId
+    , Alpha <$> parseAlphaIndex
+    ]
 
 parseBindingArrow :: Parser ()
 parseBindingArrow = void $ symbol "↦"
 
-parseAlphaAttr :: Parser ()
-parseAlphaAttr = do
-  void parseLabelId
-  void $ between (symbol "(") (symbol ")") (sepBy parseLabelId (symbol ","))
+parseAttributeSugar :: Parser AttributeSugar
+parseAttributeSugar = do
+  choice
+    [ do
+        labelId <- parseLabelId
+        attrs <- optional $ between (symbol "(") (symbol ")") (sepBy parseAttribute (symbol ","))
+        case attrs of
+          Nothing -> pure $ AttributeNoSugar (Label labelId)
+          Just attrs' -> pure $ AttributeSugar labelId attrs'
+    , AttributeNoSugar <$> parseAttribute
+    ]
 
-parseAlphaBindingSugar :: Parser ()
+type Attr = Either MetaId AttributeSugar
+
+parseAlphaBindingSugar :: Parser Attr
 parseAlphaBindingSugar = do
-  parseAlphaAttr
+  attr <-
+    choice
+      [ Left <$> parseMetaId
+      , Right <$> parseAttributeSugar
+      ]
   parseBindingArrow
+  notFollowedBy (symbol "∅")
+  pure attr
 
-splitInput :: Parser a -> String -> [Either String (Tokens [Char])]
-splitInput sep = splitCap (fst <$> match sep)
+splitInput :: Parser a -> String -> [Either String (Tokens [Char], a)]
+splitInput sep = splitCap (match sep)
 
-addPrefix :: Parser a -> String -> [String]
-addPrefix sep = map (either id ("~" <>)) . splitInput sep
+addPrefix :: Parser Attr -> String -> [String]
+addPrefix sep = fmap (either id (\(x, a) -> choosePrefix a <> x)) . splitInput sep
+ where
+  choosePrefix = \case
+    Right AttributeSugar{} -> "~"
+    _ -> "#"
 
-preprocess' :: Parser a -> String -> String
+preprocess' :: Parser Attr -> String -> String
 preprocess' sep = concat . addPrefix sep
 
 preprocess :: String -> String
 preprocess = preprocess' parseAlphaBindingSugar
 
 input1 :: String
-input1 = "{⟦ org ↦ ⟦ eolang ↦ ⟦ number( as-bytes, abra  ) ↦ ⟦ φ ↦ ξ.as-bytes, neg ↦ ξ.times(-1), ⟧, λ ⤍ Package ⟧, λ ⤍ Package ⟧ ⟧}"
-
--- >>> addPrefix parseAlphaBindingSugar input1
--- ["{\10214 org \8614 \10214 eolang \8614 \10214 ","~number( as-bytes, abra  ) \8614 ","\10214 \966 \8614 \958.as-bytes, neg \8614 \958.times(-1), \10215, \955 \10509 Package \10215, \955 \10509 Package \10215 \10215}"]
+input1 = "{⟦ org ↦ ⟦ ⟧(α0 ↦ !b1) ⟧}"
 
 -- >>> preprocess input1
--- "{\10214 org \8614 \10214 eolang \8614 \10214 ~number( as-bytes, abra  ) \8614 \10214 \966 \8614 \958.as-bytes, neg \8614 \958.times(-1), \10215, \955 \10509 Package \10215, \955 \10509 Package \10215 \10215}"
+-- "{\10214 #org \8614 \10214 \10215(#\945\&0 \8614 !b1) \10215}"

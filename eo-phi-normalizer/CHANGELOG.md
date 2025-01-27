@@ -6,7 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to the
 [Haskell Package Versioning Policy](https://pvp.haskell.org/).
 
-## v3.1.0 - 2024-12-28
+## v3.2.0 - 2025-01-13
+
+### Breaking changes
+
+- Pretty-print constants ([#661](https://github.com/objectionary/eo-phi-normalizer/pull/661), [#662](https://github.com/objectionary/eo-phi-normalizer/pull/662))
+
+### Documentation and maintenance
+
+- chore(deps): update baptiste0928/cargo-install action to v3.3.0 ([#660](https://github.com/objectionary/eo-phi-normalizer/pull/660))
+
+## v3.1.0 - 2025-01-01
 
 ### Breaking changes
 
