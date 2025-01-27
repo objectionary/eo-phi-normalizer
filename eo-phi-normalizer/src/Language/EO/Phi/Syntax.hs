@@ -24,10 +24,12 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
@@ -104,6 +106,7 @@ import Data.String (IsString (fromString))
 import Data.Text qualified as T
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as Text
+import Data.Traversable (for)
 import GHC.Float (isDoubleFinite)
 import Language.EO.Phi.Preprocess (preprocess)
 import Language.EO.Phi.Pretty ()
@@ -189,8 +192,51 @@ instance DesugarableInitially PeeledObject
 instance DesugarableInitially ObjectHead
 instance DesugarableInitially MetaId
 
+data FailureMessage a = FailureMessage
+  { name :: a
+  , text :: String
+  }
+
+newtype Failure' = Failure'Syntax {failureMessage :: FailureMessage SyntaxError}
+
+instance Show Failure' where
+  show = \case
+    Failure'Syntax{failureMessage = FailureMessage{..}} -> [fmt|Syntax error: {show name}\n\nin\n\n{text}|]
+
+data SyntaxError
+  = -- | {⟦ k() ↦ ⟦ ⟧() ⟧}
+    SyntaxError'InlineVoidsOnApplication
+  | -- | {⟦ k() ↦ ⟦ ⟧.x ⟧}
+    SyntaxError'InlineVoidsOnDispatch
+  | -- | {⟦ k ↦ ⟦ x ↦ ⟦ ⟧ ⟧ () ⟧}
+    SyntaxError'ApplicationNoBindings
+  | -- | {⟦ k ↦ ⟦ ⟧ (t ↦ ξ.t) ⟧}
+    SyntaxError'ApplicationToEmptyFormation
+  | -- | {⟦ k ↦ ξ.t (Δ ⤍ 42-) ⟧}
+    SyntaxError'DeltaInApplication
+  | -- | {⟦ k ↦ ξ.t (λ ⤍ Fn) ⟧}
+    SyntaxError'LambdaInApplication
+  | -- | {⟦ k ↦ ξ.t (t ↦ ∅) ⟧}
+    SyntaxError'VoidAsValue
+
+instance Show SyntaxError where
+  show = \case
+    SyntaxError'InlineVoidsOnApplication -> "inline-voids-on-application"
+    SyntaxError'InlineVoidsOnDispatch -> "inline-voids-on-dispatch"
+    SyntaxError'ApplicationNoBindings -> "application-no-bindings"
+    SyntaxError'ApplicationToEmptyFormation -> "application-to-empty-formation"
+    SyntaxError'DeltaInApplication -> "delta-in-application"
+    SyntaxError'LambdaInApplication -> "lambda-in-application"
+    SyntaxError'VoidAsValue -> "void-as-value"
+
+mkFailure'Syntax :: (Pretty a, SugarableFinally a) => SyntaxError -> a -> Failure'
+mkFailure'Syntax name obj = Failure'Syntax{failureMessage = FailureMessage{name, text = printTree obj}}
+
+mkFailureSyntax :: (Pretty a1, SugarableFinally a1) => SyntaxError -> a1 -> Validation (NonEmpty Failure') a2
+mkFailureSyntax name obj = Failure (mkFailure'Syntax name obj :| [])
+
 class CheckableSyntaxInitially a where
-  checkSyntax :: a -> Validation (NonEmpty String) a
+  checkSyntax :: a -> Validation (NonEmpty Failure') a
   checkSyntax = pure
 
 instance CheckableSyntaxInitially Program where
@@ -201,38 +247,31 @@ instance CheckableSyntaxInitially Binding where
     AlphaBinding' a obj -> AlphaBinding' a <$> checkSyntax obj
     AlphaBinding'' a as obj ->
       case (as, obj) of
-        -- inline-voids-on-application
-        -- {⟦ k() ↦ ⟦ ⟧() ⟧}
-        ([], o@(Application (Formation []) [])) -> Failure (printTree o :| [])
-        -- inline-voids-on-dispatch
-        -- {⟦ k() ↦ ⟦ ⟧.x ⟧}
-        ([], o@(ObjectDispatch (Formation []) _)) -> Failure (printTree o :| [])
+        ([], o@(Application (Formation []) [])) -> mkFailureSyntax SyntaxError'InlineVoidsOnApplication o
+        ([], o@(ObjectDispatch (Formation []) _)) -> mkFailureSyntax SyntaxError'InlineVoidsOnDispatch o
         _ -> AlphaBinding'' a as <$> checkSyntax obj
     AlphaBindingSugar obj -> AlphaBindingSugar <$> checkSyntax obj
     b -> pure b
 
 instance CheckableSyntaxInitially Object where
   checkSyntax = \case
-    -- application-to-formation
-    -- {⟦ k ↦ ⟦ ⟧ (t ↦ ξ.t) ⟧}
-    o@(Application (Formation []) [_]) -> Failure (printTree o :| [])
-    o@(Application _ xs)
-      | let
-          isBadBinding = \case
-            -- delta-in-application
-            -- {⟦ k ↦ ξ.t (Δ ⤍ 42-) ⟧}
-            DeltaBinding{} -> True
-            DeltaEmptyBinding{} -> True
-            -- lambda-in-application
-            -- {⟦ k ↦ ξ.t (λ ⤍ Fn) ⟧}
-            LambdaBinding{} -> True
-            -- void-as-value
-            -- {⟦ k ↦ ξ.t (t ↦ ∅) ⟧}
-            EmptyBinding{} -> True
-            _ -> False
-         in
-          [d | d <- xs, isBadBinding d] /= [] ->
-          Failure (printTree o :| [])
+    o@(Application _ []) -> mkFailureSyntax SyntaxError'ApplicationNoBindings o
+    o@(Application (Formation []) [_]) -> mkFailureSyntax SyntaxError'ApplicationToEmptyFormation o
+    o@(Application _ xs) ->
+      case bindingsValidated of
+        Success _ -> Application o <$> for xs checkSyntax
+        Failure x -> Failure x
+     where
+      classifyBinding binding =
+        case binding of
+          DeltaBinding{} -> mkFailure SyntaxError'DeltaInApplication
+          DeltaEmptyBinding{} -> mkFailure SyntaxError'DeltaInApplication
+          LambdaBinding{} -> mkFailure SyntaxError'LambdaInApplication
+          EmptyBinding{} -> mkFailure SyntaxError'VoidAsValue
+          _ -> Success binding
+       where
+        mkFailure name = mkFailureSyntax name binding
+      bindingsValidated = for xs classifyBinding
     ObjectDispatch obj x -> ObjectDispatch <$> checkSyntax obj <*> pure x
     MetaSubstThis obj1 obj2 -> MetaSubstThis <$> checkSyntax obj1 <*> checkSyntax obj2
     MetaContextualize obj1 obj2 -> MetaContextualize <$> checkSyntax obj1 <*> checkSyntax obj2
@@ -762,7 +801,7 @@ parseWith parser input = result
       Left x -> mkError x
       Right x ->
         case x of
-          Failure y -> mkError [fmt|Bad sub-expressions:\n\n{intercalate1 "\n\n" y}\n|]
+          Failure y -> mkError [fmt|Bad sub-expressions:\n\n{intercalate1 "\n\n" (show <$> y)}\n|]
           Success y -> Right (desugarInitially y)
 
 -- | Parse an 'Object' from a 'String'.
