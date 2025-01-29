@@ -86,7 +86,10 @@ module Language.EO.Phi.Syntax (
   errorExpectedDesugaredBinding,
   errorExpectedDesugaredAttribute,
   isRhoBinding,
+  isDeltaBinding,
 
+  -- * Types
+  ApplicationBindings (..),
 
   -- * Classes
   SugarableFinally (..),
@@ -151,8 +154,16 @@ instance DesugarableInitially Object where
     ConstIntRaw (IntegerSigned x) -> ConstInt (read x)
     obj@(ConstFloat{}) -> obj
     ConstFloatRaw (DoubleSigned x) -> ConstFloat (read x)
-    Formation bindings -> Formation (desugarInitially bindings)
-    Application obj bindings -> Application (desugarInitially obj) (desugarInitially bindings)
+    Formation bindings -> Formation (bindingsDesugared <> bindingsRho)
+     where
+      bindingsDesugared = desugarInitially <$> bindings
+      bindingsRho = [EmptyBinding Rho | not (any (\x -> isRhoBinding x || isDeltaBinding x) bindings)]
+    Application obj bindings -> app
+     where
+      bindingsDesugared = (desugarInitially ApplicationBindings{applicationBindings = bindings}).applicationBindings
+      mkApplication x (b : bs) = mkApplication (Application x [b]) bs
+      mkApplication x [] = x
+      app = mkApplication (desugarInitially obj) bindingsDesugared
     ObjectDispatch obj a -> ObjectDispatch (desugarInitially obj) a
     GlobalObject -> GlobalObject
     GlobalObjectPhiOrg -> "Φ.org.eolang"
@@ -164,22 +175,37 @@ instance DesugarableInitially Object where
     MetaTailContext obj metaId -> MetaTailContext (desugarInitially obj) metaId
     MetaFunction name obj -> MetaFunction name (desugarInitially obj)
 
-instance DesugarableInitially [Binding] where
-  desugarInitially :: [Binding] -> [Binding]
-  desugarInitially = zipWith go [0 ..]
+instance DesugarableInitially ApplicationBindings where
+  desugarInitially :: ApplicationBindings -> ApplicationBindings
+  desugarInitially ApplicationBindings{..} = ApplicationBindings{applicationBindings = bindings'}
    where
     go :: Int -> Binding -> Binding
     go idx = \case
       AlphaBinding'' l ls (Formation bindings) ->
-        let bindingsDesugared = desugarInitially bindings
+        let bindingsDesugared = desugarInitially <$> bindings
          in AlphaBinding' (Label l) (Formation ((EmptyBinding <$> ls) <> bindingsDesugared))
       AlphaBinding a obj -> AlphaBinding a (desugarInitially obj)
       AlphaBindingSugar obj -> AlphaBinding' (Alpha (AlphaIndex [fmt|α{idx}|])) (desugarInitially obj)
       binding -> binding
+    isAlphaBindingSugar = \case
+      AlphaBindingSugar{} -> True
+      _ -> False
+    bindings'
+      | all isAlphaBindingSugar applicationBindings = zipWith go [0 ..] applicationBindings
+      | any isAlphaBindingSugar applicationBindings = error bindingsError
+      | otherwise = desugarInitially <$> applicationBindings
+     where
+      bindingsPrinted :: [String]
+      bindingsPrinted = printTree <$> applicationBindings
+      bindingsPrinted' :: String
+      bindingsPrinted' = intercalate ", " bindingsPrinted
+      bindingsError :: String
+      bindingsError = [fmt|Expected that either all bindings are objects or all bindings are ↦-mappings, but got:\n({bindingsPrinted'})|]
+
 
 instance DesugarableInitially Program where
   desugarInitially :: Program -> Program
-  desugarInitially (Program bindings) = Program (desugarInitially bindings)
+  desugarInitially (Program bindings) = Program (desugarInitially <$> bindings)
 
 instance DesugarableInitially Binding where
   desugarInitially = \case
@@ -290,7 +316,7 @@ class SugarableFinally a where
 
 instance SugarableFinally Program where
   sugarFinally :: Program -> Program
-  sugarFinally (Program bindings) = Program (sugarFinally bindings)
+  sugarFinally (Program bindings) = Program (sugarFinally <$> bindings)
 
 pattern SugarBinding :: Bytes -> Binding
 pattern SugarBinding bs <- AlphaBinding' "as-bytes" (Application "Φ.org.eolang.bytes" [AlphaBinding' "α0" (Formation [DeltaBinding bs])])
@@ -312,8 +338,17 @@ instance SugarableFinally Object where
     obj@ConstIntRaw{} -> errorExpectedDesugaredObject obj
     obj@ConstFloat{} -> obj
     obj@ConstFloatRaw{} -> errorExpectedDesugaredObject obj
-    Formation bindings -> Formation (sugarFinally bindings)
-    Application obj bindings -> Application (sugarFinally obj) (sugarFinally (ApplicationBindings bindings)).applicationBindings
+    Formation bindings -> Formation bindings'
+     where
+      bindings' =
+        [ binding
+        | binding <- sugarFinally <$> bindings
+        , case binding of
+            EmptyBinding Rho -> False
+            _ -> True
+        ]
+    (Application (Application o bs) bs') -> sugarFinally (Application o (bs <> bs'))
+    (Application o bs) -> Application (sugarFinally o) (sugarFinally (ApplicationBindings bs)).applicationBindings
     ObjectDispatch obj a -> ObjectDispatch (sugarFinally obj) a
     GlobalObject -> GlobalObject
     obj@GlobalObjectPhiOrg -> errorExpectedDesugaredObject obj
@@ -336,7 +371,7 @@ instance SugarableFinally ApplicationBindings where
     ApplicationBindings $
       if and (zipWith go [0 ..] bs)
         then (\(~(AlphaBinding _ obj)) -> AlphaBindingSugar (sugarFinally obj)) <$> bs
-        else sugarFinally bs
+        else sugarFinally <$> bs
    where
     go :: Int -> Binding -> Bool
     go idx = \case
@@ -461,10 +496,17 @@ wrapBytesAsBool bytes
   | otherwise = [fmt|Φ.org.eolang.true|]
 
 isRhoBinding :: Binding -> Bool
-isRhoBinding (AlphaBinding' Rho _) = True
--- TODO #650:10m enable this option?
--- isRhoBinding (EmptyBinding Rho) = True
-isRhoBinding _ = False
+isRhoBinding = \case
+  AlphaBinding' Rho _ -> True
+  -- TODO #650:10m enable this option?
+  EmptyBinding Rho -> True
+  _ -> False
+
+isDeltaBinding :: Binding -> Bool
+isDeltaBinding = \case
+  DeltaBinding _ -> True
+  DeltaEmptyBinding -> True
+  _ -> False
 
 padLeft :: Int -> [Char] -> [Char]
 padLeft n s = replicate (n - length s) '0' ++ s
