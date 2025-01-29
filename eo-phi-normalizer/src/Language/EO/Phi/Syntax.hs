@@ -124,17 +124,17 @@ import Validation (Validation (..))
 -- >>> :set -XOverloadedStrings
 -- >>> :set -XOverloadedLists
 
-errorExpectedButGot :: (Pretty a, SugarableFinally a) => String -> a -> b
-errorExpectedButGot type' x = error ([fmt|impossible: expected desugared {type'}, but got:\n|] <> printTree x)
+errorExpectedDesugaredButGot :: (Pretty a, SugarableFinally a) => String -> a -> b
+errorExpectedDesugaredButGot type' x = error ([fmt|Error: Expected desugared {type'}, but got:\n|] <> printTree x)
 
 errorExpectedDesugaredObject :: Object -> a
-errorExpectedDesugaredObject = errorExpectedButGot "Object"
+errorExpectedDesugaredObject = errorExpectedDesugaredButGot "Object"
 
 errorExpectedDesugaredBinding :: Binding -> a
-errorExpectedDesugaredBinding = errorExpectedButGot "Binding"
+errorExpectedDesugaredBinding = errorExpectedDesugaredButGot "Binding"
 
 errorExpectedDesugaredAttribute :: Attribute -> a
-errorExpectedDesugaredAttribute = errorExpectedButGot "Attribute"
+errorExpectedDesugaredAttribute = errorExpectedDesugaredButGot "Attribute"
 
 class DesugarableInitially a where
   desugarInitially :: a -> a
