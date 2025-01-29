@@ -53,6 +53,7 @@ import Language.EO.Phi.Syntax (
   desugar,
   errorExpectedDesugaredBinding,
   errorExpectedDesugaredObject,
+  isRhoBinding,
   printTree,
   pattern AlphaBinding',
   pattern AlphaBinding'',
@@ -425,10 +426,6 @@ objectBindings (Formation bs) = bs
 objectBindings (Application obj bs) = objectBindings obj ++ bs
 objectBindings (ObjectDispatch obj _attr) = objectBindings obj
 objectBindings _ = []
-
-isRhoBinding :: Binding -> Bool
-isRhoBinding (AlphaBinding' Rho _) = True
-isRhoBinding _ = False
 
 hideRhoInBinding :: Binding -> Binding
 hideRhoInBinding = \case

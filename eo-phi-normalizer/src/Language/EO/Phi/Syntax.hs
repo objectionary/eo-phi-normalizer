@@ -85,6 +85,8 @@ module Language.EO.Phi.Syntax (
   errorExpectedDesugaredObject,
   errorExpectedDesugaredBinding,
   errorExpectedDesugaredAttribute,
+  isRhoBinding,
+
 
   -- * Classes
   SugarableFinally (..),
@@ -461,6 +463,12 @@ wrapBytesAsBool :: Bytes -> Object
 wrapBytesAsBool bytes
   | bytesToInt bytes == 0 = [fmt|Φ.org.eolang.false|]
   | otherwise = [fmt|Φ.org.eolang.true|]
+
+isRhoBinding :: Binding -> Bool
+isRhoBinding (AlphaBinding' Rho _) = True
+-- TODO #650:10m enable this option?
+-- isRhoBinding (EmptyBinding Rho) = True
+isRhoBinding _ = False
 
 padLeft :: Int -> [Char] -> [Char]
 padLeft n s = replicate (n - length s) '0' ++ s
