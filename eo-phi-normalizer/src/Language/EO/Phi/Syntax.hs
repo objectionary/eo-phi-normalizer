@@ -210,8 +210,6 @@ data SyntaxError
     SyntaxError'InlineVoidsOnApplication
   | -- | {⟦ k() ↦ ⟦ ⟧.x ⟧}
     SyntaxError'InlineVoidsOnDispatch
-  | -- | {⟦ k ↦ ⟦ x ↦ ⟦ ⟧ ⟧ () ⟧}
-    SyntaxError'ApplicationNoBindings
   | -- | {⟦ k ↦ ⟦ ⟧ (t ↦ ξ.t) ⟧}
     SyntaxError'ApplicationToEmptyFormation
   | -- | {⟦ k ↦ ξ.t (Δ ⤍ 42-) ⟧}
@@ -225,7 +223,6 @@ instance Show SyntaxError where
   show = \case
     SyntaxError'InlineVoidsOnApplication -> "inline-voids-on-application"
     SyntaxError'InlineVoidsOnDispatch -> "inline-voids-on-dispatch"
-    SyntaxError'ApplicationNoBindings -> "application-no-bindings"
     SyntaxError'ApplicationToEmptyFormation -> "application-to-empty-formation"
     SyntaxError'DeltaInApplication -> "delta-in-application"
     SyntaxError'LambdaInApplication -> "lambda-in-application"
@@ -257,7 +254,6 @@ instance CheckableSyntaxInitially Binding where
 
 instance CheckableSyntaxInitially Object where
   checkSyntax = \case
-    o@(Application _ []) -> mkFailureSyntax SyntaxError'ApplicationNoBindings o
     o@(Application (Formation []) [_]) -> mkFailureSyntax SyntaxError'ApplicationToEmptyFormation o
     Application obj xs ->
       case bindingsValidated of
