@@ -58,8 +58,8 @@ spec = do
   DataizeTestGroup{..} <- runIO (dataizationTests "test/eo/phi/dataization.yaml")
   describe title do
     forM_
-      [ ("Old Yegor's rules", "test/eo/phi/rules/yegor.yaml")
-      , -- TODO #617:10m Enable
+      [ -- ("Old Yegor's rules", "test/eo/phi/rules/yegor.yaml")
+        -- ,
         ("New Yegor's rules", "test/eo/phi/rules/new.yaml")
       ]
       $ \(rulesTitle, rulesFile) -> do
