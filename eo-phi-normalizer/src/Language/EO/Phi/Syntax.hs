@@ -257,9 +257,9 @@ instance CheckableSyntaxInitially Object where
   checkSyntax = \case
     o@(Application _ []) -> mkFailureSyntax SyntaxError'ApplicationNoBindings o
     o@(Application (Formation []) [_]) -> mkFailureSyntax SyntaxError'ApplicationToEmptyFormation o
-    o@(Application _ xs) ->
+    Application obj xs ->
       case bindingsValidated of
-        Success _ -> Application o <$> for xs checkSyntax
+        Success _ -> Application obj <$> for xs checkSyntax
         Failure x -> Failure x
      where
       classifyBinding binding =
