@@ -283,7 +283,7 @@ instance CheckableSyntaxInitially Object where
     o@(Application (Formation []) [_]) -> mkFailureSyntax SyntaxError'ApplicationToEmptyFormation o
     Application obj xs ->
       case bindingsValidated of
-        Success _ -> Application obj <$> for xs checkSyntax
+        Success _ -> Application <$> checkSyntax obj <*> for xs checkSyntax
         Failure x -> Failure x
      where
       classifyBinding binding =
