@@ -33,12 +33,15 @@ rules:
       ⟦ !τ ↦ ⌈ !b1 , !b2 ⌉, !B ⟧
     when: []
     tests:
-      - name: Should match
+      - name: Should match - 1
         input: ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ) ⟧
         output: ['⟦ a ↦ ⟦ b ↦ ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ) ⟧ ⟧ ⟧']
-      - name: 'Should match'
+      - name: Should match - 2
         input: ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ).a ⟧
-        output: ['⟦ a ↦ ⟦ b ↦ ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ) ⟧ ⟧ ().a ⟧']
+        output: ['⟦ a ↦ ⟦ b ↦ ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ).a ⟧ ⟧.a ⟧']
+      - name: Should match - 3
+        input: ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ) ().a ⟧
+        output: ['⟦ a ↦ ⟦ b ↦ ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ) ().a ⟧ ⟧ ().a ⟧']
       - name: Phi Paper - Example E1
         input: ⟦ k ↦ ⟦ x ↦ ξ.t, t ↦ ∅ ⟧(t ↦ ⟦ρ ↦ ⟦⟧⟧) ⟧
         output: ['⟦ k ↦ ⟦ t ↦ ⟦ρ ↦ ⟦⟧⟧, x ↦ ξ.t ⟧ ⟧']
