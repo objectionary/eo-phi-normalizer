@@ -158,7 +158,7 @@ instance DesugarableInitially Object where
     Formation bindings -> Formation (bindingsDesugared <> bindingsRho)
      where
       bindingsDesugared = desugarInitially <$> bindings
-      bindingsRho = [EmptyBinding Rho | not (any (\x -> isRhoBinding x || isDeltaBinding x) bindings)]
+      bindingsRho = [EmptyBinding Rho | not (any isRhoBinding bindings)]
     Application obj bindings -> app
      where
       bindingsDesugared = (desugarInitially ApplicationBindings{applicationBindings = bindings}).applicationBindings
