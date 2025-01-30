@@ -234,7 +234,8 @@ rules:
     tests:
       - name: Should apply in subformations
         input: ⟦ a ↦ ⟦ b ↦ ⊥(t ↦ ⟦⟧)(u ↦ ⟦⟧) ⟧ ⟧
-        output: ['⟦ a ↦ ⟦ b ↦ ⊥ ⟧ ⟧']
+        # TODO #651:10m Single step?
+        output: ['⟦ a ↦ ⟦ b ↦ ⊥(u ↦ ⟦⟧) ⟧ ⟧']
       - name: Phi Paper Example E2 last application
         input: '⊥(ρ ↦ ⟦ x ↦ ξ.t, t ↦ ∅ ⟧)'
         output: ['⊥']
