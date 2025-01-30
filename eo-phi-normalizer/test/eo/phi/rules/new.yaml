@@ -35,19 +35,19 @@ rules:
     tests:
       - name: Should match
         input: ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ) ⟧
-        output: ['⟦ a ↦ ⟦ b ↦ ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ) ⟧ ⟧ () ⟧']
+        output: ['⟦ a ↦ ⟦ b ↦ ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ) ⟧ ⟧ ⟧']
       - name: 'Should match'
         input: ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ).a ⟧
         output: ['⟦ a ↦ ⟦ b ↦ ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ) ⟧ ⟧ ().a ⟧']
       - name: Phi Paper - Example E1
         input: ⟦ k ↦ ⟦ x ↦ ξ.t, t ↦ ∅ ⟧(t ↦ ⟦ρ ↦ ⟦⟧⟧) ⟧
-        output: ['⟦ k ↦ ⟦ t ↦ ⟦ρ ↦ ⟦⟧⟧, x ↦ ξ.t ⟧() ⟧']
+        output: ['⟦ k ↦ ⟦ t ↦ ⟦ρ ↦ ⟦⟧⟧, x ↦ ξ.t ⟧ ⟧']
       - name: Phi Paper - Example E4 - dispatch on y
         input: ⟦ k ↦ ⟦ x ↦ ∅, y ↦ ξ.x ⟧(x ↦ ⟦ρ ↦ ⟦⟧⟧).y ⟧
-        output: ['⟦ k ↦ ⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧().y ⟧']
+        output: ['⟦ k ↦ ⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧.y ⟧']
       - name: Phi Paper - Example E4 - remove dispatch on y
         input: ⟦ k ↦ ⟦ x ↦ ∅, y ↦ ξ.x ⟧(x ↦ ⟦ρ ↦ ⟦⟧⟧) ⟧
-        output: ['⟦ k ↦ ⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧() ⟧']
+        output: ['⟦ k ↦ ⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧ ⟧']
 
   - name: alpha
     description: 'Accessing an α-binding'
