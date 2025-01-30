@@ -24,7 +24,7 @@ title: "Rule set following Nov 2024 revision"
 rules:
 
   - name: COPY
-    description: 'Application of α-binding'
+    description: 'Application of τ-binding'
     context:
       current_object: "!b2"
     pattern: |
