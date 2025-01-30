@@ -34,11 +34,10 @@ module Language.EO.Phi.RewriteSpec where
 import Control.Monad (forM_)
 import Data.Yaml qualified as Yaml
 import GHC.Generics (Generic)
-import Language.EO.Phi (Program (..), printTreeNoSugar)
+import Language.EO.Phi (Program (..), printTree, printTreeNoSugar)
 import Language.EO.Phi.Dataize.Context (defaultContext)
 import Language.EO.Phi.Rules.Common (applyRules)
 import Language.EO.Phi.Rules.Yaml (convertRuleNamed, parseRuleSetFromFile, rules)
-import Language.EO.Phi.Syntax (printTree)
 import Language.EO.Phi.TH
 import Test.EO.Phi (progToObj)
 import Test.Hspec
@@ -72,10 +71,16 @@ spec = do
         let rules' = convertRuleNamed <$> ruleset.rules
         describe rulesTitle do
           forM_ rewriteTests.tests $
-            \test -> it test.name do
-              let
-                inputObj = progToObj test.input
-                expectedOutputObj = progToObj test.output
-                ctx = defaultContext rules' inputObj
-                outputObj = head $ applyRules ctx inputObj
-              printTree outputObj `shouldBe` printTree expectedOutputObj
+            \test ->
+              describe test.name do
+                let
+                  inputObj = progToObj test.input
+                  expectedOutputObj = progToObj test.output
+                  ctx = defaultContext rules' inputObj
+                  outputObj = head $ applyRules ctx inputObj
+                it "value" do
+                  outputObj `shouldBe` expectedOutputObj
+                it "no sugar" do
+                  printTreeNoSugar outputObj `shouldBe` printTreeNoSugar expectedOutputObj
+                it "sugar" do
+                  printTree outputObj `shouldBe` printTree expectedOutputObj

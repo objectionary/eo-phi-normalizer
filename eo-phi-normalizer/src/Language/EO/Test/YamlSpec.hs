@@ -31,7 +31,7 @@ import Data.Maybe (fromMaybe)
 import Language.EO.Phi.Dataize.Context (defaultContext)
 import Language.EO.Phi.Rules.Common (applyOneRule)
 import Language.EO.Phi.Rules.Yaml (Rule (..), RuleSet (..), RuleTest (..), RuleTestOption (..), convertRuleNamed)
-import Language.EO.Phi.Syntax (printTreeNoSugar)
+import Language.EO.Phi.Syntax (printTree, printTreeNoSugar)
 import Language.EO.Test.Yaml
 import Test.Hspec
 
@@ -43,10 +43,16 @@ spec testPaths = describe "User-defined rules unit tests" do
       forM_ ruleset.rules $ \rule -> do
         describe rule.name do
           let tests' = fromMaybe [] rule.tests
-          forM_ tests' $ \ruleTest -> do
-            it ruleTest.name $
+          forM_ tests' $ \ruleTest ->
+            describe ruleTest.name do
               let rule' = convertRuleNamed rule
                   resultOneStep = applyOneRule (defaultContext [rule'] ruleTest.input) ruleTest.input
                   normalizationResult = maybe resultOneStep (\lst -> if TakeOne True `elem` lst then take 1 resultOneStep else resultOneStep) ruleTest.options
                   expected = ruleTest.output
-               in map snd normalizationResult `shouldBe` expected
+                  result' = map snd normalizationResult
+              it "value" do
+                result' `shouldBe` expected
+              it "no sugar" do
+                printTreeNoSugar result' `shouldBe` printTreeNoSugar expected
+              it "sugar" do
+                printTree result' `shouldBe` printTree expected

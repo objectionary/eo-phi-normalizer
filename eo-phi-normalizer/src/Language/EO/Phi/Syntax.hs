@@ -21,6 +21,7 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 {- FOURMOLU_ENABLE -}
+{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE InstanceSigs #-}
@@ -91,6 +92,7 @@ module Language.EO.Phi.Syntax (
 
   -- * Types
   ApplicationBindings (..),
+  NoDesugar (..),
 
   -- * Classes
   SugarableFinally (..),
@@ -202,7 +204,6 @@ instance DesugarableInitially ApplicationBindings where
       bindingsPrinted' = intercalate ", " bindingsPrinted
       bindingsError :: String
       bindingsError = [fmt|Expected that either all bindings are objects or all bindings are ↦-mappings, but got:\n({bindingsPrinted'})|]
-
 
 instance DesugarableInitially Program where
   desugarInitially :: Program -> Program
@@ -839,18 +840,8 @@ bytesToFloat (Bytes bytes) =
   dashToSpace '-' = ' '
   dashToSpace c = c
 
-instance IsString Program where fromString = unsafeParseWith pProgram
-instance IsString Object where fromString = unsafeParseWith pObject
-instance IsString Binding where fromString = unsafeParseWith pBinding
-instance IsString Attribute where fromString = unsafeParseWith pAttribute
-instance IsString AttributeSugar where fromString = unsafeParseWith pAttributeSugar
-instance IsString RuleAttribute where fromString = unsafeParseWith pRuleAttribute
-instance IsString PeeledObject where fromString = unsafeParseWith pPeeledObject
-instance IsString ObjectHead where fromString = unsafeParseWith pObjectHead
-instance IsString MetaId where fromString = unsafeParseWith pMetaId
-
-parseWith :: (DesugarableInitially a, CheckableSyntaxInitially a) => ([Token] -> Either String a) -> String -> Either String a
-parseWith parser input = result
+parseWith' :: (DesugarableInitially a, CheckableSyntaxInitially a) => Bool -> ([Token] -> Either String a) -> String -> Either String a
+parseWith' doDesugar parser input = result
  where
   input' = preprocess input
   tokens = myLexer input'
@@ -864,15 +855,46 @@ parseWith parser input = result
       Right x ->
         case x of
           Failure y -> mkError [fmt|Bad sub-expressions:\n\n{intercalate1 "\n\n" (show <$> y)}\n|]
-          Success y -> Right (desugarInitially y)
+          Success y -> Right ((if doDesugar then desugarInitially else id) y)
+
+parseWith :: (DesugarableInitially a, CheckableSyntaxInitially a) => ([Token] -> Either String a) -> String -> Either String a
+parseWith = parseWith' True
 
 -- | Parse an 'Object' from a 'String'.
 -- May throw an 'error` if input has a syntactical or lexical errors.
-unsafeParseWith :: (DesugarableInitially a, CheckableSyntaxInitially a) => ([Token] -> Either String a) -> String -> a
-unsafeParseWith parser input =
-  case parseWith parser input of
+unsafeParseWith' :: (DesugarableInitially a, CheckableSyntaxInitially a) => Bool -> ([Token] -> Either String a) -> String -> a
+unsafeParseWith' doDesugar parser input =
+  case parseWith' doDesugar parser input of
     Left parseError -> error parseError
     Right object -> object
+
+unsafeParseWithDesugar :: (DesugarableInitially a, CheckableSyntaxInitially a) => ([Token] -> Either String a) -> String -> a
+unsafeParseWithDesugar = unsafeParseWith' True
+
+unsafeParseWithNoDesugar :: (DesugarableInitially a, CheckableSyntaxInitially a) => ([Token] -> Either String a) -> String -> a
+unsafeParseWithNoDesugar = unsafeParseWith' False
+
+instance IsString Program where fromString = unsafeParseWithDesugar pProgram
+instance IsString Object where fromString = unsafeParseWithDesugar pObject
+instance IsString Binding where fromString = unsafeParseWithDesugar pBinding
+instance IsString Attribute where fromString = unsafeParseWithDesugar pAttribute
+instance IsString AttributeSugar where fromString = unsafeParseWithDesugar pAttributeSugar
+instance IsString RuleAttribute where fromString = unsafeParseWithDesugar pRuleAttribute
+instance IsString PeeledObject where fromString = unsafeParseWithDesugar pPeeledObject
+instance IsString ObjectHead where fromString = unsafeParseWithDesugar pObjectHead
+instance IsString MetaId where fromString = unsafeParseWithDesugar pMetaId
+
+newtype NoDesugar a = NoDesugar {noDesugar :: a} deriving stock (Show)
+
+instance IsString (NoDesugar Program) where fromString = NoDesugar . unsafeParseWithNoDesugar pProgram
+instance IsString (NoDesugar Object) where fromString = NoDesugar . unsafeParseWithNoDesugar pObject
+instance IsString (NoDesugar Binding) where fromString = NoDesugar . unsafeParseWithNoDesugar pBinding
+instance IsString (NoDesugar Attribute) where fromString = NoDesugar . unsafeParseWithNoDesugar pAttribute
+instance IsString (NoDesugar AttributeSugar) where fromString = NoDesugar . unsafeParseWithNoDesugar pAttributeSugar
+instance IsString (NoDesugar RuleAttribute) where fromString = NoDesugar . unsafeParseWithNoDesugar pRuleAttribute
+instance IsString (NoDesugar PeeledObject) where fromString = NoDesugar . unsafeParseWithNoDesugar pPeeledObject
+instance IsString (NoDesugar ObjectHead) where fromString = NoDesugar . unsafeParseWithNoDesugar pObjectHead
+instance IsString (NoDesugar MetaId) where fromString = NoDesugar . unsafeParseWithNoDesugar pMetaId
 
 printTreeNoSugar :: (Pretty a) => a -> String
 printTreeNoSugar =

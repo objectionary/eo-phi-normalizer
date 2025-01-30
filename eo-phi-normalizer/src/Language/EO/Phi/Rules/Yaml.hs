@@ -79,6 +79,8 @@ instance FromJSON RuleAttribute where parseJSON = fmap fromString . parseJSON
 instance FromJSON LabelId
 instance FromJSON AlphaIndex
 
+instance FromJSON (NoDesugar Object) where parseJSON = fmap fromString . parseJSON
+
 data RuleSet = RuleSet
   { title :: String
   , rules :: [Rule]
@@ -97,8 +99,8 @@ data Rule = Rule
   , description :: String
   , context :: Maybe RuleContext
   , forall :: Maybe [MetaId]
-  , pattern :: Object
-  , result :: Object
+  , pattern :: NoDesugar Object
+  , result :: NoDesugar Object
   , fresh :: Maybe [FreshMetaId]
   , when :: Maybe [Condition]
   , tests :: Maybe [RuleTest]
@@ -122,6 +124,7 @@ data RuleTest = RuleTest
 newtype RuleTestOption = TakeOne {take_one :: Bool}
   -- deriving (Generic, Show, FromJSON)
   deriving (Eq, Generic, Show)
+
 instance FromJSON RuleTestOption where
   parseJSON = genericParseJSON defaultOptions{sumEncoding = UntaggedValue}
 
@@ -130,6 +133,7 @@ data AttrsInBindings = AttrsInBindings
   , bindings :: [Binding]
   }
   deriving (Generic, Show, FromJSON)
+
 data Condition
   = IsNF {nf :: Object}
   | IsNFInsideFormation {nf_inside_formation :: Object}
@@ -139,6 +143,7 @@ data Condition
   | ApplyInSubformations {apply_in_subformations :: Bool}
   | ApplyInAbstractSubformations {apply_in_abstract_subformations :: Bool}
   deriving (Generic, Show)
+
 instance FromJSON Condition where
   parseJSON = genericParseJSON defaultOptions{sumEncoding = UntaggedValue}
 
@@ -153,8 +158,8 @@ convertRule Rule{..} ctx obj = do
         Set.mapMonotonic MetaIdLabel $
           foldMap (Set.fromList . map (\FreshMetaId{name = x} -> x)) fresh
 
-      patternMetaIds = objectMetaIds pattern
-      resultMetaIds = objectMetaIds result
+      patternMetaIds = objectMetaIds pattern.noDesugar
+      resultMetaIds = objectMetaIds result.noDesugar
 
       unusedFreshMetaIds = Set.difference freshMetaIds resultMetaIds
 
@@ -179,8 +184,8 @@ convertRule Rule{..} ctx obj = do
         error ("invalid rule: result uses meta variables not quantified by the forall or the fresh: " <> ppMetaIds unquantifiedResultMetaIds)
 
   contextSubsts <- matchContext ctx context
-  let pattern' = applySubst contextSubsts pattern
-      result' = applySubst contextSubsts result
+  let pattern' = applySubst contextSubsts pattern.noDesugar
+      result' = applySubst contextSubsts result.noDesugar
   subst <- matchObject pattern' obj
   guard $ all (\cond -> checkCond ctx cond (contextSubsts <> subst)) (fromMaybe [] when)
   let substFresh = mkFreshSubst ctx result' fresh
@@ -419,6 +424,7 @@ data Subst = Subst
   , bytesMetas :: [(BytesMetaId, Bytes)]
   , contextMetas :: [(TailMetaId, OneHoleContext)]
   }
+
 instance Show Subst where
   show Subst{..} =
     intercalate
