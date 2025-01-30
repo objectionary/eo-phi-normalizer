@@ -40,7 +40,7 @@ module Language.EO.Phi.Syntax (
   module Language.EO.Phi.Syntax.Abs,
   desugar,
   printTree,
-  printTreeDontSugar,
+  printTreeNoSugar,
 
   -- * Conversion to 'Bytes'
   intToBytes,
@@ -874,8 +874,8 @@ unsafeParseWith parser input =
     Left parseError -> error parseError
     Right object -> object
 
-printTreeDontSugar :: (Pretty a) => a -> String
-printTreeDontSugar =
+printTreeNoSugar :: (Pretty a) => a -> String
+printTreeNoSugar =
   T.unpack
     . renderStrict
     . layoutPretty defaultLayoutOptions{layoutPageWidth = Unbounded}
@@ -884,7 +884,7 @@ printTreeDontSugar =
 -- | The top-level printing method.
 printTree :: (Pretty a, SugarableFinally a) => a -> String
 printTree =
-  printTreeDontSugar
+  printTreeNoSugar
     . sugarFinally
 
 -- >>> bytesToInt "00-00-00-00-00-00-00-00"

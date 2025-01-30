@@ -31,6 +31,7 @@ import Data.Maybe (fromMaybe)
 import Language.EO.Phi.Dataize.Context (defaultContext)
 import Language.EO.Phi.Rules.Common (applyOneRule)
 import Language.EO.Phi.Rules.Yaml (Rule (..), RuleSet (..), RuleTest (..), RuleTestOption (..), convertRuleNamed)
+import Language.EO.Phi.Syntax (printTreeNoSugar)
 import Language.EO.Test.Yaml
 import Test.Hspec
 

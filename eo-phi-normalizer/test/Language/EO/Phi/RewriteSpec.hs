@@ -34,7 +34,7 @@ module Language.EO.Phi.RewriteSpec where
 import Control.Monad (forM_)
 import Data.Yaml qualified as Yaml
 import GHC.Generics (Generic)
-import Language.EO.Phi (Program (..))
+import Language.EO.Phi (Program (..), printTreeNoSugar)
 import Language.EO.Phi.Dataize.Context (defaultContext)
 import Language.EO.Phi.Rules.Common (applyRules)
 import Language.EO.Phi.Rules.Yaml (convertRuleNamed, parseRuleSetFromFile, rules)

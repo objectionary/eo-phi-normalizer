@@ -83,7 +83,7 @@ import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), Cont
 import Language.EO.Phi.Rules.Fast (fastYegorInsideOut, fastYegorInsideOutAsRule)
 import Language.EO.Phi.Rules.RunYegor (yegorRuleSet)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRuleNamed, parseRuleSetFromFile)
-import Language.EO.Phi.Syntax (SugarableFinally, desugar, errorExpectedDesugaredObject, printTreeDontSugar, wrapBytesInBytes, wrapTermination)
+import Language.EO.Phi.Syntax (SugarableFinally, desugar, errorExpectedDesugaredObject, printTreeNoSugar, wrapBytesInBytes, wrapTermination)
 import Language.EO.Phi.ToLaTeX
 import Language.EO.Test.YamlSpec (spec)
 import Options.Applicative hiding (metavar)
@@ -584,7 +584,7 @@ wrapRawBytesIn = \case
   obj@ConstFloatRaw{} -> errorExpectedDesugaredObject obj
 
 printSugarable :: (Pretty a, SugarableFinally a) => Bool -> a -> String
-printSugarable noSugar = if noSugar then printTreeDontSugar else printTree
+printSugarable noSugar = if noSugar then printTreeNoSugar else printTree
 
 printAsProgramOrAsObject :: Bool -> Object -> String
 printAsProgramOrAsObject noSugar = \case
