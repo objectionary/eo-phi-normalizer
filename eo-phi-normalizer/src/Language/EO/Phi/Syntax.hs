@@ -404,12 +404,14 @@ instance SugarableFinally Binding where
   sugarFinally = \case
     obj@AlphaBindingSugar{} -> errorExpectedDesugaredBinding obj
     obj@AlphaBinding''{} -> errorExpectedDesugaredBinding obj
-    AlphaBinding' a@(Label l) (Formation bs) ->
+    AlphaBinding' a@(Label l) f@(Formation{}) ->
       case es of
-        ([], _) -> AlphaBinding' a (sugarFinally (Formation bs))
-        (es', es'') -> AlphaBinding'' l ((\(~(EmptyBinding e)) -> e) <$> es') (sugarFinally (Formation es''))
+        ([], _) -> AlphaBinding' a f'
+        (es', es'') -> AlphaBinding'' l ((\(~(EmptyBinding e)) -> e) <$> es') (Formation es'')
      where
-      es = span (\case EmptyBinding _ -> True; _ -> False) bs
+      -- ρ ↦ ∅ shouldn't be used in the binding sugar
+      f'@(Formation bs') = sugarFinally f
+      es = span (\case EmptyBinding _ -> True; _ -> False) bs'
     AlphaBinding a obj -> AlphaBinding a (sugarFinally obj)
     x -> x
 
