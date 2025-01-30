@@ -319,19 +319,34 @@ instance SugarableFinally Program where
   sugarFinally :: Program -> Program
   sugarFinally (Program bindings) = Program (sugarFinally <$> bindings)
 
-pattern SugarBinding :: Bytes -> Binding
-pattern SugarBinding bs <- AlphaBinding' "as-bytes" (Application "Φ.org.eolang.bytes" [AlphaBinding' "α0" (Formation [DeltaBinding bs])])
+pattern SugarObject :: Attribute -> Bytes -> Object
+-- TODO #651:10m Can EmptyBinding Rho be missing sometimes?
+pattern SugarObject name bs <-
+  Application
+    (ObjectDispatch "Φ.org.eolang" name)
+    [ AlphaBinding'
+        "as-bytes"
+        ( Application
+            "Φ.org.eolang.bytes"
+            [ AlphaBinding'
+                "α0"
+                ( Formation
+                    [DeltaBinding bs, EmptyBinding Rho]
+                  )
+              ]
+          )
+      ]
 
 instance SugarableFinally Object where
   sugarFinally :: Object -> Object
   sugarFinally = \case
-    Application "Φ.org.eolang.int" [SugarBinding bs] -> ConstInt (fromIntegral (bytesToInt bs))
-    Application "Φ.org.eolang.i64" [SugarBinding bs] -> ConstInt (fromIntegral (bytesToInt bs))
-    Application "Φ.org.eolang.i32" [SugarBinding bs] -> ConstInt (fromIntegral (bytesToInt bs))
-    Application "Φ.org.eolang.i16" [SugarBinding bs] -> ConstInt (fromIntegral (bytesToInt bs))
-    Application "Φ.org.eolang.float" [SugarBinding bs] -> ConstFloat (bytesToFloat bs)
-    Application "Φ.org.eolang.number" [SugarBinding bs] -> ConstFloat (bytesToFloat bs)
-    Application "Φ.org.eolang.string" [SugarBinding bs] -> ConstString (bytesToString bs)
+    SugarObject "int" bs -> ConstInt (fromIntegral (bytesToInt bs))
+    SugarObject "i64" bs -> ConstInt (fromIntegral (bytesToInt bs))
+    SugarObject "i32" bs -> ConstInt (fromIntegral (bytesToInt bs))
+    SugarObject "i16" bs -> ConstInt (fromIntegral (bytesToInt bs))
+    SugarObject "float" bs -> ConstFloat (bytesToFloat bs)
+    SugarObject "number" bs -> ConstFloat (bytesToFloat bs)
+    SugarObject "string" bs -> ConstString (bytesToString bs)
     "Φ.org.eolang" -> GlobalObjectPhiOrg
     obj@ConstString{} -> obj
     obj@ConstStringRaw{} -> errorExpectedDesugaredObject obj
