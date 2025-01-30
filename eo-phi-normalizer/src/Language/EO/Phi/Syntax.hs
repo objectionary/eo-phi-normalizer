@@ -161,12 +161,14 @@ instance DesugarableInitially Object where
      where
       bindingsDesugared = desugarInitially <$> bindings
       bindingsRho = [EmptyBinding Rho | not (any isRhoBinding bindings)]
-    Application obj bindings -> app
+    Application obj bindings
+      | null bindings -> Application (desugarInitially obj) bindings
+      | otherwise -> app'
      where
       bindingsDesugared = (desugarInitially ApplicationBindings{applicationBindings = bindings}).applicationBindings
       mkApplication x (b : bs) = mkApplication (Application x [b]) bs
       mkApplication x [] = x
-      app = mkApplication (desugarInitially obj) bindingsDesugared
+      app' = mkApplication (desugarInitially obj) bindingsDesugared
     ObjectDispatch obj a -> ObjectDispatch (desugarInitially obj) a
     GlobalObject -> GlobalObject
     GlobalObjectPhiOrg -> "Φ.org.eolang"
