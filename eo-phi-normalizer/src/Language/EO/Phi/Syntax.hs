@@ -96,6 +96,7 @@ module Language.EO.Phi.Syntax (
 
   -- * Classes
   SugarableFinally (..),
+  DesugarableInitially (..),
 
   -- * Pattern synonyms
   pattern AlphaBinding',
