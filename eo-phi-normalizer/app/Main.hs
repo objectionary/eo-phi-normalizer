@@ -81,7 +81,6 @@ import Language.EO.Phi.Report.Data (makeProgramReport, makeReport)
 import Language.EO.Phi.Report.Html (reportCSS, reportJS, toStringReport)
 import Language.EO.Phi.Rules.Common (ApplicationLimits (ApplicationLimits), Context (..), LogEntry (..), applyRulesChainWith', applyRulesWith, objectSize)
 import Language.EO.Phi.Rules.Fast (fastYegorInsideOut, fastYegorInsideOutAsRule)
-import Language.EO.Phi.Rules.RunYegor (yegorRuleSet)
 import Language.EO.Phi.Rules.Yaml (RuleSet (rules, title), convertRuleNamed, parseRuleSetFromFile)
 import Language.EO.Phi.Syntax (SugarableFinally, desugar, errorExpectedDesugaredObject, printTreeNoSugar, wrapBytesInBytes, wrapTermination)
 import Language.EO.Phi.ToLaTeX
@@ -604,7 +603,7 @@ main = withCorrectLocale do
       logStrLn $ encodeToJSONString metrics
     CLI'PrintRules' CLI'PrintRules{..} -> do
       (logStrLn, _) <- getLoggers Nothing
-      rules <- rules <$> maybe (return yegorRuleSet) parseRuleSetFromFile rulesPath
+      rules <- rules <$> maybe (decodeThrow $(embedFileRelative "test/eo/phi/rules/new.yaml")) parseRuleSetFromFile rulesPath
       let toLatex' = if compact then rulesToLatexCompact else toLatex
       logStrLn $ show $ toLatex' rules
     CLI'RewritePhi' CLI'RewritePhi{..} -> do

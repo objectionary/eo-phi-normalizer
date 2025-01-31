@@ -398,7 +398,6 @@ extra-source-files:
     test/eo/phi/rewriting.yaml
     test/eo/phi/rules/new.yaml
     test/eo/phi/rules/streams.yaml
-    test/eo/phi/rules/yegor.yaml
 
 source-repository head
   type: git
@@ -436,7 +435,6 @@ library
       Language.EO.Phi.Report.Html
       Language.EO.Phi.Rules.Common
       Language.EO.Phi.Rules.Fast
-      Language.EO.Phi.Rules.RunYegor
       Language.EO.Phi.Rules.Yaml
       Language.EO.Phi.Syntax
       Language.EO.Phi.Syntax.Abs
@@ -568,7 +566,6 @@ test-suite doctests
       Language.EO.Phi.Report.Html
       Language.EO.Phi.Rules.Common
       Language.EO.Phi.Rules.Fast
-      Language.EO.Phi.Rules.RunYegor
       Language.EO.Phi.Rules.Yaml
       Language.EO.Phi.Syntax
       Language.EO.Phi.Syntax.Abs
