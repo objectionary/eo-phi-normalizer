@@ -52,25 +52,27 @@ rules:
         input: ⟦ k ↦ ⟦ x ↦ ∅, y ↦ ξ.x ⟧(x ↦ ⟦ρ ↦ ⟦⟧⟧) ⟧
         output: ['⟦ k ↦ ⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧ ⟧']
 
-  - name: alpha
-    description: 'Accessing an α-binding'
-    pattern: |
-      ⟦ !B ⟧(!τ1 ↦ !b)
-    result: |
-      ⟦ !B ⟧(!τ2 ↦ !b)
-    when:
-      - is_alpha: ['!τ1']
-      - ordinal:
-          bindings: '!B'
-          alpha: '!τ1'
-          has_ordinal_as_alpha_index: '!τ2'
-      - absent_attrs:
-          attrs: ['!τ1']
-          bindings: ['!B']
-    tests: []
+  # TODO #651:10m support this rule
+  # - name: alpha
+  #   description: 'Accessing an α-binding'
+  #   pattern: |
+  #     ⟦ !τ2 ↦ !b1, !B ⟧(!τ1 ↦ !b2)
+  #   result: |
+  #     ⟦ !τ2 ↦ !b1, !B ⟧(!τ2 ↦ !b2)
+  #   when:
+  #     # TODO #651:30m support this condition
+  #     # - is_alpha: ['!τ1']
+  #     # TODO #651:30m support this condition
+  #     - ordinal:
+  #         bindings: '!B'
+  #         alpha: '!τ1'
+  #         matching_attribute: '!τ2'
+  #     - absent_attrs:
+  #         attrs: ['!τ1']
+  #         bindings: ['!B']
+  #   tests: []
 
-# TODO fix applications - single attribute
-
+  # TODO #651:20m fix applications - single attribute
   - name: DOT
     description: 'Accessing an α-binding'
     pattern: |
@@ -192,8 +194,8 @@ rules:
       - absent_attrs:
           attrs: ['!τ']
           bindings: ['!B1']
-      # - not_equal: ['!τ', 'ρ']
-      - not_alpha: ['!τ']
+      # TODO #651:10m support this condition
+      # - not_alpha: ['!τ']
     tests:
       - name: ''
         input: '⟦ t1 ↦ ⟦ a ↦ ∅ ⟧ ⟧(t ↦ ⟦ b ↦ ∅ ⟧)'
