@@ -84,7 +84,7 @@ jobs:
             **/*.sh
             **/*.cf
           ignore: >-
-            ./eo/**
+            eo/**/*
             **/.pre-commit-config.yaml
             **/run-fourmolu.sh
             **/Abs.hs
