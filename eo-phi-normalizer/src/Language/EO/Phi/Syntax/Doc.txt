@@ -44,38 +44,46 @@ Bytes literals are recognized by the regular expression
 
 Function literals are recognized by the regular expression
 `````upper (char - ["
- !'(),-.:;?[]{|}↦⟦⟧"])*`````
+
+ !'(),-.:;?[]{|}↦⟦⟧"])*`````
 
 LabelId literals are recognized by the regular expression
 `````lower (char - ["
- !'(),.:;?[]{|}↦⟦⟧"])*`````
+
+ !'(),.:;?[]{|}↦⟦⟧"])*`````
 
 AlphaIndex literals are recognized by the regular expression
 `````{"α0"} | 'α' (digit - '0') digit*`````
 
 LabelMetaId literals are recognized by the regular expression
 `````{"!τ"} (char - ["
- !'(),-.:;?[]{|}↦⟦⟧"])*`````
+
+ !'(),-.:;?[]{|}↦⟦⟧"])*`````
 
 TailMetaId literals are recognized by the regular expression
 `````{"!t"} (char - ["
- !'(),-.:;?[]{|}↦⟦⟧"])*`````
+
+ !'(),-.:;?[]{|}↦⟦⟧"])*`````
 
 BindingsMetaId literals are recognized by the regular expression
 `````{"!B"} (char - ["
- !'(),-.:;?[]{|}↦⟦⟧"])*`````
+
+ !'(),-.:;?[]{|}↦⟦⟧"])*`````
 
 ObjectMetaId literals are recognized by the regular expression
 `````{"!b"} (char - ["
- !'(),-.:;?[]{|}↦⟦⟧"])*`````
+
+ !'(),-.:;?[]{|}↦⟦⟧"])*`````
 
 BytesMetaId literals are recognized by the regular expression
 `````{"!y"} (char - ["
- !'(),-.:;?[]{|}↦⟦⟧"])*`````
+
+ !'(),-.:;?[]{|}↦⟦⟧"])*`````
 
 MetaFunctionName literals are recognized by the regular expression
 `````'@' (char - ["
- !'(),-.:;?[]{|}↦⟦⟧"])*`````
+
+ !'(),-.:;?[]{|}↦⟦⟧"])*`````
 
 IntegerSigned literals are recognized by the regular expression
 `````'-'? digit+`````

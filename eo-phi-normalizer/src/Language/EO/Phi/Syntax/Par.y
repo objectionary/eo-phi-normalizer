@@ -248,4 +248,3 @@ myLexer :: String -> [Token]
 myLexer = tokens
 
 }
-

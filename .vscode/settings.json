@@ -1,24 +1,40 @@
 {
-  "haskell.formattingProvider": "fourmolu",
-  "haskell.plugin.fourmolu.config.external": true,
   "[haskell]": {
     "editor.defaultFormatter": "haskell.haskell"
   },
+  "[plaintext]": {
+    "editor.language.brackets": [
+      [
+        "(",
+        ")"
+      ],
+      [
+        "{\u27e6",
+        "\u27e7}"
+      ],
+      [
+        "\u27e6",
+        "\u27e7"
+      ]
+    ],
+    "editor.language.colorizedBracketPairs": [
+      [
+        "\u27e6",
+        "\u27e7"
+      ]
+    ],
+    "editor.unicodeHighlight.ambiguousCharacters": false
+  },
   "editor.formatOnSave": true,
-  "files.insertFinalNewline": true,
-  "files.trimFinalNewlines": true,
-  "files.trimTrailingWhitespace": true,
   "files.associations": {
     "*.phi": "plaintext"
   },
-  "[plaintext]": {
-    "editor.unicodeHighlight.ambiguousCharacters": false,
-    "editor.language.brackets": [
-      ["(", ")"],
-      ["{⟦", "⟧}"],
-      ["⟦", "⟧"]
-    ],
-    "editor.language.colorizedBracketPairs": [["⟦", "⟧"]]
-  },
-  "shellcheck.customArgs": ["-x"]
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "files.trimTrailingWhitespace": true,
+  "haskell.formattingProvider": "fourmolu",
+  "haskell.plugin.fourmolu.config.external": true,
+  "shellcheck.customArgs": [
+    "-x"
+  ]
 }
