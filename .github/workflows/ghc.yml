@@ -47,7 +47,7 @@ env:
 jobs:
   check:
     name: "Run static checks"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
@@ -101,7 +101,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, windows-2022, macos-15]
       fail-fast: false
     steps:
       - name: 📥 Checkout repository
