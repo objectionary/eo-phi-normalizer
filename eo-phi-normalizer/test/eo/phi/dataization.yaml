@@ -180,23 +180,25 @@ tests:
     input: |
       {
         ⟦
-          x ↦ ⟦
-            a ↦ ⟦
-              b ↦ ξ.ρ.c
-            ⟧.b,
-            c ↦ ∅
-          ⟧,
-          d ↦ ξ.x(
-            c ↦ ⟦
-              Δ ⤍ 01-
-            ⟧
-          ).a,
+          y ↦ ⟦
+            x ↦ ⟦
+              a ↦ ⟦
+                b ↦ ξ.ρ.c
+              ⟧,
+              c ↦ ∅
+            ⟧,
+            d ↦ ξ.x(
+              c ↦ ⟦
+                Δ ⤍ 01-
+              ⟧
+            ).a.b
+          ⟧.d,
           λ ⤍ Package
         ⟧
       }
     output:
       object: |
-        ⟦ x ↦ ⟦ a ↦ ⟦ b ↦ ξ.ρ.c ⟧.b, c ↦ ∅ ⟧, d ↦ ⟦ Δ ⤍ 01- ⟧, λ ⤍ Package ⟧
+        ⟦ y ↦ ⟦ Δ ⤍ 01- ⟧, λ ⤍ Package ⟧
 
   - name: "ρ and nested dispatches"
     dependencies: []
