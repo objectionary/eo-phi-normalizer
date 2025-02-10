@@ -38,7 +38,7 @@ import Language.EO.Phi.Dataize.Context (defaultContext)
 import Language.EO.Phi.Dependencies (deepMergePrograms)
 import Language.EO.Phi.Rules.Common (equalObject)
 import Language.EO.Phi.Rules.Yaml (convertRuleNamed, parseRuleSetFromFile, rules)
-import Language.EO.Phi.Syntax (NoDesugar(..))
+import Language.EO.Phi.Syntax (NoDesugar(..), SugarableFinally(..))
 import Prettyprinter (Pretty (..))
 import Test.EO.Phi (DataizationResult (Bytes, Object), DataizeTest (..), DataizeTestGroup (..), dataizationTests, progToObj)
 
@@ -54,6 +54,12 @@ instance Eq ObjectOrBytes where
   ObjectOrBytes (Right x) == ObjectOrBytes (Right y) =
     x == y
   _ == _ = False
+
+instance SugarableFinally ObjectOrBytes where
+  sugarFinally (ObjectOrBytes x) = ObjectOrBytes $
+    case x of
+      Left obj -> Left (sugarFinally obj)
+      Right bytes -> Right (sugarFinally bytes)
 
 spec :: Spec
 spec = do
@@ -87,4 +93,4 @@ spec = do
                 it "no sugar" do
                   printTreeNoSugar dataizedResult' `shouldBe` printTreeNoSugar expectedResult'
                 it "sugar" do
-                  printTreeNoSugar dataizedResult' `shouldBe` printTreeNoSugar expectedResult'
+                  printTree dataizedResult' `shouldBe` printTree expectedResult'
