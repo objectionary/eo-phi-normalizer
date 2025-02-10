@@ -20,6 +20,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+# N.B.:
+# Rho is unavailable in formations that are immediately dispatched
+# https://github.com/objectionary/eo-phi-normalizer/issues/677#issuecomment-2647748804
+
 title: Dataization tests
 tests:
   # TODO #651:30min Hangs
