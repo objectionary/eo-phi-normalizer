@@ -23,13 +23,16 @@
 {- FOURMOLU_ENABLE -}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedLabels #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wno-forall-identifier #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
@@ -61,6 +64,7 @@ import PyF (fmt)
 -- >>> :set -XOverloadedStrings
 -- >>> :set -XOverloadedLists
 
+instance FromJSON Program where parseJSON = fmap fromString . parseJSON
 instance FromJSON Object where parseJSON = fmap fromString . parseJSON
 instance FromJSON Binding where parseJSON = fmap fromString . parseJSON
 
@@ -79,6 +83,9 @@ instance FromJSON RuleAttribute where parseJSON = fmap fromString . parseJSON
 instance FromJSON LabelId
 instance FromJSON AlphaIndex
 
+deriving newtype instance FromJSON Bytes
+
+instance FromJSON (NoDesugar Program) where parseJSON = fmap fromString . parseJSON
 instance FromJSON (NoDesugar Object) where parseJSON = fmap fromString . parseJSON
 
 data RuleSet = RuleSet
