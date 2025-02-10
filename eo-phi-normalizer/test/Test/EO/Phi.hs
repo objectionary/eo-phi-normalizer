@@ -37,7 +37,7 @@ import Data.List (sort)
 import Data.Yaml qualified as Yaml
 import GHC.Generics (Generic)
 import Language.EO.Phi qualified as Phi
-import Language.EO.Phi.Rules.Yaml()
+import Language.EO.Phi.Rules.Yaml ()
 import Language.EO.Phi.Syntax
 import System.Directory (listDirectory)
 import System.FilePath ((</>))

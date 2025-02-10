@@ -38,7 +38,7 @@ import Language.EO.Phi.Dataize.Context (defaultContext)
 import Language.EO.Phi.Dependencies (deepMergePrograms)
 import Language.EO.Phi.Rules.Common (equalObject)
 import Language.EO.Phi.Rules.Yaml (convertRuleNamed, parseRuleSetFromFile, rules)
-import Language.EO.Phi.Syntax (NoDesugar(..), SugarableFinally(..))
+import Language.EO.Phi.Syntax (NoDesugar (..), SugarableFinally (..))
 import Prettyprinter (Pretty (..))
 import Test.EO.Phi (DataizationResult (Bytes, Object), DataizeTest (..), DataizeTestGroup (..), dataizationTests, progToObj)
 
