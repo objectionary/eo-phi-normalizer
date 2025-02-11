@@ -21,8 +21,12 @@
 # SOFTWARE.
 
 # N.B.:
+
 # Rho is unavailable in formations that are immediately dispatched
 # https://github.com/objectionary/eo-phi-normalizer/issues/677#issuecomment-2647748804
+
+# `input`s MAY desugared expressions
+# `output`s MUST be desugared expressions
 
 title: Dataization tests
 tests:
@@ -209,7 +213,9 @@ tests:
           x ↦ ⟦
             a ↦ ⟦
               b ↦ ⟦
-                c ↦ ξ.ρ
+                φ ↦ ⟦
+                  c ↦ ξ.ρ
+                ⟧
               ⟧.c
             ⟧.b
           ⟧.a,
@@ -218,7 +224,28 @@ tests:
       }
     output:
       object: |
-        ⟦ x ↦ ⟦ b ↦ ⟦ c ↦ ξ.ρ ⟧.ρ, ρ ↦ ⟦ a ↦ ⟦ b ↦ ⟦ c ↦ ξ.ρ ⟧.ρ ⟧ ⟧ ⟧, λ ⤍ Package ⟧
+        ⟦
+          x ↦ ⟦
+            c ↦ ξ.ρ,
+            ρ ↦ ⟦
+              ρ ↦ ⟦
+                ρ ↦ ⟦
+                  φ ↦ ⟦
+                    c ↦ ξ.ρ,
+                    ρ ↦ ∅
+                  ⟧,
+                  ρ ↦ ∅
+                ⟧,
+                c ↦ ξ.ρ
+              ⟧,
+              φ ↦ ⟦
+                c ↦ ξ.ρ,
+                ρ ↦ ∅
+              ⟧
+            ⟧
+          ⟧,
+          λ ⤍ Package
+        ⟧
 
   - name: "usage of Φ with a loop"
     dependencies: []
@@ -233,9 +260,9 @@ tests:
       }
     output:
       object: |
-        ⟦ a ↦ ⟦ b ↦ Φ.a ⟧, λ ⤍ Package ⟧
+        ⟦ a ↦ ⟦ b ↦ Φ.a, ρ ↦ ∅ ⟧, λ ⤍ Package ⟧
 
-  - name: "ρ passed to both term of object application?"
+  - name: "ρ passed to both terms of object application"
     dependencies: []
     input: |
       {
@@ -254,12 +281,22 @@ tests:
       }
     output:
       object: |
-        ⟦ x ↦ ⟦
+        ⟦
+          x ↦ ⟦
+            ρ ↦ ⟦
+              c ↦ ⟦
+                a ↦ ⟦
+                  d ↦ ξ.ρ,
+                  ρ ↦ ∅
+                ⟧,
+                ρ ↦ ∅
+              ⟧,
+              ρ ↦ ∅
+            ⟧,
             a ↦ ⟦
               d ↦ ξ.ρ,
-              ρ ↦ ⟦ c ↦ ⟦ a ↦ ∅ ⟧(a ↦ ⟦ d ↦ ξ.ρ ⟧) ⟧
-            ⟧,
-            ρ ↦ ⟦ c ↦ ⟦ a ↦ ∅ ⟧(a ↦ ⟦ d ↦ ξ.ρ ⟧) ⟧
+              ρ ↦ ∅
+            ⟧
           ⟧,
           λ ⤍ Package
         ⟧
@@ -269,25 +306,27 @@ tests:
     input: |
       {
         ⟦
-          a ↦ ⟦
-            b ↦ ∅,
+          y ↦ ⟦
+            a ↦ ⟦
+              b ↦ ∅,
+              x ↦ ⟦
+                Δ ⤍ 01-
+              ⟧
+            ⟧(
+              b ↦ ⟦
+                c ↦ ξ.ρ.x
+              ⟧
+            ).b.c,
             x ↦ ⟦
-              Δ ⤍ 01-
-            ⟧
-          ⟧(
-            b ↦ ⟦
-              c ↦ ξ.ρ.x
-            ⟧
-          ).b.c,
-          x ↦ ⟦
-            Δ ⤍ 02-
-          ⟧,
+              Δ ⤍ 02-
+            ⟧,
+          ⟧.a,
           λ ⤍ Package
         ⟧
       }
     output:
       object: |
-        ⟦ a ↦ ⟦ Δ ⤍ 02- ⟧, x ↦ ⟦ Δ ⤍ 02- ⟧, λ ⤍ Package ⟧
+        ⟦ y ↦ ⟦ Δ ⤍ 01- ⟧, λ ⤍ Package ⟧
 
   # TODO #636:30min Hangs
   # - name: "ξ in application"
@@ -315,18 +354,20 @@ tests:
     input: |
       {
         ⟦
-          a ↦ ξ.b,
-          b ↦ ξ.c,
-          c ↦ ξ.d,
-          d ↦ ⟦
-            Δ ⤍ 01-
-          ⟧,
+          x ↦ ⟦
+            a ↦ ξ.b,
+            b ↦ ξ.c,
+            c ↦ ξ.d,
+            d ↦ ⟦
+              Δ ⤍ 01-
+            ⟧,
+          ⟧.a,
           λ ⤍ Package
         ⟧
       }
     output:
       object: |
-        ⟦ a ↦ ⟦ Δ ⤍ 01- ⟧, b ↦ ⟦ Δ ⤍ 01- ⟧, c ↦ ⟦ Δ ⤍ 01- ⟧, d ↦ ⟦ Δ ⤍ 01- ⟧, λ ⤍ Package ⟧
+        ⟦ x ↦ ⟦ Δ ⤍ 01- ⟧, λ ⤍ Package ⟧
 
   # TODO #636:30min fails
   # - name: "cross-reference (1)"
