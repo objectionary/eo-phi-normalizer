@@ -84,6 +84,8 @@ module Language.EO.Phi.Syntax (
   paddedLeftChunksOf,
   normalizeBytes,
   parseWith,
+  errorExpectedButGot,
+  errorExpectedFormationButGot,
   errorExpectedDesugaredObject,
   errorExpectedDesugaredBinding,
   errorExpectedDesugaredAttribute,
@@ -133,6 +135,12 @@ import Validation (Validation (..))
 -- >>> :set -XOverloadedStrings
 -- >>> :set -XOverloadedLists
 
+errorExpectedButGot :: (Pretty a, SugarableFinally a) => String -> a -> b
+errorExpectedButGot this x = error ([fmt|Error: Expected {this}, but got:\n|] <> printTree x)
+
+errorExpectedFormationButGot :: (Pretty a, SugarableFinally a) => a -> b
+errorExpectedFormationButGot = errorExpectedButGot "Formation"
+
 errorExpectedDesugaredButGot :: (Pretty a, SugarableFinally a) => String -> a -> b
 errorExpectedDesugaredButGot type' x = error ([fmt|Error: Expected desugared {type'}, but got:\n|] <> printTree x)
 
@@ -160,10 +168,10 @@ instance DesugarableInitially Object where
     ConstFloatRaw (DoubleSigned x) -> ConstFloat (read x)
     Formation bindings -> Formation (bindingsDesugared <> bindingsRho)
      where
-      bindingsDesugared = desugarInitially <$> bindings
+      bindingsDesugared = (desugarInitially FormationBindings{formationBindings = bindings}).formationBindings
       bindingsRho = [EmptyBinding Rho | not (any isRhoBinding bindings)]
     Application obj bindings
-      | null bindings -> Application (desugarInitially obj) bindings
+      | null bindings -> Application (desugarInitially obj) []
       | otherwise -> app'
      where
       bindingsDesugared = (desugarInitially ApplicationBindings{applicationBindings = bindings}).applicationBindings
@@ -181,16 +189,21 @@ instance DesugarableInitially Object where
     MetaTailContext obj metaId -> MetaTailContext (desugarInitially obj) metaId
     MetaFunction name obj -> MetaFunction name (desugarInitially obj)
 
+desugarAlphaBindingAttributeSugar :: LabelId -> [Attribute] -> Object -> Binding
+desugarAlphaBindingAttributeSugar l ls = \case
+  Formation bindings ->
+    let bindingsDesugared = (desugarInitially FormationBindings{formationBindings = bindings}).formationBindings
+    in AlphaBinding' (Label l) (Formation ((EmptyBinding <$> ls) <> bindingsDesugared))
+  a -> errorExpectedFormationButGot (AlphaBinding'' l ls a)
+
 instance DesugarableInitially ApplicationBindings where
   desugarInitially :: ApplicationBindings -> ApplicationBindings
   desugarInitially ApplicationBindings{..} = ApplicationBindings{applicationBindings = bindings'}
    where
     go :: Int -> Binding -> Binding
     go idx = \case
-      AlphaBinding'' l ls (Formation bindings) ->
-        let bindingsDesugared = desugarInitially <$> bindings
-         in AlphaBinding' (Label l) (Formation ((EmptyBinding <$> ls) <> bindingsDesugared))
-      AlphaBinding a obj -> AlphaBinding a (desugarInitially obj)
+      AlphaBinding'' l ls obj -> desugarAlphaBindingAttributeSugar l ls obj
+      AlphaBinding' a obj -> AlphaBinding' a (desugarInitially obj)
       AlphaBindingSugar obj -> AlphaBinding' (Alpha (AlphaIndex [fmt|α{idx}|])) (desugarInitially obj)
       binding -> binding
     isAlphaBindingSugar = \case
@@ -199,7 +212,7 @@ instance DesugarableInitially ApplicationBindings where
     bindings'
       | all isAlphaBindingSugar applicationBindings = zipWith go [0 ..] applicationBindings
       | any isAlphaBindingSugar applicationBindings = error bindingsError
-      | otherwise = desugarInitially <$> applicationBindings
+      | otherwise = (desugarInitially FormationBindings{formationBindings = applicationBindings}).formationBindings
      where
       bindingsPrinted :: [String]
       bindingsPrinted = printTree <$> applicationBindings
@@ -210,13 +223,19 @@ instance DesugarableInitially ApplicationBindings where
 
 instance DesugarableInitially Program where
   desugarInitially :: Program -> Program
-  desugarInitially (Program bindings) = Program (desugarInitially <$> bindings)
+  desugarInitially (Program bindings) = Program (desugarInitially FormationBindings{formationBindings = bindings}).formationBindings
+
+newtype FormationBindings = FormationBindings {formationBindings :: [Binding]}
 
 instance DesugarableInitially Binding where
   desugarInitially = \case
     obj@AlphaBindingSugar{} -> errorExpectedDesugaredBinding obj
-    AlphaBinding a obj -> AlphaBinding a (desugarInitially obj)
+    AlphaBinding'' l ls obj -> desugarAlphaBindingAttributeSugar l ls obj
+    AlphaBinding' a obj -> AlphaBinding' a (desugarInitially obj)
     obj -> obj
+
+instance DesugarableInitially FormationBindings where
+  desugarInitially FormationBindings{..} = FormationBindings{formationBindings = desugarInitially <$> formationBindings}
 
 instance DesugarableInitially AttributeSugar
 instance DesugarableInitially Attribute
@@ -451,10 +470,11 @@ desugarBinding = \case
   AlphaBinding'' l ls (Formation bindings) ->
     let bindingsDesugared = desugarBinding <$> bindings
      in AlphaBinding' (Label l) (Formation ((EmptyBinding <$> ls) <> bindingsDesugared))
+  a@AlphaBinding''{} -> errorExpectedDesugaredBinding a
   AlphaBinding' l (Formation bindings) ->
     let bindingsDesugared = desugarBinding <$> bindings
      in AlphaBinding' l (Formation bindingsDesugared)
-  AlphaBinding a obj -> AlphaBinding a (desugar obj)
+  AlphaBinding' a obj -> AlphaBinding' a (desugar obj)
   obj@(AlphaBindingSugar{}) -> errorExpectedDesugaredBinding obj
   binding -> binding
 

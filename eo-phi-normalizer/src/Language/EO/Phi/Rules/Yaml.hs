@@ -261,7 +261,7 @@ objectLabelIds = \case
 bindingLabelIds :: Binding -> Set LabelId
 bindingLabelIds = \case
   AlphaBinding' a obj -> objectLabelIds obj <> attrLabelIds a
-  b@AlphaBinding{} -> errorExpectedDesugaredBinding b
+  b@AlphaBinding''{} -> errorExpectedDesugaredBinding b
   DeltaBinding _bytes -> mempty
   EmptyBinding a -> attrLabelIds a
   DeltaEmptyBinding -> mempty
@@ -313,7 +313,7 @@ objectMetaIds obj@ConstFloatRaw{} = errorExpectedDesugaredObject obj
 
 bindingMetaIds :: Binding -> Set MetaId
 bindingMetaIds (AlphaBinding' attr obj) = attrMetaIds attr <> objectMetaIds obj
-bindingMetaIds b@AlphaBinding{} = errorExpectedDesugaredBinding b
+bindingMetaIds b@AlphaBinding''{} = errorExpectedDesugaredBinding b
 bindingMetaIds (EmptyBinding attr) = attrMetaIds attr
 bindingMetaIds (DeltaBinding _) = mempty
 bindingMetaIds DeltaEmptyBinding = mempty
@@ -499,7 +499,7 @@ applySubstBinding :: Subst -> Binding -> [Binding]
 applySubstBinding subst@Subst{..} = \case
   AlphaBinding' a obj ->
     [AlphaBinding' (applySubstAttr subst a) (applySubst subst obj)]
-  b@AlphaBinding{} -> errorExpectedDesugaredBinding b
+  b@AlphaBinding''{} -> errorExpectedDesugaredBinding b
   EmptyBinding a ->
     [EmptyBinding (applySubstAttr subst a)]
   DeltaBinding bytes -> [DeltaBinding (coerce bytes)]
@@ -687,6 +687,7 @@ substThis thisObj = go
 substThisBinding :: Object -> Binding -> Binding
 substThisBinding obj = \case
   AlphaBinding a obj' -> AlphaBinding a (substThis obj obj')
+  b@AlphaBinding''{} -> errorExpectedDesugaredBinding b
   EmptyBinding a -> EmptyBinding a
   DeltaBinding bytes -> DeltaBinding bytes
   DeltaEmptyBinding -> DeltaEmptyBinding
@@ -732,6 +733,7 @@ contextualize thisObj = go
 contextualizeBinding :: Object -> Binding -> Binding
 contextualizeBinding obj = \case
   AlphaBinding a obj' -> AlphaBinding a (contextualize obj obj')
+  b@AlphaBinding''{} -> errorExpectedDesugaredBinding b
   EmptyBinding a -> EmptyBinding a
   DeltaBinding bytes -> DeltaBinding bytes
   DeltaEmptyBinding -> DeltaEmptyBinding
