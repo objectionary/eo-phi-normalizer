@@ -193,7 +193,7 @@ desugarAlphaBindingAttributeSugar :: LabelId -> [Attribute] -> Object -> Binding
 desugarAlphaBindingAttributeSugar l ls = \case
   Formation bindings ->
     let bindingsDesugared = (desugarInitially FormationBindings{formationBindings = bindings}).formationBindings
-    in AlphaBinding' (Label l) (Formation ((EmptyBinding <$> ls) <> bindingsDesugared))
+     in AlphaBinding' (Label l) (Formation ((EmptyBinding <$> ls) <> bindingsDesugared))
   a -> errorExpectedFormationButGot (AlphaBinding'' l ls a)
 
 instance DesugarableInitially ApplicationBindings where
@@ -386,8 +386,8 @@ instance SugarableFinally Object where
             EmptyBinding Rho -> False
             _ -> True
         ]
-    (Application (Application o bs) bs') -> sugarFinally (Application o (bs <> bs'))
-    (Application o bs) -> Application (sugarFinally o) (sugarFinally (ApplicationBindings bs)).applicationBindings
+    Application (Application o bs) bs' -> sugarFinally (Application o (bs <> bs'))
+    Application o bs -> Application (sugarFinally o) (sugarFinally ApplicationBindings{applicationBindings = bs}).applicationBindings
     ObjectDispatch obj a -> ObjectDispatch (sugarFinally obj) a
     GlobalObject -> GlobalObject
     obj@GlobalObjectPhiOrg -> errorExpectedDesugaredObject obj
