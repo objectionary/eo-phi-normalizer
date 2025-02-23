@@ -101,7 +101,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-2022, macos-15]
+        os: [ubuntu-24.04, windows-2022, macos-15]
       fail-fast: false
     steps:
       - name: 📥 Checkout repository
@@ -150,7 +150,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-24.04, windows-2022, macos-15]
       fail-fast: false
     permissions:
       contents: write
@@ -386,7 +386,7 @@ jobs:
     needs: [pipeline, tests]
     if: ${{ github.ref_name == 'master' }}
     name: "Build and upload site (master)"
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: 📥 Checkout repository
         uses: actions/checkout@v4
