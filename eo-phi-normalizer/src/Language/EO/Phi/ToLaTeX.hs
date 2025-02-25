@@ -25,6 +25,7 @@
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
@@ -157,9 +158,9 @@ instance ToLatex Rule where
     "\\rrule{"
       <> LaTeX name
       <> "}: &"
-      <> inMathMode (toLatex pattern)
+      <> inMathMode (toLatex pattern.noDesugar)
       <> "\\(\\trans\\)"
-      <> inMathMode (toLatex result)
+      <> inMathMode (toLatex result.noDesugar)
       <> (if not (null when) || isNonEmptyContext context then "\\\\\\text {if }" else mempty)
       <> maybe mempty (\c -> "&" <> toLatex c <> "\\\\") context
       <> fold (intersperse ",\\\\" (maybe [] (map (("&" <>) . toLatex)) when))
@@ -176,9 +177,9 @@ ruleToLatexCompact (Rule name _ context _ pattern result _ when _) =
   "\\rrule{"
     <> LaTeX name
     <> "}: "
-    <> inMathMode (toLatex pattern)
+    <> inMathMode (toLatex pattern.noDesugar)
     <> "\\(\\trans\\)"
-    <> inMathMode (toLatex result)
+    <> inMathMode (toLatex result.noDesugar)
     <> (if not (null when) || isNonEmptyContext context then "\\quad\\text {if }" else "")
     <> maybe mempty (\c -> toLatex c <> ", ") context
     <> fold (intersperse ", " (maybe [] (map toLatex) when))
