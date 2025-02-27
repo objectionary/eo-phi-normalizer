@@ -18,6 +18,7 @@ path = [
     ".gitattributes",
     ".gitignore",
     ".gitleaksignore",
+    ".gitmodules",
     ".pdd",
     ".xcop",
     "Gemfile.lock",
