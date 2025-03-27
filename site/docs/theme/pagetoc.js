@@ -1,3 +1,6 @@
+// SPDX-FileCopyrightText: Copyright (c) 2016-2025 Objectionary.com
+// SPDX-License-Identifier: MIT
+
 function forEach(elems, fun) {
     Array.prototype.forEach.call(elems, fun);
   }
