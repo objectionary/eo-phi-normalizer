@@ -1,7 +1,19 @@
 
+__pycache__
 !pipeline/config.yaml
 !pipeline/pipeline.lock
-# pipeline
+.cabal-sandbox/
+.cache/
+.direnv
+.DS_Store
+.eoc
+.ghc.environment.*
+.hpc
+.hsenv
+.HTF/
+.idea/
+.pipeline
+.stack-work/
 *.aux
 *.bak
 *.chi
@@ -17,19 +29,7 @@
 *.log
 *.o
 *.prof
-.DS_Store
-.HTF/
-.cabal-sandbox/
-.cache/
-.direnv
-.eoc
-.ghc.environment.*
-.hpc
-.hsenv
-.idea/
-.pipeline
-.stack-work/
-__pycache__
+# pipeline
 build
 cabal-dev
 cabal.project.local

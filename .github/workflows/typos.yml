@@ -1,8 +1,7 @@
 # SPDX-FileCopyrightText: Copyright (c) 2016-2025 Objectionary.com
 # SPDX-License-Identifier: MIT
 ---
-# yamllint disable rule:line-length
-name: shellcheck
+name: typos
 'on':
   push:
     branches:
@@ -11,9 +10,9 @@ name: shellcheck
     branches:
       - master
 jobs:
-  shellcheck:
+  typos:
     timeout-minutes: 15
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
-      - uses: ludeeus/action-shellcheck@master
+      - uses: crate-ci/typos@v1.32.0
