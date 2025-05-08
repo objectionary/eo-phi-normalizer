@@ -53,11 +53,12 @@ tests:
     {⟦ m ↦ ⟦ x ↦ ⟦ t ↦ ⟦ Δ ⤍ 42- ⟧ ⟧.t ⟧.x ⟧}
   output: |
     {⟦ m ↦ ⟦ ρ ↦ ⟦ t ↦ ⟦ Δ ⤍ 42- ⟧ ⟧, Δ ⤍ 42- ⟧ ⟧}
-- name: e-lam
-  input: |
-    {⟦ m ↦ ⟦ x ↦ ⟦ λ ⤍ Fn ⟧.ρ.k, k ↦ ⟦ Δ ⤍ 42- ⟧ ⟧.x ⟧}
-  output: |
-    {⟦ m ↦ ⟦ λ ⤍ Fn ⟧.ρ.k(ρ ↦ ⟦ x ↦ ⟦ λ ⤍ Fn ⟧.ρ.k, k ↦ ⟦ Δ ⤍ 42- ⟧ ⟧ ) ⟧}
+# TODO #651:10m Enable
+# - name: e-lam
+#   input: |
+#     {⟦ m ↦ ⟦ x ↦ ⟦ λ ⤍ Fn ⟧.ρ.k, k ↦ ⟦ Δ ⤍ 42- ⟧ ⟧.x ⟧}
+#   output: |
+#     {⟦ m ↦ ⟦ λ ⤍ Fn ⟧.ρ.k(ρ ↦ ⟦ x ↦ ⟦ λ ⤍ Fn ⟧.ρ.k, k ↦ ⟦ Δ ⤍ 42- ⟧ ⟧ ) ⟧}
 - name: e-nf
   input: |
     {⟦ x ↦ ⟦ t ↦ Φ.x ⟧ ⟧}

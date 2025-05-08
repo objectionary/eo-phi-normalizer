@@ -129,9 +129,3 @@ preprocess' sep = concat . addPrefix sep
 
 preprocess :: String -> String
 preprocess = preprocess' parseAlphaBindingSugar
-
-input1 :: String
-input1 = "{⟦ org ↦ ⟦ ⟧(α0 ↦ !b1) ⟧}"
-
--- >>> preprocess input1
--- "{\10214 #org \8614 \10214 \10215(#\945\&0 \8614 !b1) \10215}"

@@ -93,6 +93,32 @@ tests:
           )
         ⟧
       }
+  - name: "Preserves a sequence of applications"
+    input: |
+      {⟦
+        foo ↦ Φ.bar(
+          α0 ↦ "hello"
+        )(
+          b ↦ "jeff"
+        )
+      ⟧}
+    normalized: |
+      {⟦
+        foo ↦ Φ.bar(
+          α0 ↦ "hello"
+        )(
+          b ↦ "jeff"
+        )
+      ⟧}
+    prettified: |
+      {
+        ⟦
+          foo ↦ Φ.bar(
+            α0 ↦ "hello",
+            b ↦ "jeff"
+          )
+        ⟧
+      }
   - name: "Prints floats"
     input: |
       {⟦ m ↦ -42.0 ⟧}
