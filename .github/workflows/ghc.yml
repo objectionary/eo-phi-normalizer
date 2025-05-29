@@ -74,7 +74,7 @@ jobs:
         with:
           hlint-bin: ${{ steps.get-hlint-bin.outputs.hlint-bin }}
 
-      - uses: yegor256/copyrights-action@0.0.8
+      - uses: yegor256/copyrights-action@0.0.12
         with:
           license: LICENSE.txt
           globs: >-
@@ -88,7 +88,7 @@ jobs:
             **/run-fourmolu.sh
             **/Abs.hs
             **/Print.hs
-      - uses: yegor256/copyrights-action@0.0.8
+      - uses: yegor256/copyrights-action@0.0.12
         with:
           license: ./eo-phi-normalizer/LICENSE
           globs: >-
