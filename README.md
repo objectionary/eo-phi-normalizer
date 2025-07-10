@@ -1,5 +1,8 @@
 # Normalizer for 𝜑-calculus
 
+> [!WARNING]
+> This repository is retired, in favor of [phino](https://github.com/objectionary/phino).
+
 [![`eo-phi-normalizer` on Hackage](https://img.shields.io/hackage/v/eo-phi-normalizer)](http://hackage.haskell.org/package/eo-phi-normalizer)
 [![Haddock](<https://shields.io/badge/Haddock%20(master)-Code%20documentation-informational>)](https://www.objectionary.com/eo-phi-normalizer/haddock/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE.txt)
