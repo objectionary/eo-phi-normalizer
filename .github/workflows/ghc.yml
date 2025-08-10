@@ -306,7 +306,7 @@ jobs:
 
       - name: Setup mdBook
         if: runner.os == 'Linux'
-        uses: jontze/action-mdbook@v3
+        uses: jontze/action-mdbook@v4
         with:
           token: ${{secrets.GITHUB_TOKEN}}
           mdbook-version: "~0.4.43"
