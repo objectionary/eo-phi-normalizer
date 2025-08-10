@@ -23,6 +23,56 @@
 title: "Rule set following Nov 2024 revision"
 rules:
 
+  - name: COPY
+    description: 'Application of τ-binding'
+    context:
+      current_object: "!b2"
+    pattern: |
+      ⟦ !τ ↦ ∅, !B ⟧(!τ ↦ !b1)
+    result: |
+      ⟦ !τ ↦ ⌈ !b1 , !b2 ⌉, !B ⟧
+    when: []
+    tests:
+      - name: Should match - 1
+        input: ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ) ⟧
+        output: ['⟦ a ↦ ⟦ b ↦ ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ) ⟧ ⟧ ⟧']
+      - name: Should match - 2
+        input: ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ).a ⟧
+        output: ['⟦ a ↦ ⟦ b ↦ ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ).a ⟧ ⟧.a ⟧']
+      - name: Should match - 3
+        input: ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ) ().a ⟧
+        output: ['⟦ a ↦ ⟦ b ↦ ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ) ().a ⟧ ⟧ ().a ⟧']
+      - name: Phi Paper - Example E1
+        input: ⟦ k ↦ ⟦ x ↦ ξ.t, t ↦ ∅ ⟧(t ↦ ⟦ρ ↦ ⟦⟧⟧) ⟧
+        output: ['⟦ k ↦ ⟦ t ↦ ⟦ρ ↦ ⟦⟧⟧, x ↦ ξ.t ⟧ ⟧']
+      - name: Phi Paper - Example E4 - dispatch on y
+        input: ⟦ k ↦ ⟦ x ↦ ∅, y ↦ ξ.x ⟧(x ↦ ⟦ρ ↦ ⟦⟧⟧).y ⟧
+        output: ['⟦ k ↦ ⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧.y ⟧']
+      - name: Phi Paper - Example E4 - remove dispatch on y
+        input: ⟦ k ↦ ⟦ x ↦ ∅, y ↦ ξ.x ⟧(x ↦ ⟦ρ ↦ ⟦⟧⟧) ⟧
+        output: ['⟦ k ↦ ⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧ ⟧']
+
+  # TODO #651:10m support this rule
+  # - name: alpha
+  #   description: 'Accessing an α-binding'
+  #   pattern: |
+  #     ⟦ !τ2 ↦ !b1, !B ⟧(!τ1 ↦ !b2)
+  #   result: |
+  #     ⟦ !τ2 ↦ !b1, !B ⟧(!τ2 ↦ !b2)
+  #   when:
+  #     # TODO #651:30m support this condition
+  #     # - is_alpha: ['!τ1']
+  #     # TODO #651:30m support this condition
+  #     - ordinal:
+  #         bindings: '!B'
+  #         alpha: '!τ1'
+  #         matching_attribute: '!τ2'
+  #     - absent_attrs:
+  #         attrs: ['!τ1']
+  #         bindings: ['!B']
+  #   tests: []
+
+  # TODO #651:20m fix applications - single attribute
   - name: DOT
     description: 'Accessing an α-binding'
     pattern: |
@@ -62,49 +112,6 @@ rules:
         input: ⟦ m ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧.φ.t(ρ ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧) ⟧
         output: ['⟦ m ↦ ⟦ t ↦ ⟦⟧ ⟧(ρ ↦ ⟦ φ ↦ ⟦ t ↦ ⟦⟧ ⟧,x ↦ ξ.t ⟧).t(ρ ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧) ⟧']
 
-  - name: COPY
-    description: 'Application of α-binding'
-    pattern: |
-      ⟦ !τ1 ↦ ⟦ !τ2 ↦ ∅, !B1 ⟧(!τ2 ↦ !b, !B2) * !t, !B3 ⟧
-    result: |
-      ⟦ !τ1 ↦ ⟦ !τ2 ↦ ⌈ !b , ⟦ !τ1 ↦ ⟦ !τ2 ↦ ∅, !B1 ⟧(!τ2 ↦ !b, !B2), !B3 ⟧ ⌉, !B1 ⟧(!B2) * !t, !B3 ⟧
-    when:
-      - nf: '!b'
-      - nf: '⟦ !B1 ⟧'
-      - nf: '⟦ !B3 ⟧'
-    tests:
-      - name: Should match
-        input: ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ) ⟧
-        output: ['⟦ a ↦ ⟦ b ↦ ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ) ⟧ ⟧ () ⟧']
-      - name: 'Should match'
-        input: ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ).a ⟧
-        output: ['⟦ a ↦ ⟦ b ↦ ⟦ a ↦ ⟦ b ↦ ∅ ⟧ (b ↦ ξ) ⟧ ⟧ ().a ⟧']
-      - name: Phi Paper - Example E1
-        input: ⟦ k ↦ ⟦ x ↦ ξ.t, t ↦ ∅ ⟧(t ↦ ⟦ρ ↦ ⟦⟧⟧) ⟧
-        output: ['⟦ k ↦ ⟦ t ↦ ⟦ρ ↦ ⟦⟧⟧, x ↦ ξ.t ⟧() ⟧']
-      - name: Phi Paper - Example E4 - dispatch on y
-        input: ⟦ k ↦ ⟦ x ↦ ∅, y ↦ ξ.x ⟧(x ↦ ⟦ρ ↦ ⟦⟧⟧).y ⟧
-        output: ['⟦ k ↦ ⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧().y ⟧']
-      - name: Phi Paper - Example E4 - remove dispatch on y
-        input: ⟦ k ↦ ⟦ x ↦ ∅, y ↦ ξ.x ⟧(x ↦ ⟦ρ ↦ ⟦⟧⟧) ⟧
-        output: ['⟦ k ↦ ⟦ x ↦ ⟦ρ ↦ ⟦⟧⟧, y ↦ ξ.x ⟧() ⟧']
-
-  - name: RHO
-    description: 'Application of a ρ-binding'
-    pattern: |
-      ⟦ !τ ↦ ⟦ !B1 ⟧(ρ ↦ !b, !B2) * !t, !B3 ⟧
-    result: |
-      ⟦ !τ ↦ ⟦ !B1, ρ ↦ ⌈ !b , ⟦ !τ ↦ ⟦ !B1 ⟧(ρ ↦ !b, !B2) * !t, !B3 ⟧ ⌉ ⟧(!B2) * !t, !B3 ⟧
-    when:
-      - nf: '!b'
-      - absent_attrs:
-          attrs: ['ρ']
-          bindings: ['!B1']
-    tests:
-      - name: Phi Paper - Example E5 - first R_rho
-        input: ⟦ m ↦ ⟦ t ↦ ⟦⟧ ⟧(ρ ↦ ⟦ φ ↦ ⟦ t ↦ ⟦⟧ ⟧,x ↦ ξ.t ⟧).t(ρ ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧) ⟧
-        output: ['⟦ m ↦ ⟦ t ↦ ⟦⟧, ρ ↦ ⟦ φ ↦ ⟦ t ↦ ⟦⟧ ⟧,x ↦ ξ.t ⟧ ⟧().t(ρ ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧) ⟧']
-
   - name: phi
     description: 'Accessing a decorated object'
     pattern: |
@@ -128,21 +135,21 @@ rules:
   - name: STAY
     description: 'Application of a ρ-binding when ρ already exists'
     pattern: |
-      ⟦ ρ ↦ !b1, !B1 ⟧ (ρ ↦ !b, !B2)
+      ⟦ ρ ↦ !b1, !B1 ⟧ (ρ ↦ !b)
     result: |
-      ⟦ ρ ↦ !b1, !B1 ⟧ (!B2)
+      ⟦ ρ ↦ !b1, !B1 ⟧
     when: []
     tests:
       - name: Phi Paper - Example E3 - first R_stay
         input: ⟦ ρ ↦ ⟦⟧ ⟧(ρ ↦ ⟦ t ↦ ⟦ ρ ↦ ⟦⟧ ⟧ ⟧)(ρ ↦ ⟦ x ↦ ⟦ ρ ↦ ⟦⟧ ⟧(ρ ↦ ⟦ t ↦ ⟦ ρ ↦ ⟦⟧ ⟧ ⟧) ⟧)
-        output: [⟦ ρ ↦ ⟦⟧ ⟧()(ρ ↦ ⟦ x ↦ ⟦ ρ ↦ ⟦⟧ ⟧(ρ ↦ ⟦ t ↦ ⟦ ρ ↦ ⟦⟧ ⟧ ⟧) ⟧)]
+        output: [⟦ ρ ↦ ⟦⟧ ⟧(ρ ↦ ⟦ x ↦ ⟦ ρ ↦ ⟦⟧ ⟧(ρ ↦ ⟦ t ↦ ⟦ ρ ↦ ⟦⟧ ⟧ ⟧) ⟧)]
       - name: 'Should match'
         input: '⟦ ρ ↦ ⟦ c ↦ ∅ ⟧ ⟧ (ρ ↦ ⟦ ⟧, b ↦ ξ)'
         output: ['⟦ ρ ↦ ⟦ c ↦ ∅ ⟧ ⟧ (b ↦ ξ)']
 
   - name: OVER
     description: 'Invalid application (attribute already attached)'
-    pattern: ⟦ !τ ↦ !b1, !B1 ⟧(!τ ↦ !b2, !B2)
+    pattern: ⟦ !τ ↦ !b1, !B1 ⟧(!τ ↦ !b2)
     result: ⊥
     when:
       - not_equal: ['!τ', 'ρ']
@@ -179,39 +186,16 @@ rules:
         input: '⟦ x ↦ ξ.t, t ↦ ∅ ⟧.t(ρ ↦ ⟦ x ↦ ξ.t, t ↦ ∅ ⟧)'
         output: ['⊥(ρ ↦ ⟦ x ↦ ξ.t, t ↦ ∅ ⟧)']
 
-  - name: DUP
-    description: 'Empty application'
-    pattern: |
-      ⟦ !B ⟧()
-    result: |
-      ⟦ !B ⟧
-    when: []
-    tests:
-      - name: Should match
-        input: ⟦ a ↦ ⟦⟧ ⟧()
-        output: ['⟦ a ↦ ⟦⟧ ⟧']
-      - name: Should not match
-        input: ⟦ a ↦ ∅ ⟧(a ↦ ⟦⟧)
-        output: []
-      - name: Should match in subformation
-        input: ⟦ a ↦ ⟦ b ↦ ⟦⟧() ⟧ ⟧
-        output: ['⟦ a ↦ ⟦ b ↦ ⟦⟧ ⟧ ⟧']
-      - name: Should work with empty formation
-        input: ⟦⟧()
-        output: ['⟦⟧']
-      - name: Phi Paper - Example E5 - first R_rho
-        input: ⟦ m ↦ ⟦ t ↦ ⟦⟧, ρ ↦ ⟦ φ ↦ ⟦ t ↦ ⟦⟧ ⟧,x ↦ ξ.t ⟧ ⟧().t(ρ ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧) ⟧
-        output: ['⟦ m ↦ ⟦ t ↦ ⟦⟧, ρ ↦ ⟦ φ ↦ ⟦ t ↦ ⟦⟧ ⟧,x ↦ ξ.t ⟧ ⟧.t(ρ ↦ ⟦ x ↦ ξ.t, φ ↦ ⟦ t ↦ ⟦⟧ ⟧ ⟧) ⟧']
-
   - name: MISS
     description: 'Invalid application (absent attribute)'
-    pattern: ⟦ !B1 ⟧(!τ ↦ !b, !B2)
+    pattern: ⟦ !B1 ⟧(!τ ↦ !b)
     result: ⊥
     when:
       - absent_attrs:
           attrs: ['!τ']
           bindings: ['!B1']
-      - not_equal: ['!τ', 'ρ']
+      # TODO #651:10m support this condition
+      # - not_alpha: ['!τ']
     tests:
       - name: ''
         input: '⟦ t1 ↦ ⟦ a ↦ ∅ ⟧ ⟧(t ↦ ⟦ b ↦ ∅ ⟧)'
@@ -251,8 +235,9 @@ rules:
     when: []
     tests:
       - name: Should apply in subformations
-        input: ⟦ a ↦ ⟦ b ↦ ⊥(t ↦ ⟦⟧, u ↦ ⟦⟧) ⟧ ⟧
-        output: ['⟦ a ↦ ⟦ b ↦ ⊥ ⟧ ⟧']
+        input: ⟦ a ↦ ⟦ b ↦ ⊥(t ↦ ⟦⟧)(u ↦ ⟦⟧) ⟧ ⟧
+        # TODO #651:10m Single step?
+        output: ['⟦ a ↦ ⟦ b ↦ ⊥(u ↦ ⟦⟧) ⟧ ⟧']
       - name: Phi Paper Example E2 last application
         input: '⊥(ρ ↦ ⟦ x ↦ ξ.t, t ↦ ∅ ⟧)'
         output: ['⊥']

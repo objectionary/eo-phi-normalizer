@@ -31,20 +31,22 @@ module Language.EO.Phi.DataizeSpec where
 import Control.Monad (forM_)
 import Test.Hspec
 
-import Language.EO.Phi (printTree)
+import Language.EO.Phi (printTree, printTreeNoSugar)
 import Language.EO.Phi qualified as Phi
 import Language.EO.Phi.Dataize (dataizeRecursively)
 import Language.EO.Phi.Dataize.Context (defaultContext)
 import Language.EO.Phi.Dependencies (deepMergePrograms)
 import Language.EO.Phi.Rules.Common (equalObject)
 import Language.EO.Phi.Rules.Yaml (convertRuleNamed, parseRuleSetFromFile, rules)
+import Language.EO.Phi.Syntax (NoDesugar (..), SugarableFinally (..))
+import Prettyprinter (Pretty (..))
 import Test.EO.Phi (DataizationResult (Bytes, Object), DataizeTest (..), DataizeTestGroup (..), dataizationTests, progToObj)
 
-newtype ObjectOrBytes = ObjectOrBytes (Either Phi.Object Phi.Bytes)
+newtype ObjectOrBytes = ObjectOrBytes (Either Phi.Object Phi.Bytes) deriving (Show)
 
-instance Show ObjectOrBytes where
-  show (ObjectOrBytes (Left obj)) = printTree obj
-  show (ObjectOrBytes (Right bytes)) = printTree bytes
+instance Pretty ObjectOrBytes where
+  pretty (ObjectOrBytes (Left obj)) = pretty $ printTree obj
+  pretty (ObjectOrBytes (Right bytes)) = pretty $ printTree bytes
 
 instance Eq ObjectOrBytes where
   ObjectOrBytes (Left x) == ObjectOrBytes (Left y) =
@@ -53,14 +55,18 @@ instance Eq ObjectOrBytes where
     x == y
   _ == _ = False
 
+instance SugarableFinally ObjectOrBytes where
+  sugarFinally (ObjectOrBytes x) = ObjectOrBytes $
+    case x of
+      Left obj -> Left (sugarFinally obj)
+      Right bytes -> Right (sugarFinally bytes)
+
 spec :: Spec
 spec = do
   DataizeTestGroup{..} <- runIO (dataizationTests "test/eo/phi/dataization.yaml")
   describe title do
     forM_
-      [ ("Old Yegor's rules", "test/eo/phi/rules/yegor.yaml")
-      -- TODO #617:10m Enable
-      -- , ("New Yegor's rules", "test/eo/phi/rules/new.yaml")
+      [ ("New Yegor's rules", "test/eo/phi/rules/new.yaml")
       ]
       $ \(rulesTitle, rulesFile) -> do
         ruleset <- runIO $ parseRuleSetFromFile rulesFile
@@ -69,14 +75,22 @@ spec = do
           forM_ tests $
             \test -> do
               deps <- runIO $ mapM Phi.unsafeParseProgramFromFile test.dependencies
-              let mergedProgs = case deepMergePrograms (test.input : deps) of
+              let input' = test.input
+                  mergedProgs = case deepMergePrograms (input' : deps) of
                     Left err -> error ("Error merging programs: " ++ err)
                     Right prog -> prog
-              let ctx = defaultContext rules (progToObj mergedProgs)
-              let inputObj = progToObj test.input
-              let expectedResult = case test.output of
-                    Object obj -> Left obj
+                  ctx = defaultContext rules (progToObj mergedProgs)
+                  inputObj = progToObj input'
+                  expectedResult = case test.output of
+                    Object obj -> Left obj.noDesugar
                     Bytes bytes -> Right bytes
-              it test.name $ do
-                let dataizedResult = dataizeRecursively ctx inputObj
-                ObjectOrBytes dataizedResult `shouldBe` ObjectOrBytes expectedResult
+                  dataizedResult = dataizeRecursively ctx inputObj
+                  expectedResult' = ObjectOrBytes expectedResult
+                  dataizedResult' = ObjectOrBytes dataizedResult
+              describe test.name do
+                it "value" do
+                  dataizedResult' `shouldBe` expectedResult'
+                it "no sugar" do
+                  printTreeNoSugar dataizedResult' `shouldBe` printTreeNoSugar expectedResult'
+                it "sugar" do
+                  printTree dataizedResult' `shouldBe` printTree expectedResult'

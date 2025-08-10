@@ -21,13 +21,17 @@
 -- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 -- SOFTWARE.
 {- FOURMOLU_ENABLE -}
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE QuasiQuotes #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE ViewPatterns #-}
 {-# OPTIONS_GHC -Wno-incomplete-uni-patterns #-}
@@ -37,7 +41,7 @@ module Language.EO.Phi.Syntax (
   module Language.EO.Phi.Syntax.Abs,
   desugar,
   printTree,
-  printTreeDontSugar,
+  printTreeNoSugar,
 
   -- * Conversion to 'Bytes'
   intToBytes,
@@ -80,12 +84,21 @@ module Language.EO.Phi.Syntax (
   paddedLeftChunksOf,
   normalizeBytes,
   parseWith,
+  errorExpectedButGot,
+  errorExpectedFormationButGot,
   errorExpectedDesugaredObject,
   errorExpectedDesugaredBinding,
   errorExpectedDesugaredAttribute,
+  isRhoBinding,
+  isDeltaBinding,
+
+  -- * Types
+  ApplicationBindings (..),
+  NoDesugar (..),
 
   -- * Classes
   SugarableFinally (..),
+  DesugarableInitially (..),
 
   -- * Pattern synonyms
   pattern AlphaBinding',
@@ -104,6 +117,7 @@ import Data.String (IsString (fromString))
 import Data.Text qualified as T
 import Data.Text qualified as Text
 import Data.Text.Encoding qualified as Text
+import Data.Traversable (for)
 import GHC.Float (isDoubleFinite)
 import Language.EO.Phi.Preprocess (preprocess)
 import Language.EO.Phi.Pretty ()
@@ -122,16 +136,22 @@ import Validation (Validation (..))
 -- >>> :set -XOverloadedLists
 
 errorExpectedButGot :: (Pretty a, SugarableFinally a) => String -> a -> b
-errorExpectedButGot type' x = error ([fmt|impossible: expected desugared {type'}, but got:\n|] <> printTree x)
+errorExpectedButGot this x = error ([fmt|Error: Expected {this}, but got:\n|] <> printTree x)
+
+errorExpectedFormationButGot :: (Pretty a, SugarableFinally a) => a -> b
+errorExpectedFormationButGot = errorExpectedButGot "Formation"
+
+errorExpectedDesugaredButGot :: (Pretty a, SugarableFinally a) => String -> a -> b
+errorExpectedDesugaredButGot type' x = error ([fmt|Error: Expected desugared {type'}, but got:\n|] <> printTree x)
 
 errorExpectedDesugaredObject :: Object -> a
-errorExpectedDesugaredObject = errorExpectedButGot "Object"
+errorExpectedDesugaredObject = errorExpectedDesugaredButGot "Object"
 
 errorExpectedDesugaredBinding :: Binding -> a
-errorExpectedDesugaredBinding = errorExpectedButGot "Binding"
+errorExpectedDesugaredBinding = errorExpectedDesugaredButGot "Binding"
 
 errorExpectedDesugaredAttribute :: Attribute -> a
-errorExpectedDesugaredAttribute = errorExpectedButGot "Attribute"
+errorExpectedDesugaredAttribute = errorExpectedDesugaredButGot "Attribute"
 
 class DesugarableInitially a where
   desugarInitially :: a -> a
@@ -146,8 +166,18 @@ instance DesugarableInitially Object where
     ConstIntRaw (IntegerSigned x) -> ConstInt (read x)
     obj@(ConstFloat{}) -> obj
     ConstFloatRaw (DoubleSigned x) -> ConstFloat (read x)
-    Formation bindings -> Formation (desugarInitially bindings)
-    Application obj bindings -> Application (desugarInitially obj) (desugarInitially bindings)
+    Formation bindings -> Formation (bindingsDesugared <> bindingsRho)
+     where
+      bindingsDesugared = (desugarInitially FormationBindings{formationBindings = bindings}).formationBindings
+      bindingsRho = [EmptyBinding Rho | not (any isRhoBinding bindings)]
+    Application obj bindings
+      | null bindings -> Application (desugarInitially obj) []
+      | otherwise -> app'
+     where
+      bindingsDesugared = (desugarInitially ApplicationBindings{applicationBindings = bindings}).applicationBindings
+      mkApplication x (b : bs) = mkApplication (Application x [b]) bs
+      mkApplication x [] = x
+      app' = mkApplication (desugarInitially obj) bindingsDesugared
     ObjectDispatch obj a -> ObjectDispatch (desugarInitially obj) a
     GlobalObject -> GlobalObject
     GlobalObjectPhiOrg -> "Φ.org.eolang"
@@ -159,28 +189,53 @@ instance DesugarableInitially Object where
     MetaTailContext obj metaId -> MetaTailContext (desugarInitially obj) metaId
     MetaFunction name obj -> MetaFunction name (desugarInitially obj)
 
-instance DesugarableInitially [Binding] where
-  desugarInitially :: [Binding] -> [Binding]
-  desugarInitially = zipWith go [0 ..]
+desugarAlphaBindingAttributeSugar :: LabelId -> [Attribute] -> Object -> Binding
+desugarAlphaBindingAttributeSugar l ls = \case
+  Formation bindings ->
+    let bindingsDesugared = (desugarInitially FormationBindings{formationBindings = bindings}).formationBindings
+     in AlphaBinding' (Label l) (Formation ((EmptyBinding <$> ls) <> bindingsDesugared))
+  a -> errorExpectedFormationButGot (AlphaBinding'' l ls a)
+
+instance DesugarableInitially ApplicationBindings where
+  desugarInitially :: ApplicationBindings -> ApplicationBindings
+  desugarInitially ApplicationBindings{..} = ApplicationBindings{applicationBindings = bindings'}
    where
     go :: Int -> Binding -> Binding
     go idx = \case
-      AlphaBinding'' l ls (Formation bindings) ->
-        let bindingsDesugared = desugarInitially bindings
-         in AlphaBinding' (Label l) (Formation ((EmptyBinding <$> ls) <> bindingsDesugared))
-      AlphaBinding a obj -> AlphaBinding a (desugarInitially obj)
+      AlphaBinding'' l ls obj -> desugarAlphaBindingAttributeSugar l ls obj
+      AlphaBinding' a obj -> AlphaBinding' a (desugarInitially obj)
       AlphaBindingSugar obj -> AlphaBinding' (Alpha (AlphaIndex [fmt|α{idx}|])) (desugarInitially obj)
       binding -> binding
+    isAlphaBindingSugar = \case
+      AlphaBindingSugar{} -> True
+      _ -> False
+    bindings'
+      | all isAlphaBindingSugar applicationBindings = zipWith go [0 ..] applicationBindings
+      | any isAlphaBindingSugar applicationBindings = error bindingsError
+      | otherwise = (desugarInitially FormationBindings{formationBindings = applicationBindings}).formationBindings
+     where
+      bindingsPrinted :: [String]
+      bindingsPrinted = printTree <$> applicationBindings
+      bindingsPrinted' :: String
+      bindingsPrinted' = intercalate ", " bindingsPrinted
+      bindingsError :: String
+      bindingsError = [fmt|Expected that either all bindings are objects or all bindings are ↦-mappings, but got:\n({bindingsPrinted'})|]
 
 instance DesugarableInitially Program where
   desugarInitially :: Program -> Program
-  desugarInitially (Program bindings) = Program (desugarInitially bindings)
+  desugarInitially (Program bindings) = Program (desugarInitially FormationBindings{formationBindings = bindings}).formationBindings
+
+newtype FormationBindings = FormationBindings {formationBindings :: [Binding]}
 
 instance DesugarableInitially Binding where
   desugarInitially = \case
     obj@AlphaBindingSugar{} -> errorExpectedDesugaredBinding obj
-    AlphaBinding a obj -> AlphaBinding a (desugarInitially obj)
+    AlphaBinding'' l ls obj -> desugarAlphaBindingAttributeSugar l ls obj
+    AlphaBinding' a obj -> AlphaBinding' a (desugarInitially obj)
     obj -> obj
+
+instance DesugarableInitially FormationBindings where
+  desugarInitially FormationBindings{..} = FormationBindings{formationBindings = desugarInitially <$> formationBindings}
 
 instance DesugarableInitially AttributeSugar
 instance DesugarableInitially Attribute
@@ -189,8 +244,48 @@ instance DesugarableInitially PeeledObject
 instance DesugarableInitially ObjectHead
 instance DesugarableInitially MetaId
 
+data FailureMessage a = FailureMessage
+  { name :: a
+  , text :: String
+  }
+
+newtype Failure' = Failure'Syntax {failureMessage :: FailureMessage SyntaxError}
+
+instance Show Failure' where
+  show = \case
+    Failure'Syntax{failureMessage = FailureMessage{..}} -> [fmt|Syntax error: {show name}\n\nin\n\n{text}|]
+
+data SyntaxError
+  = -- | {⟦ k() ↦ ⟦ ⟧() ⟧}
+    SyntaxError'InlineVoidsOnApplication
+  | -- | {⟦ k() ↦ ⟦ ⟧.x ⟧}
+    SyntaxError'InlineVoidsOnDispatch
+  | -- | {⟦ k ↦ ⟦ ⟧ (t ↦ ξ.t) ⟧}
+    SyntaxError'ApplicationToEmptyFormation
+  | -- | {⟦ k ↦ ξ.t (Δ ⤍ 42-) ⟧}
+    SyntaxError'DeltaInApplication
+  | -- | {⟦ k ↦ ξ.t (λ ⤍ Fn) ⟧}
+    SyntaxError'LambdaInApplication
+  | -- | {⟦ k ↦ ξ.t (t ↦ ∅) ⟧}
+    SyntaxError'VoidAsValue
+
+instance Show SyntaxError where
+  show = \case
+    SyntaxError'InlineVoidsOnApplication -> "inline-voids-on-application"
+    SyntaxError'InlineVoidsOnDispatch -> "inline-voids-on-dispatch"
+    SyntaxError'ApplicationToEmptyFormation -> "application-to-empty-formation"
+    SyntaxError'DeltaInApplication -> "delta-in-application"
+    SyntaxError'LambdaInApplication -> "lambda-in-application"
+    SyntaxError'VoidAsValue -> "void-as-value"
+
+mkFailure'Syntax :: (Pretty a, SugarableFinally a) => SyntaxError -> a -> Failure'
+mkFailure'Syntax name obj = Failure'Syntax{failureMessage = FailureMessage{name, text = printTree obj}}
+
+mkFailureSyntax :: (Pretty a1, SugarableFinally a1) => SyntaxError -> a1 -> Validation (NonEmpty Failure') a2
+mkFailureSyntax name obj = Failure (mkFailure'Syntax name obj :| [])
+
 class CheckableSyntaxInitially a where
-  checkSyntax :: a -> Validation (NonEmpty String) a
+  checkSyntax :: a -> Validation (NonEmpty Failure') a
   checkSyntax = pure
 
 instance CheckableSyntaxInitially Program where
@@ -201,38 +296,30 @@ instance CheckableSyntaxInitially Binding where
     AlphaBinding' a obj -> AlphaBinding' a <$> checkSyntax obj
     AlphaBinding'' a as obj ->
       case (as, obj) of
-        -- inline-voids-on-application
-        -- {⟦ k() ↦ ⟦ ⟧() ⟧}
-        ([], o@(Application (Formation []) [])) -> Failure (printTree o :| [])
-        -- inline-voids-on-dispatch
-        -- {⟦ k() ↦ ⟦ ⟧.x ⟧}
-        ([], o@(ObjectDispatch (Formation []) _)) -> Failure (printTree o :| [])
+        ([], o@(Application (Formation []) [])) -> mkFailureSyntax SyntaxError'InlineVoidsOnApplication o
+        ([], o@(ObjectDispatch (Formation []) _)) -> mkFailureSyntax SyntaxError'InlineVoidsOnDispatch o
         _ -> AlphaBinding'' a as <$> checkSyntax obj
     AlphaBindingSugar obj -> AlphaBindingSugar <$> checkSyntax obj
     b -> pure b
 
 instance CheckableSyntaxInitially Object where
   checkSyntax = \case
-    -- application-to-formation
-    -- {⟦ k ↦ ⟦ ⟧ (t ↦ ξ.t) ⟧}
-    o@(Application (Formation []) [_]) -> Failure (printTree o :| [])
-    o@(Application _ xs)
-      | let
-          isBadBinding = \case
-            -- delta-in-application
-            -- {⟦ k ↦ ξ.t (Δ ⤍ 42-) ⟧}
-            DeltaBinding{} -> True
-            DeltaEmptyBinding{} -> True
-            -- lambda-in-application
-            -- {⟦ k ↦ ξ.t (λ ⤍ Fn) ⟧}
-            LambdaBinding{} -> True
-            -- void-as-value
-            -- {⟦ k ↦ ξ.t (t ↦ ∅) ⟧}
-            EmptyBinding{} -> True
-            _ -> False
-         in
-          [d | d <- xs, isBadBinding d] /= [] ->
-          Failure (printTree o :| [])
+    o@(Application (Formation []) [_]) -> mkFailureSyntax SyntaxError'ApplicationToEmptyFormation o
+    Application obj xs ->
+      case bindingsValidated of
+        Success _ -> Application <$> checkSyntax obj <*> for xs checkSyntax
+        Failure x -> Failure x
+     where
+      classifyBinding binding =
+        case binding of
+          DeltaBinding{} -> mkFailure SyntaxError'DeltaInApplication
+          DeltaEmptyBinding{} -> mkFailure SyntaxError'DeltaInApplication
+          LambdaBinding{} -> mkFailure SyntaxError'LambdaInApplication
+          EmptyBinding{} -> mkFailure SyntaxError'VoidAsValue
+          _ -> Success binding
+       where
+        mkFailure name = mkFailureSyntax name binding
+      bindingsValidated = for xs classifyBinding
     ObjectDispatch obj x -> ObjectDispatch <$> checkSyntax obj <*> pure x
     MetaSubstThis obj1 obj2 -> MetaSubstThis <$> checkSyntax obj1 <*> checkSyntax obj2
     MetaContextualize obj1 obj2 -> MetaContextualize <$> checkSyntax obj1 <*> checkSyntax obj2
@@ -253,21 +340,36 @@ class SugarableFinally a where
 
 instance SugarableFinally Program where
   sugarFinally :: Program -> Program
-  sugarFinally (Program bindings) = Program (sugarFinally bindings)
+  sugarFinally (Program bindings) = Program (sugarFinally <$> bindings)
 
-pattern SugarBinding :: Bytes -> Binding
-pattern SugarBinding bs <- AlphaBinding' "as-bytes" (Application "Φ.org.eolang.bytes" [AlphaBinding' "α0" (Formation [DeltaBinding bs])])
+pattern SugarObject :: Attribute -> Bytes -> Object
+-- TODO #651:10m Can EmptyBinding Rho be missing sometimes?
+pattern SugarObject name bs <-
+  Application
+    (ObjectDispatch "Φ.org.eolang" name)
+    [ AlphaBinding'
+        "as-bytes"
+        ( Application
+            "Φ.org.eolang.bytes"
+            [ AlphaBinding'
+                "α0"
+                ( Formation
+                    [DeltaBinding bs, EmptyBinding Rho]
+                  )
+              ]
+          )
+      ]
 
 instance SugarableFinally Object where
   sugarFinally :: Object -> Object
   sugarFinally = \case
-    Application "Φ.org.eolang.int" [SugarBinding bs] -> ConstInt (fromIntegral (bytesToInt bs))
-    Application "Φ.org.eolang.i64" [SugarBinding bs] -> ConstInt (fromIntegral (bytesToInt bs))
-    Application "Φ.org.eolang.i32" [SugarBinding bs] -> ConstInt (fromIntegral (bytesToInt bs))
-    Application "Φ.org.eolang.i16" [SugarBinding bs] -> ConstInt (fromIntegral (bytesToInt bs))
-    Application "Φ.org.eolang.float" [SugarBinding bs] -> ConstFloat (bytesToFloat bs)
-    Application "Φ.org.eolang.number" [SugarBinding bs] -> ConstFloat (bytesToFloat bs)
-    Application "Φ.org.eolang.string" [SugarBinding bs] -> ConstString (bytesToString bs)
+    SugarObject "int" bs -> ConstInt (fromIntegral (bytesToInt bs))
+    SugarObject "i64" bs -> ConstInt (fromIntegral (bytesToInt bs))
+    SugarObject "i32" bs -> ConstInt (fromIntegral (bytesToInt bs))
+    SugarObject "i16" bs -> ConstInt (fromIntegral (bytesToInt bs))
+    SugarObject "float" bs -> ConstFloat (bytesToFloat bs)
+    SugarObject "number" bs -> ConstFloat (bytesToFloat bs)
+    SugarObject "string" bs -> ConstString (bytesToString bs)
     "Φ.org.eolang" -> GlobalObjectPhiOrg
     obj@ConstString{} -> obj
     obj@ConstStringRaw{} -> errorExpectedDesugaredObject obj
@@ -275,8 +377,17 @@ instance SugarableFinally Object where
     obj@ConstIntRaw{} -> errorExpectedDesugaredObject obj
     obj@ConstFloat{} -> obj
     obj@ConstFloatRaw{} -> errorExpectedDesugaredObject obj
-    Formation bindings -> Formation (sugarFinally bindings)
-    Application obj bindings -> Application (sugarFinally obj) (sugarFinally (ApplicationBindings bindings)).applicationBindings
+    Formation bindings -> Formation bindings'
+     where
+      bindings' =
+        [ binding
+        | binding <- sugarFinally <$> bindings
+        , case binding of
+            EmptyBinding Rho -> False
+            _ -> True
+        ]
+    Application (Application o bs) bs' -> sugarFinally (Application o (bs <> bs'))
+    Application o bs -> Application (sugarFinally o) (sugarFinally ApplicationBindings{applicationBindings = bs}).applicationBindings
     ObjectDispatch obj a -> ObjectDispatch (sugarFinally obj) a
     GlobalObject -> GlobalObject
     obj@GlobalObjectPhiOrg -> errorExpectedDesugaredObject obj
@@ -299,7 +410,7 @@ instance SugarableFinally ApplicationBindings where
     ApplicationBindings $
       if and (zipWith go [0 ..] bs)
         then (\(~(AlphaBinding _ obj)) -> AlphaBindingSugar (sugarFinally obj)) <$> bs
-        else sugarFinally bs
+        else sugarFinally <$> bs
    where
     go :: Int -> Binding -> Bool
     go idx = \case
@@ -313,12 +424,14 @@ instance SugarableFinally Binding where
   sugarFinally = \case
     obj@AlphaBindingSugar{} -> errorExpectedDesugaredBinding obj
     obj@AlphaBinding''{} -> errorExpectedDesugaredBinding obj
-    AlphaBinding' a@(Label l) (Formation bs) ->
+    AlphaBinding' a@(Label l) f@(Formation{}) ->
       case es of
-        ([], _) -> AlphaBinding' a (sugarFinally (Formation bs))
-        (es', es'') -> AlphaBinding'' l ((\(~(EmptyBinding e)) -> e) <$> es') (sugarFinally (Formation es''))
+        ([], _) -> AlphaBinding' a f'
+        (es', es'') -> AlphaBinding'' l ((\(~(EmptyBinding e)) -> e) <$> es') (Formation es'')
      where
-      es = span (\case EmptyBinding _ -> True; _ -> False) bs
+      -- ρ ↦ ∅ shouldn't be used in the binding sugar
+      f'@(Formation bs') = sugarFinally f
+      es = span (\case EmptyBinding _ -> True; _ -> False) bs'
     AlphaBinding a obj -> AlphaBinding a (sugarFinally obj)
     x -> x
 
@@ -357,10 +470,11 @@ desugarBinding = \case
   AlphaBinding'' l ls (Formation bindings) ->
     let bindingsDesugared = desugarBinding <$> bindings
      in AlphaBinding' (Label l) (Formation ((EmptyBinding <$> ls) <> bindingsDesugared))
+  a@AlphaBinding''{} -> errorExpectedDesugaredBinding a
   AlphaBinding' l (Formation bindings) ->
     let bindingsDesugared = desugarBinding <$> bindings
      in AlphaBinding' l (Formation bindingsDesugared)
-  AlphaBinding a obj -> AlphaBinding a (desugar obj)
+  AlphaBinding' a obj -> AlphaBinding' a (desugar obj)
   obj@(AlphaBindingSugar{}) -> errorExpectedDesugaredBinding obj
   binding -> binding
 
@@ -422,6 +536,19 @@ wrapBytesAsBool :: Bytes -> Object
 wrapBytesAsBool bytes
   | bytesToInt bytes == 0 = [fmt|Φ.org.eolang.false|]
   | otherwise = [fmt|Φ.org.eolang.true|]
+
+isRhoBinding :: Binding -> Bool
+isRhoBinding = \case
+  AlphaBinding' Rho _ -> True
+  -- TODO #650:10m enable this option?
+  EmptyBinding Rho -> True
+  _ -> False
+
+isDeltaBinding :: Binding -> Bool
+isDeltaBinding = \case
+  DeltaBinding _ -> True
+  DeltaEmptyBinding -> True
+  _ -> False
 
 padLeft :: Int -> [Char] -> [Char]
 padLeft n s = replicate (n - length s) '0' ++ s
@@ -738,18 +865,8 @@ bytesToFloat (Bytes bytes) =
   dashToSpace '-' = ' '
   dashToSpace c = c
 
-instance IsString Program where fromString = unsafeParseWith pProgram
-instance IsString Object where fromString = unsafeParseWith pObject
-instance IsString Binding where fromString = unsafeParseWith pBinding
-instance IsString Attribute where fromString = unsafeParseWith pAttribute
-instance IsString AttributeSugar where fromString = unsafeParseWith pAttributeSugar
-instance IsString RuleAttribute where fromString = unsafeParseWith pRuleAttribute
-instance IsString PeeledObject where fromString = unsafeParseWith pPeeledObject
-instance IsString ObjectHead where fromString = unsafeParseWith pObjectHead
-instance IsString MetaId where fromString = unsafeParseWith pMetaId
-
-parseWith :: (DesugarableInitially a, CheckableSyntaxInitially a) => ([Token] -> Either String a) -> String -> Either String a
-parseWith parser input = result
+parseWith' :: (DesugarableInitially a, CheckableSyntaxInitially a) => Bool -> ([Token] -> Either String a) -> String -> Either String a
+parseWith' doDesugar parser input = result
  where
   input' = preprocess input
   tokens = myLexer input'
@@ -762,19 +879,50 @@ parseWith parser input = result
       Left x -> mkError x
       Right x ->
         case x of
-          Failure y -> mkError [fmt|Bad sub-expressions:\n\n{intercalate1 "\n\n" y}\n|]
-          Success y -> Right (desugarInitially y)
+          Failure y -> mkError [fmt|Bad sub-expressions:\n\n{intercalate1 "\n\n" (show <$> y)}\n|]
+          Success y -> Right ((if doDesugar then desugarInitially else id) y)
+
+parseWith :: (DesugarableInitially a, CheckableSyntaxInitially a) => ([Token] -> Either String a) -> String -> Either String a
+parseWith = parseWith' True
 
 -- | Parse an 'Object' from a 'String'.
 -- May throw an 'error` if input has a syntactical or lexical errors.
-unsafeParseWith :: (DesugarableInitially a, CheckableSyntaxInitially a) => ([Token] -> Either String a) -> String -> a
-unsafeParseWith parser input =
-  case parseWith parser input of
+unsafeParseWith' :: (DesugarableInitially a, CheckableSyntaxInitially a) => Bool -> ([Token] -> Either String a) -> String -> a
+unsafeParseWith' doDesugar parser input =
+  case parseWith' doDesugar parser input of
     Left parseError -> error parseError
     Right object -> object
 
-printTreeDontSugar :: (Pretty a) => a -> String
-printTreeDontSugar =
+unsafeParseWithDesugar :: (DesugarableInitially a, CheckableSyntaxInitially a) => ([Token] -> Either String a) -> String -> a
+unsafeParseWithDesugar = unsafeParseWith' True
+
+unsafeParseWithNoDesugar :: (DesugarableInitially a, CheckableSyntaxInitially a) => ([Token] -> Either String a) -> String -> a
+unsafeParseWithNoDesugar = unsafeParseWith' False
+
+instance IsString Program where fromString = unsafeParseWithDesugar pProgram
+instance IsString Object where fromString = unsafeParseWithDesugar pObject
+instance IsString Binding where fromString = unsafeParseWithDesugar pBinding
+instance IsString Attribute where fromString = unsafeParseWithDesugar pAttribute
+instance IsString AttributeSugar where fromString = unsafeParseWithDesugar pAttributeSugar
+instance IsString RuleAttribute where fromString = unsafeParseWithDesugar pRuleAttribute
+instance IsString PeeledObject where fromString = unsafeParseWithDesugar pPeeledObject
+instance IsString ObjectHead where fromString = unsafeParseWithDesugar pObjectHead
+instance IsString MetaId where fromString = unsafeParseWithDesugar pMetaId
+
+newtype NoDesugar a = NoDesugar {noDesugar :: a} deriving stock (Show)
+
+instance IsString (NoDesugar Program) where fromString = NoDesugar . unsafeParseWithNoDesugar pProgram
+instance IsString (NoDesugar Object) where fromString = NoDesugar . unsafeParseWithNoDesugar pObject
+instance IsString (NoDesugar Binding) where fromString = NoDesugar . unsafeParseWithNoDesugar pBinding
+instance IsString (NoDesugar Attribute) where fromString = NoDesugar . unsafeParseWithNoDesugar pAttribute
+instance IsString (NoDesugar AttributeSugar) where fromString = NoDesugar . unsafeParseWithNoDesugar pAttributeSugar
+instance IsString (NoDesugar RuleAttribute) where fromString = NoDesugar . unsafeParseWithNoDesugar pRuleAttribute
+instance IsString (NoDesugar PeeledObject) where fromString = NoDesugar . unsafeParseWithNoDesugar pPeeledObject
+instance IsString (NoDesugar ObjectHead) where fromString = NoDesugar . unsafeParseWithNoDesugar pObjectHead
+instance IsString (NoDesugar MetaId) where fromString = NoDesugar . unsafeParseWithNoDesugar pMetaId
+
+printTreeNoSugar :: (Pretty a) => a -> String
+printTreeNoSugar =
   T.unpack
     . renderStrict
     . layoutPretty defaultLayoutOptions{layoutPageWidth = Unbounded}
@@ -783,7 +931,7 @@ printTreeDontSugar =
 -- | The top-level printing method.
 printTree :: (Pretty a, SugarableFinally a) => a -> String
 printTree =
-  printTreeDontSugar
+  printTreeNoSugar
     . sugarFinally
 
 -- >>> bytesToInt "00-00-00-00-00-00-00-00"

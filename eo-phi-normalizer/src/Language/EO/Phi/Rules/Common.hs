@@ -53,6 +53,7 @@ import Language.EO.Phi.Syntax (
   desugar,
   errorExpectedDesugaredBinding,
   errorExpectedDesugaredObject,
+  isRhoBinding,
   printTree,
   pattern AlphaBinding',
   pattern AlphaBinding'',
@@ -173,7 +174,7 @@ withSubObjectBindings f ctx (b : bs) =
 withSubObjectBinding :: (Context -> Object -> [(String, Object)]) -> Context -> Binding -> [(String, Binding)]
 withSubObjectBinding f ctx = \case
   AlphaBinding' a obj -> propagateName1 (AlphaBinding' a) <$> withSubObject f (ctx{currentAttr = a}) obj
-  b@AlphaBinding{} -> errorExpectedDesugaredBinding b
+  b@AlphaBinding''{} -> errorExpectedDesugaredBinding b
   b@AlphaBindingSugar{} -> errorExpectedDesugaredBinding b
   EmptyBinding{} -> []
   DeltaBinding{} -> []
@@ -232,7 +233,8 @@ objectSize = \case
 
 bindingSize :: Binding -> Int
 bindingSize = \case
-  AlphaBinding _attr obj -> objectSize obj
+  AlphaBinding' _attr obj -> objectSize obj
+  b@AlphaBinding''{} -> errorExpectedDesugaredBinding b
   EmptyBinding _attr -> 1
   DeltaBinding _bytes -> 1
   DeltaEmptyBinding -> 1
@@ -425,10 +427,6 @@ objectBindings (Formation bs) = bs
 objectBindings (Application obj bs) = objectBindings obj ++ bs
 objectBindings (ObjectDispatch obj _attr) = objectBindings obj
 objectBindings _ = []
-
-isRhoBinding :: Binding -> Bool
-isRhoBinding (AlphaBinding' Rho _) = True
-isRhoBinding _ = False
 
 hideRhoInBinding :: Binding -> Binding
 hideRhoInBinding = \case

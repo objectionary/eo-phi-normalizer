@@ -35,7 +35,7 @@ import Data.Char (isSpace)
 import Data.List (dropWhileEnd)
 import Data.String (IsString (..))
 import Data.Yaml (decodeFileThrow)
-import Language.EO.Phi (Binding (..), Object, Program (..), normalize, printTree)
+import Language.EO.Phi (Binding (..), DesugarableInitially (..), Object, Program (..), normalize, printTree, printTreeNoSugar)
 import Language.EO.Phi.Metrics.Collect (getProgramMetrics)
 import Language.EO.Phi.Metrics.Data (BindingsByPathMetrics (..), ProgramMetrics (..))
 import Language.EO.Phi.Rules.Common (equalProgram)
@@ -57,13 +57,16 @@ spec = do
     forM_ phiTests $ \PhiTestGroup{..} ->
       describe title $
         forM_ tests $
-          \PhiTest{..} -> do
-            describe "normalize" $
-              it name $
-                normalize input `shouldSatisfy` equalProgram normalized
-            describe "pretty-print" $
-              it name $
-                printTree input `shouldBe` trim prettified
+          \test -> do
+            describe test.name do
+              it "normalized value" do
+                normalize test.input `shouldSatisfy` equalProgram test.normalized
+              it "no sugar" do
+                printTreeNoSugar test.input `shouldBe` printTreeNoSugar (desugarInitially test.normalized)
+              it "sugar" do
+                printTree test.input `shouldBe` printTree test.normalized
+              it "pretty-print" do
+                printTree test.input `shouldBe` trim test.prettified
   describe "Metrics" $ do
     metricsTests <- runIO $ decodeFileThrow @_ @MetricsTestSet "test/eo/phi/metrics.yaml"
     forM_ metricsTests.tests $ \test -> do

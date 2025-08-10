@@ -23,13 +23,16 @@
 {- FOURMOLU_ENABLE -}
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DeriveGeneric #-}
+{-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE OverloadedLabels #-}
 {-# LANGUAGE OverloadedRecordDot #-}
 {-# LANGUAGE QuasiQuotes #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE StandaloneDeriving #-}
 {-# LANGUAGE TypeApplications #-}
 {-# OPTIONS_GHC -Wno-forall-identifier #-}
 {-# OPTIONS_GHC -Wno-orphans #-}
@@ -61,6 +64,7 @@ import PyF (fmt)
 -- >>> :set -XOverloadedStrings
 -- >>> :set -XOverloadedLists
 
+instance FromJSON Program where parseJSON = fmap fromString . parseJSON
 instance FromJSON Object where parseJSON = fmap fromString . parseJSON
 instance FromJSON Binding where parseJSON = fmap fromString . parseJSON
 
@@ -78,6 +82,11 @@ instance FromJSON RuleAttribute where parseJSON = fmap fromString . parseJSON
 
 instance FromJSON LabelId
 instance FromJSON AlphaIndex
+
+deriving newtype instance FromJSON Bytes
+
+instance FromJSON (NoDesugar Program) where parseJSON = fmap fromString . parseJSON
+instance FromJSON (NoDesugar Object) where parseJSON = fmap fromString . parseJSON
 
 data RuleSet = RuleSet
   { title :: String
@@ -97,8 +106,8 @@ data Rule = Rule
   , description :: String
   , context :: Maybe RuleContext
   , forall :: Maybe [MetaId]
-  , pattern :: Object
-  , result :: Object
+  , pattern :: NoDesugar Object
+  , result :: NoDesugar Object
   , fresh :: Maybe [FreshMetaId]
   , when :: Maybe [Condition]
   , tests :: Maybe [RuleTest]
@@ -122,6 +131,7 @@ data RuleTest = RuleTest
 newtype RuleTestOption = TakeOne {take_one :: Bool}
   -- deriving (Generic, Show, FromJSON)
   deriving (Eq, Generic, Show)
+
 instance FromJSON RuleTestOption where
   parseJSON = genericParseJSON defaultOptions{sumEncoding = UntaggedValue}
 
@@ -130,6 +140,7 @@ data AttrsInBindings = AttrsInBindings
   , bindings :: [Binding]
   }
   deriving (Generic, Show, FromJSON)
+
 data Condition
   = IsNF {nf :: Object}
   | IsNFInsideFormation {nf_inside_formation :: Object}
@@ -139,6 +150,7 @@ data Condition
   | ApplyInSubformations {apply_in_subformations :: Bool}
   | ApplyInAbstractSubformations {apply_in_abstract_subformations :: Bool}
   deriving (Generic, Show)
+
 instance FromJSON Condition where
   parseJSON = genericParseJSON defaultOptions{sumEncoding = UntaggedValue}
 
@@ -153,8 +165,8 @@ convertRule Rule{..} ctx obj = do
         Set.mapMonotonic MetaIdLabel $
           foldMap (Set.fromList . map (\FreshMetaId{name = x} -> x)) fresh
 
-      patternMetaIds = objectMetaIds pattern
-      resultMetaIds = objectMetaIds result
+      patternMetaIds = objectMetaIds pattern.noDesugar
+      resultMetaIds = objectMetaIds result.noDesugar
 
       unusedFreshMetaIds = Set.difference freshMetaIds resultMetaIds
 
@@ -179,8 +191,8 @@ convertRule Rule{..} ctx obj = do
         error ("invalid rule: result uses meta variables not quantified by the forall or the fresh: " <> ppMetaIds unquantifiedResultMetaIds)
 
   contextSubsts <- matchContext ctx context
-  let pattern' = applySubst contextSubsts pattern
-      result' = applySubst contextSubsts result
+  let pattern' = applySubst contextSubsts pattern.noDesugar
+      result' = applySubst contextSubsts result.noDesugar
   subst <- matchObject pattern' obj
   guard $ all (\cond -> checkCond ctx cond (contextSubsts <> subst)) (fromMaybe [] when)
   let substFresh = mkFreshSubst ctx result' fresh
@@ -249,7 +261,7 @@ objectLabelIds = \case
 bindingLabelIds :: Binding -> Set LabelId
 bindingLabelIds = \case
   AlphaBinding' a obj -> objectLabelIds obj <> attrLabelIds a
-  b@AlphaBinding{} -> errorExpectedDesugaredBinding b
+  b@AlphaBinding''{} -> errorExpectedDesugaredBinding b
   DeltaBinding _bytes -> mempty
   EmptyBinding a -> attrLabelIds a
   DeltaEmptyBinding -> mempty
@@ -301,7 +313,7 @@ objectMetaIds obj@ConstFloatRaw{} = errorExpectedDesugaredObject obj
 
 bindingMetaIds :: Binding -> Set MetaId
 bindingMetaIds (AlphaBinding' attr obj) = attrMetaIds attr <> objectMetaIds obj
-bindingMetaIds b@AlphaBinding{} = errorExpectedDesugaredBinding b
+bindingMetaIds b@AlphaBinding''{} = errorExpectedDesugaredBinding b
 bindingMetaIds (EmptyBinding attr) = attrMetaIds attr
 bindingMetaIds (DeltaBinding _) = mempty
 bindingMetaIds DeltaEmptyBinding = mempty
@@ -419,6 +431,7 @@ data Subst = Subst
   , bytesMetas :: [(BytesMetaId, Bytes)]
   , contextMetas :: [(TailMetaId, OneHoleContext)]
   }
+
 instance Show Subst where
   show Subst{..} =
     intercalate
@@ -486,7 +499,7 @@ applySubstBinding :: Subst -> Binding -> [Binding]
 applySubstBinding subst@Subst{..} = \case
   AlphaBinding' a obj ->
     [AlphaBinding' (applySubstAttr subst a) (applySubst subst obj)]
-  b@AlphaBinding{} -> errorExpectedDesugaredBinding b
+  b@AlphaBinding''{} -> errorExpectedDesugaredBinding b
   EmptyBinding a ->
     [EmptyBinding (applySubstAttr subst a)]
   DeltaBinding bytes -> [DeltaBinding (coerce bytes)]
@@ -674,6 +687,7 @@ substThis thisObj = go
 substThisBinding :: Object -> Binding -> Binding
 substThisBinding obj = \case
   AlphaBinding a obj' -> AlphaBinding a (substThis obj obj')
+  b@AlphaBinding''{} -> errorExpectedDesugaredBinding b
   EmptyBinding a -> EmptyBinding a
   DeltaBinding bytes -> DeltaBinding bytes
   DeltaEmptyBinding -> DeltaEmptyBinding
@@ -682,15 +696,26 @@ substThisBinding obj = \case
   b@MetaDeltaBinding{} -> error ("impossible: trying to substitute ξ in " <> printTree b)
   b@AlphaBindingSugar{} -> errorExpectedDesugaredBinding b
 
-contextualize :: Object -> Object -> Object
+contextualize ::
+  -- | current object
+  Object ->
+  -- | expression
+  Object ->
+  Object
 contextualize thisObj = go
  where
   go = \case
-    ThisObject -> thisObj -- ξ is substituted
+    -- C1
+    -- TODO #651:10m Currently, causes infinite recursion. Create an issue. Maybe need to add functionality to the rules to check that contextualization result can be rewritten to a normal form.
+    GlobalObject -> GlobalObject
+    -- C2
+    ThisObject -> thisObj
+    -- C3
     obj@(Formation _bindings) -> obj
+    -- C4
     ObjectDispatch obj a -> ObjectDispatch (go obj) a
+    -- C5
     Application obj bindings -> Application (go obj) (map (contextualizeBinding thisObj) bindings)
-    GlobalObject -> GlobalObject -- TODO: Change to what GlobalObject is attached to
     obj@GlobalObjectPhiOrg -> errorExpectedDesugaredObject obj
     Termination -> Termination
     obj@MetaTailContext{} -> error ("impossible: trying to contextualize " <> printTree obj)
@@ -708,6 +733,7 @@ contextualize thisObj = go
 contextualizeBinding :: Object -> Binding -> Binding
 contextualizeBinding obj = \case
   AlphaBinding a obj' -> AlphaBinding a (contextualize obj obj')
+  b@AlphaBinding''{} -> errorExpectedDesugaredBinding b
   EmptyBinding a -> EmptyBinding a
   DeltaBinding bytes -> DeltaBinding bytes
   DeltaEmptyBinding -> DeltaEmptyBinding
